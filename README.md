@@ -10,3 +10,18 @@ A focused DJ application for swing-dance DJing, without the clutter of club-DJ s
 - SQLite — library, play history, notes
 
 BASS is used under its free non-commercial license (personal use only).
+
+## Layout
+
+- `src/GZJam.Audio` — audio engine: devices, decks (tempo/key-lock), BPM detection
+- `src/GZJam.AudioSpike` — throwaway console harness for testing the engine
+- `lib/bass/<rid>` — native BASS + BASS_FX libraries (x64), copied to output at build
+
+## Audio spike
+
+```
+dotnet run --project src/GZJam.AudioSpike
+```
+
+Type `devices`, then `main <#>` and `cue <#>` to route the decks (remembered between runs),
+then `load m <file>` / `load c <file>`. Type `help` for all commands.
