@@ -144,14 +144,29 @@ is out of scope until it earns a place.
   the ⋮⋮ handle; swiping elsewhere scrolls. With a mouse, dragging works from anywhere.
 - **No hover-only features.** Anything needed during a set is visible without a mouse;
   tooltips are extras, never the only way to discover something.
-- **Finger-sized targets** (about 44 px): a touch-friendly sizing with taller rows, a roomier
-  folder tree and bigger buttons.
+- **Touch works everywhere, all the time.** Gestures (long-press, swipes, drag handles) never
+  depend on a mode.
+- **"Touch mode" is a manual toggle that mostly resizes**: finger-sized targets (about 44 px),
+  taller rows, a roomier folder tree, bigger buttons. Sizes come from a shared set of
+  size resources, so the toggle swaps one set for another rather than restyling each control.
+  New controls (from step 2 on) take their sizes from those resources.
+- **Why it matters:** today the DJ works mostly by trackpad, which can be unreliable mid-set;
+  touch is meant to be the more dependable option.
 - **Deck controls designed for fingers** (step 2): large play/pause, a big crossfader handle,
   tap the readout to cycle it, drag on the cue deck's waveform to scrub.
 - **Accidental touches on the live deck are guarded.** Deck protection already blocks loads;
   pausing or stopping the live deck should also need a deliberate action (setting).
 
 ### Future tablet version (not planned yet, but don't paint ourselves into a corner)
+
+- **iPad first**, then probably Android too.
+- Keep platform-specific code at the edges: view models, library and audio engine stay free of
+  Windows-only APIs (opening Explorer, folder watching, file pickers sit behind small seams).
+- Building for iPad needs a Mac with Xcode and an Apple Developer account ($99/year) to install
+  beyond 7-day test builds.
+- BASS licensing: free as long as GZJam makes no money (no sales, no ads), on iPad too. If it
+  is ever sold, licences are per platform (e.g. iOS single commercial €475, or the €125 shareware
+  licence for low-priced apps). Checked against un4seen.com, October 2026.
 
 - Avalonia runs on iPad and Android, and BASS has iOS and Android builds, so the engine and most
   of the UI could be shared.
@@ -172,9 +187,5 @@ is out of scope until it earns a place.
 
 ## Open questions
 
-- Touch sizing: switch automatically when the screen is touched, a manual "touch mode" toggle,
-  or always touch-sized?
-- At a gig, which controls are used by finger and which by trackpad/mouse?
-- Tablet: iPad or Android?
 
 - What worked well in BPM Studio that should carry over?
