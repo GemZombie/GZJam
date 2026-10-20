@@ -16,13 +16,12 @@ public partial class MainWindow : Window
     internal sealed record TrackDrag(IReadOnlyList<Track> Tracks, IReadOnlyList<QueueItem>? FromQueue);
 
     internal static readonly DataFormat<TrackDrag> TrackFormat = DataFormat.CreateInProcessFormat<TrackDrag>("GZJam.Tracks");
-    private const double DragThreshold = 6;
-
     // A drag must start from the original press event, so keep it until the pointer moves far enough.
     private PointerPressedEventArgs? _gridPress;
     private Point _gridPressPoint;
     private PointerPressedEventArgs? _queuePress;
     private Point _queuePressPoint;
+    private bool _queuePressOnHandle;
 
     private PixelPoint _normalPosition;
     private Size _normalSize;
@@ -87,8 +86,14 @@ public partial class MainWindow : Window
             _gridPress = null;
             return;
         }
-        if (Distance(point.Position, _gridPressPoint) < DragThreshold)
-            return;
+        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - _gridPressPoint, fromHandle: false))
+        {
+            case DragIntent.Decision.Wait:
+                return;
+            case DragIntent.Decision.Cancel:
+                _gridPress = null;   // a touch scroll, not a drag
+                return;
+        }
 
         _gridPress = null;
         var tracks = SelectedTracks();
@@ -183,6 +188,7 @@ public partial class MainWindow : Window
         {
             _queuePress = e;
             _queuePressPoint = point.Position;
+            _queuePressOnHandle = (e.Source as Control)?.FindAncestorOfType<Border>(includeSelf: true) is { } border && border.Classes.Contains("grip");
         }
     }
 
@@ -196,8 +202,14 @@ public partial class MainWindow : Window
             _queuePress = null;
             return;
         }
-        if (Distance(point.Position, _queuePressPoint) < DragThreshold)
-            return;
+        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - _queuePressPoint, _queuePressOnHandle))
+        {
+            case DragIntent.Decision.Wait:
+                return;
+            case DragIntent.Decision.Cancel:
+                _queuePress = null;
+                return;
+        }
 
         _queuePress = null;
         var items = SelectedQueueItems();
@@ -323,6 +335,4 @@ public partial class MainWindow : Window
         _normalPosition = Position;
         _normalSize = new Size(Width, Height);
     }
-
-    private static double Distance(Point a, Point b) => Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
 }

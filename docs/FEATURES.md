@@ -129,6 +129,37 @@ is out of scope until it earns a place.
 - The engine needs a mixer stage to do this (a deck may feed main, cue, or both), most likely
   the BASSmix add-on. The current prototype binds each deck to a single device.
 
+## Touch
+
+### Requirements (from the DJ)
+
+- **The DJ uses a touchscreen laptop.** Touch must be first-class, not an afterthought.
+- A **tablet version** is a possible future direction.
+
+### Design decisions
+
+- **Every action works by touch.** Long-press acts as right-click (opens the context menu).
+- **Swipes don't fight scrolling** *(built)*. In the library list a vertical swipe scrolls and a
+  sideways swipe (towards the queue and decks) drags the track. In the queue, reorder by dragging
+  the ⋮⋮ handle; swiping elsewhere scrolls. With a mouse, dragging works from anywhere.
+- **No hover-only features.** Anything needed during a set is visible without a mouse;
+  tooltips are extras, never the only way to discover something.
+- **Finger-sized targets** (about 44 px): a touch-friendly sizing with taller rows, a roomier
+  folder tree and bigger buttons.
+- **Deck controls designed for fingers** (step 2): large play/pause, a big crossfader handle,
+  tap the readout to cycle it, drag on the cue deck's waveform to scrub.
+- **Accidental touches on the live deck are guarded.** Deck protection already blocks loads;
+  pausing or stopping the live deck should also need a deliberate action (setting).
+
+### Future tablet version (not planned yet, but don't paint ourselves into a corner)
+
+- Avalonia runs on iPad and Android, and BASS has iOS and Android builds, so the engine and most
+  of the UI could be shared.
+- **Tablets usually have one audio output.** Headphone cue would need either a USB interface
+  with two outputs, or a **split output** mode (main in mono on the left channel, cue on the right,
+  via a splitter cable), as DJay Pro does. The step-2 mixer should allow for split output.
+- A tablet library can't simply mirror a Windows folder tree; storage works differently there.
+
 ## Look and feel
 
 - **The UI must look good.** This is the part of DJay Pro and similar apps worth keeping:
@@ -140,5 +171,10 @@ is out of scope until it earns a place.
   left) may be revisited once it's on screen in the real app.
 
 ## Open questions
+
+- Touch sizing: switch automatically when the screen is touched, a manual "touch mode" toggle,
+  or always touch-sized?
+- At a gig, which controls are used by finger and which by trackpad/mouse?
+- Tablet: iPad or Android?
 
 - What worked well in BPM Studio that should carry over?

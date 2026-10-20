@@ -222,11 +222,15 @@
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
-                  <Grid ColumnDefinitions="12,20,*,Auto" ColumnSpacing="8" Margin="8,7" Background="Transparent">
-                    <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" VerticalAlignment="Center" />
+                  <Grid ColumnDefinitions="Auto,20,*,Auto" ColumnSpacing="6" Margin="0,0,8,0" Background="Transparent">
+                    <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
+                    <Border Classes="grip" Background="Transparent" Width="26" Cursor="SizeAll"
+                            ToolTip.Tip="Drag to reorder">
+                      <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
                     <TextBlock Grid.Column="1" Classes="dim mono" Text="{Binding Number}" FontSize="11"
                                HorizontalAlignment="Right" VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,7">
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
                       <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
