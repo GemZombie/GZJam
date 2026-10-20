@@ -61,6 +61,7 @@ public sealed class ScreenshotTests
         vm.LoadToDeckAsync(vm.DeckB!, tracks[2]).GetAwaiter().GetResult();
         vm.DeckA!.TogglePlayCommand.Execute(null);
         vm.DeckB!.TempoPercent = -2.5;
+        vm.DeckB.IsCueOn = true;
         vm.DeckB.TogglePlayCommand.Execute(null);
         app.Play(25);
         vm.DeckB.SeekTo(0.6);

@@ -28,7 +28,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             foreach (DeckViewModel deck in Decks)
-                deck.Deck.Finished += (_, _) => deck.Refresh();
+                deck.Deck.Finished += (_, _) =>
+                {
+                    Log.Info($"Deck {deck.Letter}: finished \"{deck.Title}\"");
+                    deck.Refresh();
+                };
             Mixer = new MixerViewModel(this, mix);
             Preview = new PreviewViewModel(this, mix.Preview);
         }
@@ -107,6 +111,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             Mix.SetOutputs(main, cue);
+            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}], cue = {cue?.Name ?? "none"} [{cue?.Driver}]");
             if (remember)
             {
                 _settings.MainDevice = main?.Preference;
@@ -115,6 +120,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (AudioException ex)
         {
+            Log.Error("Couldn't open output", ex);
             ShowNotice($"Couldn't open that output: {ex.Message}");
         }
         OnPropertyChanged(nameof(MainOutputName));
@@ -142,10 +148,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             switch (_settings.LoadOntoPlayingDeck)
             {
                 case PlayingDeckLoad.Block:
+                    Log.Info($"Deck {deck.Letter}: refused load of \"{track.DisplayTitle}\" (deck is playing)");
                     ShowNotice($"Deck {deck.Letter} is playing. Pause it first to load a new track.");
                     return false;
                 case PlayingDeckLoad.Ask:
-                    string where = deck.IsOnAir ? " to the room" : " in your headphones";
+                    string where = deck.IsOnAir ? " to the room" : "";
                     if (ConfirmAsync is null || !await ConfirmAsync(
                             $"Replace the track on Deck {deck.Letter}?",
                             $"\"{deck.Title}\" is still playing{where}. Loading \"{track.DisplayTitle}\" will stop it."))
@@ -161,6 +168,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (AudioException ex)
         {
+            Log.Error($"Couldn't load {track.Path}", ex);
             ShowNotice($"Couldn't load {track.DisplayTitle}: {ex.Message}");
             return false;
         }

@@ -6,8 +6,8 @@ namespace GZJam.Audio;
 
 /// <summary>
 /// One track player. The file is decoded through a BASS_FX tempo stream (tempo changes keep the
-/// pitch), then split so the same audio feeds both the main and the cue bus; the crossfader sets
-/// each split's volume.
+/// pitch), then split so the same audio feeds both the main and the cue bus. The crossfader sets
+/// the main split's volume; <see cref="Cue"/> switches the cue split on or off.
 /// </summary>
 public sealed class Deck : IDisposable
 {
@@ -19,7 +19,8 @@ public sealed class Deck : IDisposable
     private bool _ended;
     private double _tempoPercent;
     private double _volume = 1;
-    private double _mainGain, _cueGain;
+    private double _mainGain;
+    private bool _cue;
     private long _fadeStarted;
     private TimeSpan? _fadeLength;
 
@@ -173,13 +174,23 @@ public sealed class Deck : IDisposable
     /// <summary>How much of this deck the speakers get (0..1), from the crossfader.</summary>
     public double MainGain => _mainGain;
 
-    /// <summary>How much of this deck the headphones get (0..1), from the crossfader.</summary>
-    public double CueGain => _cueGain;
+    /// <summary>Whether the room can hear this deck (when it's playing).</summary>
+    public bool IsInRoom => _mainGain > 0.05;
 
-    internal void SetRouting(double mainGain, double cueGain)
+    /// <summary>Send this deck to the headphones (the cue button). Independent of the crossfader.</summary>
+    public bool Cue
+    {
+        get => _cue;
+        set
+        {
+            _cue = value;
+            ApplyVolumes();
+        }
+    }
+
+    internal void SetMainGain(double mainGain)
     {
         _mainGain = mainGain;
-        _cueGain = cueGain;
         ApplyVolumes();
     }
 
@@ -268,7 +279,7 @@ public sealed class Deck : IDisposable
             return;
         double level = _volume * FadeFactor;
         Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
-        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, _cueGain * level);
+        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, _cue ? level : 0);
     }
 
     private void ApplyTempo()

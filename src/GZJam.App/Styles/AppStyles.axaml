@@ -183,11 +183,30 @@
   <Style Selector="Border.pill.air > TextBlock">
     <Setter Property="Foreground" Value="White" />
   </Style>
-  <Style Selector="Border.pill.cue">
-    <Setter Property="Background" Value="{StaticResource DeckBSoftBrush}" />
+  <Style Selector="Border.pill.offair > TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
   </Style>
-  <Style Selector="Border.pill.cue > TextBlock">
-    <Setter Property="Foreground" Value="{StaticResource DeckBBrush}" />
+
+  <!-- Per-deck cue (headphones) toggle; lit amber when on -->
+  <Style Selector="ToggleButton.cue-button">
+    <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
+    <Setter Property="Padding" Value="11,0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.cue-button:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource DeckBBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource DeckBBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.cue-button:checked">
+    <Setter Property="Foreground" Value="#111" />
+  </Style>
+  <Style Selector="ToggleButton.cue-button:checked:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#FFB84A" />
   </Style>
 
   <Style Selector="Border.hint">
@@ -236,6 +255,10 @@
         <BrushTransition Property="Background" Duration="0:0:0.6" />
       </Transitions>
     </Setter>
+  </Style>
+  <!-- First of two taps to pause an on-air deck: waiting for the second -->
+  <Style Selector="Button.play.armed /template/ ContentPresenter">
+    <Setter Property="Background" Value="#66F04444" />
   </Style>
   <Style Selector="Button.play:disabled">
     <Setter Property="Opacity" Value="0.35" />

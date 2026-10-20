@@ -4,9 +4,10 @@ using ManagedBass.Mix;
 namespace GZJam.Audio;
 
 /// <summary>
-/// The DJ mixer: decks and a headphone preview player, routed to a main (speakers) bus and a cue
-/// (headphones) bus by the crossfader. Every deck feeds both buses at all times; the crossfader
-/// only changes how loud each deck is in each, so moving it never interrupts playback.
+/// The DJ mixer: decks and a headphone preview player, feeding a main (speakers) bus and a cue
+/// (headphones) bus. Every deck feeds both buses at all times: the crossfader sets how loud each
+/// deck is in the room, and each deck's cue button sets whether it's in the headphones. Neither
+/// interrupts playback.
 /// Call <see cref="Update"/> regularly (the UI does ~30 times a second) to run fades and detect
 /// tracks ending.
 /// </summary>
@@ -56,7 +57,7 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    /// <summary>The deck the room is hearing: the one the crossfader leans towards (A at dead centre).</summary>
+    /// <summary>The deck the crossfader leans towards (A at dead centre). Both may be audible in a blend.</summary>
     public Deck LiveDeck => Decks.MaxBy(d => Crossfade.Audibility(d.Index, _crossfader))!;
 
     /// <summary>
@@ -109,8 +110,7 @@ public sealed class MixEngine : IDisposable
     {
         foreach (Deck deck in Decks)
         {
-            double audibility = Crossfade.Audibility(deck.Index, _crossfader);
-            deck.SetRouting(Crossfade.MainGain(audibility), Crossfade.CueGain(audibility));
+            deck.SetMainGain(Crossfade.MainGain(Crossfade.Audibility(deck.Index, _crossfader)));
         }
     }
 

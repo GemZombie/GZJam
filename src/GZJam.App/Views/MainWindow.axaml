@@ -88,7 +88,7 @@
                 <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding LoadChoices}" SelectedItem="{Binding LoadChoice}" />
               </StackPanel>
               <StackPanel Spacing="4">
-                <TextBlock Text="Pausing the live deck" FontSize="12" Classes="muted" />
+                <TextBlock Text="Pausing a deck the room is hearing" FontSize="12" Classes="muted" />
                 <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding PauseChoices}" SelectedItem="{Binding PauseChoice}" />
               </StackPanel>
               <Grid ColumnDefinitions="*,Auto">
@@ -131,7 +131,7 @@
           <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
             <TextBlock Classes="label" HorizontalAlignment="Center" Text="{Binding LiveText}" />
             <Slider x:Name="Crossfader" Classes="crossfader" Minimum="0" Maximum="1" Value="{Binding Crossfader}"
-                    SmallChange="0.05" LargeChange="0.25" ToolTip.Tip="Crossfader: the room hears one side, your headphones the other" />
+                    SmallChange="0.05" LargeChange="0.25" ToolTip.Tip="Crossfader: fades the room between Deck A and Deck B" />
             <Grid ColumnDefinitions="Auto,*,Auto">
               <Button Classes="side" Content="A" Command="{Binding SnapToACommand}"
                       Foreground="{StaticResource DeckABrush}" ToolTip.Tip="Switch the room to Deck A" />

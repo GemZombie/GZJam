@@ -37,7 +37,7 @@ public sealed class MixEngineTests : IDisposable
     private (float Main, float Cue) Render(double seconds = 0.3) => _mix.Render(TimeSpan.FromSeconds(seconds));
 
     [Fact]
-    public void Live_deck_plays_to_the_speakers_only()
+    public void The_deck_the_crossfader_is_on_plays_to_the_room()
     {
         _mix.Crossfader = 0;
         A.Load(_tone);
@@ -46,12 +46,13 @@ public sealed class MixEngineTests : IDisposable
         var (main, cue) = Render();
 
         Assert.Equal(Full, main, 0.02f);
-        Assert.InRange(cue, 0, Silent);
+        Assert.InRange(cue, 0, Silent);   // headphones only hear decks with cue on
         Assert.Same(A, _mix.LiveDeck);
+        Assert.True(A.IsInRoom);
     }
 
     [Fact]
-    public void The_other_deck_plays_to_the_headphones_only()
+    public void The_other_deck_is_silent_in_the_room()
     {
         _mix.Crossfader = 0;
         B.Load(_tone);
@@ -60,23 +61,47 @@ public sealed class MixEngineTests : IDisposable
         var (main, cue) = Render();
 
         Assert.InRange(main, 0, Silent);
-        Assert.Equal(Full, cue, 0.02f);
+        Assert.InRange(cue, 0, Silent);
+        Assert.False(B.IsInRoom);
     }
 
     [Fact]
-    public void Moving_the_crossfader_swaps_the_routing_without_stopping()
+    public void Cue_sends_a_deck_to_the_headphones_whatever_the_crossfader()
+    {
+        A.Load(_tone);
+        A.Cue = true;
+        A.Play();
+
+        _mix.Crossfader = 0;
+        Render(0.1);
+        Assert.Equal((Full, Full), Round(Render()));
+
+        _mix.Crossfader = 1;   // out of the room, still in the headphones
+        Render(0.1);           // the mixer ramps volume changes briefly, which avoids clicks
+        var (main, cue) = Render();
+        Assert.InRange(main, 0, Silent);
+        Assert.Equal(Full, cue, 0.02f);
+
+        A.Cue = false;
+        Render(0.1);
+        Assert.InRange(Render().Cue, 0, Silent);
+        Assert.True(A.IsPlaying);
+    }
+
+    [Fact]
+    public void Moving_the_crossfader_fades_the_room_without_stopping()
     {
         A.Load(_tone);
         A.Play();
         Render();
 
         _mix.Crossfader = 1;
-        Render(0.1);   // the mixer ramps volume changes briefly, which avoids clicks
-        var (main, cue) = Render();
+        Render(0.1);
+        var (main, _) = Render();
 
         Assert.InRange(main, 0, Silent);
-        Assert.Equal(Full, cue, 0.02f);
         Assert.True(A.IsPlaying);
+        Assert.False(A.IsInRoom);
         Assert.Same(B, _mix.LiveDeck);
     }
 
@@ -86,12 +111,18 @@ public sealed class MixEngineTests : IDisposable
         _mix.Crossfader = 0.5;
         A.Load(_tone);
         A.Play();
+        B.Load(_tone);
 
         var (main, cue) = Render();
 
         Assert.Equal(Full * 0.707f, main, 0.02f);
-        Assert.Equal(Full * 0.707f, cue, 0.02f);
+        Assert.InRange(cue, 0, Silent);
+        Assert.True(A.IsInRoom);
+        Assert.True(B.IsInRoom);
     }
+
+    private static (float, float) Round((float Main, float Cue) levels) =>
+        (MathF.Round(levels.Main * 50) / 50, MathF.Round(levels.Cue * 50) / 50);
 
     [Fact]
     public void Loaded_but_paused_decks_are_silent()
@@ -224,14 +255,11 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Theory]
-    [InlineData(0.0, 0.0, 1.0)]   // fader away from the deck: headphones only
-    [InlineData(1.0, 1.0, 0.0)]   // fader on the deck: speakers only
-    [InlineData(0.5, 0.707, 0.707)]
-    public void Crossfade_curve(double audibility, double main, double cue)
-    {
+    [InlineData(0.0, 0.0)]     // fader away from the deck: silent in the room
+    [InlineData(1.0, 1.0)]     // fader on the deck: full
+    [InlineData(0.5, 0.707)]   // equal power in the middle
+    public void Crossfade_curve(double audibility, double main) =>
         Assert.Equal(main, Crossfade.MainGain(audibility), 3);
-        Assert.Equal(cue, Crossfade.CueGain(audibility), 3);
-    }
 }
 
 [CollectionDefinition("BASS", DisableParallelization = true)]

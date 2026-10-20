@@ -15,8 +15,8 @@
           <TextBlock Text="{Binding Letter}" />
         </Border>
         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-          <Border Classes="pill" Classes.air="{Binding IsOnAir}" Classes.cue="{Binding IsCue}"
-                  IsVisible="{Binding HasTrack}" HorizontalAlignment="Left">
+          <Border Classes="pill" Classes.air="{Binding IsOnAir}" Classes.offair="{Binding IsOffAir}"
+                  IsVisible="{Binding IsPlaying}" HorizontalAlignment="Left">
             <TextBlock Text="{Binding Status}" />
           </Border>
           <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
@@ -34,7 +34,7 @@
         </Button>
       </Grid>
 
-      <!-- Position (waveform later). Seeking is blocked while the deck is on air. -->
+      <!-- Position (waveform later). Seeking is blocked while the room is hearing the deck. -->
       <Panel Grid.Row="1">
         <c:SeekBar x:Name="Seek" MinHeight="48" Progress="{Binding Progress}" IsEnabled="{Binding CanSeek}"
                    Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
@@ -46,7 +46,8 @@
 
       <!-- Transport and tempo -->
       <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="10">
-        <Button x:Name="PlayButton" Classes="play" Classes.playing="{Binding IsPlaying}"
+        <!-- columns: play, cue, fade, eject (stretches), tempo, BPM -->
+        <Button x:Name="PlayButton" Classes="play" Classes.playing="{Binding IsPlaying}" Classes.armed="{Binding IsPauseArmed}"
                 IsEnabled="{Binding HasTrack}"
                 BorderBrush="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
                 Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
@@ -56,11 +57,20 @@
             <PathIcon Data="{StaticResource IconPause}" Width="16" Height="16" IsVisible="{Binding IsPlaying}" />
           </Panel>
         </Button>
-        <Button Grid.Column="1" Classes="deck-button" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
+        <!-- Cue: this deck in the headphones, whatever the crossfader is doing -->
+        <ToggleButton Grid.Column="1" Classes="cue-button" IsChecked="{Binding IsCueOn}"
+                      ToolTip.Tip="Cue: send this deck to your headphones">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[ToggleButton].Foreground}"
+                  StrokeThickness="2.2" Stretch="Uniform" Width="15" Height="14" VerticalAlignment="Center" />
+            <TextBlock Text="Cue" VerticalAlignment="Center" />
+          </StackPanel>
+        </ToggleButton>
+        <Button Grid.Column="2" Classes="deck-button" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
                 ToolTip.Tip="Fade out and stop (length in Settings)">
           <TextBlock Text="Fade out" />
         </Button>
-        <Button Grid.Column="2" Classes="link" Content="Eject" Command="{Binding EjectCommand}"
+        <Button Grid.Column="3" Classes="link" Content="Eject" Command="{Binding EjectCommand}" HorizontalAlignment="Left"
                 IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
 
         <StackPanel Grid.Column="4" Width="170" VerticalAlignment="Center" Spacing="0">

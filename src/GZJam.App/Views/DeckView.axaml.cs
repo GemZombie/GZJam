@@ -16,18 +16,15 @@ public partial class DeckView : UserControl
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<DeckView, IBrush?>(nameof(Accent));
 
-    /// <summary>How long the live deck's play button must be held to pause it.</summary>
+    /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
     public static readonly TimeSpan HoldToPause = TimeSpan.FromMilliseconds(600);
 
-    private readonly DispatcherTimer _holdTimer;
+    private CancellationTokenSource? _hold;
     private bool _holdCompleted;
 
     public DeckView()
     {
         InitializeComponent();
-        _holdTimer = new DispatcherTimer { Interval = HoldToPause };
-        _holdTimer.Tick += (_, _) => CompleteHold();
-
         Seek.SeekRequested += (_, fraction) => Vm?.SeekTo(fraction);
         PlayButton.AddHandler(PointerPressedEvent, OnPlayPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerReleasedEvent, OnPlayReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -56,16 +53,21 @@ public partial class DeckView : UserControl
         Frame.Classes.Set("drop-blocked", accepted == false);
     }
 
-    // Play/pause: a tap plays or pauses, but the deck the room is dancing to needs a
-    // press-and-hold to pause (unless set to tap in Settings), so a stray touch can't stop the music.
+    // Play/pause: a tap plays or pauses. If Settings asks for two taps on a deck the room is
+    // hearing, a press-and-hold also pauses it (one deliberate gesture instead of two).
 
     private void OnPlayPressed(object? sender, PointerPressedEventArgs e)
     {
         _holdCompleted = false;
-        if (Vm is not { PauseNeedsHold: true })
+        if (Vm is not { PauseNeedsConfirm: true })
             return;
         PlayButton.Classes.Add("holding");
-        _holdTimer.Start();
+        var hold = _hold = new CancellationTokenSource();
+        Task.Delay(HoldToPause, hold.Token).ContinueWith(_ => Dispatcher.UIThread.Post(() =>
+        {
+            if (!hold.IsCancellationRequested)
+                CompleteHold();
+        }), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
     }
 
     private void OnPlayReleased(object? sender, PointerReleasedEventArgs e) => CancelHold();
@@ -79,7 +81,8 @@ public partial class DeckView : UserControl
 
     private void CancelHold()
     {
-        _holdTimer.Stop();
+        _hold?.Cancel();
+        _hold = null;
         PlayButton.Classes.Remove("holding");
     }
 

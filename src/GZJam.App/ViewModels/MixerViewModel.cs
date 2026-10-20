@@ -4,7 +4,7 @@ using GZJam.Audio;
 
 namespace GZJam.App.ViewModels;
 
-/// <summary>The crossfader, which decides what the room hears and what goes to the headphones.</summary>
+/// <summary>The crossfader: fades the room between Deck A and Deck B. The headphones are separate (each deck's cue button).</summary>
 public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine mix) : ObservableObject
 {
     private static readonly TimeSpan SnapTime = TimeSpan.FromMilliseconds(300);
@@ -25,7 +25,8 @@ public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine 
         }
     }
 
-    public string LiveText => $"{mix.LiveDeck.Name} · LIVE";
+    /// <summary>"A · LIVE", "B · LIVE", or "BLEND" when the room hears some of both.</summary>
+    public string LiveText => mix.Crossfader is > 0.03 and < 0.97 ? "BLEND" : $"{mix.LiveDeck.Name} · LIVE";
     public bool IsALive => mix.LiveDeck.Index == 0;
     public bool IsBLive => mix.LiveDeck.Index == 1;
 
@@ -38,6 +39,7 @@ public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine 
 
     private void SnapTo(double target)
     {
+        Log.Info($"Crossfader: switch to {(target == 0 ? "A" : "B")} (from {mix.Crossfader:0.00})");
         _snapFrom = mix.Crossfader;
         _snapTarget = target;
         _snapStarted = TimeProvider.System.GetTimestamp();

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
 using GZJam.Audio;
@@ -16,6 +17,12 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            Log.Start(AppPaths.DataDirectory);
+            Log.Info($"GZJam starting on {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
+            AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error("Unhandled exception", e.ExceptionObject as Exception);
+            TaskScheduler.UnobservedTaskException += (_, e) => Log.Error("Unobserved task exception", e.Exception);
+            Dispatcher.UIThread.UnhandledException += (_, e) => Log.Error("Unhandled UI exception", e.Exception);
+
             var settings = AppSettings.Load(AppPaths.SettingsFile);
             var database = new LibraryDatabase(AppPaths.LibraryDatabase);
             var (audio, mix, audioError) = StartAudio();
@@ -29,7 +36,11 @@ public partial class App : Application
                 viewModel.SaveState();
                 settings.Save(AppPaths.SettingsFile);
             };
-            desktop.Exit += (_, _) => viewModel.Dispose();
+            desktop.Exit += (_, _) =>
+            {
+                Log.Info("GZJam closing");
+                viewModel.Dispose();
+            };
             desktop.MainWindow = window;
 
             viewModel.Start();
@@ -44,11 +55,15 @@ public partial class App : Application
         try
         {
             audio = new AudioEngine();
+            Log.Info($"BASS {audio.BassVersion}, BASS_FX {audio.FxVersion}, BASSmix {audio.MixVersion}");
+            foreach (AudioDevice device in audio.GetOutputDevices())
+                Log.Info($"  output {device.Index}: {device} [{device.Driver}]");
             return (audio, new MixEngine(audio), null);
         }
         catch (Exception ex) when (ex is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException or AudioException)
         {
             audio?.Dispose();
+            Log.Error("Audio failed to start", ex);
             return (null, null, $"Audio isn't available: {ex.Message}");
         }
     }

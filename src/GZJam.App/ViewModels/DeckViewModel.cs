@@ -6,11 +6,15 @@ using GZJam.Library;
 
 namespace GZJam.App.ViewModels;
 
-/// <summary>One deck: what's loaded, transport, tempo, and the big readout.</summary>
+/// <summary>One deck: what's loaded, transport, cue, tempo, and the big readout.</summary>
 public sealed partial class DeckViewModel : ObservableObject
 {
+    /// <summary>How long a first tap on an on-air deck's pause waits for the second.</summary>
+    private static readonly TimeSpan ArmedFor = TimeSpan.FromSeconds(2.5);
+
     private readonly MainWindowViewModel _owner;
     private readonly AppSettings _settings;
+    private CancellationTokenSource? _armed;
 
     public DeckViewModel(MainWindowViewModel owner, Deck deck, AppSettings settings)
     {
@@ -30,22 +34,41 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial DeckReadout Readout { get; private set; }
 
-    /// <summary>Shown briefly under the controls, e.g. "Hold to pause the live deck".</summary>
+    /// <summary>Shown briefly over the position bar, e.g. "Tap again to pause".</summary>
     [ObservableProperty]
     public partial string? Hint { get; private set; }
+
+    /// <summary>The first of two taps needed to pause an on-air deck has happened.</summary>
+    [ObservableProperty]
+    public partial bool IsPauseArmed { get; private set; }
 
     public bool HasTrack => Track is not null;
     public bool IsPlaying => Deck.IsPlaying;
 
-    /// <summary>The room is hearing this deck (the crossfader leans to it).</summary>
-    public bool IsLive => HasTrack && _owner.Mix?.LiveDeck == Deck;
+    /// <summary>The crossfader lets the room hear this deck.</summary>
+    public bool IsInRoom => HasTrack && Deck.IsInRoom;
 
-    /// <summary>Playing to the room right now: needs protecting from stray loads and touches.</summary>
-    public bool IsOnAir => IsLive && IsPlaying;
+    /// <summary>Playing and audible in the room: protected from stray loads and seeks.</summary>
+    public bool IsOnAir => IsPlaying && IsInRoom;
 
-    public bool IsCue => HasTrack && !IsLive;
+    /// <summary>Playing, but the crossfader has it out of the room.</summary>
+    public bool IsOffAir => IsPlaying && !IsInRoom;
 
-    public string Status => !HasTrack ? "" : IsOnAir ? "ON AIR" : IsLive ? "LIVE · PAUSED" : "CUE";
+    public string Status => IsOnAir ? "ON AIR" : IsOffAir ? "OFF AIR" : "";
+
+    /// <summary>The cue button: this deck in the headphones. Independent of the crossfader.</summary>
+    public bool IsCueOn
+    {
+        get => Deck.Cue;
+        set
+        {
+            if (Deck.Cue == value)
+                return;
+            Deck.Cue = value;
+            Log.Info($"Deck {Letter}: cue {(value ? "on" : "off")}");
+            OnPropertyChanged();
+        }
+    }
 
     public string Title => Track?.DisplayTitle ?? "No track loaded";
 
@@ -56,7 +79,7 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>0..1 through the track.</summary>
     public double Progress => Deck.Length > TimeSpan.Zero ? Deck.Position / Deck.Length : 0;
 
-    /// <summary>Seeking the deck the room is dancing to is blocked; cue it on the other deck instead.</summary>
+    /// <summary>Jumping around in what the room is dancing to is blocked; fade it out of the room first.</summary>
     public bool CanSeek => HasTrack && !IsOnAir;
 
     public double? TrackBpm => Track?.Bpm;
@@ -113,11 +136,14 @@ public sealed partial class DeckViewModel : ObservableObject
         RefreshReadout();
     }
 
+    [RelayCommand]
+    private void ToggleCue() => IsCueOn = !IsCueOn;
+
     /// <summary>
-    /// Whether pausing needs a press-and-hold: true for the deck the room is dancing to,
-    /// unless the DJ chose tap-to-pause in Settings.
+    /// Whether pausing needs a second tap (or a press-and-hold): only for a deck the room is
+    /// hearing, and only if chosen in Settings.
     /// </summary>
-    public bool PauseNeedsHold => IsOnAir && _settings.LiveDeckPause == LiveDeckPause.Hold;
+    public bool PauseNeedsConfirm => IsOnAir && _settings.OnAirPause == OnAirPause.TapTwice;
 
     /// <summary>A tap on play/pause.</summary>
     [RelayCommand]
@@ -125,18 +151,20 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         if (!HasTrack)
             return;
-        if (IsPlaying)
+        if (!IsPlaying)
         {
-            if (PauseNeedsHold)
-            {
-                ShowHint("Hold to pause the live deck");
-                return;
-            }
-            Deck.Pause();
+            Deck.Play();
+            Log.Info($"Deck {Letter}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
+        }
+        else if (PauseNeedsConfirm && !IsPauseArmed)
+        {
+            Arm();
+            Log.Info($"Deck {Letter}: pause armed (needs a second tap)");
+            return;
         }
         else
         {
-            Deck.Play();
+            Pause("tap");
         }
         Refresh();
     }
@@ -145,14 +173,48 @@ public sealed partial class DeckViewModel : ObservableObject
     public void HoldPause()
     {
         if (IsPlaying)
-            Deck.Pause();
+            Pause("hold");
         Refresh();
+    }
+
+    private void Pause(string how)
+    {
+        Disarm();
+        Deck.Pause();
+        Log.Info($"Deck {Letter}: pause ({how}){(Deck.IsPlaying ? " -- STILL PLAYING" : "")}");
+    }
+
+    private async void Arm()
+    {
+        var armed = _armed = new CancellationTokenSource();
+        IsPauseArmed = true;
+        ShowHint("Tap again to pause");
+        try
+        {
+            await Task.Delay(ArmedFor, armed.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+        if (_armed == armed)
+            Disarm();
+    }
+
+    private void Disarm()
+    {
+        _armed?.Cancel();
+        _armed = null;
+        IsPauseArmed = false;
+        if (Hint == "Tap again to pause")
+            Hint = null;
     }
 
     [RelayCommand]
     private void FadeOut()
     {
         Deck.FadeOut(TimeSpan.FromSeconds(_settings.FadeOutSeconds));
+        Log.Info($"Deck {Letter}: fade out over {_settings.FadeOutSeconds:0} s");
         Refresh();
     }
 
@@ -163,6 +225,7 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         Deck.Unload();
         Track = null;
+        Log.Info($"Deck {Letter}: eject");
         Refresh();
     }
 
@@ -180,9 +243,11 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>Loads a track (the caller has already checked deck protection).</summary>
     internal void Load(Track track)
     {
+        Disarm();
         Deck.Load(track.Path);
         Deck.TempoPercent = 0;
         Track = track;
+        Log.Info($"Deck {Letter}: load \"{track.DisplayTitle}\" ({track.Path})");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
         Refresh();
@@ -199,14 +264,17 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>Re-reads everything that changes as the track plays.</summary>
     public void Refresh()
     {
+        if (IsPauseArmed && !PauseNeedsConfirm)
+            Disarm();   // no longer on air (or the setting changed): a single tap pauses again
         OnPropertyChanged(nameof(IsPlaying));
-        OnPropertyChanged(nameof(IsLive));
+        OnPropertyChanged(nameof(IsInRoom));
         OnPropertyChanged(nameof(IsOnAir));
-        OnPropertyChanged(nameof(IsCue));
+        OnPropertyChanged(nameof(IsOffAir));
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(CanSeek));
         OnPropertyChanged(nameof(Progress));
-        OnPropertyChanged(nameof(PauseNeedsHold));
+        OnPropertyChanged(nameof(PauseNeedsConfirm));
+        OnPropertyChanged(nameof(IsCueOn));
         RefreshReadout();
     }
 

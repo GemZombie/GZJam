@@ -37,29 +37,40 @@ public sealed class DeckTests
         DeckViewModel b = app.ViewModel.DeckB!;
         Assert.Equal(tone, b.Track);
         Assert.Equal("Tain't What You Do", b.Title);
-        Assert.Equal("CUE", b.Status);              // crossfader starts on A, so B is in the headphones
+        Assert.Equal("", b.Status);                 // loaded, not playing
+        Assert.False(b.IsCueOn);
         Assert.Equal("-0:20", b.ReadoutText);
         Assert.False(b.IsPlaying);
     }
 
     [AvaloniaFact]
-    public void The_live_deck_plays_to_the_room_and_the_other_to_the_headphones()
+    public void The_crossfader_picks_the_room_and_cue_buttons_pick_the_headphones()
     {
         using var app = new AppHarness();
         var (a, b) = (app.ViewModel.DeckA!, app.ViewModel.DeckB!);
         Drop(app, "DeckAView", app.ToneTrack("Room"));
-        Drop(app, "DeckBView", app.ToneTrack("Cue"));
+        Drop(app, "DeckBView", app.ToneTrack("Next"));
 
         a.TogglePlayCommand.Execute(null);
         var (main, cue) = app.Play(0.3);
-        Assert.True(main > 0.4 && cue < 0.01, $"A only in the room: main {main}, cue {cue}");
+        Assert.True(main > 0.4 && cue < 0.01, $"A in the room only: main {main}, cue {cue}");
         Assert.Equal("ON AIR", a.Status);
 
-        a.HoldPause();
+        // Cue B: it plays in the headphones while the room still hears only A.
+        b.ToggleCueCommand.Execute(null);
         b.TogglePlayCommand.Execute(null);
+        a.TogglePlayCommand.Execute(null);   // pause A to measure B alone
         (main, cue) = app.Play(0.3);
-        Assert.True(main < 0.01 && cue > 0.4, $"B only in the headphones: main {main}, cue {cue}");
-        Assert.Equal("CUE", b.Status);
+        Assert.True(main < 0.01 && cue > 0.4, $"B in the headphones only: main {main}, cue {cue}");
+        Assert.Equal("OFF AIR", b.Status);
+
+        // Moving the crossfader to B puts it in the room; the headphones are unchanged.
+        app.ViewModel.Mixer!.Crossfader = 1;
+        app.Play(0.1);
+        (main, cue) = app.Play(0.3);
+        Assert.True(main > 0.4 && cue > 0.4, $"B in both: main {main}, cue {cue}");
+        Assert.Equal("ON AIR", b.Status);
+        Assert.True(b.IsCueOn);
     }
 
     [AvaloniaFact]
@@ -80,8 +91,13 @@ public sealed class DeckTests
 
         Assert.Equal(1, app.ViewModel.Mixer.Crossfader, 3);
         Assert.True(b.IsOnAir);
-        Assert.Equal("CUE", a.Status);
+        Assert.Equal("OFF AIR", a.Status);
         Assert.Equal("B · LIVE", app.ViewModel.Mixer.LiveText);
+
+        app.ViewModel.Mixer.Crossfader = 0.5;
+        Assert.Equal("BLEND", app.ViewModel.Mixer.LiveText);
+        app.ViewModel.Tick();
+        Assert.True(a.IsOnAir && b.IsOnAir);
     }
 
     [AvaloniaFact]
@@ -149,33 +165,65 @@ public sealed class DeckTests
     }
 
     [AvaloniaFact]
-    public async Task The_live_deck_needs_a_hold_to_pause()
+    public async Task An_on_air_deck_pauses_with_one_tap_by_default()
     {
         using var app = new AppHarness();
         DeckViewModel a = app.ViewModel.DeckA!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
+        Assert.True(a.IsOnAir);
 
-        a.TogglePlayCommand.Execute(null);   // a tap
+        a.TogglePlayCommand.Execute(null);
+
+        Assert.False(a.IsPlaying);
+        Assert.True(app.Play(0.3).Main < 0.01);
+    }
+
+    private static void UseTwoTapPause(AppHarness app) =>
+        app.ViewModel.Settings.PauseChoice = app.ViewModel.Settings.PauseChoices.Single(c => c.Value == OnAirPause.TapTwice);
+
+    [AvaloniaFact]
+    public async Task Two_tap_mode_pauses_an_on_air_deck_on_the_second_tap()
+    {
+        using var app = new AppHarness();
+        UseTwoTapPause(app);
+        DeckViewModel a = app.ViewModel.DeckA!;
+        await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
+        a.TogglePlayCommand.Execute(null);
+        app.Play(0.2);
+
+        a.TogglePlayCommand.Execute(null);
         Assert.True(a.IsPlaying);
-        Assert.Equal("Hold to pause the live deck", a.Hint);
+        Assert.True(a.IsPauseArmed);
+        Assert.Equal("Tap again to pause", a.Hint);
+
+        a.TogglePlayCommand.Execute(null);
+        Assert.False(a.IsPlaying);
+        Assert.False(a.IsPauseArmed);
+    }
+
+    [AvaloniaFact]
+    public async Task Two_tap_mode_also_pauses_with_a_hold()
+    {
+        using var app = new AppHarness();
+        UseTwoTapPause(app);
+        DeckViewModel a = app.ViewModel.DeckA!;
+        await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
+        a.TogglePlayCommand.Execute(null);
+        app.Play(0.2);
 
         app.Window.FindControl<DeckView>("DeckAView")!.SimulateHold();
-        Assert.False(a.IsPlaying);
 
-        // With tap-to-pause chosen, a tap is enough.
-        app.ViewModel.Settings.PauseChoice = app.ViewModel.Settings.PauseChoices.Single(c => c.Value == LiveDeckPause.Tap);
-        a.TogglePlayCommand.Execute(null);
-        a.TogglePlayCommand.Execute(null);
         Assert.False(a.IsPlaying);
     }
 
     [AvaloniaFact]
-    public async Task A_cue_deck_pauses_with_a_tap()
+    public async Task Two_tap_mode_only_applies_to_decks_the_room_can_hear()
     {
         using var app = new AppHarness();
-        DeckViewModel b = app.ViewModel.DeckB!;
+        UseTwoTapPause(app);
+        DeckViewModel b = app.ViewModel.DeckB!;   // crossfader is on A, so B is off air
         await app.ViewModel.LoadToDeckAsync(b, app.ToneTrack("Cueing"));
         b.TogglePlayCommand.Execute(null);
         b.TogglePlayCommand.Execute(null);

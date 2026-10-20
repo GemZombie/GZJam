@@ -15,13 +15,16 @@ public enum PlayingDeckLoad
     Allow,
 }
 
-/// <summary>How the live deck's play button pauses.</summary>
-public enum LiveDeckPause
+/// <summary>How the play button pauses a deck the room is hearing.</summary>
+public enum OnAirPause
 {
-    /// <summary>Press and hold, so a stray touch can't stop the music. The default.</summary>
-    Hold,
-    /// <summary>A tap pauses, like any other deck.</summary>
+    /// <summary>A tap pauses, like any other deck. The default.</summary>
     Tap,
+    /// <summary>
+    /// Tap twice (or press and hold), so a stray touch can't stop the music. Works with trackpad
+    /// tap-to-click, where holding is awkward.
+    /// </summary>
+    TapTwice,
 }
 
 /// <summary>What a deck's big readout shows; tapping it cycles through these.</summary>
@@ -48,7 +51,7 @@ public sealed class AppSettings
     public AudioDevicePreference? CueDevice { get; set; }
 
     public PlayingDeckLoad LoadOntoPlayingDeck { get; set; } = PlayingDeckLoad.Block;
-    public LiveDeckPause LiveDeckPause { get; set; } = LiveDeckPause.Hold;
+    public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;
 
     /// <summary>Each deck's readout mode, by deck letter.</summary>

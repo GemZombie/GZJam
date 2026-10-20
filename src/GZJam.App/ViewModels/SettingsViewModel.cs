@@ -46,10 +46,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         new(PlayingDeckLoad.Allow, "Allow it"),
     ];
 
-    public IReadOnlyList<Choice<LiveDeckPause>> PauseChoices { get; } =
+    public IReadOnlyList<Choice<OnAirPause>> PauseChoices { get; } =
     [
-        new(LiveDeckPause.Hold, "Press and hold"),
-        new(LiveDeckPause.Tap, "Tap"),
+        new(OnAirPause.Tap, "Tap"),
+        new(OnAirPause.TapTwice, "Tap twice (or press and hold)"),
     ];
 
     public Choice<PlayingDeckLoad> LoadChoice
@@ -62,12 +62,12 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    public Choice<LiveDeckPause> PauseChoice
+    public Choice<OnAirPause> PauseChoice
     {
-        get => PauseChoices.First(c => c.Value == _settings.LiveDeckPause);
+        get => PauseChoices.First(c => c.Value == _settings.OnAirPause);
         set
         {
-            _settings.LiveDeckPause = value.Value;
+            _settings.OnAirPause = value.Value;
             OnPropertyChanged();
             _owner.RefreshDecks();
         }

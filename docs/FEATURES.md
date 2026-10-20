@@ -95,8 +95,8 @@ is out of scope until it earns a place.
 - **Drag and right-click are redundant by design.** Every track action is available both ways.
   Right-click on a track (library or queue): *Preview in headphones*, *Load to Deck A/B…*
   (instant), *Add to queue*, *Play next*.
-- **Auto-play alternates decks** (A, B, A, B…). The **crossfader decides which deck is live**,
-  as in DJay Pro; auto-play moves it to the new deck when the next song starts.
+- **Auto-play alternates decks** (A, B, A, B…). The **crossfader fades the room between the
+  decks**; auto-play moves it to the new deck when the next song starts.
 - **One-button fade-out** per deck, with a configurable length. A fade-out counts as the song
   ending: the gap starts, then auto-play continues.
 
@@ -119,9 +119,19 @@ is out of scope until it earns a place.
   (time left / elapsed / BPM, remembered per deck).
 - Load by dragging onto a deck or right-click › Load to Deck A/B; deck protection with the
   Block / Ask / Allow setting, shown on the deck outline and in the menu ("(playing)").
-- The live deck pauses with a press-and-hold (or a tap, if chosen in Settings); seeking is blocked
-  while it's on air.
-- Crossfader with one-tap A / B switches (a 300 ms glide).
+- Pause is a single tap by default. Optional "tap twice (or press and hold)" for a deck the room
+  is hearing. Seeking is blocked while the room is hearing the deck.
+- Crossfader with one-tap A / B switches (a 300 ms glide); shows "BLEND" when the room hears both.
+- A daily activity log (`logs/` next to the library database) records plays, pauses, crossfader
+  switches, output changes and errors, so problems at a gig can be traced afterwards.
+
+### Changed after the first hardware test (2026-10-20)
+
+- The DJ hit two problems: a deck that seemed impossible to pause (the then-default
+  press-and-hold to pause the live deck is awkward with trackpad tap-to-click, and its hint was
+  easy to miss), and confusion from the crossfader also driving the headphones.
+- **Decision: the crossfader is only a crossfade between the decks for the room.** The
+  headphones are chosen per deck with a cue button. Pause protection is off by default.
 - Not yet: auto-play, the gap, silence trimming, BPM detection (step 3); waveforms (step 4).
 
 ## Headphone cue
@@ -129,17 +139,18 @@ is out of scope until it earns a place.
 ### Requirements (from the DJ)
 
 - **Preview is essential**, directly from the library file list and from the queue.
-- **Any deck that isn't live plays to the headphones automatically**, as in DJay Pro.
+- **The crossfader is not part of cue** (revised after hardware testing). It only fades the room
+  between the decks.
 
 ### Design decisions
 
-- **Routing follows the crossfader.** The live deck goes to the main output; every other
-  deck goes to the cue output. No routing buttons to forget mid-set.
+- **Each deck has a cue (🎧) button** that sends it to the headphones, whatever the crossfader is
+  doing. Off by default; it stays as set when a new track is loaded.
 - **A preview player** (headphone icon on every library and queue row) plays a track to the
   cue output without loading a deck, with its own scrub bar.
-- **Built (step 2)** on BASSmix: every deck feeds both a main and a cue mixer through splitters,
-  and the crossfader sets each side's volume (equal-power curve; the headphones get the
-  complement of what the room hears). Moving the fader never interrupts playback.
+- **Built on BASSmix**: every deck feeds both a main and a cue mixer through splitters. The
+  crossfader sets each deck's main volume (equal-power curve); the cue button switches its cue
+  volume. Neither interrupts playback.
 - The headphones are never defaulted to the speaker device: with no cue output chosen, preview
   asks you to pick one in Settings rather than playing into the room.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
