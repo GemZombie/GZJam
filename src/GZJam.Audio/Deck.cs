@@ -1,47 +1,61 @@
 using ManagedBass;
 using ManagedBass.Fx;
+using ManagedBass.Mix;
 
 namespace GZJam.Audio;
 
 /// <summary>
-/// A single track player bound to one output device. Playback runs through a BASS_FX
-/// tempo stream so tempo can change without changing pitch.
+/// One track player. The file is decoded through a BASS_FX tempo stream (tempo changes keep the
+/// pitch), then split so the same audio feeds both the main and the cue bus; the crossfader sets
+/// each split's volume.
 /// </summary>
-public sealed class Deck(AudioEngine engine, string name) : IDisposable
+public sealed class Deck : IDisposable
 {
-    private int _stream;
+    private readonly MixEngine _mix;
+    private int _tempo;        // decode stream (owns the file stream)
+    private int _splitMain;    // -> main bus
+    private int _splitCue;     // -> cue bus
+    private bool _playing;
+    private bool _ended;
     private double _tempoPercent;
-    private double _volume = 1.0;
+    private double _volume = 1;
+    private double _mainGain, _cueGain;
+    private long _fadeStarted;
+    private TimeSpan? _fadeLength;
 
-    public string Name { get; } = name;
-    public AudioDevice? Device { get; private set; }
-    public string? TrackPath { get; private set; }
-
-    /// <summary>Routes this deck to a device. Moves a loaded track without interrupting it.</summary>
-    public void SetDevice(AudioDevice device)
+    internal Deck(MixEngine mix, int index)
     {
-        engine.EnsureInitialized(device.Index);
-        if (_stream != 0 && !Bass.ChannelSetDevice(_stream, device.Index))
-            throw new AudioException($"Could not move {Name} to '{device.Name}'", Bass.LastError);
-        Device = device;
+        _mix = mix;
+        Index = index;
     }
+
+    public int Index { get; }
+
+    /// <summary>"A", "B", ...</summary>
+    public string Name => ((char)('A' + Index)).ToString();
+
+    public string? TrackPath { get; private set; }
+    public bool IsLoaded => _tempo != 0;
+    public bool IsPlaying => _playing;
+    public bool IsFading => _fadeLength is not null;
+
+    /// <summary>
+    /// Raised from <see cref="MixEngine.Update"/> when the track plays to its end or a fade-out
+    /// finishes. Either way the music on this deck has stopped.
+    /// </summary>
+    public event EventHandler? Finished;
 
     public void Load(string path)
     {
-        if (Device is null)
-            throw new InvalidOperationException($"{Name} has no output device.");
-
         Unload();
+        _mix.Engine.UseNoSoundDevice();
 
-        // BASS's "current device" is per-thread; streams are created on it.
-        Bass.CurrentDevice = Device.Index;
-
-        // Prescan gives exact length/seeking for VBR MP3s.
+        // Prescan gives exact length and seeking for VBR MP3s.
         int source = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
         if (source == 0)
             throw new AudioException($"Could not open '{path}'", Bass.LastError);
 
-        int tempo = BassFx.TempoCreate(source, BassFlags.FxFreeSource);
+        int tempo = BassFx.TempoCreate(source, BassFlags.Decode | BassFlags.FxFreeSource);
         if (tempo == 0)
         {
             Errors error = Bass.LastError;
@@ -49,65 +63,92 @@ public sealed class Deck(AudioEngine engine, string name) : IDisposable
             throw new AudioException($"Could not create tempo stream for '{path}'", error);
         }
 
-        _stream = tempo;
+        _tempo = tempo;
+        _splitMain = CreateSplit();
+        _splitCue = CreateSplit();
         TrackPath = path;
+        _playing = false;
+        _ended = false;
+        Attach();
         ApplyTempo();
-        ApplyVolume();
+        ApplyVolumes();
     }
 
     public void Unload()
     {
-        if (_stream != 0)
+        CancelFade();
+        if (_tempo != 0)
         {
-            Bass.StreamFree(_stream);
-            _stream = 0;
+            Detach();
+            Bass.StreamFree(_splitMain);
+            Bass.StreamFree(_splitCue);
+            Bass.StreamFree(_tempo);
         }
+        _tempo = _splitMain = _splitCue = 0;
+        _playing = false;
+        _ended = false;
         TrackPath = null;
     }
 
     public void Play()
     {
-        if (_stream != 0 && !Bass.ChannelPlay(_stream))
-            throw new AudioException($"Could not play {Name}", Bass.LastError);
+        if (!IsLoaded)
+            return;
+        if (_ended)
+            Seek(TimeSpan.Zero);
+        _playing = true;
+        SetPaused(false);
     }
 
     public void Pause()
     {
-        if (_stream != 0)
-            Bass.ChannelPause(_stream);
+        CancelFade();
+        _playing = false;
+        SetPaused(true);
     }
 
-    public void Stop()
+    /// <summary>Fades the deck out over <paramref name="length"/>, then pauses it and raises <see cref="Finished"/>.</summary>
+    public void FadeOut(TimeSpan length)
     {
-        if (_stream == 0)
+        if (!_playing)
             return;
-        Bass.ChannelStop(_stream);
-        Seek(TimeSpan.Zero);
+        _fadeStarted = _mix.Time.GetTimestamp();
+        _fadeLength = length > TimeSpan.Zero ? length : TimeSpan.FromMilliseconds(1);
     }
 
     public void Seek(TimeSpan position)
     {
-        if (_stream == 0)
+        if (!IsLoaded)
             return;
-        long bytes = Bass.ChannelSeconds2Bytes(_stream, Math.Max(0, position.TotalSeconds));
-        Bass.ChannelSetPosition(_stream, bytes);
+
+        if (_ended)
+        {
+            // A finished source can't be rewound inside the mixer; reload it cleanly instead.
+            string path = TrackPath!;
+            bool wasPlaying = _playing;
+            Load(path);
+            _playing = wasPlaying;
+        }
+
+        long bytes = Bass.ChannelSeconds2Bytes(_tempo, Math.Clamp(position.TotalSeconds, 0, Length.TotalSeconds));
+        Bass.ChannelSetPosition(_tempo, bytes);
+        BassMix.SplitStreamReset(_tempo);   // drop audio the splitters buffered from the old position
+        SetPaused(!_playing);
     }
 
-    public bool IsPlaying => _stream != 0 && Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
-
-    /// <summary>Position within the original track (not affected by tempo).</summary>
-    public TimeSpan Position => _stream == 0
+    /// <summary>Position in the track (not affected by tempo).</summary>
+    public TimeSpan Position => !IsLoaded
         ? TimeSpan.Zero
-        : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_stream, Bass.ChannelGetPosition(_stream)));
+        : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetPosition(_tempo)));
 
-    public TimeSpan Length => _stream == 0
+    public TimeSpan Length => !IsLoaded
         ? TimeSpan.Zero
-        : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_stream, Bass.ChannelGetLength(_stream)));
+        : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetLength(_tempo)));
 
     /// <summary>Real time left to play, accounting for tempo.</summary>
-    public TimeSpan Remaining => (Length - Position) / (1 + _tempoPercent / 100);
+    public TimeSpan Remaining => Max(TimeSpan.Zero, (Length - Position) / (1 + _tempoPercent / 100));
 
-    /// <summary>Tempo change in percent; -10 plays 10% slower. Pitch is preserved.</summary>
+    /// <summary>Tempo change in percent; -8 plays 8% slower. Pitch is preserved.</summary>
     public double TempoPercent
     {
         get => _tempoPercent;
@@ -118,28 +159,125 @@ public sealed class Deck(AudioEngine engine, string name) : IDisposable
         }
     }
 
-    /// <summary>Volume, 0.0 to 1.0.</summary>
+    /// <summary>Deck volume, 0.0 to 1.0, on top of the crossfader.</summary>
     public double Volume
     {
         get => _volume;
         set
         {
             _volume = Math.Clamp(value, 0, 1);
-            ApplyVolume();
+            ApplyVolumes();
         }
+    }
+
+    /// <summary>How much of this deck the speakers get (0..1), from the crossfader.</summary>
+    public double MainGain => _mainGain;
+
+    /// <summary>How much of this deck the headphones get (0..1), from the crossfader.</summary>
+    public double CueGain => _cueGain;
+
+    internal void SetRouting(double mainGain, double cueGain)
+    {
+        _mainGain = mainGain;
+        _cueGain = cueGain;
+        ApplyVolumes();
+    }
+
+    internal void Update()
+    {
+        if (!IsLoaded)
+            return;
+
+        if (_fadeLength is { } length)
+        {
+            if (_mix.Time.GetElapsedTime(_fadeStarted) >= length)
+            {
+                Pause();   // also ends the fade and restores volume for the next play
+                Finished?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+            ApplyVolumes();
+        }
+
+        if (_playing && !_ended && Bass.ChannelIsActive(_splitMain) == PlaybackState.Stopped && Position >= Length - TimeSpan.FromMilliseconds(250))
+        {
+            _ended = true;
+            _playing = false;
+            SetPaused(true);
+            Finished?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    internal void Attach()
+    {
+        if (!IsLoaded)
+            return;
+        // Added paused; DownMix folds surround files to stereo, mono is spread to both sides.
+        var flags = BassFlags.MixerChanDownMix | BassFlags.MixerChanPause;
+        if (!BassMix.MixerAddChannel(_mix.Main.Handle, _splitMain, flags) ||
+            !BassMix.MixerAddChannel(_mix.Cue.Handle, _splitCue, flags))
+            throw new AudioException($"Could not route Deck {Name}", Bass.LastError);
+        SetPaused(!_playing);
+        ApplyVolumes();
+    }
+
+    internal void Detach()
+    {
+        if (!IsLoaded)
+            return;
+        BassMix.MixerRemoveChannel(_splitMain);
+        BassMix.MixerRemoveChannel(_splitCue);
+    }
+
+    private int CreateSplit()
+    {
+        int split = BassMix.CreateSplitStream(_tempo, BassFlags.Decode, null);
+        if (split == 0)
+            throw new AudioException($"Could not split Deck {Name}", Bass.LastError);
+        return split;
+    }
+
+    private void SetPaused(bool paused)
+    {
+        if (!IsLoaded)
+            return;
+        foreach (int split in new[] { _splitMain, _splitCue })
+        {
+            if (paused)
+                BassMix.ChannelAddFlag(split, BassFlags.MixerChanPause);
+            else
+                BassMix.ChannelRemoveFlag(split, BassFlags.MixerChanPause);
+        }
+    }
+
+    private void CancelFade()
+    {
+        if (_fadeLength is null)
+            return;
+        _fadeLength = null;
+        ApplyVolumes();
+    }
+
+    private double FadeFactor => _fadeLength is { } length
+        ? Math.Max(0, 1 - _mix.Time.GetElapsedTime(_fadeStarted) / length)
+        : 1;
+
+    private void ApplyVolumes()
+    {
+        if (!IsLoaded)
+            return;
+        double level = _volume * FadeFactor;
+        Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
+        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, _cueGain * level);
     }
 
     private void ApplyTempo()
     {
-        if (_stream != 0)
-            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Tempo, _tempoPercent);
+        if (IsLoaded)
+            Bass.ChannelSetAttribute(_tempo, ChannelAttribute.Tempo, _tempoPercent);
     }
 
-    private void ApplyVolume()
-    {
-        if (_stream != 0)
-            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, _volume);
-    }
+    private static TimeSpan Max(TimeSpan a, TimeSpan b) => a > b ? a : b;
 
     public void Dispose() => Unload();
 }

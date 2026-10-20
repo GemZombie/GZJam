@@ -36,8 +36,7 @@ UI tests run headless. `ScreenshotTests` also renders the window over a real mus
 
 - `src/GZJam.App` — the Avalonia desktop app
 - `src/GZJam.Library` — library index: SQLite + FTS5 search, scanner, folder tree, folder watcher
-- `src/GZJam.Audio` — audio engine: devices, decks (tempo/key-lock), BPM detection
-- `src/GZJam.AudioSpike` — throwaway console harness for testing the audio engine
+- `src/GZJam.Audio` — audio engine: devices, mixer (main + cue buses, crossfader), decks with tempo/key-lock, headphone preview, BPM detection
 - `tests/` — library tests and headless UI tests
 - `tools/GZJam.DevTools` — `bench <folder>`: scan timings and tag coverage for a real library
 - `lib/bass/` — native BASS + BASS_FX for Windows (x64), Linux (x64) and macOS (universal); `Bass.targets` copies the right set into each app's output

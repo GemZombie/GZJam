@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="ManagedBass" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Fx" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Mix" Version="4.0.2" />
   </ItemGroup>
 
   <!-- Native BASS binaries are copied by lib/bass/Bass.targets, imported by each app. -->

@@ -1,5 +1,6 @@
 using ManagedBass;
 using ManagedBass.Fx;
+using ManagedBass.Mix;
 
 namespace GZJam.Audio;
 
@@ -16,14 +17,21 @@ public sealed class AudioEngine : IDisposable
 
     public AudioEngine()
     {
-        // Touching BassFx.Version forces bass_fx to load alongside bass.
-        Version fx = BassFx.Version;
+        // Touching the add-on versions forces bass_fx and bassmix to load alongside bass, so a
+        // missing library fails here at startup rather than mid-set.
+        FxVersion = BassFx.Version;
+        MixVersion = BassMix.Version;
         BassVersion = Bass.Version;
-        FxVersion = fx;
+
+        // Shorter buffers than BASS's defaults (500 ms / 100 ms) keep the crossfader, seeking
+        // and the cue preview responsive. Still comfortably safe against dropouts.
+        Bass.Configure(Configuration.PlaybackBufferLength, 200);
+        Bass.Configure(Configuration.UpdatePeriod, 20);
     }
 
     public Version BassVersion { get; }
     public Version FxVersion { get; }
+    public Version MixVersion { get; }
 
     /// <summary>Lists enabled output devices. BASS device 0 ("No sound") is skipped.</summary>
     public IReadOnlyList<AudioDevice> GetOutputDevices()
@@ -60,6 +68,16 @@ public sealed class AudioEngine : IDisposable
         var devices = GetOutputDevices();
         return devices.FirstOrDefault(d => d.IsDefault && !d.FollowsSystemDefault)
             ?? devices.FirstOrDefault(d => d.IsDefault);
+    }
+
+    /// <summary>
+    /// Makes BASS's "no sound" device current on this thread. Decoding (reading files, BPM
+    /// detection, offline mixing) happens there so it never touches a real output.
+    /// </summary>
+    internal void UseNoSoundDevice()
+    {
+        EnsureInitialized(NoSoundDevice);
+        Bass.CurrentDevice = NoSoundDevice;
     }
 
     /// <summary>Initializes a device for output if it isn't already.</summary>

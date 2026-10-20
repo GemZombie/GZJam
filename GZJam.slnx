@@ -2,11 +2,11 @@
   <Folder Name="/src/">
     <Project Path="src/GZJam.App/GZJam.App.csproj" />
     <Project Path="src/GZJam.Audio/GZJam.Audio.csproj" />
-    <Project Path="src/GZJam.AudioSpike/GZJam.AudioSpike.csproj" />
     <Project Path="src/GZJam.Library/GZJam.Library.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/GZJam.App.Tests/GZJam.App.Tests.csproj" />
+    <Project Path="tests/GZJam.Audio.Tests/GZJam.Audio.Tests.csproj" />
     <Project Path="tests/GZJam.Library.Tests/GZJam.Library.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">

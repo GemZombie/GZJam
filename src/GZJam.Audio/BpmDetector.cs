@@ -12,8 +12,7 @@ public sealed class BpmDetector(AudioEngine engine)
     public double? Detect(string path, int minBpm = 60, int maxBpm = 320, double maxSeconds = 120)
     {
         // Decode-only work runs on BASS's "no sound" device so it never touches real outputs.
-        engine.EnsureInitialized(AudioEngine.NoSoundDevice);
-        Bass.CurrentDevice = AudioEngine.NoSoundDevice;
+        engine.UseNoSoundDevice();
 
         int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Prescan);
         if (stream == 0)
