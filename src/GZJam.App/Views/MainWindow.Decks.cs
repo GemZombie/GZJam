@@ -40,7 +40,7 @@ public partial class MainWindow
     private void OnDeckDragOver(object? sender, DragEventArgs e)
     {
         var view = (DeckView)sender!;
-        if (e.DataTransfer.TryGetValue(TrackFormat) is not { Tracks.Count: 1 } || view.DataContext is not DeckViewModel deck)
+        if (e.DataTransfer.TryGetValue(TrackFormat) is not { Tracks.Count: 1 } drag || view.DataContext is not DeckViewModel deck)
         {
             // A deck takes exactly one track.
             e.DragEffects = DragDropEffects.None;
@@ -48,7 +48,8 @@ public partial class MainWindow
             return;
         }
         bool allowed = Vm.CanLoad(deck);
-        e.DragEffects = allowed ? DragDropEffects.Copy : DragDropEffects.None;
+        // Match the drag's own effect: tracks from the queue move (they leave it), library tracks copy.
+        e.DragEffects = !allowed ? DragDropEffects.None : drag.FromQueue is null ? DragDropEffects.Copy : DragDropEffects.Move;
         view.SetDropState(allowed);
     }
 
@@ -56,10 +57,11 @@ public partial class MainWindow
     {
         var view = (DeckView)sender!;
         view.SetDropState(null);
-        if (e.DataTransfer.TryGetValue(TrackFormat) is { Tracks: [var track] } && view.DataContext is DeckViewModel deck)
+        if (e.DataTransfer.TryGetValue(TrackFormat) is { Tracks: [var track] } drag && view.DataContext is DeckViewModel deck)
         {
             e.Handled = true;
-            await Vm.LoadToDeckAsync(deck, track);
+            if (await Vm.LoadToDeckAsync(deck, track) && drag.FromQueue is { } fromQueue)
+                Vm.Queue.Remove(fromQueue);
         }
     }
 
@@ -87,8 +89,9 @@ public partial class MainWindow
 
     private async void OnLoadQueueToDeckClick(object? sender, RoutedEventArgs e)
     {
-        if (SelectedQueueItems() is [var item] && DeckAt(int.Parse((string)((MenuItem)sender!).Tag!)) is { } deck)
-            await Vm.LoadToDeckAsync(deck, item.Track);
+        if (SelectedQueueItems() is [var item] && DeckAt(int.Parse((string)((MenuItem)sender!).Tag!)) is { } deck
+            && await Vm.LoadToDeckAsync(deck, item.Track))
+            Vm.Queue.Remove([item]);   // loaded: it's no longer waiting in the queue
     }
 
     // ───────────── Headphone preview ─────────────

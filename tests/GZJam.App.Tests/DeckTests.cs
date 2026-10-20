@@ -309,6 +309,30 @@ public sealed class DeckTests
     }
 
     [AvaloniaFact]
+    public void Dragging_from_the_queue_onto_a_deck_loads_it_and_takes_it_off_the_queue()
+    {
+        using var app = new AppHarness();
+        var queue = app.ViewModel.Queue;
+        Track first = app.ToneTrack("Maybe this one"), second = app.ToneTrack("Or this one");
+        queue.Add([first, second]);
+        AppHarness.Settle(100);
+        QueueItem item = queue.Items[1];
+
+        var view = app.Window.FindControl<DeckView>("Deck2View")!;
+        Point centre = view.TranslatePoint(new Point(view.Bounds.Width / 2, view.Bounds.Height / 2), app.Window)!.Value;
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.Create(MainWindow.TrackFormat, new MainWindow.TrackDrag([second], [item])));
+        // A drag from the queue allows only Move, exactly as the queue starts it.
+        app.Window.DragDrop(centre, RawDragEventType.DragEnter, data, DragDropEffects.Move, RawInputModifiers.None);
+        app.Window.DragDrop(centre, RawDragEventType.DragOver, data, DragDropEffects.Move, RawInputModifiers.None);
+        app.Window.DragDrop(centre, RawDragEventType.Drop, data, DragDropEffects.Move, RawInputModifiers.None);
+        AppHarness.Settle(100);
+
+        Assert.Equal(second, app.ViewModel.Deck2!.Track);
+        Assert.Equal([first], queue.Items.Select(i => i.Track));
+    }
+
+    [AvaloniaFact]
     public void Load_menu_items_show_when_a_deck_is_protected()
     {
         using var app = new AppHarness();
