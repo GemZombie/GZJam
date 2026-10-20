@@ -323,18 +323,68 @@
 
       <GridSplitter Grid.Column="3" Background="Transparent" ResizeDirection="Columns" />
 
-      <!-- Queue -->
+      <!-- Queue and History -->
       <Border Grid.Column="4" Classes="panel">
         <Grid RowDefinitions="Auto,*">
-          <Border Classes="panel-header">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Classes="label" Text="QUEUE" />
-              <TextBlock Grid.Column="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
-                         Text="{Binding Queue.Summary}" />
+          <Border Classes="panel-header" Padding="8,0,14,0">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+              <ToggleButton Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
+                            Click="OnQueueTabClick" />
+              <ToggleButton Grid.Column="1" Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
+                            Click="OnHistoryTabClick" />
+              <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                         Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
+              <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                         Text="{Binding History.Summary}" IsVisible="{Binding ShowHistory}" />
             </Grid>
           </Border>
 
-          <Panel Grid.Row="1" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True">
+          <!-- History: everything the room heard, by session -->
+          <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding ShowHistory}">
+            <ComboBox x:Name="SessionPicker" Margin="8,8,8,2" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
+                      ToolTip.Tip="Pick a session (gig) to look back on" />
+            <ListBox x:Name="HistoryList" Grid.Row="1" Classes="queue history" ItemsSource="{Binding History.Plays}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:PlayItem">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" Margin="10,0,2,0" Background="Transparent">
+                    <TextBlock Classes="dim mono" Text="{Binding TimeText}" FontSize="11" VerticalAlignment="Center" MinWidth="58" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,7">
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                      <TextBlock Classes="muted mono" Text="{Binding BpmText}" FontSize="11" />
+                      <TextBlock Classes="muted mono" Text="{Binding DurationText}" FontSize="11" />
+                    </StackPanel>
+                    <Button Grid.Column="3" Classes="row-icon" Click="OnPreviewHistoryItemClick" ToolTip.Tip="Preview in headphones"
+                            VerticalAlignment="Center">
+                      <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                            StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+                    </Button>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.ContextMenu>
+                <ContextMenu x:Name="HistoryMenu">
+                  <MenuItem Header="Add to queue" Click="OnHistoryAddToQueueClick" />
+                  <Separator />
+                  <MenuItem Header="Preview in headphones" Click="OnHistoryPreviewClick" />
+                  <MenuItem x:Name="HistoryLoad1" Header="Load to Deck 1" Tag="0" Click="OnHistoryLoadToDeckClick" />
+                  <MenuItem x:Name="HistoryLoad2" Header="Load to Deck 2" Tag="1" Click="OnHistoryLoadToDeckClick" />
+                  <Separator />
+                  <MenuItem Header="Show in folder tree" Click="OnHistoryShowInTreeClick" />
+                </ContextMenu>
+              </ListBox.ContextMenu>
+            </ListBox>
+            <TextBlock Grid.Row="1" Classes="muted" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap" Margin="24,0" IsHitTestVisible="False"
+                       IsVisible="{Binding History.IsEmpty}"
+                       Text="Songs appear here once the room has heard them for 30 seconds." />
+          </Grid>
+
+          <Panel Grid.Row="1" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True"
+                 IsVisible="{Binding ShowQueue}">
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">

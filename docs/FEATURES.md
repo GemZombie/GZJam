@@ -148,6 +148,31 @@ is out of scope until it earns a place.
   headphones are chosen per deck with a cue button. Pause protection is off by default.
 - Not yet: auto-play, the gap, silence trimming, BPM detection (step 3); waveforms (step 4).
 
+## Queue as a crate
+
+- In manual DJing the queue is a "box" of songs being considered. Tracks can be dragged (or
+  right-click loaded) from it onto a deck; once loaded they leave the queue, as with auto-play.
+
+## History
+
+### Requirements (from the DJ)
+
+- An automatic history of the current session, saved, so any past date can be looked up.
+
+### Design decisions (built)
+
+- **A song counts as played once the room has heard it for 30 seconds**, or if a shorter song
+  played to its end in the room. Headphone cueing, previews, seeks and songs faded out early
+  don't count. Measured in track time, so pauses don't count either.
+- **Sessions are gigs.** A session starts with its first song; restarting GZJam within 3 hours of
+  the last song continues it, so a crash or restart doesn't split the night.
+- **History tab** next to Queue: a session drop-down ("This session", then past ones by date),
+  time on air, title, artist, BPM (tempo-adjusted) and length. Entries can be previewed, dragged
+  onto a deck or into the queue, loaded via right-click, or shown in the folder tree.
+- Stored in the library database (schema upgrade 2) with its own copy of title/artist/album, so
+  old sessions stay readable after files move or leave the library.
+- Later: mark tracks already played tonight in the library list; export a set list.
+
 ## Headphone cue
 
 ### Requirements (from the DJ)

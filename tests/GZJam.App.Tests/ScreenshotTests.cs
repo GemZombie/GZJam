@@ -78,5 +78,10 @@ public sealed class ScreenshotTests
         vm.AutoPlay!.IsOn = true;
         app.Play(0.1);
         app.Screenshot("07-auto-play");
+
+        // Deck 1 has been on air for over 30 s by now, so it's in tonight's history.
+        vm.ShowHistory = true;
+        app.Play(0.1);
+        app.Screenshot("08-history");
     }
 }

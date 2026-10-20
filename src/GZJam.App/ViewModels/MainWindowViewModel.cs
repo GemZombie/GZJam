@@ -23,6 +23,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         AudioError = audioError;
         Library = new LibraryViewModel(database);
         Queue = new QueueViewModel();
+        History = new HistoryViewModel(database);
 
         if (mix is not null)
         {
@@ -32,6 +33,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
             foreach (DeckViewModel deck in Decks)
             {
+                deck.PlayedToRoom += (d, firstOnAir) => History.Record(d.Track!, firstOnAir, d.Label, d.TempoPercent, d.Deck.Length);
                 deck.Deck.Finished += (_, _) =>
                 {
                     if (deck.Deck.IsInRoom)
@@ -64,6 +66,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public LibraryViewModel Library { get; }
     public QueueViewModel Queue { get; }
+    public HistoryViewModel History { get; }
+
+    /// <summary>The right-hand panel shows the History tab rather than the Queue.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowQueue))]
+    public partial bool ShowHistory { get; set; }
+
+    public bool ShowQueue => !ShowHistory;
     public AudioEngine? Audio { get; }
     public MixEngine? Mix { get; }
     public IReadOnlyList<DeckViewModel> Decks { get; } = [];

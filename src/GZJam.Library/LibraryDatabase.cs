@@ -9,9 +9,8 @@ namespace GZJam.Library;
 /// Thread-safe: every call opens its own pooled connection, and WAL mode lets searches run
 /// while a scan is writing.
 /// </summary>
-public sealed class LibraryDatabase
+public sealed partial class LibraryDatabase
 {
-    private const int SchemaVersion = 1;
 
     private readonly string _connectionString;
 
@@ -43,13 +42,27 @@ public sealed class LibraryDatabase
         Execute(c, "PRAGMA journal_mode = WAL;");
 
         long version = (long)(Scalar(c, "PRAGMA user_version;") ?? 0L);
-        if (version == SchemaVersion)
+        if (version == Migrations.Length)
             return;
-        if (version > SchemaVersion)
+        if (version > Migrations.Length)
             throw new InvalidOperationException($"Library database is from a newer version of GZJam ({version}).");
 
+        // Apply each upgrade the database hasn't had yet, all or nothing.
         using var tx = c.BeginTransaction();
-        Execute(c, """
+        for (long step = version; step < Migrations.Length; step++)
+            Execute(c, Migrations[step]);
+        Execute(c, $"PRAGMA user_version = {Migrations.Length};");
+        tx.Commit();
+    }
+
+    /// <summary>
+    /// Schema upgrades in order; the database's user_version says how many have been applied.
+    /// Only ever append: existing databases depend on the earlier steps staying as they are.
+    /// </summary>
+    private static readonly string[] Migrations =
+    [
+        // 1: the library index.
+        """
             CREATE TABLE roots (
                 id   INTEGER PRIMARY KEY,
                 path TEXT NOT NULL UNIQUE
@@ -96,10 +109,33 @@ public sealed class LibraryDatabase
                 INSERT INTO tracks_fts(rowid, title, artist, album, album_artist, genre, comment, folder, file_name)
                 VALUES (new.id, new.title, new.artist, new.album, new.album_artist, new.genre, new.comment, new.folder, new.file_name);
             END;
-            """);
-        Execute(c, $"PRAGMA user_version = {SchemaVersion};");
-        tx.Commit();
-    }
+            """,
+
+        // 2: play history. Plays keep their own copy of the track details, so old sessions stay
+        // readable after files are renamed, moved or removed from the library.
+        """
+            CREATE TABLE sessions (
+                id          INTEGER PRIMARY KEY,
+                started_utc INTEGER NOT NULL
+            );
+
+            CREATE TABLE plays (
+                id          INTEGER PRIMARY KEY,
+                session_id  INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                played_utc  INTEGER NOT NULL,
+                path        TEXT NOT NULL,
+                title       TEXT,
+                artist      TEXT,
+                album       TEXT,
+                bpm         REAL,
+                duration_ms INTEGER NOT NULL DEFAULT 0,
+                deck        TEXT,
+                tempo       REAL NOT NULL DEFAULT 0
+            );
+            CREATE INDEX ix_plays_session ON plays(session_id, played_utc);
+            CREATE INDEX ix_plays_path ON plays(path);
+            """,
+    ];
 
     // ───────────── Roots ─────────────
 

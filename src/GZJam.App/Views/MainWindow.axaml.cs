@@ -51,6 +51,7 @@ public partial class MainWindow : Window
         Resized += (_, _) => RememberNormalBounds();
 
         InitializeDecks();
+        InitializeHistory();
     }
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;

@@ -9,12 +9,28 @@ namespace GZJam.App.ViewModels;
 /// <summary>One deck: what's loaded, transport, cue, tempo, and the big readout.</summary>
 public sealed partial class DeckViewModel : ObservableObject
 {
+    /// <summary>How long the room must hear a song for it to count as played (goes into History).</summary>
+    public static readonly TimeSpan CountsAsPlayed = TimeSpan.FromSeconds(30);
+
     /// <summary>How long a first tap on an on-air deck's pause waits for the second.</summary>
     private static readonly TimeSpan ArmedFor = TimeSpan.FromSeconds(2.5);
 
     private readonly MainWindowViewModel _owner;
     private readonly AppSettings _settings;
     private CancellationTokenSource? _armed;
+
+    // How much of the current track the room has heard, for History. Measured in track time, so
+    // pauses and listening in the headphones don't count, and seeks are excluded explicitly.
+    private TimeSpan _heard;
+    private TimeSpan _lastPosition;
+    private DateTime? _firstOnAir;
+    private bool _counted;
+
+    /// <summary>
+    /// Raised once per play when the room has heard the track for <see cref="CountsAsPlayed"/>
+    /// (or all of it, if shorter), with the time it first went on air.
+    /// </summary>
+    public event Action<DeckViewModel, DateTime>? PlayedToRoom;
 
     public DeckViewModel(MainWindowViewModel owner, Deck deck, AppSettings settings)
     {
@@ -160,6 +176,8 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         if (!IsPlaying)
         {
+            if (IsFinished)
+                ResetListening();   // playing it again from the top: a new play
             IsFinished = false;
             Deck.Play();
             Log.Info($"Deck {Label}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
@@ -252,12 +270,15 @@ public sealed partial class DeckViewModel : ObservableObject
         if (!CanSeek)
             return;
         Deck.Seek(Deck.Length * Math.Clamp(fraction, 0, 1));
+        _lastPosition = Deck.Position;   // a jump isn't listening
         Refresh();
     }
 
     /// <summary>Starts the deck for auto-play.</summary>
     internal void Start()
     {
+        if (IsFinished)
+            ResetListening();
         IsFinished = false;
         Deck.Play();
         Log.Info($"Deck {Label}: auto-play starts \"{Title}\"");
@@ -267,11 +288,16 @@ public sealed partial class DeckViewModel : ObservableObject
     internal void Rewind()
     {
         Deck.Seek(TimeSpan.Zero);
+        _lastPosition = TimeSpan.Zero;
         Refresh();
     }
 
     internal void MarkFinished()
     {
+        // A song shorter than the threshold counts if it played to its end in the room. A song
+        // faded out early (a false start, the wrong track) doesn't.
+        if (!_counted && _firstOnAir is { } since && Deck.Position >= Deck.Length - TimeSpan.FromSeconds(1))
+            CountAsPlayed(since);
         IsFinished = true;
         Refresh();
     }
@@ -281,6 +307,7 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         Disarm();
         IsFinished = false;
+        ResetListening();
         Deck.Load(track.Path);
         Deck.TempoPercent = 0;
         Track = track;
@@ -298,9 +325,43 @@ public sealed partial class DeckViewModel : ObservableObject
             Hint = null;
     }
 
+    private void ResetListening()
+    {
+        _heard = TimeSpan.Zero;
+        _lastPosition = TimeSpan.Zero;
+        _firstOnAir = null;
+        _counted = false;
+    }
+
+    /// <summary>Adds up how long the room has heard this track; counts it as played at the threshold.</summary>
+    private void TrackListening()
+    {
+        if (!HasTrack)
+            return;
+        TimeSpan position = Deck.Position;
+        if (IsOnAir)
+        {
+            TimeSpan step = position - _lastPosition;
+            if (step > TimeSpan.Zero)
+                _heard += step;
+            _firstOnAir ??= DateTime.UtcNow;
+            if (!_counted && _heard >= CountsAsPlayed)
+                CountAsPlayed(_firstOnAir.Value);
+        }
+        _lastPosition = position;
+    }
+
+    private void CountAsPlayed(DateTime firstOnAir)
+    {
+        _counted = true;
+        if (Track is not null)
+            PlayedToRoom?.Invoke(this, firstOnAir);
+    }
+
     /// <summary>Re-reads everything that changes as the track plays.</summary>
     public void Refresh()
     {
+        TrackListening();
         if (IsPauseArmed && !PauseNeedsConfirm)
             Disarm();   // no longer on air (or the setting changed): a single tap pauses again
         OnPropertyChanged(nameof(IsPlaying));
