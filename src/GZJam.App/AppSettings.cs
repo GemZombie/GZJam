@@ -54,7 +54,7 @@ public sealed class AppSettings
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;
 
-    /// <summary>Each deck's readout mode, by deck letter.</summary>
+    /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 
     public sealed class WindowPlacement
@@ -77,13 +77,25 @@ public sealed class AppSettings
         try
         {
             if (File.Exists(path))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions) ?? new();
+                return Migrate(JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions) ?? new());
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
             System.Diagnostics.Trace.WriteLine($"Ignoring unreadable settings: {ex.Message}");
         }
         return new();
+    }
+
+    /// <summary>Upgrades settings saved by older versions.</summary>
+    internal static AppSettings Migrate(AppSettings settings)
+    {
+        // Decks were named A/B before they became 1/2.
+        foreach (var (old, renamed) in new[] { ("A", "1"), ("B", "2") })
+        {
+            if (settings.DeckReadouts.Remove(old, out DeckReadout readout))
+                settings.DeckReadouts.TryAdd(renamed, readout);
+        }
+        return settings;
     }
 
     public void Save(string path)

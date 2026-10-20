@@ -32,8 +32,8 @@ public sealed class Deck : IDisposable
 
     public int Index { get; }
 
-    /// <summary>"A", "B", ...</summary>
-    public string Name => ((char)('A' + Index)).ToString();
+    /// <summary>"1", "2", ...</summary>
+    public string Name => (Index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     public string? TrackPath { get; private set; }
     public bool IsLoaded => _tempo != 0;

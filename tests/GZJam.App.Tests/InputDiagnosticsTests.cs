@@ -21,10 +21,10 @@ public sealed class InputDiagnosticsTests
     {
         var app = new AppHarness();
         var vm = app.ViewModel;
-        await vm.LoadToDeckAsync(vm.DeckA!, app.ToneTrack("One", 60));
-        await vm.LoadToDeckAsync(vm.DeckB!, app.ToneTrack("Two", 60));
-        vm.DeckA!.TogglePlayCommand.Execute(null);
-        vm.DeckB!.TogglePlayCommand.Execute(null);
+        await vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("One", 60));
+        await vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Two", 60));
+        vm.Deck1!.TogglePlayCommand.Execute(null);
+        vm.Deck2!.TogglePlayCommand.Execute(null);
         app.Play(0.2);
         return app;
     }
@@ -76,11 +76,11 @@ public sealed class InputDiagnosticsTests
         using var app = await TwoDecksPlaying();
         var mixer = app.ViewModel.Mixer!;
 
-        mixer.SnapToBCommand.Execute(null);
+        mixer.SnapTo2Command.Execute(null);
         RunTicks(app, 500);
         Assert.Equal(1, mixer.Crossfader, 3);
 
-        mixer.SnapToACommand.Execute(null);
+        mixer.SnapTo1Command.Execute(null);
         RunTicks(app, 500);
         Assert.Equal(0, mixer.Crossfader, 3);
     }
@@ -89,7 +89,7 @@ public sealed class InputDiagnosticsTests
     public async Task Clicking_the_snap_button_reaches_the_end()
     {
         using var app = await TwoDecksPlaying();
-        var b = app.Window.GetVisualDescendants().OfType<Button>().First(x => x.Classes.Contains("side") && (string?)x.Content == "B");
+        var b = app.Window.GetVisualDescendants().OfType<Button>().First(x => x.Classes.Contains("side") && (string?)x.Content == "2");
         Point p = Centre(app, b);
 
         app.Window.MouseDown(p, MouseButton.Left);
@@ -126,15 +126,15 @@ public sealed class InputDiagnosticsTests
     public async Task Mouse_click_pauses_the_on_air_deck_by_default()
     {
         using var app = await TwoDecksPlaying();
-        var play = app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
-        Assert.True(app.ViewModel.DeckA!.IsOnAir);
+        Assert.True(app.ViewModel.Deck1!.IsOnAir);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 50);
 
-        Assert.False(app.ViewModel.DeckA.IsPlaying);
+        Assert.False(app.ViewModel.Deck1.IsPlaying);
     }
 
     [AvaloniaFact]
@@ -142,18 +142,18 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
-        var play = app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 150);
-        Assert.True(app.ViewModel.DeckA!.IsPlaying);
+        Assert.True(app.ViewModel.Deck1!.IsPlaying);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 50);
-        Assert.False(app.ViewModel.DeckA.IsPlaying);
+        Assert.False(app.ViewModel.Deck1.IsPlaying);
     }
 
     [AvaloniaFact]
@@ -161,16 +161,16 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
-        var play = app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
-        Assert.True(app.ViewModel.DeckA!.PauseNeedsConfirm);
+        Assert.True(app.ViewModel.Deck1!.PauseNeedsConfirm);
 
         app.Window.MouseDown(p, MouseButton.Left);
         RunTicks(app, 800);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 50);
 
-        Assert.False(app.ViewModel.DeckA.IsPlaying);
+        Assert.False(app.ViewModel.Deck1.IsPlaying);
     }
 
     [AvaloniaFact]
@@ -178,7 +178,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
-        var play = app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
 
         var touch = app.Window.TouchBegin(p, RawInputModifiers.None);
@@ -186,21 +186,21 @@ public sealed class InputDiagnosticsTests
         app.Window.TouchEnd(touch, p, RawInputModifiers.None);
         RunTicks(app, 50);
 
-        Assert.False(app.ViewModel.DeckA!.IsPlaying);
+        Assert.False(app.ViewModel.Deck1!.IsPlaying);
     }
 
     [AvaloniaFact]
     public async Task Mouse_click_pauses_the_cue_deck()
     {
         using var app = await TwoDecksPlaying();
-        var play = app.Window.FindControl<DeckView>("DeckBView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 50);
 
-        Assert.False(app.ViewModel.DeckB!.IsPlaying);
+        Assert.False(app.ViewModel.Deck2!.IsPlaying);
     }
 
     /// <summary>The reported bug: slide the crossfader to B, then pause A.</summary>
@@ -216,14 +216,14 @@ public sealed class InputDiagnosticsTests
         app.Window.MouseUp(right, MouseButton.Left);
         RunTicks(app, 200);
 
-        var playA = app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Button>("PlayButton")!;
+        var playA = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, playA);
         app.Window.MouseMove(p);
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
         RunTicks(app, 100);
 
-        Assert.False(app.ViewModel.DeckA!.IsPlaying, $"A still playing; crossfader {app.ViewModel.Mixer!.Crossfader}, A on air: {app.ViewModel.DeckA.IsOnAir}, hint: {app.ViewModel.DeckA.Hint}");
+        Assert.False(app.ViewModel.Deck1!.IsPlaying, $"A still playing; crossfader {app.ViewModel.Mixer!.Crossfader}, A on air: {app.ViewModel.Deck1.IsOnAir}, hint: {app.ViewModel.Deck1.Hint}");
         var (main, cue) = app.Mix.Render(TimeSpan.FromSeconds(0.3));
         Assert.True(cue < 0.01, $"A should be silent in the headphones; cue level {cue}");
     }
@@ -232,13 +232,13 @@ public sealed class InputDiagnosticsTests
     public async Task Touch_tap_pauses_the_cue_deck()
     {
         using var app = await TwoDecksPlaying();
-        var play = app.Window.FindControl<DeckView>("DeckBView")!.FindControl<Button>("PlayButton")!;
+        var play = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
 
         var touch = app.Window.TouchBegin(p, RawInputModifiers.None);
         app.Window.TouchEnd(touch, p, RawInputModifiers.None);
         RunTicks(app, 50);
 
-        Assert.False(app.ViewModel.DeckB!.IsPlaying);
+        Assert.False(app.ViewModel.Deck2!.IsPlaying);
     }
 }

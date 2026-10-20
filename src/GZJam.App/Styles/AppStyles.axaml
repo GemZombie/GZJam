@@ -199,8 +199,8 @@
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
   </Style>
   <Style Selector="ToggleButton.cue-button:checked /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource DeckBBrush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource DeckBBrush}" />
+    <Setter Property="Background" Value="{StaticResource Deck2Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Deck2Brush}" />
   </Style>
   <Style Selector="ToggleButton.cue-button:checked">
     <Setter Property="Foreground" Value="#111" />
@@ -344,17 +344,17 @@
     <Setter Property="Background" Value="#14FFFFFF" />
   </Style>
   <Style Selector="Button.row-icon.active">
-    <Setter Property="Foreground" Value="{StaticResource DeckBBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
   </Style>
   <Style Selector="Button.row-icon:pointerover">
-    <Setter Property="Foreground" Value="{StaticResource DeckBBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
   </Style>
-  <Style Selector="Border.letter">
+  <Style Selector="Border.badge">
     <Setter Property="Width" Value="34" />
     <Setter Property="Height" Value="34" />
     <Setter Property="CornerRadius" Value="9" />
   </Style>
-  <Style Selector="Border.letter > TextBlock">
+  <Style Selector="Border.badge > TextBlock">
     <Setter Property="FontSize" Value="16" />
     <Setter Property="FontWeight" Value="Black" />
     <Setter Property="Foreground" Value="#0C0E12" />

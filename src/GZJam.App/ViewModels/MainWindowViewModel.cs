@@ -30,7 +30,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             foreach (DeckViewModel deck in Decks)
                 deck.Deck.Finished += (_, _) =>
                 {
-                    Log.Info($"Deck {deck.Letter}: finished \"{deck.Title}\"");
+                    Log.Info($"Deck {deck.Label}: finished \"{deck.Title}\"");
                     deck.Refresh();
                 };
             Mixer = new MixerViewModel(this, mix);
@@ -48,8 +48,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public AudioEngine? Audio { get; }
     public MixEngine? Mix { get; }
     public IReadOnlyList<DeckViewModel> Decks { get; } = [];
-    public DeckViewModel? DeckA => Decks.ElementAtOrDefault(0);
-    public DeckViewModel? DeckB => Decks.ElementAtOrDefault(1);
+    public DeckViewModel? Deck1 => Decks.ElementAtOrDefault(0);
+    public DeckViewModel? Deck2 => Decks.ElementAtOrDefault(1);
     public MixerViewModel? Mixer { get; }
     public PreviewViewModel? Preview { get; }
     public SettingsViewModel Settings { get; }
@@ -148,13 +148,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             switch (_settings.LoadOntoPlayingDeck)
             {
                 case PlayingDeckLoad.Block:
-                    Log.Info($"Deck {deck.Letter}: refused load of \"{track.DisplayTitle}\" (deck is playing)");
-                    ShowNotice($"Deck {deck.Letter} is playing. Pause it first to load a new track.");
+                    Log.Info($"Deck {deck.Label}: refused load of \"{track.DisplayTitle}\" (deck is playing)");
+                    ShowNotice($"Deck {deck.Label} is playing. Pause it first to load a new track.");
                     return false;
                 case PlayingDeckLoad.Ask:
                     string where = deck.IsOnAir ? " to the room" : "";
                     if (ConfirmAsync is null || !await ConfirmAsync(
-                            $"Replace the track on Deck {deck.Letter}?",
+                            $"Replace the track on Deck {deck.Label}?",
                             $"\"{deck.Title}\" is still playing{where}. Loading \"{track.DisplayTitle}\" will stop it."))
                         return false;
                     break;

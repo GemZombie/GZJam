@@ -10,8 +10,8 @@ namespace GZJam.App.Views;
 
 public partial class DeckView : UserControl
 {
-    public static readonly StyledProperty<string> LetterProperty =
-        AvaloniaProperty.Register<DeckView, string>(nameof(Letter), "A");
+    public static readonly StyledProperty<string> LabelProperty =
+        AvaloniaProperty.Register<DeckView, string>(nameof(Label), "1");
 
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<DeckView, IBrush?>(nameof(Accent));
@@ -32,10 +32,10 @@ public partial class DeckView : UserControl
         PlayButton.Click += OnPlayClick;
     }
 
-    public string Letter
+    public string Label
     {
-        get => GetValue(LetterProperty);
-        set => SetValue(LetterProperty, value);
+        get => GetValue(LabelProperty);
+        set => SetValue(LabelProperty, value);
     }
 
     public IBrush? Accent

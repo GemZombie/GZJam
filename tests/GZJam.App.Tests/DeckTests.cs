@@ -32,9 +32,9 @@ public sealed class DeckTests
         using var app = new AppHarness();
         Track tone = app.ToneTrack("Tain't What You Do");
 
-        Drop(app, "DeckBView", tone);
+        Drop(app, "Deck2View", tone);
 
-        DeckViewModel b = app.ViewModel.DeckB!;
+        DeckViewModel b = app.ViewModel.Deck2!;
         Assert.Equal(tone, b.Track);
         Assert.Equal("Tain't What You Do", b.Title);
         Assert.Equal("", b.Status);                 // loaded, not playing
@@ -47,9 +47,9 @@ public sealed class DeckTests
     public void The_crossfader_picks_the_room_and_cue_buttons_pick_the_headphones()
     {
         using var app = new AppHarness();
-        var (a, b) = (app.ViewModel.DeckA!, app.ViewModel.DeckB!);
-        Drop(app, "DeckAView", app.ToneTrack("Room"));
-        Drop(app, "DeckBView", app.ToneTrack("Next"));
+        var (a, b) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        Drop(app, "Deck1View", app.ToneTrack("Room"));
+        Drop(app, "Deck2View", app.ToneTrack("Next"));
 
         a.TogglePlayCommand.Execute(null);
         var (main, cue) = app.Play(0.3);
@@ -77,22 +77,22 @@ public sealed class DeckTests
     public void Snapping_the_crossfader_swaps_which_deck_is_live()
     {
         using var app = new AppHarness();
-        var (a, b) = (app.ViewModel.DeckA!, app.ViewModel.DeckB!);
-        Drop(app, "DeckAView", app.ToneTrack("One"));
-        Drop(app, "DeckBView", app.ToneTrack("Two"));
+        var (a, b) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        Drop(app, "Deck1View", app.ToneTrack("One"));
+        Drop(app, "Deck2View", app.ToneTrack("Two"));
         a.TogglePlayCommand.Execute(null);
         b.TogglePlayCommand.Execute(null);
         app.Play(0.2);
         Assert.True(a.IsOnAir);
 
-        app.ViewModel.Mixer!.SnapToBCommand.Execute(null);
+        app.ViewModel.Mixer!.SnapTo2Command.Execute(null);
         AppHarness.Settle(400);   // the snap glides over 300 ms
         app.ViewModel.Tick();
 
         Assert.Equal(1, app.ViewModel.Mixer.Crossfader, 3);
         Assert.True(b.IsOnAir);
         Assert.Equal("OFF AIR", a.Status);
-        Assert.Equal("B · LIVE", app.ViewModel.Mixer.LiveText);
+        Assert.Equal("2 · LIVE", app.ViewModel.Mixer.LiveText);
 
         app.ViewModel.Mixer.Crossfader = 0.5;
         Assert.Equal("BLEND", app.ViewModel.Mixer.LiveText);
@@ -104,25 +104,25 @@ public sealed class DeckTests
     public void A_playing_deck_refuses_a_new_track_by_default()
     {
         using var app = new AppHarness();
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         Track first = app.ToneTrack("First");
-        Drop(app, "DeckAView", first);
+        Drop(app, "Deck1View", first);
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
 
         // Dragging over shows the deck refusing; dropping doesn't replace the track.
-        Drop(app, "DeckAView", app.ToneTrack("Second"), RawDragEventType.DragOver);
-        Assert.Contains("drop-blocked", app.Window.FindControl<DeckView>("DeckAView")!.FindControl<Border>("Frame")!.Classes);
-        Drop(app, "DeckAView", app.ToneTrack("Second"));
+        Drop(app, "Deck1View", app.ToneTrack("Second"), RawDragEventType.DragOver);
+        Assert.Contains("drop-blocked", app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Border>("Frame")!.Classes);
+        Drop(app, "Deck1View", app.ToneTrack("Second"));
 
         Assert.Equal(first, a.Track);
         Assert.True(a.IsPlaying);
-        Assert.Equal("Deck A is playing. Pause it first to load a new track.", app.ViewModel.Notice);
+        Assert.Equal("Deck 1 is playing. Pause it first to load a new track.", app.ViewModel.Notice);
         Assert.False(app.ViewModel.CanLoad(a));
 
         // Paused, the same deck takes the track.
         a.HoldPause();
-        Drop(app, "DeckAView", app.ToneTrack("Second"));
+        Drop(app, "Deck1View", app.ToneTrack("Second"));
         Assert.Equal("Second", a.Title);
     }
 
@@ -133,7 +133,7 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         app.Settings.LoadOntoPlayingDeck = PlayingDeckLoad.Ask;
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("First"));
         a.TogglePlayCommand.Execute(null);
         string? asked = null;
@@ -145,7 +145,7 @@ public sealed class DeckTests
 
         bool loaded = await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Second"));
 
-        Assert.Equal("Replace the track on Deck A?", asked);
+        Assert.Equal("Replace the track on Deck 1?", asked);
         Assert.Equal(confirm, loaded);
         Assert.Equal(confirm ? "Second" : "First", a.Title);
     }
@@ -155,7 +155,7 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         app.Settings.LoadOntoPlayingDeck = PlayingDeckLoad.Allow;
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("First"));
         a.TogglePlayCommand.Execute(null);
 
@@ -168,7 +168,7 @@ public sealed class DeckTests
     public async Task An_on_air_deck_pauses_with_one_tap_by_default()
     {
         using var app = new AppHarness();
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
@@ -188,7 +188,7 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         UseTwoTapPause(app);
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
@@ -208,12 +208,12 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         UseTwoTapPause(app);
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
 
-        app.Window.FindControl<DeckView>("DeckAView")!.SimulateHold();
+        app.Window.FindControl<DeckView>("Deck1View")!.SimulateHold();
 
         Assert.False(a.IsPlaying);
     }
@@ -223,7 +223,7 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         UseTwoTapPause(app);
-        DeckViewModel b = app.ViewModel.DeckB!;   // crossfader is on A, so B is off air
+        DeckViewModel b = app.ViewModel.Deck2!;   // crossfader is on A, so B is off air
         await app.ViewModel.LoadToDeckAsync(b, app.ToneTrack("Cueing"));
         b.TogglePlayCommand.Execute(null);
         b.TogglePlayCommand.Execute(null);
@@ -234,7 +234,7 @@ public sealed class DeckTests
     public async Task Seeking_is_blocked_on_air_but_allowed_while_cueing()
     {
         using var app = new AppHarness();
-        var (a, b) = (app.ViewModel.DeckA!, app.ViewModel.DeckB!);
+        var (a, b) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Room"));
         await app.ViewModel.LoadToDeckAsync(b, app.ToneTrack("Cue"));
         a.TogglePlayCommand.Execute(null);
@@ -254,7 +254,7 @@ public sealed class DeckTests
     public async Task Tapping_the_readout_cycles_and_is_remembered()
     {
         using var app = new AppHarness();
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Tempo", 20));
         a.TempoPercent = -4;
 
@@ -264,7 +264,7 @@ public sealed class DeckTests
         a.CycleReadoutCommand.Execute(null);
         Assert.Equal("144", a.ReadoutText);                    // 150 BPM at -4%
         Assert.Equal("BPM · from 150 · -4.0%", a.ReadoutCaption);
-        Assert.Equal(DeckReadout.Bpm, app.Settings.DeckReadouts["A"]);
+        Assert.Equal(DeckReadout.Bpm, app.Settings.DeckReadouts["1"]);
     }
 
     [AvaloniaFact]
@@ -272,7 +272,7 @@ public sealed class DeckTests
     {
         using var app = new AppHarness();
         app.Settings.FadeOutSeconds = 1;
-        DeckViewModel a = app.ViewModel.DeckA!;
+        DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Long one"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
@@ -312,8 +312,8 @@ public sealed class DeckTests
     public void Load_menu_items_show_when_a_deck_is_protected()
     {
         using var app = new AppHarness();
-        DeckViewModel a = app.ViewModel.DeckA!;
-        Drop(app, "DeckAView", app.ToneTrack("Busy"));
+        DeckViewModel a = app.ViewModel.Deck1!;
+        Drop(app, "Deck1View", app.ToneTrack("Busy"));
         a.TogglePlayCommand.Execute(null);
 
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
@@ -321,10 +321,10 @@ public sealed class DeckTests
         app.Window.FindControl<ContextMenu>("TrackMenu")!.Open(grid);
         AppHarness.Settle(100);
 
-        var loadA = app.Window.FindControl<MenuItem>("TrackLoadA")!;
-        var loadB = app.Window.FindControl<MenuItem>("TrackLoadB")!;
+        var loadA = app.Window.FindControl<MenuItem>("TrackLoad1")!;
+        var loadB = app.Window.FindControl<MenuItem>("TrackLoad2")!;
         Assert.False(loadA.IsEnabled);
-        Assert.Equal("Load to Deck A  (playing)", loadA.Header);
+        Assert.Equal("Load to Deck 1  (playing)", loadA.Header);
         Assert.True(loadB.IsEnabled);
     }
 }

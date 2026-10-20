@@ -93,7 +93,7 @@ is out of scope until it earns a place.
 - Tracks can also be dragged straight onto a deck (manual mode).
 - Deck count is configurable in the engine from the start (2 by default); the 4-deck UI comes later.
 - **Drag and right-click are redundant by design.** Every track action is available both ways.
-  Right-click on a track (library or queue): *Preview in headphones*, *Load to Deck A/B…*
+  Right-click on a track (library or queue): *Preview in headphones*, *Load to Deck 1/B…*
   (instant), *Add to queue*, *Play next*.
 - **Auto-play alternates decks** (A, B, A, B…). The **crossfader fades the room between the
   decks**; auto-play moves it to the new deck when the next song starts.
@@ -117,7 +117,7 @@ is out of scope until it earns a place.
 
 - Two decks with play/pause, seek, tempo (key lock), fade-out, eject and a tap-to-cycle readout
   (time left / elapsed / BPM, remembered per deck).
-- Load by dragging onto a deck or right-click › Load to Deck A/B; deck protection with the
+- Load by dragging onto a deck or right-click › Load to Deck 1/B; deck protection with the
   Block / Ask / Allow setting, shown on the deck outline and in the menu ("(playing)").
 - Pause is a single tap by default. Optional "tap twice (or press and hold)" for a deck the room
   is hearing. Seeking is blocked while the room is hearing the deck.

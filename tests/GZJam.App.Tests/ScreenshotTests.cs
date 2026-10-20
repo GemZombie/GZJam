@@ -57,22 +57,22 @@ public sealed class ScreenshotTests
 
         // A set in progress: A on air, B cued up, a third track previewing in the headphones.
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.DeckA!, tracks[1]).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.DeckB!, tracks[2]).GetAwaiter().GetResult();
-        vm.DeckA!.TogglePlayCommand.Execute(null);
-        vm.DeckB!.TempoPercent = -2.5;
-        vm.DeckB.IsCueOn = true;
-        vm.DeckB.TogglePlayCommand.Execute(null);
+        vm.LoadToDeckAsync(vm.Deck1!, tracks[1]).GetAwaiter().GetResult();
+        vm.LoadToDeckAsync(vm.Deck2!, tracks[2]).GetAwaiter().GetResult();
+        vm.Deck1!.TogglePlayCommand.Execute(null);
+        vm.Deck2!.TempoPercent = -2.5;
+        vm.Deck2.IsCueOn = true;
+        vm.Deck2.TogglePlayCommand.Execute(null);
         app.Play(25);
-        vm.DeckB.SeekTo(0.6);
-        vm.DeckB.TogglePlayCommand.Execute(null);
+        vm.Deck2.SeekTo(0.6);
+        vm.Deck2.TogglePlayCommand.Execute(null);
         vm.Preview!.Toggle(tracks[4]);
         app.Play(8);
         app.Screenshot("05-decks-playing");
 
         // The live deck refusing a drop.
-        vm.LoadToDeckAsync(vm.DeckA, tracks[6]).GetAwaiter().GetResult();
-        vm.DeckA.TogglePlayCommand.Execute(null);   // a tap on the live deck: asks for a hold
+        vm.LoadToDeckAsync(vm.Deck1, tracks[6]).GetAwaiter().GetResult();
+        vm.Deck1.TogglePlayCommand.Execute(null);   // a tap on the live deck: asks for a hold
         app.Screenshot("06-protected-deck");
     }
 }

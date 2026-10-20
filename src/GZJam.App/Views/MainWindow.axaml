@@ -38,7 +38,7 @@
       <!-- Short-lived messages, e.g. why a load was refused -->
       <Border Grid.Column="2" Classes="hint" HorizontalAlignment="Center" VerticalAlignment="Center"
               BorderBrush="#66F5A524" IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <TextBlock Text="{Binding Notice}" Foreground="{StaticResource DeckBBrush}" FontSize="12.5" />
+        <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" />
       </Border>
 
       <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
@@ -60,7 +60,7 @@
       <Button Grid.Column="5" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Headphone output (click to change)">
         <StackPanel Orientation="Horizontal" Spacing="7">
           <Ellipse Width="7" Height="7" Fill="{StaticResource OkBrush}" IsVisible="{Binding HasCueOutput}" />
-          <Ellipse Width="7" Height="7" Fill="{StaticResource DeckBBrush}" IsVisible="{Binding !HasCueOutput}" />
+          <Ellipse Width="7" Height="7" Fill="{StaticResource Deck2Brush}" IsVisible="{Binding !HasCueOutput}" />
           <TextBlock Classes="muted" Text="Cue" FontSize="12" />
           <TextBlock Text="{Binding CueOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
         </StackPanel>
@@ -110,8 +110,8 @@
 
     <!-- ───────────── Decks + mixer ───────────── -->
     <Grid Grid.Row="2" ColumnDefinitions="*,212,*" ColumnSpacing="12">
-      <v:DeckView x:Name="DeckAView" Letter="A" Accent="{StaticResource DeckABrush}"
-                  DataContext="{Binding DeckA}" DragDrop.AllowDrop="True" />
+      <v:DeckView x:Name="Deck1View" Label="1" Accent="{StaticResource Deck1Brush}"
+                  DataContext="{Binding Deck1}" DragDrop.AllowDrop="True" />
 
       <Border Grid.Column="1" Classes="panel" Padding="14">
         <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
@@ -131,19 +131,19 @@
           <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
             <TextBlock Classes="label" HorizontalAlignment="Center" Text="{Binding LiveText}" />
             <Slider x:Name="Crossfader" Classes="crossfader" Minimum="0" Maximum="1" Value="{Binding Crossfader}"
-                    SmallChange="0.05" LargeChange="0.25" ToolTip.Tip="Crossfader: fades the room between Deck A and Deck B" />
+                    SmallChange="0.05" LargeChange="0.25" ToolTip.Tip="Crossfader: fades the room between Deck 1 and Deck 2" />
             <Grid ColumnDefinitions="Auto,*,Auto">
-              <Button Classes="side" Content="A" Command="{Binding SnapToACommand}"
-                      Foreground="{StaticResource DeckABrush}" ToolTip.Tip="Switch the room to Deck A" />
-              <Button Grid.Column="2" Classes="side" Content="B" Command="{Binding SnapToBCommand}"
-                      Foreground="{StaticResource DeckBBrush}" ToolTip.Tip="Switch the room to Deck B" />
+              <Button Classes="side" Content="1" Command="{Binding SnapTo1Command}"
+                      Foreground="{StaticResource Deck1Brush}" ToolTip.Tip="Switch the room to Deck 1" />
+              <Button Grid.Column="2" Classes="side" Content="2" Command="{Binding SnapTo2Command}"
+                      Foreground="{StaticResource Deck2Brush}" ToolTip.Tip="Switch the room to Deck 2" />
             </Grid>
           </StackPanel>
         </Grid>
       </Border>
 
-      <v:DeckView x:Name="DeckBView" Grid.Column="2" Letter="B" Accent="{StaticResource DeckBBrush}"
-                  DataContext="{Binding DeckB}" DragDrop.AllowDrop="True" />
+      <v:DeckView x:Name="Deck2View" Grid.Column="2" Label="2" Accent="{StaticResource Deck2Brush}"
+                  DataContext="{Binding Deck2}" DragDrop.AllowDrop="True" />
     </Grid>
 
     <!-- ───────────── Library ───────────── -->
@@ -266,8 +266,8 @@
                 <MenuItem Header="Play next" InputGesture="Shift+Enter" Click="OnPlayNextClick" />
                 <Separator />
                 <MenuItem Header="Preview in headphones" InputGesture="Space" Click="OnPreviewSelectedClick" />
-                <MenuItem x:Name="TrackLoadA" Header="Load to Deck A" Tag="0" Click="OnLoadSelectedToDeckClick" />
-                <MenuItem x:Name="TrackLoadB" Header="Load to Deck B" Tag="1" Click="OnLoadSelectedToDeckClick" />
+                <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />
+                <MenuItem x:Name="TrackLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadSelectedToDeckClick" />
                 <Separator />
                 <MenuItem Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
@@ -292,7 +292,7 @@
           <Border Grid.Row="2" Classes="preview-bar" DataContext="{Binding Preview}" x:DataType="vm:PreviewViewModel"
                   IsVisible="{Binding IsActive, FallbackValue=False}">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="12">
-              <Border Width="30" Height="30" CornerRadius="8" Background="{StaticResource DeckBBrush}">
+              <Border Width="30" Height="30" CornerRadius="8" Background="{StaticResource Deck2Brush}">
                 <Path Data="{StaticResource IconHeadphones}" Stroke="#111" StrokeThickness="2.4"
                       Stretch="Uniform" Width="15" Height="14" />
               </Border>
@@ -301,7 +301,7 @@
                 <TextBlock Classes="muted" FontSize="11" Text="Previewing in headphones" />
               </StackPanel>
               <c:SeekBar x:Name="PreviewSeek" Grid.Column="2" Height="28" Progress="{Binding Progress}"
-                         Fill="{StaticResource DeckBBrush}" CornerRadius="5" />
+                         Fill="{StaticResource Deck2Brush}" CornerRadius="5" />
               <TextBlock Grid.Column="3" Classes="muted mono" FontSize="12" Text="{Binding TimeText}" VerticalAlignment="Center" />
               <Button Grid.Column="4" Classes="deck-button" Content="Stop" Command="{Binding StopCommand}" />
             </Grid>
@@ -356,8 +356,8 @@
                   <MenuItem Header="Remove" InputGesture="Delete" Click="OnQueueRemoveClick" />
                   <Separator />
                   <MenuItem Header="Preview in headphones" Click="OnPreviewQueueSelectedClick" />
-                  <MenuItem x:Name="QueueLoadA" Header="Load to Deck A" Tag="0" Click="OnLoadQueueToDeckClick" />
-                  <MenuItem x:Name="QueueLoadB" Header="Load to Deck B" Tag="1" Click="OnLoadQueueToDeckClick" />
+                  <MenuItem x:Name="QueueLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadQueueToDeckClick" />
+                  <MenuItem x:Name="QueueLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadQueueToDeckClick" />
                   <Separator />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>

@@ -10,9 +10,9 @@
 
       <!-- Letter, track, readout -->
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-        <Border Classes="letter" VerticalAlignment="Top"
+        <Border Classes="badge" VerticalAlignment="Top"
                 Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <TextBlock Text="{Binding Letter}" />
+          <TextBlock Text="{Binding Label}" />
         </Border>
         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
           <Border Classes="pill" Classes.air="{Binding IsOnAir}" Classes.offair="{Binding IsOffAir}"

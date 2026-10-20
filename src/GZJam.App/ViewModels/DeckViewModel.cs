@@ -21,11 +21,12 @@ public sealed partial class DeckViewModel : ObservableObject
         _owner = owner;
         _settings = settings;
         Deck = deck;
-        Readout = settings.DeckReadouts.GetValueOrDefault(Letter, DeckReadout.Remaining);
+        Readout = settings.DeckReadouts.GetValueOrDefault(Label, DeckReadout.Remaining);
     }
 
     public Deck Deck { get; }
-    public string Letter => Deck.Name;
+    /// <summary>"1", "2".</summary>
+    public string Label => Deck.Name;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTrack), nameof(Title), nameof(Subtitle), nameof(TrackBpm))]
@@ -65,7 +66,7 @@ public sealed partial class DeckViewModel : ObservableObject
             if (Deck.Cue == value)
                 return;
             Deck.Cue = value;
-            Log.Info($"Deck {Letter}: cue {(value ? "on" : "off")}");
+            Log.Info($"Deck {Label}: cue {(value ? "on" : "off")}");
             OnPropertyChanged();
         }
     }
@@ -74,7 +75,7 @@ public sealed partial class DeckViewModel : ObservableObject
 
     public string Subtitle => Track is { } t
         ? string.Join(" · ", new[] { t.Artist, t.Album, t.Year?.ToString(CultureInfo.InvariantCulture) }.Where(s => !string.IsNullOrWhiteSpace(s)))
-        : "Drag a track here, or right-click › Load to Deck " + Letter;
+        : "Drag a track here, or right-click › Load to Deck " + Label;
 
     /// <summary>0..1 through the track.</summary>
     public double Progress => Deck.Length > TimeSpan.Zero ? Deck.Position / Deck.Length : 0;
@@ -132,7 +133,7 @@ public sealed partial class DeckViewModel : ObservableObject
             DeckReadout.Elapsed => DeckReadout.Bpm,
             _ => DeckReadout.Remaining,
         };
-        _settings.DeckReadouts[Letter] = Readout;
+        _settings.DeckReadouts[Label] = Readout;
         RefreshReadout();
     }
 
@@ -154,12 +155,12 @@ public sealed partial class DeckViewModel : ObservableObject
         if (!IsPlaying)
         {
             Deck.Play();
-            Log.Info($"Deck {Letter}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
+            Log.Info($"Deck {Label}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
         }
         else if (PauseNeedsConfirm && !IsPauseArmed)
         {
             Arm();
-            Log.Info($"Deck {Letter}: pause armed (needs a second tap)");
+            Log.Info($"Deck {Label}: pause armed (needs a second tap)");
             return;
         }
         else
@@ -181,7 +182,7 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         Disarm();
         Deck.Pause();
-        Log.Info($"Deck {Letter}: pause ({how}){(Deck.IsPlaying ? " -- STILL PLAYING" : "")}");
+        Log.Info($"Deck {Label}: pause ({how}){(Deck.IsPlaying ? " -- STILL PLAYING" : "")}");
     }
 
     private async void Arm()
@@ -214,7 +215,7 @@ public sealed partial class DeckViewModel : ObservableObject
     private void FadeOut()
     {
         Deck.FadeOut(TimeSpan.FromSeconds(_settings.FadeOutSeconds));
-        Log.Info($"Deck {Letter}: fade out over {_settings.FadeOutSeconds:0} s");
+        Log.Info($"Deck {Label}: fade out over {_settings.FadeOutSeconds:0} s");
         Refresh();
     }
 
@@ -225,7 +226,7 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         Deck.Unload();
         Track = null;
-        Log.Info($"Deck {Letter}: eject");
+        Log.Info($"Deck {Label}: eject");
         Refresh();
     }
 
@@ -247,7 +248,7 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.Load(track.Path);
         Deck.TempoPercent = 0;
         Track = track;
-        Log.Info($"Deck {Letter}: load \"{track.DisplayTitle}\" ({track.Path})");
+        Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path})");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
         Refresh();

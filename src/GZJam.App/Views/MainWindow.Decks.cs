@@ -11,7 +11,7 @@ public partial class MainWindow
 {
     private void InitializeDecks()
     {
-        foreach (DeckView deckView in new[] { DeckAView, DeckBView })
+        foreach (DeckView deckView in new[] { Deck1View, Deck2View })
         {
             deckView.AddHandler(DragDrop.DragOverEvent, OnDeckDragOver);
             deckView.AddHandler(DragDrop.DragLeaveEvent, (_, _) => deckView.SetDropState(null));
@@ -20,10 +20,10 @@ public partial class MainWindow
 
         PreviewSeek.SeekRequested += (_, fraction) => Vm.Preview?.SeekTo(fraction);
         // Opening covers right-click and long-press; Opened also covers menus opened from code.
-        TrackMenu.Opening += (_, _) => UpdateLoadMenuItems(TrackLoadA, TrackLoadB, SelectedTracks().Count == 1);
-        TrackMenu.Opened += (_, _) => UpdateLoadMenuItems(TrackLoadA, TrackLoadB, SelectedTracks().Count == 1);
-        QueueMenu.Opening += (_, _) => UpdateLoadMenuItems(QueueLoadA, QueueLoadB, SelectedQueueItems().Count == 1);
-        QueueMenu.Opened += (_, _) => UpdateLoadMenuItems(QueueLoadA, QueueLoadB, SelectedQueueItems().Count == 1);
+        TrackMenu.Opening += (_, _) => UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
+        TrackMenu.Opened += (_, _) => UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
+        QueueMenu.Opening += (_, _) => UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
+        QueueMenu.Opened += (_, _) => UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
         SettingsButton.Flyout!.Opened += (_, _) => Vm.Settings.RefreshDevices();
 
         DataContextChanged += (_, _) =>
@@ -74,8 +74,8 @@ public partial class MainWindow
             bool canLoad = deck is not null && Vm.CanLoad(deck);
             item.IsEnabled = oneTrackSelected && canLoad;
             item.Header = deck is { IsPlaying: true } && !canLoad
-                ? $"Load to Deck {deck.Letter}  (playing)"
-                : $"Load to Deck {(char)('A' + index)}";
+                ? $"Load to Deck {deck.Label}  (playing)"
+                : $"Load to Deck {index + 1}";
         }
     }
 

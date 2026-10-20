@@ -46,7 +46,7 @@ public sealed class MixEngine : IDisposable
     public IReadOnlyList<Deck> Decks { get; }
     public PreviewPlayer Preview { get; }
 
-    /// <summary>Crossfader position: 0 = all Deck A, 1 = all Deck B.</summary>
+    /// <summary>Crossfader position: 0 = all Deck 1, 1 = all Deck 2.</summary>
     public double Crossfader
     {
         get => _crossfader;
@@ -57,7 +57,7 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    /// <summary>The deck the crossfader leans towards (A at dead centre). Both may be audible in a blend.</summary>
+    /// <summary>The deck the crossfader leans towards (Deck 1 at dead centre). Both may be audible in a blend.</summary>
     public Deck LiveDeck => Decks.MaxBy(d => Crossfade.Audibility(d.Index, _crossfader))!;
 
     /// <summary>

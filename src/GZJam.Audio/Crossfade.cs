@@ -8,12 +8,12 @@ namespace GZJam.Audio;
 /// </summary>
 public static class Crossfade
 {
-    /// <summary>Audibility of a deck for a crossfader position (0 = full A, 1 = full B).</summary>
+    /// <summary>Audibility of a deck for a crossfader position (0 = all Deck 1, 1 = all Deck 2).</summary>
     public static double Audibility(int deckIndex, double crossfader) => deckIndex switch
     {
         0 => 1 - crossfader,
         1 => crossfader,
-        _ => 0, // decks C and D (future) aren't on the crossfader until assigned to a side
+        _ => 0, // decks 3 and 4 (future) aren't on the crossfader until assigned to a side
     };
 
     public static double MainGain(double audibility) => Math.Sin(Math.Clamp(audibility, 0, 1) * Math.PI / 2);

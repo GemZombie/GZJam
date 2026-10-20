@@ -15,8 +15,8 @@
       <Color x:Key="TextColor">#E7EAF0</Color>
       <Color x:Key="MutedColor">#8B94A5</Color>
       <Color x:Key="DimColor">#5D6574</Color>
-      <Color x:Key="DeckAColor">#22D3EE</Color>
-      <Color x:Key="DeckBColor">#F5A524</Color>
+      <Color x:Key="Deck1Color">#22D3EE</Color>
+      <Color x:Key="Deck2Color">#F5A524</Color>
       <Color x:Key="OnAirColor">#F04444</Color>
       <Color x:Key="OkColor">#34D399</Color>
       <Color x:Key="AccentColor">#8F74FF</Color>
@@ -30,14 +30,14 @@
       <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
       <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource MutedColor}" />
       <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}" />
-      <SolidColorBrush x:Key="DeckABrush" Color="{StaticResource DeckAColor}" />
-      <SolidColorBrush x:Key="DeckBBrush" Color="{StaticResource DeckBColor}" />
+      <SolidColorBrush x:Key="Deck1Brush" Color="{StaticResource Deck1Color}" />
+      <SolidColorBrush x:Key="Deck2Brush" Color="{StaticResource Deck2Color}" />
       <SolidColorBrush x:Key="OnAirBrush" Color="{StaticResource OnAirColor}" />
       <SolidColorBrush x:Key="OkBrush" Color="{StaticResource OkColor}" />
       <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
       <SolidColorBrush x:Key="AccentSoftBrush" Color="#388F74FF" />
       <SolidColorBrush x:Key="AccentFaintBrush" Color="#228F74FF" />
-      <SolidColorBrush x:Key="DeckBSoftBrush" Color="#24F5A524" />
+      <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24F5A524" />
 
       <!-- First available wins: Windows, macOS, Linux. -->
       <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, SF Mono, Menlo, DejaVu Sans Mono, monospace</FontFamily>

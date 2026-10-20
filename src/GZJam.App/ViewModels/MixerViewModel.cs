@@ -4,7 +4,7 @@ using GZJam.Audio;
 
 namespace GZJam.App.ViewModels;
 
-/// <summary>The crossfader: fades the room between Deck A and Deck B. The headphones are separate (each deck's cue button).</summary>
+/// <summary>The crossfader: fades the room between Deck 1 and Deck 2. The headphones are separate (each deck's cue button).</summary>
 public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine mix) : ObservableObject
 {
     private static readonly TimeSpan SnapTime = TimeSpan.FromMilliseconds(300);
@@ -25,21 +25,21 @@ public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine 
         }
     }
 
-    /// <summary>"A · LIVE", "B · LIVE", or "BLEND" when the room hears some of both.</summary>
+    /// <summary>"1 · LIVE", "2 · LIVE", or "BLEND" when the room hears some of both.</summary>
     public string LiveText => mix.Crossfader is > 0.03 and < 0.97 ? "BLEND" : $"{mix.LiveDeck.Name} · LIVE";
-    public bool IsALive => mix.LiveDeck.Index == 0;
-    public bool IsBLive => mix.LiveDeck.Index == 1;
+    public bool IsDeck1Live => mix.LiveDeck.Index == 0;
+    public bool IsDeck2Live => mix.LiveDeck.Index == 1;
 
-    /// <summary>Glides the fader fully to Deck A: a quick, click-free switch that's easy to hit on a touchscreen.</summary>
+    /// <summary>Glides the fader fully to Deck 1: a quick, click-free switch that's easy to hit on a touchscreen.</summary>
     [RelayCommand]
-    private void SnapToA() => SnapTo(0);
+    private void SnapTo1() => SnapTo(0);
 
     [RelayCommand]
-    private void SnapToB() => SnapTo(1);
+    private void SnapTo2() => SnapTo(1);
 
     private void SnapTo(double target)
     {
-        Log.Info($"Crossfader: switch to {(target == 0 ? "A" : "B")} (from {mix.Crossfader:0.00})");
+        Log.Info($"Crossfader: switch to Deck {(target == 0 ? 1 : 2)} (from {mix.Crossfader:0.00})");
         _snapFrom = mix.Crossfader;
         _snapTarget = target;
         _snapStarted = TimeProvider.System.GetTimestamp();
@@ -62,8 +62,8 @@ public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine 
     {
         OnPropertyChanged(nameof(Crossfader));
         OnPropertyChanged(nameof(LiveText));
-        OnPropertyChanged(nameof(IsALive));
-        OnPropertyChanged(nameof(IsBLive));
+        OnPropertyChanged(nameof(IsDeck1Live));
+        OnPropertyChanged(nameof(IsDeck2Live));
         owner.RefreshDecks();
     }
 }
