@@ -35,6 +35,9 @@ public sealed class MixEngine : IDisposable
     }
 
     internal AudioEngine Engine { get; }
+
+    /// <summary>Mixing without audio devices (tests).</summary>
+    public bool IsOffline => _offline;
     internal TimeProvider Time { get; }
 
     public OutputBus Main { get; private set; }

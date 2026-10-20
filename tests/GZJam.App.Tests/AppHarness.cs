@@ -3,6 +3,7 @@ using Avalonia.Headless;
 using Avalonia.Threading;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
+using GZJam.Audio;
 using GZJam.Library;
 using GZJam.Testing;
 
@@ -37,7 +38,10 @@ public sealed class AppHarness : IDisposable
             GenerateMusic(MusicPath);
         Database.AddRoot(MusicPath);
 
-        ViewModel = new MainWindowViewModel(Database, Settings);
+        // Real BASS mixing, but offline: nothing plays aloud, and tests pull audio with Render().
+        Audio = new AudioEngine();
+        Mix = new MixEngine(Audio, offline: true);
+        ViewModel = new MainWindowViewModel(Database, Settings, mix: Mix);
         Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
         Window.Show();
         if (start)
@@ -48,6 +52,25 @@ public sealed class AppHarness : IDisposable
     public LibraryDatabase Database { get; }
     public AppSettings Settings { get; }
     public MainWindowViewModel ViewModel { get; }
+    public AudioEngine Audio { get; }
+    public MixEngine Mix { get; }
+    public string WorkDirectory => _work;
+
+    /// <summary>A track backed by a generated tone (real audio, unlike the silent test MP3s).</summary>
+    public Track ToneTrack(string title, double seconds = 20)
+    {
+        string path = TestWav.WriteTone(Path.Combine(_work, "tones", title + ".wav"), TimeSpan.FromSeconds(seconds));
+        return new Track { Path = path, Folder = "", FileName = title + ".wav", Title = title, Artist = "Test Band", Bpm = 150 };
+    }
+
+    /// <summary>Plays <paramref name="seconds"/> of audio through the offline mix, then runs a UI tick.</summary>
+    public (float Main, float Cue) Play(double seconds)
+    {
+        var levels = Mix.Render(TimeSpan.FromSeconds(seconds));
+        ViewModel.Tick();
+        Dispatcher.UIThread.RunJobs();
+        return levels;
+    }
     public MainWindow Window { get; }
     public LibraryViewModel Library => ViewModel.Library;
 
@@ -129,7 +152,8 @@ public sealed class AppHarness : IDisposable
     public void Dispose()
     {
         Window.Close();
-        ViewModel.Dispose();
+        ViewModel.Dispose();   // also disposes the mix
+        Audio.Dispose();
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
         try { Directory.Delete(_work, recursive: true); }
         catch (IOException) { /* best effort */ }

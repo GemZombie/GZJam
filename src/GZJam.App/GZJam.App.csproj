@@ -25,6 +25,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GZJam.Library\GZJam.Library.csproj" />
+    <ProjectReference Include="..\GZJam.Audio\GZJam.Audio.csproj" />
   </ItemGroup>
+
+  <Import Project="..\..\lib\bass\Bass.targets" />
 
 </Project>

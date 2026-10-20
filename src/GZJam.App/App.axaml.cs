@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
+using GZJam.Audio;
 using GZJam.Library;
 
 namespace GZJam.App;
@@ -17,7 +18,8 @@ public partial class App : Application
         {
             var settings = AppSettings.Load(AppPaths.SettingsFile);
             var database = new LibraryDatabase(AppPaths.LibraryDatabase);
-            var viewModel = new MainWindowViewModel(database, settings);
+            var (audio, mix, audioError) = StartAudio();
+            var viewModel = new MainWindowViewModel(database, settings, audio, mix, audioError);
 
             var window = new MainWindow { DataContext = viewModel };
             window.RestorePlacement(settings.Window);
@@ -33,5 +35,21 @@ public partial class App : Application
             viewModel.Start();
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>Loads BASS. If that fails the library still works; the window explains why there's no sound.</summary>
+    private static (AudioEngine?, MixEngine?, string?) StartAudio()
+    {
+        AudioEngine? audio = null;
+        try
+        {
+            audio = new AudioEngine();
+            return (audio, new MixEngine(audio), null);
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException or AudioException)
+        {
+            audio?.Dispose();
+            return (null, null, $"Audio isn't available: {ex.Message}");
+        }
     }
 }

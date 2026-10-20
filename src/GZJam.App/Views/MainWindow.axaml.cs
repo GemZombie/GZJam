@@ -49,6 +49,8 @@ public partial class MainWindow : Window
 
         PositionChanged += (_, _) => RememberNormalBounds();
         Resized += (_, _) => RememberNormalBounds();
+
+        InitializeDecks();
     }
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
@@ -108,12 +110,20 @@ public partial class MainWindow : Window
 
     private void OnGridKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter)
-            return;
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-            Vm.Queue.PlayNext(SelectedTracks());
-        else
-            Vm.Queue.Add(SelectedTracks());
+        switch (e.Key)
+        {
+            case Key.Enter when e.KeyModifiers.HasFlag(KeyModifiers.Shift):
+                Vm.Queue.PlayNext(SelectedTracks());
+                break;
+            case Key.Enter:
+                Vm.Queue.Add(SelectedTracks());
+                break;
+            case Key.Space:
+                PreviewSelected();
+                break;
+            default:
+                return;
+        }
         e.Handled = true;
     }
 

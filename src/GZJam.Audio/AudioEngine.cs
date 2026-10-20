@@ -96,8 +96,18 @@ public sealed class AudioEngine : IDisposable
     {
         foreach (int device in _initializedDevices)
         {
-            Bass.CurrentDevice = device;
-            Bass.Free();
+            // BASS is process-wide, so another engine may already have freed this device.
+            if (Bass.GetDeviceInfo(device, out DeviceInfo info) && !info.IsInitialized)
+                continue;
+            try
+            {
+                Bass.CurrentDevice = device;
+                Bass.Free();
+            }
+            catch (BassException)
+            {
+                // Already gone; nothing to release.
+            }
         }
         _initializedDevices.Clear();
     }

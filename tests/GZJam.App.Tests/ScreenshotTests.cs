@@ -53,5 +53,25 @@ public sealed class ScreenshotTests
         app.Window.MouseUp(point, MouseButton.Right, RawInputModifiers.None);
         AppHarness.Settle(300);
         app.Screenshot("04-context-menu");
+        app.Window.FindControl<ContextMenu>("TrackMenu")!.Close();
+
+        // A set in progress: A on air, B cued up, a third track previewing in the headphones.
+        var vm = app.ViewModel;
+        vm.LoadToDeckAsync(vm.DeckA!, tracks[1]).GetAwaiter().GetResult();
+        vm.LoadToDeckAsync(vm.DeckB!, tracks[2]).GetAwaiter().GetResult();
+        vm.DeckA!.TogglePlayCommand.Execute(null);
+        vm.DeckB!.TempoPercent = -2.5;
+        vm.DeckB.TogglePlayCommand.Execute(null);
+        app.Play(25);
+        vm.DeckB.SeekTo(0.6);
+        vm.DeckB.TogglePlayCommand.Execute(null);
+        vm.Preview!.Toggle(tracks[4]);
+        app.Play(8);
+        app.Screenshot("05-decks-playing");
+
+        // The live deck refusing a drop.
+        vm.LoadToDeckAsync(vm.DeckA, tracks[6]).GetAwaiter().GetResult();
+        vm.DeckA.TogglePlayCommand.Execute(null);   // a tap on the live deck: asks for a hold
+        app.Screenshot("06-protected-deck");
     }
 }

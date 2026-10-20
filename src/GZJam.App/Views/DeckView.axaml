@@ -1,34 +1,86 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:v="using:GZJam.App.Views"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             xmlns:c="using:GZJam.App.Controls"
              x:Class="GZJam.App.Views.DeckView"
-             x:DataType="v:DeckView">
-  <!-- Visual placeholder for a deck; playback arrives with the audio step. -->
-  <Border Classes="panel" Padding="16,14">
-    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+             x:DataType="vm:DeckViewModel">
+  <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}" Padding="16,14">
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+
+      <!-- Letter, track, readout -->
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
         <Border Classes="letter" VerticalAlignment="Top"
                 Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <TextBlock Text="{Binding Letter, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+          <TextBlock Text="{Binding Letter}" />
         </Border>
-        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-          <TextBlock Text="No track loaded" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource DimBrush}" />
-          <TextBlock Classes="muted" Text="Decks come to life in the next step" FontSize="12" />
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <Border Classes="pill" Classes.air="{Binding IsOnAir}" Classes.cue="{Binding IsCue}"
+                  IsVisible="{Binding HasTrack}" HorizontalAlignment="Left">
+            <TextBlock Text="{Binding Status}" />
+          </Border>
+          <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                     Classes.dim="{Binding !HasTrack}" ToolTip.Tip="{Binding Title}" />
+          <TextBlock Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis" />
         </StackPanel>
-        <TextBlock Grid.Column="2" Classes="mono" Text="-0:00" FontSize="38" FontWeight="SemiBold"
-                   Foreground="{StaticResource Line2Brush}" VerticalAlignment="Top" />
+        <Button Grid.Column="2" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
+                ToolTip.Tip="Tap to switch between time left, time elapsed and BPM">
+          <StackPanel>
+            <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="38" FontWeight="SemiBold"
+                       HorizontalAlignment="Right" LineHeight="40"
+                       Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+            <TextBlock Classes="muted mono" Text="{Binding ReadoutCaption}" FontSize="12" HorizontalAlignment="Right" />
+          </StackPanel>
+        </Button>
       </Grid>
-      <Border Grid.Row="1" Classes="well" MinHeight="70">
-        <Rectangle Height="1" Fill="{StaticResource Line2Brush}" VerticalAlignment="Center" Margin="12,0" />
-      </Border>
-      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Opacity="0.35" IsEnabled="False">
-        <Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
-                BorderBrush="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <PathIcon Data="{StaticResource IconPlay}" Width="16" Height="16"
-                    Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+
+      <!-- Position (waveform later). Seeking is blocked while the deck is on air. -->
+      <Panel Grid.Row="1">
+        <c:SeekBar x:Name="Seek" MinHeight="48" Progress="{Binding Progress}" IsEnabled="{Binding CanSeek}"
+                   Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+        <Border Classes="hint" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Hint}" />
         </Border>
-        <Button Content="Fade out" VerticalAlignment="Center" />
-      </StackPanel>
+      </Panel>
+
+      <!-- Transport and tempo -->
+      <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="10">
+        <Button x:Name="PlayButton" Classes="play" Classes.playing="{Binding IsPlaying}"
+                IsEnabled="{Binding HasTrack}"
+                BorderBrush="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
+                Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
+                ToolTip.Tip="Play / pause">
+          <Panel>
+            <PathIcon Data="{StaticResource IconPlay}" Width="18" Height="18" IsVisible="{Binding !IsPlaying}" />
+            <PathIcon Data="{StaticResource IconPause}" Width="16" Height="16" IsVisible="{Binding IsPlaying}" />
+          </Panel>
+        </Button>
+        <Button Grid.Column="1" Classes="deck-button" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
+                ToolTip.Tip="Fade out and stop (length in Settings)">
+          <TextBlock Text="Fade out" />
+        </Button>
+        <Button Grid.Column="2" Classes="link" Content="Eject" Command="{Binding EjectCommand}"
+                IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
+
+        <StackPanel Grid.Column="4" Width="170" VerticalAlignment="Center" Spacing="0">
+          <Grid ColumnDefinitions="*,Auto,*">
+            <TextBlock Classes="dim" Text="−8%" FontSize="10" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="link" Padding="6,0" Command="{Binding ResetTempoCommand}"
+                    ToolTip.Tip="Tempo (pitch stays the same). Tap to reset.">
+              <TextBlock Classes="mono" Text="{Binding TempoText}" FontSize="11" />
+            </Button>
+            <TextBlock Grid.Column="2" Classes="dim" Text="+8%" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+          </Grid>
+          <Slider Classes="tempo" Minimum="-8" Maximum="8" SmallChange="0.1" LargeChange="1"
+                  Value="{Binding TempoPercent}" IsEnabled="{Binding HasTrack}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="5" VerticalAlignment="Center" MinWidth="64">
+          <TextBlock Classes="mono" Text="{Binding BpmText}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Right" />
+          <TextBlock Classes="muted" Text="{Binding BpmCaption}" FontSize="10.5" HorizontalAlignment="Right" />
+        </StackPanel>
+      </Grid>
     </Grid>
   </Border>
 </UserControl>

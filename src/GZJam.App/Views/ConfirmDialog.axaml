@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GZJam.App.Views.ConfirmDialog"
+        Width="440" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Title="GZJam">
+  <StackPanel Margin="22" Spacing="14">
+    <TextBlock x:Name="Heading" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <TextBlock x:Name="Message" Classes="muted" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,6,0,0">
+      <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" MinWidth="96" MinHeight="38"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+      <Button x:Name="ConfirmButton" IsDefault="True" MinWidth="96" MinHeight="38"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+              Background="{StaticResource OnAirBrush}" Foreground="White" />
+    </StackPanel>
+  </StackPanel>
+</Window>

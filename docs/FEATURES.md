@@ -113,6 +113,17 @@ is out of scope until it earns a place.
 - **The big readout cycles when clicked**: time remaining → time elapsed → BPM (tempo-adjusted)
   → … and back. Each deck remembers its mode between sessions.
 
+### Status: step 2 built
+
+- Two decks with play/pause, seek, tempo (key lock), fade-out, eject and a tap-to-cycle readout
+  (time left / elapsed / BPM, remembered per deck).
+- Load by dragging onto a deck or right-click › Load to Deck A/B; deck protection with the
+  Block / Ask / Allow setting, shown on the deck outline and in the menu ("(playing)").
+- The live deck pauses with a press-and-hold (or a tap, if chosen in Settings); seeking is blocked
+  while it's on air.
+- Crossfader with one-tap A / B switches (a 300 ms glide).
+- Not yet: auto-play, the gap, silence trimming, BPM detection (step 3); waveforms (step 4).
+
 ## Headphone cue
 
 ### Requirements (from the DJ)
@@ -126,8 +137,13 @@ is out of scope until it earns a place.
   deck goes to the cue output. No routing buttons to forget mid-set.
 - **A preview player** (headphone icon on every library and queue row) plays a track to the
   cue output without loading a deck, with its own scrub bar.
-- The engine needs a mixer stage to do this (a deck may feed main, cue, or both), most likely
-  the BASSmix add-on. The current prototype binds each deck to a single device.
+- **Built (step 2)** on BASSmix: every deck feeds both a main and a cue mixer through splitters,
+  and the crossfader sets each side's volume (equal-power curve; the headphones get the
+  complement of what the room hears). Moving the fader never interrupts playback.
+- The headphones are never defaulted to the speaker device: with no cue output chosen, preview
+  asks you to pick one in Settings rather than playing into the room.
+- The preview player (headphone icon on every library and queue row, or Space) has its own seek
+  bar; a second tap on the same track stops it.
 
 ## Touch
 

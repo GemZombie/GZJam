@@ -42,6 +42,13 @@
       <!-- First available wins: Windows, macOS, Linux. -->
       <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, SF Mono, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 
+      <!--
+        Sizes for controls used during a set. Touch mode (later) swaps these for finger-sized
+        values, so new controls should take their sizes from here via DynamicResource.
+      -->
+      <x:Double x:Key="DeckButtonSize">54</x:Double>
+      <x:Double x:Key="DeckControlHeight">36</x:Double>
+
       <!-- Fluent theme overrides -->
       <Color x:Key="SystemAccentColor">#8F74FF</Color>
       <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#388F74FF" />
@@ -59,6 +66,8 @@
       <StreamGeometry x:Key="IconHeadphones">M3 15v-3a9 9 0 0 1 18 0v3 M2.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z M16.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z</StreamGeometry>
       <StreamGeometry x:Key="IconFolder">M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z</StreamGeometry>
       <StreamGeometry x:Key="IconSearch">M11 4a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M16 16l4.5 4.5</StreamGeometry>
+      <StreamGeometry x:Key="IconPause">M6 5h4v14H6z M14 5h4v14h-4z</StreamGeometry>
+      <StreamGeometry x:Key="IconGear">M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z M12 9a3 3 0 1 1 0 6a3 3 0 1 1 0-6z</StreamGeometry>
       <StreamGeometry x:Key="IconPlay">M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z</StreamGeometry>
       <StreamGeometry x:Key="IconClose">M6 6l12 12 M18 6L6 18</StreamGeometry>
       <StreamGeometry x:Key="IconGrip">M9 6h.01 M15 6h.01 M9 12h.01 M15 12h.01 M9 18h.01 M15 18h.01</StreamGeometry>
