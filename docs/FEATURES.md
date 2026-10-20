@@ -86,6 +86,19 @@ is out of scope until it earns a place.
 - **One-button fade-out** per deck, with a configurable length. A fade-out counts as the song
   ending: the gap starts, then auto-play continues.
 
+### Deck protection
+
+- **A playing deck is protected.** By default, loading a track onto a deck that is playing is
+  blocked, whether by drag or by right-click. A paused or stopped deck accepts loads normally.
+- Blocked loads are visible, not silent: the right-click item is greyed out ("playing"), and
+  dragging over the deck shows a "not allowed" outline and cursor.
+- **Setting: "Loading onto a playing deck"**: *Block* (default), *Ask to confirm*, or *Allow*.
+
+### Deck display
+
+- **The big readout cycles when clicked**: time remaining → time elapsed → BPM (tempo-adjusted)
+  → … and back. Each deck remembers its mode between sessions.
+
 ## Headphone cue
 
 ### Requirements (from the DJ)
@@ -107,6 +120,10 @@ is out of scope until it earns a place.
 - **The UI must look good.** This is the part of DJay Pro and similar apps worth keeping:
   a polished, dark, performance-oriented look with waveforms and clear deck displays.
   Fewer features does not mean plainer.
+- **Layout approved** as in `docs/mockups/main-screen.html`: decks on top with a mixer column
+  between them; folder tree, search results and queue below.
+- **Fonts stay consistent across the app for now.** The deck readout font (especially time
+  left) may be revisited once it's on screen in the real app.
 
 ## Open questions
 
