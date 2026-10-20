@@ -201,6 +201,14 @@ is out of scope until it earns a place.
 - **Fonts stay consistent across the app for now.** The deck readout font (especially time
   left) may be revisited once it's on screen in the real app.
 
+## Decided against
+
+- **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to
+  partner companies (rekordbox, Serato, djay since September 2025); Spotify's public developer
+  policy forbids mixing/segueing its content, and its audio can't be routed through our mixer.
+  A playlist-matching feature (Spotify playlists → tracks in the local library) was possible but
+  isn't useful without streaming. Revisit only if the streaming landscape changes.
+
 ## Open questions
 
 
