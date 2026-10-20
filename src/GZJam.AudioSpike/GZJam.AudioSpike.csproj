@@ -11,4 +11,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <Import Project="..\..\lib\bass\Bass.targets" />
+
 </Project>

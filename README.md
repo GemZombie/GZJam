@@ -40,4 +40,4 @@ UI tests run headless. `ScreenshotTests` also renders the window over a real mus
 - `src/GZJam.AudioSpike` — throwaway console harness for testing the audio engine
 - `tests/` — library tests and headless UI tests
 - `tools/GZJam.DevTools` — `bench <folder>`: scan timings and tag coverage for a real library
-- `lib/bass/<rid>` — native BASS + BASS_FX libraries (x64), copied to output at build
+- `lib/bass/` — native BASS + BASS_FX for Windows (x64), Linux (x64) and macOS (universal); `Bass.targets` copies the right set into each app's output

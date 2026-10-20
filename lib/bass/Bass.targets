@@ -1,0 +1,26 @@
+<Project>
+  <!--
+    Copies the native BASS libraries next to an executable. Import this from every app project
+    that uses GZJam.Audio. It has to live in the executable, not the library: when publishing
+    with -r <rid>, .NET doesn't pass the RID to referenced class libraries, so only the app
+    knows which platform it's being built for.
+
+    Picked by target RID, or by the build OS when no RID is given (dotnet run / build).
+    lib/bass/osx holds universal binaries (Intel + Apple Silicon), so both macOS RIDs use it.
+  -->
+  <PropertyGroup>
+    <BassRid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</BassRid>
+    <BassRid Condition="$(BassRid.StartsWith('osx'))">osx</BassRid>
+    <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">win-x64</BassRid>
+    <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('OSX'))">osx</BassRid>
+    <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">linux-x64</BassRid>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)$(BassRid)\*.dll;$(MSBuildThisFileDirectory)$(BassRid)\*.so;$(MSBuildThisFileDirectory)$(BassRid)\*.dylib"
+          Link="%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+</Project>

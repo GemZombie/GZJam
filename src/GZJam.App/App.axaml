@@ -39,7 +39,8 @@
       <SolidColorBrush x:Key="AccentFaintBrush" Color="#228F74FF" />
       <SolidColorBrush x:Key="DeckBSoftBrush" Color="#24F5A524" />
 
-      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, DejaVu Sans Mono, monospace</FontFamily>
+      <!-- First available wins: Windows, macOS, Linux. -->
+      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, SF Mono, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 
       <!-- Fluent theme overrides -->
       <Color x:Key="SystemAccentColor">#8F74FF</Color>

@@ -29,7 +29,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        RevealMenuItem.Header = OperatingSystem.IsWindows() ? "Show in Explorer" : "Open containing folder";
+        RevealMenuItem.Header = FileManager.RevealLabel;
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         TrackGrid.AddHandler(PointerMovedEvent, OnGridPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -52,6 +52,8 @@ public partial class MainWindow : Window
     }
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
+
+    private static KeyModifiers CommandModifier => OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
 
     // ───────────── Track list ─────────────
 
@@ -159,7 +161,8 @@ public partial class MainWindow : Window
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key == Key.F && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        // Ctrl+F on Windows and Linux, Cmd+F on macOS.
+        if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier))
         {
             SearchBox.Focus();
             SearchBox.SelectAll();

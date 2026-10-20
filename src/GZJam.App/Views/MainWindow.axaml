@@ -128,7 +128,7 @@
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
               <Panel>
                 <TextBox x:Name="SearchBox" Classes="search" Text="{Binding Library.SearchText}"
-                         PlaceholderText="Search titles, artists, albums and folders  (Ctrl+F)" />
+                         PlaceholderText="Search titles, artists, albums and folders" />
                 <Path Data="{StaticResource IconSearch}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.2"
                       StrokeLineCap="Round" Stretch="Uniform" Width="14" Height="14"
                       HorizontalAlignment="Left" Margin="12,0" IsHitTestVisible="False" />

@@ -11,17 +11,6 @@
     <PackageReference Include="ManagedBass.Fx" Version="4.0.2" />
   </ItemGroup>
 
-  <!-- Native BASS libraries (x64). Picked by target RID, or by the build OS when no RID is given. -->
-  <PropertyGroup>
-    <BassRid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</BassRid>
-    <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">win-x64</BassRid>
-    <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">linux-x64</BassRid>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\lib\bass\$(BassRid)\*"
-          Link="%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest"
-          Visible="false" />
-  </ItemGroup>
+  <!-- Native BASS binaries are copied by lib/bass/Bass.targets, imported by each app. -->
 
 </Project>
