@@ -1,0 +1,265 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:GZJam.App"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        xmlns:v="using:GZJam.App.Views"
+        xmlns:lib="using:GZJam.Library"
+        x:Class="GZJam.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="GZJam"
+        Width="1440" Height="900" MinWidth="1024" MinHeight="680"
+        WindowStartupLocation="CenterScreen">
+
+  <Grid RowDefinitions="40,250,*" Margin="16" RowSpacing="12">
+
+    <!-- ───────────── Top bar ───────────── -->
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="22" Margin="4,0">
+      <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+        <Border Width="26" Height="26" CornerRadius="7">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+              <GradientStop Color="#22D3EE" Offset="0" />
+              <GradientStop Color="#7C5CFF" Offset="0.55" />
+              <GradientStop Color="#F5A524" Offset="1" />
+            </LinearGradientBrush>
+          </Border.Background>
+          <TextBlock Text="GZ" FontSize="12" FontWeight="Black" Foreground="#0C0E12"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <TextBlock Text="GZJam" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <TextBlock Classes="label" Text="CLOCK" />
+        <TextBlock Classes="mono" Text="{Binding Clock}" FontSize="16" FontWeight="SemiBold" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
+                  IsVisible="{Binding Library.ScanStatus, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock Classes="muted" FontSize="12" Text="{Binding Library.ScanStatus}" VerticalAlignment="Center" />
+        <ProgressBar Width="140" MinWidth="140" Height="4" Minimum="0" Maximum="100"
+                     Value="{Binding Library.ScanPercent}" Foreground="{StaticResource AccentBrush}" />
+      </StackPanel>
+    </Grid>
+
+    <!-- ───────────── Decks + mixer (placeholders) ───────────── -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
+      <v:DeckView Letter="A" Accent="{StaticResource DeckABrush}" />
+
+      <Border Grid.Column="1" Classes="panel" Padding="14">
+        <StackPanel Spacing="14" Opacity="0.45" IsEnabled="False">
+          <Border CornerRadius="9" Padding="12,10" BorderThickness="1" BorderBrush="#5934D399" Background="#1A34D399">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" />
+              <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="0,-6" />
+            </Grid>
+          </Border>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="label" Text="GAP" />
+            <TextBlock Grid.Column="1" Classes="mono" Text="3.0 s" FontWeight="SemiBold" />
+          </Grid>
+          <StackPanel Spacing="2" Margin="0,20,0,0">
+            <Slider Minimum="0" Maximum="1" Value="0" />
+            <Grid ColumnDefinitions="*,*">
+              <TextBlock Text="A" FontWeight="Bold" FontSize="11" Foreground="{StaticResource DeckABrush}" />
+              <TextBlock Grid.Column="1" Text="B" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"
+                         Foreground="{StaticResource DeckBBrush}" />
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <v:DeckView Grid.Column="2" Letter="B" Accent="{StaticResource DeckBBrush}" />
+    </Grid>
+
+    <!-- ───────────── Library ───────────── -->
+    <Grid Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
+
+      <!-- Folder tree -->
+      <Border Classes="panel">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Classes="panel-header">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="LIBRARY" />
+              <Button Grid.Column="1" Classes="link" Content="+ Folder" Click="OnAddFolderClick"
+                      ToolTip.Tip="Add a music folder to the library" />
+            </Grid>
+          </Border>
+          <TreeView x:Name="FolderTree" Classes="folders" Margin="4,6"
+                    ItemsSource="{Binding Library.Roots}"
+                    SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <TreeView.Styles>
+              <Style Selector="TreeViewItem" x:DataType="vm:FolderNodeViewModel">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+              </Style>
+            </TreeView.Styles>
+            <TreeView.ItemTemplate>
+              <TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Rescan" Command="{Binding RescanCommand}" />
+                      <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" />
+                      <Separator IsVisible="{Binding IsRoot}" />
+                      <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"
+                                IsVisible="{Binding IsRoot}"
+                                ToolTip.Tip="Forget this folder. Your files are not touched." />
+                    </ContextMenu>
+                  </Grid.ContextMenu>
+                  <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" />
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
+                  <TextBlock Grid.Column="2" Classes="dim" Text="{Binding CountText}" FontSize="11"
+                             VerticalAlignment="Center" Margin="0,0,8,0" />
+                </Grid>
+              </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+          </TreeView>
+        </DockPanel>
+      </Border>
+
+      <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns" />
+
+      <!-- Search + results -->
+      <Border Grid.Column="2" Classes="panel">
+        <Grid RowDefinitions="Auto,*">
+          <Border Classes="panel-header" Height="56" Padding="12,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+              <Panel>
+                <TextBox x:Name="SearchBox" Classes="search" Text="{Binding Library.SearchText}"
+                         PlaceholderText="Search titles, artists, albums and folders  (Ctrl+F)" />
+                <Path Data="{StaticResource IconSearch}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.2"
+                      StrokeLineCap="Round" Stretch="Uniform" Width="14" Height="14"
+                      HorizontalAlignment="Left" Margin="12,0" IsHitTestVisible="False" />
+                <Button Classes="link" HorizontalAlignment="Right" Margin="0,0,5,0" Padding="6"
+                        Command="{Binding Library.ClearSearchCommand}" ToolTip.Tip="Clear search (Esc)"
+                        IsVisible="{Binding Library.SearchText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <Path Data="{StaticResource IconClose}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.4"
+                        StrokeLineCap="Round" Stretch="Uniform" Width="9" Height="9" />
+                </Button>
+              </Panel>
+              <Border Grid.Column="1" Classes="chip" IsVisible="{Binding Library.HasScope}" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <TextBlock Text="{Binding Library.ScopeText}" FontSize="12" Foreground="#C8BCFF"
+                             VerticalAlignment="Center" MaxWidth="340" TextTrimming="CharacterEllipsis" />
+                  <Button Classes="link" Padding="5" Command="{Binding Library.ClearScopeCommand}"
+                          ToolTip.Tip="Search the whole library">
+                    <Path Data="{StaticResource IconClose}" Stroke="#C8BCFF" StrokeThickness="2.4"
+                          StrokeLineCap="Round" Stretch="Uniform" Width="8" Height="8" />
+                  </Button>
+                </StackPanel>
+              </Border>
+              <TextBlock Grid.Column="2" Classes="muted" FontSize="12" VerticalAlignment="Center"
+                         Text="{Binding Library.ResultSummary}" />
+            </Grid>
+          </Border>
+
+          <DataGrid x:Name="TrackGrid" Grid.Row="1" Classes="tracks"
+                    ItemsSource="{Binding Library.Results}"
+                    IsReadOnly="True" SelectionMode="Extended"
+                    CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Title" Width="2*" MinWidth="140" x:DataType="lib:Track"
+                                  Binding="{Binding DisplayTitle}" />
+              <DataGridTextColumn Header="Artist" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
+                                  Binding="{Binding Artist}" />
+              <DataGridTextColumn Header="Album" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
+                                  Binding="{Binding Album}" />
+              <DataGridTextColumn Header="Genre" Width="100" x:DataType="lib:Track"
+                                  Binding="{Binding Genre}" />
+              <DataGridTextColumn Header="Year" Width="76" CellStyleClasses="num" x:DataType="lib:Track"
+                                  Binding="{Binding Year}" />
+              <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
+                                  Binding="{Binding Bpm, Converter={x:Static app:Converters.Bpm}}" SortMemberPath="Bpm" />
+              <DataGridTextColumn Header="Time" Width="76" CellStyleClasses="num" x:DataType="lib:Track"
+                                  Binding="{Binding Duration, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+              <ContextMenu x:Name="TrackMenu">
+                <MenuItem Header="Add to queue" InputGesture="Enter" Click="OnAddToQueueClick" />
+                <MenuItem Header="Play next" InputGesture="Shift+Enter" Click="OnPlayNextClick" />
+                <Separator />
+                <MenuItem Header="Preview in headphones" IsEnabled="False" />
+                <MenuItem Header="Load to Deck A" IsEnabled="False" />
+                <MenuItem Header="Load to Deck B" IsEnabled="False" />
+                <Separator />
+                <MenuItem Header="Show in folder tree" Click="OnShowInTreeClick" />
+                <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
+              </ContextMenu>
+            </DataGrid.ContextMenu>
+          </DataGrid>
+
+          <!-- Empty states -->
+          <StackPanel Grid.Row="1" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      IsVisible="{Binding Library.HasNoRoots}">
+            <TextBlock Text="Add your music folder to get started" FontSize="17" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" TextAlignment="Center" MaxWidth="380" TextWrapping="Wrap"
+                       Text="GZJam shows your folders exactly as they are on disk, and never moves or renames your files." />
+            <Button Content="Add folder…" HorizontalAlignment="Center" Padding="16,8" Click="OnAddFolderClick"
+                    Background="{StaticResource AccentBrush}" Foreground="White" />
+          </StackPanel>
+          <TextBlock Grid.Row="1" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Text="{Binding Library.EmptyMessage}" IsVisible="{Binding Library.HasNoResults}" />
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="3" Background="Transparent" ResizeDirection="Columns" />
+
+      <!-- Queue -->
+      <Border Grid.Column="4" Classes="panel">
+        <Grid RowDefinitions="Auto,*">
+          <Border Classes="panel-header">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="QUEUE" />
+              <TextBlock Grid.Column="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                         Text="{Binding Queue.Summary}" />
+            </Grid>
+          </Border>
+
+          <Panel Grid.Row="1" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True">
+            <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:QueueItem">
+                  <Grid ColumnDefinitions="12,20,*,Auto" ColumnSpacing="8" Margin="8,7" Background="Transparent">
+                    <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="dim mono" Text="{Binding Number}" FontSize="11"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                      <TextBlock Classes="muted mono" Text="{Binding BpmText}" FontSize="11" />
+                      <TextBlock Classes="muted mono" Text="{Binding DurationText}" FontSize="11" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Move to top" Click="OnQueueMoveToTopClick" />
+                  <MenuItem Header="Remove" InputGesture="Delete" Click="OnQueueRemoveClick" />
+                  <Separator />
+                  <MenuItem Header="Preview in headphones" IsEnabled="False" />
+                  <MenuItem Header="Load to Deck A" IsEnabled="False" />
+                  <MenuItem Header="Load to Deck B" IsEnabled="False" />
+                  <Separator />
+                  <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
+                </ContextMenu>
+              </ListBox.ContextMenu>
+            </ListBox>
+
+            <TextBlock Classes="muted" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextAlignment="Center" IsHitTestVisible="False" IsVisible="{Binding Queue.IsEmpty}"
+                       Text="Drag tracks here&#10;or right-click › Add to queue" />
+
+            <Border x:Name="QueueDropLine" Height="2" CornerRadius="1" Margin="8,0" VerticalAlignment="Top"
+                    Background="{StaticResource AccentBrush}" IsVisible="False" IsHitTestVisible="False" />
+          </Panel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="using:GZJam.App.Views"
+             x:Class="GZJam.App.Views.DeckView"
+             x:DataType="v:DeckView">
+  <!-- Visual placeholder for a deck; playback arrives with the audio step. -->
+  <Border Classes="panel" Padding="16,14">
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+        <Border Classes="letter" VerticalAlignment="Top"
+                Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
+          <TextBlock Text="{Binding Letter, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+        </Border>
+        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+          <TextBlock Text="No track loaded" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource DimBrush}" />
+          <TextBlock Classes="muted" Text="Decks come to life in the next step" FontSize="12" />
+        </StackPanel>
+        <TextBlock Grid.Column="2" Classes="mono" Text="-0:00" FontSize="38" FontWeight="SemiBold"
+                   Foreground="{StaticResource Line2Brush}" VerticalAlignment="Top" />
+      </Grid>
+      <Border Grid.Row="1" Classes="well" MinHeight="70">
+        <Rectangle Height="1" Fill="{StaticResource Line2Brush}" VerticalAlignment="Center" Margin="12,0" />
+      </Border>
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Opacity="0.35" IsEnabled="False">
+        <Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
+                BorderBrush="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
+          <PathIcon Data="{StaticResource IconPlay}" Width="16" Height="16"
+                    Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+        </Border>
+        <Button Content="Fade out" VerticalAlignment="Center" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

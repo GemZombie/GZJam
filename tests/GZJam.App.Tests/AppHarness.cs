@@ -1,0 +1,137 @@
+using Avalonia;
+using Avalonia.Headless;
+using Avalonia.Threading;
+using GZJam.App.ViewModels;
+using GZJam.App.Views;
+using GZJam.Library;
+using GZJam.Testing;
+
+[assembly: AvaloniaTestApplication(typeof(GZJam.App.Tests.TestAppBuilder))]
+
+namespace GZJam.App.Tests;
+
+public static class TestAppBuilder
+{
+    public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
+        .UseSkia()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false, OverlayPopups = true });
+}
+
+/// <summary>
+/// The real main window and view models over a throwaway database. Music comes from a generated
+/// folder, or from an existing folder (read-only) for screenshots of a real library.
+/// </summary>
+public sealed class AppHarness : IDisposable
+{
+    public static string ScreenshotDirectory { get; } = Path.Combine(Path.GetTempPath(), "gzjam-screenshots");
+
+    private readonly string _work;
+
+    public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true)
+    {
+        _work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
+        MusicPath = musicFolder ?? Path.Combine(_work, "Music");
+        Database = new LibraryDatabase(Path.Combine(_work, "library.db"));
+        Settings = settings ?? new AppSettings();
+        if (musicFolder is null)
+            GenerateMusic(MusicPath);
+        Database.AddRoot(MusicPath);
+
+        ViewModel = new MainWindowViewModel(Database, Settings);
+        Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
+        Window.Show();
+        if (start)
+            Start();
+    }
+
+    public string MusicPath { get; }
+    public LibraryDatabase Database { get; }
+    public AppSettings Settings { get; }
+    public MainWindowViewModel ViewModel { get; }
+    public MainWindow Window { get; }
+    public LibraryViewModel Library => ViewModel.Library;
+
+    public void Start()
+    {
+        ViewModel.Start();
+        WaitFor(() => Library.HasLoaded && Library.ScanStatus is null && Library.Roots.Count > 0 && Library.Results.Count > 0,
+            TimeSpan.FromSeconds(60));
+        Settle();
+    }
+
+    /// <summary>Runs the UI dispatcher until <paramref name="condition"/> holds.</summary>
+    public static void WaitFor(Func<bool> condition, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(10));
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+                throw new TimeoutException("Condition not met in time.");
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(15);
+        }
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>Lets debounce timers fire and background searches land.</summary>
+    public static void Settle(int milliseconds = 400)
+    {
+        var until = DateTime.UtcNow.AddMilliseconds(milliseconds);
+        while (DateTime.UtcNow < until)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(15);
+        }
+    }
+
+    public string Screenshot(string name)
+    {
+        Settle(200);
+        Directory.CreateDirectory(ScreenshotDirectory);
+        string path = Path.Combine(ScreenshotDirectory, name + ".png");
+        using var frame = Window.CaptureRenderedFrame();
+#pragma warning disable CS0618 // the replacement overload needs encoder options we don't care about
+        frame?.Save(path);
+#pragma warning restore CS0618
+        return path;
+    }
+
+    /// <summary>A small library in the genre / style / artist / album layout.</summary>
+    private static void GenerateMusic(string root)
+    {
+        (string Folder, string Artist, string Album, string[] Titles)[] albums =
+        [
+            ("Swing/Lindy Hop/Count Basie/The Complete Decca Recordings", "Count Basie", "The Complete Decca Recordings",
+                ["One O'Clock Jump", "Jumpin' at the Woodside", "Swingin' the Blues", "Every Tub", "Topsy"]),
+            ("Swing/Lindy Hop/Count Basie/April in Paris", "Count Basie Orchestra", "April in Paris",
+                ["April in Paris", "Corner Pocket", "Shiny Stockings"]),
+            ("Swing/Lindy Hop/Chick Webb/Stompin' at the Savoy", "Chick Webb", "Stompin' at the Savoy",
+                ["Stompin' at the Savoy", "Liza", "Clap Hands! Here Comes Charley!"]),
+            ("Swing/Balboa/Benny Goodman/Live at Carnegie Hall", "Benny Goodman", "Live at Carnegie Hall",
+                ["Sing, Sing, Sing", "Don't Be That Way"]),
+            ("Blues/Slow Blues/Jay McShann/Confessin' the Blues", "Jay McShann", "Confessin' the Blues",
+                ["Confessin' the Blues", "Hootie Blues"]),
+        ];
+        var random = new Random(7);
+        foreach (var (folder, artist, album, titles) in albums)
+        {
+            for (int i = 0; i < titles.Length; i++)
+            {
+                string file = Path.Combine(root, folder.Replace('/', Path.DirectorySeparatorChar), $"{i + 1:00} - {Sanitize(titles[i])}.mp3");
+                TestMp3.Write(file, new TestMp3.Tags(titles[i], artist, album, folder.Split('/')[0], 1937 + random.Next(20), i + 1,
+                    Bpm: (120 + random.Next(120)).ToString(), Duration: TimeSpan.FromSeconds(150 + random.Next(120))));
+            }
+        }
+    }
+
+    private static string Sanitize(string name) => string.Concat(name.Split(Path.GetInvalidFileNameChars()));
+
+    public void Dispose()
+    {
+        Window.Close();
+        ViewModel.Dispose();
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        try { Directory.Delete(_work, recursive: true); }
+        catch (IOException) { /* best effort */ }
+    }
+}

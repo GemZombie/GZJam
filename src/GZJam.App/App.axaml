@@ -1,0 +1,72 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GZJam.App.App"
+             RequestedThemeVariant="Dark">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Palette, matching docs/mockups/main-screen.html -->
+      <Color x:Key="BgColor">#0C0E12</Color>
+      <Color x:Key="PanelColor">#13161C</Color>
+      <Color x:Key="Panel2Color">#191D25</Color>
+      <Color x:Key="WellColor">#0E1116</Color>
+      <Color x:Key="LineColor">#252A34</Color>
+      <Color x:Key="Line2Color">#2F3542</Color>
+      <Color x:Key="TextColor">#E7EAF0</Color>
+      <Color x:Key="MutedColor">#8B94A5</Color>
+      <Color x:Key="DimColor">#5D6574</Color>
+      <Color x:Key="DeckAColor">#22D3EE</Color>
+      <Color x:Key="DeckBColor">#F5A524</Color>
+      <Color x:Key="OnAirColor">#F04444</Color>
+      <Color x:Key="OkColor">#34D399</Color>
+      <Color x:Key="AccentColor">#8F74FF</Color>
+
+      <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+      <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
+      <SolidColorBrush x:Key="Panel2Brush" Color="{StaticResource Panel2Color}" />
+      <SolidColorBrush x:Key="WellBrush" Color="{StaticResource WellColor}" />
+      <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" />
+      <SolidColorBrush x:Key="Line2Brush" Color="{StaticResource Line2Color}" />
+      <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+      <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource MutedColor}" />
+      <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}" />
+      <SolidColorBrush x:Key="DeckABrush" Color="{StaticResource DeckAColor}" />
+      <SolidColorBrush x:Key="DeckBBrush" Color="{StaticResource DeckBColor}" />
+      <SolidColorBrush x:Key="OnAirBrush" Color="{StaticResource OnAirColor}" />
+      <SolidColorBrush x:Key="OkBrush" Color="{StaticResource OkColor}" />
+      <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#388F74FF" />
+      <SolidColorBrush x:Key="AccentFaintBrush" Color="#228F74FF" />
+      <SolidColorBrush x:Key="DeckBSoftBrush" Color="#24F5A524" />
+
+      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, DejaVu Sans Mono, monospace</FontFamily>
+
+      <!-- Fluent theme overrides -->
+      <Color x:Key="SystemAccentColor">#8F74FF</Color>
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#388F74FF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#4A8F74FF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#2A8F74FF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#3A8F74FF" />
+      <SolidColorBrush x:Key="DataGridRowHoveredBackgroundColor" Color="#14FFFFFF" />
+      <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
+      <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush" Color="{StaticResource MutedColor}" />
+      <SolidColorBrush x:Key="DataGridGridLinesBrush" Color="#1A1E26" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#388F74FF" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#4A8F74FF" />
+
+      <!-- Icons -->
+      <StreamGeometry x:Key="IconHeadphones">M3 15v-3a9 9 0 0 1 18 0v3 M2.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z M16.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z</StreamGeometry>
+      <StreamGeometry x:Key="IconFolder">M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z</StreamGeometry>
+      <StreamGeometry x:Key="IconSearch">M11 4a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M16 16l4.5 4.5</StreamGeometry>
+      <StreamGeometry x:Key="IconPlay">M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z</StreamGeometry>
+      <StreamGeometry x:Key="IconClose">M6 6l12 12 M18 6L6 18</StreamGeometry>
+      <StreamGeometry x:Key="IconGrip">M9 6h.01 M15 6h.01 M9 12h.01 M15 12h.01 M9 18h.01 M15 18h.01</StreamGeometry>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <StyleInclude Source="/Styles/AppStyles.axaml" />
+  </Application.Styles>
+</Application>

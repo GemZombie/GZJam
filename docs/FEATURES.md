@@ -39,6 +39,20 @@ is out of scope until it earns a place.
   Explorer show up without a manual import. Tracks are keyed by path; since files rarely
   move, a moved file is simply treated as new (no fingerprinting needed for now).
 
+### Status: built (step 1)
+
+- Folder tree, recursive scoped search, drag / right-click / Enter to queue, queue reordering,
+  "Show in folder tree", folder watching, remembered window and selected folder.
+- Indexes MP3, MP2, OGG, WAV and AIFF (what BASS plays without add-ons). FLAC/M4A later if needed.
+- Skips macOS `._name.mp3` metadata files (24 of them in the real library).
+
+### What the real library looks like (12,686 tracks in `C:\music`)
+
+- First scan 2.6 s, rescan 0.45 s; searches take 0.3-8 ms.
+- Tags: title/artist 99%, album 95%, genre 86%, **year 14%**, **BPM essentially none**
+  (28 tracks, stored x100, now scaled back). **BPM detection is essential**, not optional.
+- Comments (53%) mostly hold artist names; iTunes data frames are filtered out.
+
 ## Track prep
 
 ### Requirements (from the DJ)
