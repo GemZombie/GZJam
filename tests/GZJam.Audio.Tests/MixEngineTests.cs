@@ -238,6 +238,26 @@ public sealed class MixEngineTests : IDisposable
         Assert.InRange(A.Position.TotalSeconds, 0.2, 0.45);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_deck_out_of_the_room_still_reports_its_end(bool cue)
+    {
+        string shortTone = TestWav.WriteTone(Path.Combine(_dir, "short-b.wav"), TimeSpan.FromSeconds(1));
+        _mix.Crossfader = 0;   // the room hears Deck 1; Deck 2 is silent there
+        B.Load(shortTone);
+        B.Cue = cue;
+        B.Play();
+        int finished = 0;
+        B.Finished += (_, _) => finished++;
+
+        Render(1.5);
+        _mix.Update();
+
+        Assert.Equal(1, finished);
+        Assert.False(B.IsPlaying);
+    }
+
     [Fact]
     public void Loading_replaces_the_track_and_starts_paused()
     {

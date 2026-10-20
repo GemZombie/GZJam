@@ -52,6 +52,16 @@ public sealed partial class QueueViewModel : ObservableObject
 
     public void PlayNext(IEnumerable<Track> tracks) => Add(tracks, 0);
 
+    /// <summary>Removes and returns the top of the queue (auto-play loading it onto a deck).</summary>
+    public Track? TakeNext()
+    {
+        if (Items.Count == 0)
+            return null;
+        Track track = Items[0].Track;
+        Items.RemoveAt(0);
+        return track;
+    }
+
     /// <summary>Moves items to a new position, keeping their relative order. <paramref name="index"/> is in terms of the list before the move.</summary>
     public void Move(IReadOnlyList<QueueItem> items, int index)
     {

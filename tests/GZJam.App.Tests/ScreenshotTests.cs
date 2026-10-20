@@ -74,5 +74,9 @@ public sealed class ScreenshotTests
         vm.LoadToDeckAsync(vm.Deck1, tracks[6]).GetAwaiter().GetResult();
         vm.Deck1.TogglePlayCommand.Execute(null);   // a tap on the live deck: asks for a hold
         app.Screenshot("06-protected-deck");
+
+        vm.AutoPlay!.IsOn = true;
+        app.Play(0.1);
+        app.Screenshot("07-auto-play");
     }
 }

@@ -175,7 +175,8 @@ public sealed class Deck : IDisposable
     public double MainGain => _mainGain;
 
     /// <summary>Whether the room can hear this deck (when it's playing).</summary>
-    public bool IsInRoom => _mainGain > 0.05;
+    /// <remarks>Above about -20 dB: a deck the crossfader has left at a whisper doesn't count.</remarks>
+    public bool IsInRoom => _mainGain >= 0.1;
 
     /// <summary>Send this deck to the headphones (the cue button). Independent of the crossfader.</summary>
     public bool Cue

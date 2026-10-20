@@ -27,14 +27,33 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (mix is not null)
         {
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
-            foreach (DeckViewModel deck in Decks)
-                deck.Deck.Finished += (_, _) =>
-                {
-                    Log.Info($"Deck {deck.Label}: finished \"{deck.Title}\"");
-                    deck.Refresh();
-                };
             Mixer = new MixerViewModel(this, mix);
             Preview = new PreviewViewModel(this, mix.Preview);
+            AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
+            foreach (DeckViewModel deck in Decks)
+            {
+                deck.Deck.Finished += (_, _) =>
+                {
+                    if (deck.Deck.IsInRoom)
+                    {
+                        Log.Info($"Deck {deck.Label}: finished \"{deck.Title}\"");
+                        deck.MarkFinished();
+                        AutoPlay.OnDeckFinished(deck);
+                    }
+                    else
+                    {
+                        // Ran out in the headphones only: the room hasn't heard it, so it's still
+                        // the next song. Rewind it, ready to play.
+                        Log.Info($"Deck {deck.Label}: \"{deck.Title}\" ended in the headphones; rewound");
+                        deck.Rewind();
+                    }
+                };
+                deck.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(DeckViewModel.Track))
+                        AutoPlay.Refresh();
+                };
+            }
         }
         Settings = new SettingsViewModel(this, settings);
 
@@ -52,6 +71,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public DeckViewModel? Deck2 => Decks.ElementAtOrDefault(1);
     public MixerViewModel? Mixer { get; }
     public PreviewViewModel? Preview { get; }
+    public AutoPlayViewModel? AutoPlay { get; }
     public SettingsViewModel Settings { get; }
 
     [ObservableProperty]
@@ -185,6 +205,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         Mix?.Update();
         Mixer?.Update();
+        AutoPlay?.Tick();
         RefreshDecks();
         Preview?.Refresh();
     }

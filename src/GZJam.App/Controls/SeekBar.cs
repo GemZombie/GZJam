@@ -20,12 +20,19 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<IBrush?> TrackBackgroundProperty =
         AvaloniaProperty.Register<SeekBar, IBrush?>(nameof(TrackBackground), new SolidColorBrush(Color.Parse("#0E1116")));
 
+    /// <summary>
+    /// Seeking refused (e.g. the room is hearing this deck). Unlike disabling the control, a press
+    /// still raises <see cref="LockedPressed"/>, so the app can say why nothing happened.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsLockedProperty =
+        AvaloniaProperty.Register<SeekBar, bool>(nameof(IsLocked));
+
     public static readonly StyledProperty<double> CornerRadiusProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(CornerRadius), 7);
 
     static SeekBar()
     {
-        AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty);
+        AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty);
     }
 
     public double Progress
@@ -46,6 +53,12 @@ public sealed class SeekBar : Control
         set => SetValue(TrackBackgroundProperty, value);
     }
 
+    public bool IsLocked
+    {
+        get => GetValue(IsLockedProperty);
+        set => SetValue(IsLockedProperty, value);
+    }
+
     public double CornerRadius
     {
         get => GetValue(CornerRadiusProperty);
@@ -54,6 +67,11 @@ public sealed class SeekBar : Control
 
     /// <summary>Raised with the requested position, 0..1, while pressing or dragging.</summary>
     public event EventHandler<double>? SeekRequested;
+
+    /// <summary>Raised when the bar is pressed while <see cref="IsLocked"/>.</summary>
+    public event EventHandler? LockedPressed;
+
+    private bool CanSeek => IsEnabled && !IsLocked;
 
     public override void Render(DrawingContext context)
     {
@@ -71,10 +89,10 @@ public sealed class SeekBar : Control
         context.DrawRectangle(new SolidColorBrush(Colors.White, 0.08), null, new Rect(10, centre - 0.5, Math.Max(0, bounds.Width - 20), 1));
         if (x > 0)
         {
-            using (context.PushOpacity(IsEnabled ? 0.28 : 0.18))
+            using (context.PushOpacity(CanSeek ? 0.28 : 0.18))
                 context.DrawRectangle(Fill, null, new Rect(0, 0, x, bounds.Height), CornerRadius, CornerRadius);
         }
-        context.DrawRectangle(IsEnabled ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
+        context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -82,6 +100,12 @@ public sealed class SeekBar : Control
         base.OnPointerPressed(e);
         if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
+        if (IsLocked)
+        {
+            LockedPressed?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
         e.Pointer.Capture(this);
         RequestSeek(e);
         e.Handled = true;
@@ -90,7 +114,7 @@ public sealed class SeekBar : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (IsEnabled && e.Pointer.Captured == this)
+        if (CanSeek && e.Pointer.Captured == this)
             RequestSeek(e);
     }
 

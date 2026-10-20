@@ -26,6 +26,7 @@ public partial class DeckView : UserControl
     {
         InitializeComponent();
         Seek.SeekRequested += (_, fraction) => Vm?.SeekTo(fraction);
+        Seek.LockedPressed += (_, _) => Vm?.ExplainSeekLock();
         PlayButton.AddHandler(PointerPressedEvent, OnPlayPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerReleasedEvent, OnPlayReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerCaptureLostEvent, (_, _) => CancelHold(), RoutingStrategies.Tunnel, handledEventsToo: true);

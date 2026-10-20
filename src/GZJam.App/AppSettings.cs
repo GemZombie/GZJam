@@ -54,6 +54,9 @@ public sealed class AppSettings
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;
 
+    /// <summary>Seconds of silence auto-play leaves between songs.</summary>
+    public double GapSeconds { get; set; } = 3;
+
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 

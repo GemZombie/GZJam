@@ -44,6 +44,12 @@ public sealed partial class DeckViewModel : ObservableObject
     public partial bool IsPauseArmed { get; private set; }
 
     public bool HasTrack => Track is not null;
+
+    /// <summary>The track played to its end or was faded out; it's done for this set.</summary>
+    public bool IsFinished { get; private set; }
+
+    /// <summary>Loaded with a track that hasn't been played out yet.</summary>
+    public bool IsReady => HasTrack && !IsPlaying && !IsFinished;
     public bool IsPlaying => Deck.IsPlaying;
 
     /// <summary>The crossfader lets the room hear this deck.</summary>
@@ -154,6 +160,7 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         if (!IsPlaying)
         {
+            IsFinished = false;
             Deck.Play();
             Log.Info($"Deck {Label}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
         }
@@ -233,6 +240,13 @@ public sealed partial class DeckViewModel : ObservableObject
     [RelayCommand]
     private void ResetTempo() => TempoPercent = 0;
 
+    /// <summary>The position bar was pressed while locked: say why, and how to unlock it.</summary>
+    public void ExplainSeekLock()
+    {
+        if (IsOnAir)
+            ShowHint($"Move the crossfader off Deck {Label} to jump around in it");
+    }
+
     public void SeekTo(double fraction)
     {
         if (!CanSeek)
@@ -241,10 +255,32 @@ public sealed partial class DeckViewModel : ObservableObject
         Refresh();
     }
 
+    /// <summary>Starts the deck for auto-play.</summary>
+    internal void Start()
+    {
+        IsFinished = false;
+        Deck.Play();
+        Log.Info($"Deck {Label}: auto-play starts \"{Title}\"");
+        Refresh();
+    }
+
+    internal void Rewind()
+    {
+        Deck.Seek(TimeSpan.Zero);
+        Refresh();
+    }
+
+    internal void MarkFinished()
+    {
+        IsFinished = true;
+        Refresh();
+    }
+
     /// <summary>Loads a track (the caller has already checked deck protection).</summary>
     internal void Load(Track track)
     {
         Disarm();
+        IsFinished = false;
         Deck.Load(track.Path);
         Deck.TempoPercent = 0;
         Track = track;
@@ -276,6 +312,8 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(Progress));
         OnPropertyChanged(nameof(PauseNeedsConfirm));
         OnPropertyChanged(nameof(IsCueOn));
+        OnPropertyChanged(nameof(IsFinished));
+        OnPropertyChanged(nameof(IsReady));
         RefreshReadout();
     }
 

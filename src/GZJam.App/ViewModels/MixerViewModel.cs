@@ -12,17 +12,32 @@ public sealed partial class MixerViewModel(MainWindowViewModel owner, MixEngine 
     private double _snapFrom;
     private long _snapStarted;
 
+    /// <summary>How close to an end counts as the end, so a trackpad or finger needn't be pixel-perfect.</summary>
+    private const double StickyEnd = 0.04;
+
     public double Crossfader
     {
         get => mix.Crossfader;
         set
         {
+            value = value <= StickyEnd ? 0 : value >= 1 - StickyEnd ? 1 : value;
             if (Math.Abs(mix.Crossfader - value) < 0.0001)
+            {
+                OnPropertyChanged();   // snap the slider itself to the end too
                 return;
+            }
             _snapTarget = null;   // grabbing the fader cancels a snap in progress
             mix.Crossfader = value;
             Changed();
         }
+    }
+
+    /// <summary>Moves the crossfader straight to a position (auto-play does this while the decks are silent).</summary>
+    public void SetNow(double value)
+    {
+        _snapTarget = null;
+        mix.Crossfader = value;
+        Changed();
     }
 
     /// <summary>"1 · LIVE", "2 · LIVE", or "BLEND" when the room hears some of both.</summary>

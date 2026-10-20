@@ -11,7 +11,7 @@
         Width="1440" Height="900" MinWidth="1024" MinHeight="680"
         WindowStartupLocation="CenterScreen">
 
-  <Grid RowDefinitions="40,Auto,250,*" Margin="16" RowSpacing="12">
+  <Grid RowDefinitions="40,Auto,268,*" Margin="16" RowSpacing="12">
 
     <!-- ───────────── Top bar ───────────── -->
     <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="4,0">
@@ -114,18 +114,29 @@
                   DataContext="{Binding Deck1}" DragDrop.AllowDrop="True" />
 
       <Border Grid.Column="1" Classes="panel" Padding="14">
-        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
-          <!-- Auto-play and gap arrive with the queue step -->
-          <Border CornerRadius="9" Padding="12,10" BorderThickness="1" BorderBrush="#3334D399" Background="#0F34D399"
-                  Opacity="0.5" IsEnabled="False" ToolTip.Tip="Auto-play comes in the next step">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" />
-              <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="0,-6" />
-            </Grid>
+        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8">
+          <!-- Auto-play: plays through the queue, alternating decks, with the gap between songs -->
+          <Border Classes="autoplay" Classes.on="{Binding IsOn}"
+                  DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
+            <StackPanel Spacing="2">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" />
+                <ToggleSwitch x:Name="AutoPlaySwitch" Grid.Column="1" OnContent="" OffContent="" Margin="0,-6"
+                              IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
+                              ToolTip.Tip="Play through the queue automatically, alternating decks" />
+              </Grid>
+              <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"
+                         IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
           </Border>
-          <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Opacity="0.5">
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="4"
+                DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel"
+                ToolTip.Tip="Silence between songs when auto-play moves to the next one">
             <TextBlock Classes="label" Text="GAP" />
-            <TextBlock Grid.Column="1" Classes="mono" Text="3.0 s" FontWeight="SemiBold" />
+            <Button Grid.Column="1" Classes="step" Content="−" Command="{Binding GapDownCommand}" />
+            <TextBlock Grid.Column="2" Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold"
+                       VerticalAlignment="Center" MinWidth="44" TextAlignment="Center" />
+            <Button Grid.Column="3" Classes="step" Content="+" Command="{Binding GapUpCommand}" />
           </Grid>
 
           <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">

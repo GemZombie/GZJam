@@ -228,6 +228,29 @@ public sealed class InputDiagnosticsTests
         Assert.True(cue < 0.01, $"A should be silent in the headphones; cue level {cue}");
     }
 
+    /// <summary>Reported: the position bar only worked while paused. Deck 2 is playing in the headphones only.</summary>
+    [AvaloniaFact]
+    public async Task Clicking_the_position_bar_seeks_a_playing_deck_that_is_out_of_the_room()
+    {
+        using var app = await TwoDecksPlaying();
+        var deck2 = app.ViewModel.Deck2!;
+        deck2.IsCueOn = true;
+        RunTicks(app, 100);
+        Assert.True(deck2.IsPlaying);
+        Assert.False(deck2.IsInRoom);
+        Assert.True(deck2.CanSeek);
+
+        var seek = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Avalonia.Controls.Control>("Seek")!;
+        Point at75 = seek.TranslatePoint(new Point(seek.Bounds.Width * 0.75, seek.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseMove(at75);
+        app.Window.MouseDown(at75, MouseButton.Left);
+        app.Window.MouseUp(at75, MouseButton.Left);
+        RunTicks(app, 100);
+
+        Assert.InRange(deck2.Deck.Position.TotalSeconds, 44, 46.5);   // 75% of 60 s
+        Assert.True(deck2.IsPlaying);
+    }
+
     [AvaloniaFact]
     public async Task Touch_tap_pauses_the_cue_deck()
     {

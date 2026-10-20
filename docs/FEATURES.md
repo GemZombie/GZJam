@@ -125,6 +125,20 @@ is out of scope until it earns a place.
 - A daily activity log (`logs/` next to the library database) records plays, pauses, crossfader
   switches, output changes and errors, so problems at a gig can be traced afterwards.
 
+### Status: auto-play built (part of step 3)
+
+- The switch works whenever there's something to play (queued tracks or a loaded deck).
+- Turning it on with empty decks loads the top of the queue onto the crossfader's deck and
+  starts it, and loads the next track onto the other deck. Tracks leave the queue as they load.
+- When the song the room is hearing ends or is faded out: wait the gap, start the other deck,
+  move the crossfader to it, refill the finished deck from the queue. Stops (with a notice)
+  when the queue runs out. Turning it off never touches the current song.
+- A song that runs out in the headphones only isn't "used": it rewinds and stays next.
+- Gap: − / + in the mixer (0-15 s, 0.5 s steps), remembered. Measured from the end of the file
+  until silence trimming lands.
+- The crossfader's last 4% at each end snaps to the end; a deck counts as "in the room" from
+  about -20 dB; tapping a locked position bar says how to unlock it.
+
 ### Changed after the first hardware test (2026-10-20)
 
 - The DJ hit two problems: a deck that seemed impossible to pause (the then-default
