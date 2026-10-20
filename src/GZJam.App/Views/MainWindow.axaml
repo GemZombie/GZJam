@@ -140,12 +140,13 @@
           </Grid>
 
           <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
-            <TextBlock Classes="label" HorizontalAlignment="Center" Text="{Binding LiveText}" />
-            <Slider x:Name="Crossfader" Classes="crossfader" Minimum="0" Maximum="1" Value="{Binding Crossfader}"
-                    SmallChange="0.05" LargeChange="0.25" ToolTip.Tip="Crossfader: fades the room between Deck 1 and Deck 2" />
+            <c:CrossfaderControl x:Name="Crossfader" Height="64" Value="{Binding Crossfader}"
+                                 ToolTip.Tip="Crossfader: fades the room between Deck 1 and Deck 2" />
             <Grid ColumnDefinitions="Auto,*,Auto">
               <Button Classes="side" Content="1" Command="{Binding SnapTo1Command}"
                       Foreground="{StaticResource Deck1Brush}" ToolTip.Tip="Switch the room to Deck 1" />
+              <TextBlock Grid.Column="1" Classes="label" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Text="{Binding LiveText}" />
               <Button Grid.Column="2" Classes="side" Content="2" Command="{Binding SnapTo2Command}"
                       Foreground="{StaticResource Deck2Brush}" ToolTip.Tip="Switch the room to Deck 2" />
             </Grid>

@@ -6,6 +6,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
 using Avalonia.VisualTree;
+using GZJam.App.Controls;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
 
@@ -32,8 +33,10 @@ public sealed class InputDiagnosticsTests
     private static Point Centre(AppHarness app, Visual control) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), app.Window)!.Value;
 
-    private static Thumb CrossfaderThumb(AppHarness app) =>
-        app.Window.FindControl<Slider>("Crossfader")!.GetVisualDescendants().OfType<Thumb>().First();
+    private static CrossfaderControl Fader(AppHarness app) => app.Window.FindControl<CrossfaderControl>("Crossfader")!;
+
+    /// <summary>The middle of the crossfader's cap, in window coordinates.</summary>
+    private static Point CapCentre(AppHarness app) => Fader(app).TranslatePoint(Fader(app).CapCentre, app.Window)!.Value;
 
     /// <summary>Runs playback ticks for a while, as the app's 30 fps timer would.</summary>
     private static void RunTicks(AppHarness app, int milliseconds)
@@ -50,8 +53,8 @@ public sealed class InputDiagnosticsTests
     public async Task Mouse_drag_moves_the_crossfader_both_ways()
     {
         using var app = await TwoDecksPlaying();
-        var slider = app.Window.FindControl<Slider>("Crossfader")!;
-        Point thumb = Centre(app, CrossfaderThumb(app));
+        var slider = Fader(app);
+        Point thumb = CapCentre(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
 
         app.Window.MouseDown(thumb, MouseButton.Left);
@@ -62,12 +65,56 @@ public sealed class InputDiagnosticsTests
         Assert.Equal(1, app.ViewModel.Mixer!.Crossfader, 1);
 
         Point left = slider.TranslatePoint(new Point(2, slider.Bounds.Height / 2), app.Window)!.Value;
-        thumb = Centre(app, CrossfaderThumb(app));
+        thumb = CapCentre(app);
         app.Window.MouseDown(thumb, MouseButton.Left);
         app.Window.MouseMove(left);
         app.Window.MouseUp(left, MouseButton.Left);
         RunTicks(app, 100);
         Assert.Equal(0, app.ViewModel.Mixer.Crossfader, 1);
+    }
+
+    [AvaloniaFact]
+    public async Task Pressing_the_track_jumps_the_cap_there()
+    {
+        using var app = await TwoDecksPlaying();
+        var fader = Fader(app);
+        Point quarter = fader.TranslatePoint(new Point(fader.Bounds.Width * 0.25, fader.Bounds.Height / 2), app.Window)!.Value;
+
+        app.Window.MouseDown(quarter, MouseButton.Left);
+        app.Window.MouseUp(quarter, MouseButton.Left);
+        RunTicks(app, 50);
+
+        Assert.InRange(app.ViewModel.Mixer!.Crossfader, 0.2, 0.3);
+    }
+
+    [AvaloniaFact]
+    public async Task Grabbing_the_cap_off_centre_does_not_make_it_jump()
+    {
+        using var app = await TwoDecksPlaying();
+        Point grab = CapCentre(app) + new Point(8, 0);   // the right edge of the cap
+
+        app.Window.MouseDown(grab, MouseButton.Left);
+        app.Window.MouseMove(grab + new Point(1, 0));
+        app.Window.MouseUp(grab + new Point(1, 0), MouseButton.Left);
+        RunTicks(app, 50);
+
+        Assert.InRange(app.ViewModel.Mixer!.Crossfader, 0, 0.05);
+    }
+
+    [AvaloniaFact]
+    public async Task Arrow_keys_nudge_the_crossfader()
+    {
+        using var app = await TwoDecksPlaying();
+        Fader(app).Focus();
+
+        for (int i = 0; i < 10; i++)
+            app.Window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null);
+        RunTicks(app, 50);
+        Assert.Equal(0.5, app.ViewModel.Mixer!.Crossfader, 2);
+
+        app.Window.KeyPress(Key.End, RawInputModifiers.None, PhysicalKey.End, null);
+        RunTicks(app, 50);
+        Assert.Equal(1, app.ViewModel.Mixer.Crossfader, 3);
     }
 
     [AvaloniaFact]
@@ -103,8 +150,8 @@ public sealed class InputDiagnosticsTests
     public async Task Touch_drag_moves_the_crossfader()
     {
         using var app = await TwoDecksPlaying();
-        var slider = app.Window.FindControl<Slider>("Crossfader")!;
-        Point thumb = Centre(app, CrossfaderThumb(app));
+        var slider = Fader(app);
+        Point thumb = CapCentre(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
 
         var touch = app.Window.TouchBegin(thumb, RawInputModifiers.None);
@@ -208,8 +255,8 @@ public sealed class InputDiagnosticsTests
     public async Task After_sliding_to_B_a_click_pauses_A()
     {
         using var app = await TwoDecksPlaying();
-        var slider = app.Window.FindControl<Slider>("Crossfader")!;
-        Point thumb = Centre(app, CrossfaderThumb(app));
+        var slider = Fader(app);
+        Point thumb = CapCentre(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
         app.Window.MouseDown(thumb, MouseButton.Left);
         app.Window.MouseMove(right);

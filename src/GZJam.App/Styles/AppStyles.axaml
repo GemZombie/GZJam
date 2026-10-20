@@ -298,21 +298,6 @@
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
 
-  <!-- Crossfader: a big, grabbable thumb -->
-  <Style Selector="Slider.crossfader /template/ Thumb">
-    <Setter Property="Width" Value="26" />
-    <Setter Property="Height" Value="34" />
-  </Style>
-  <Style Selector="Slider.crossfader /template/ Thumb /template/ Border">
-    <Setter Property="CornerRadius" Value="5" />
-    <Setter Property="Background">
-      <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-        <GradientStop Color="#E9EDF3" Offset="0" />
-        <GradientStop Color="#9AA3B2" Offset="1" />
-      </LinearGradientBrush>
-    </Setter>
-  </Style>
-
   <Style Selector="Button.side">
     <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
     <Setter Property="MinWidth" Value="52" />
