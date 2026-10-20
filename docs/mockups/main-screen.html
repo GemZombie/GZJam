@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GZJam — main screen mockup</title>
+<style>
+  #stage { width: 100%; position: relative; overflow: hidden; }
+  #app {
+    --bg: #0c0e12; --panel: #13161c; --panel2: #191d25; --line: #252a34; --line2: #2f3542;
+    --text: #e7eaf0; --muted: #8b94a5; --dim: #5d6574;
+    --a: #22d3ee; --a-soft: rgba(34,211,238,.14); --b: #f5a524; --b-soft: rgba(245,165,36,.14);
+    --air: #f04444; --ok: #34d399;
+    width: 1280px; height: 870px; transform-origin: top left; position: absolute; left: 0; top: 0;
+    box-sizing: border-box; padding: 16px; border-radius: 14px; background: var(--bg); color: var(--text);
+    font: 13px/1.35 "Segoe UI", system-ui, -apple-system, sans-serif;
+    display: grid; grid-template-rows: 40px 290px minmax(0, 1fr); gap: 12px;
+  }
+  #app * { box-sizing: border-box; }
+  .mono { font-family: "Cascadia Mono", "JetBrains Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  svg.i { width: 15px; height: 15px; flex: none; }
+  .label { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+  /* Top bar */
+  .top { display: flex; align-items: center; gap: 18px; padding: 0 4px; }
+  .logo { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: .02em; }
+  .logo .mark { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--a), #7c5cff 55%, var(--b)); display: grid; place-items: center; color: #0c0e12; font-size: 13px; font-weight: 800; }
+  .stat { display: flex; align-items: baseline; gap: 7px; }
+  .stat b { font-size: 16px; font-weight: 600; }
+  .spacer { flex: 1; }
+  .chip { display: flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .chip strong { color: var(--text); font-weight: 600; }
+  .iconbtn { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); background: var(--panel2); border: 1px solid var(--line); }
+
+  /* Decks */
+  .decks { display: grid; grid-template-columns: minmax(0, 1fr) 212px minmax(0, 1fr); gap: 12px; min-height: 0; }
+  .deck { min-width: 0; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 96px auto; gap: 12px; position: relative; overflow: hidden; }
+  .deck.live { border-color: rgba(240,68,68,.45); box-shadow: inset 0 0 0 1px rgba(240,68,68,.15), 0 0 30px rgba(240,68,68,.06); }
+  .dhead { display: flex; gap: 12px; align-items: flex-start; }
+  .letter { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; font-size: 16px; color: #0c0e12; flex: none; }
+  .meta { flex: 1; min-width: 0; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; padding: 2px 8px; border-radius: 5px; margin-bottom: 5px; }
+  .pill.air { background: var(--air); color: #fff; }
+  .pill.cue { background: var(--b-soft); color: var(--b); border: 1px solid rgba(245,165,36,.35); }
+  .pill.air::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: blink 1.4s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .title { font-size: 19px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .time { text-align: right; }
+  .remain { font-size: 38px; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+  .elapsed { color: var(--muted); margin-top: 5px; font-size: 12px; }
+  canvas.wave { width: 100%; height: 96px; display: block; border-radius: 7px; background: #0e1116; }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .play { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; border: 2px solid; background: transparent; }
+  .btn { height: 34px; padding: 0 12px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line2); color: var(--text); display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; }
+  .btn.ghost { color: var(--muted); }
+  .bpm { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .bpmval { text-align: right; }
+  .bpmval b { font-size: 26px; font-weight: 600; line-height: 1; }
+  .bpmval div { font-size: 11px; color: var(--muted); }
+  .tempo { width: 150px; }
+  .tempo .track { height: 6px; border-radius: 3px; background: var(--line2); position: relative; margin: 8px 0 6px; }
+  .tempo .track::after { content: ""; position: absolute; left: 50%; top: -3px; width: 1px; height: 12px; background: var(--dim); }
+  .tempo .thumb { position: absolute; top: -5px; width: 10px; height: 16px; border-radius: 3px; background: var(--text); box-shadow: 0 1px 4px #000; }
+  .tempo .scale { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); }
+  .keylock { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; padding: 3px 7px; border-radius: 5px; border: 1px solid var(--line2); color: var(--ok); display: flex; gap: 4px; align-items: center; }
+
+  /* Mixer */
+  .mixer { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .auto { border-radius: 9px; padding: 11px 12px; background: linear-gradient(160deg, rgba(52,211,153,.16), rgba(52,211,153,.04)); border: 1px solid rgba(52,211,153,.35); }
+  .auto .row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle { width: 34px; height: 19px; border-radius: 999px; background: var(--ok); position: relative; }
+  .toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; }
+  .auto .next { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .auto .next b { color: var(--text); }
+  .gap { display: flex; align-items: center; justify-content: space-between; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line2); border-radius: 7px; overflow: hidden; }
+  .stepper span { padding: 4px 9px; color: var(--muted); background: var(--panel2); }
+  .stepper b { padding: 4px 10px; font-weight: 600; }
+  .meters { display: flex; justify-content: center; gap: 26px; flex: 1; align-items: flex-end; }
+  .meter { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; }
+  .meter .bar { width: 10px; height: 56px; border-radius: 3px; background: #0e1116; border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .meter .bar i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, var(--ok) 0 60%, #facc15 60% 85%, var(--air) 85%); }
+  .xfader .rail { height: 8px; border-radius: 4px; background: #0e1116; border: 1px solid var(--line2); position: relative; margin: 10px 4px 6px; }
+  .xfader .cap { position: absolute; top: -9px; left: 2px; width: 22px; height: 24px; border-radius: 4px; background: linear-gradient(#e9edf3, #9aa3b2); box-shadow: 0 2px 6px #000; }
+  .xfader .cap::after { content: ""; position: absolute; left: 10px; top: 4px; bottom: 4px; width: 2px; background: #333; }
+  .xfader .ends { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+
+  /* Library */
+  .lib { display: grid; grid-template-columns: 236px minmax(0, 1fr) 300px; gap: 12px; min-height: 0; }
+  .lib > .panel { overflow: hidden; min-height: 0; }
+  .phead { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+  .phead a { color: var(--muted); font-size: 12px; display: flex; gap: 5px; align-items: center; }
+  .tree { padding: 8px 6px; font-size: 13px; }
+  .node { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; color: #c9cfda; white-space: nowrap; }
+  .node .chev { width: 10px; color: var(--dim); font-size: 9px; }
+  .node .n { margin-left: auto; color: var(--dim); font-size: 11px; }
+  .node.sel { background: rgba(124,92,255,.22); color: #fff; box-shadow: inset 2px 0 0 #8f74ff; }
+  .node.sel .n { color: #c8bcff; }
+  .folder { color: #8f9bb0; }
+
+  .results { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; min-height: 0; position: relative; }
+  .search { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .sbox { flex: 1; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border-radius: 8px; background: #0e1116; border: 1px solid #3a4152; box-shadow: 0 0 0 3px rgba(124,92,255,.15); }
+  .sbox .qtext { color: var(--text); font-size: 13.5px; }
+  .caret { width: 1px; height: 16px; background: var(--text); margin-left: -6px; animation: blink 1s steps(1) infinite; }
+  .scope { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c8bcff; background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.35); padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+  .count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+  th { text-align: left; font-weight: 600; font-size: 11px; color: var(--muted); padding: 7px 8px; border-bottom: 1px solid var(--line); letter-spacing: .04em; }
+  td { padding: 6px 8px; border-bottom: 1px solid #1a1e26; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  td.r, th.r { text-align: right; }
+  tr.played td { color: var(--dim); }
+  tr.played td.t::after { content: "played 8:42"; margin-left: 8px; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: #1d222b; color: var(--muted); }
+  tr.ctx td { background: rgba(124,92,255,.18); }
+  .hp { color: var(--dim); }
+  tr.prev .hp { color: var(--b); }
+  tr.prev td { background: var(--b-soft); }
+
+  .menu { position: absolute; left: 238px; top: 222px; width: 228px; padding: 5px; border-radius: 9px; background: #1f2430; border: 1px solid #39404f; box-shadow: 0 14px 40px rgba(0,0,0,.6); font-size: 13px; z-index: 5; }
+  .menu .it { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 6px; }
+  .menu .it.hl { background: rgba(124,92,255,.35); }
+  .menu .it .k { margin-left: auto; color: var(--dim); font-size: 11px; }
+  .menu .it.warn .k { color: var(--air); }
+  .menu .sep { height: 1px; background: #343a48; margin: 4px 6px; }
+  .sw { width: 9px; height: 9px; border-radius: 3px; }
+
+  .preview { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-top: 1px solid var(--line); background: linear-gradient(90deg, var(--b-soft), transparent 70%); }
+  .preview .hpbig { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--b); color: #111; }
+  .preview .pt { font-size: 12.5px; min-width: 0; }
+  .preview .pt div { color: var(--muted); font-size: 11px; }
+  canvas.mini { flex: 1; height: 28px; min-width: 0; }
+
+  .queue { display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+  .tabs { display: flex; gap: 16px; }
+  .tabs span { font-size: 12px; font-weight: 600; color: var(--muted); padding-bottom: 2px; }
+  .tabs span.on { color: var(--text); box-shadow: 0 2px 0 var(--ok); }
+  .qlist { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .q { display: grid; grid-template-columns: 14px 18px 1fr auto; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 7px; background: var(--panel2); border: 1px solid transparent; }
+  .q .grip { color: var(--dim); font-size: 11px; letter-spacing: -2px; }
+  .q .num { color: var(--dim); font-size: 11px; text-align: right; }
+  .q .qt { min-width: 0; }
+  .q .qt b { display: block; font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .q .qt > span { display: block; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .q .qr { text-align: right; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .q.ondeck { border-color: rgba(245,165,36,.4); background: linear-gradient(90deg, var(--b-soft), var(--panel2)); }
+  .q.ondeck .tag { font-size: 9.5px; font-weight: 700; letter-spacing: .08em; color: var(--b); }
+  .dropline { height: 2px; border-radius: 2px; background: #8f74ff; box-shadow: 0 0 8px #8f74ff; margin: 0 6px; position: relative; }
+  .dropline::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #8f74ff; }
+  .ghost { position: absolute; right: 38px; top: 520px; padding: 6px 10px; border-radius: 7px; background: #2a2340; border: 1px solid #8f74ff; font-size: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.5); transform: rotate(-2deg); z-index: 6; }
+  .qfoot { margin-top: auto; padding: 8px 10px; color: var(--muted); font-size: 11.5px; display: flex; justify-content: space-between; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div id="stage">
+<div id="app">
+
+  <!-- ─────────── Top bar ─────────── -->
+  <div class="top">
+    <div class="logo"><div class="mark">GZ</div>GZJam</div>
+    <div class="stat"><span class="label">Set</span><b class="mono">1:47:12</b></div>
+    <div class="stat"><span class="label">Clock</span><b class="mono">9:14 PM</b></div>
+    <div class="spacer"></div>
+    <div class="chip"><span class="dot"></span>Main <strong>USB · Cable Creation</strong></div>
+    <div class="chip"><span class="dot"></span>Cue <strong>Laptop headphones</strong></div>
+    <div class="iconbtn"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div>
+  </div>
+
+  <!-- ─────────── Decks + mixer ─────────── -->
+  <div class="decks">
+    <div class="deck panel live">
+      <div class="dhead">
+        <div class="letter" style="background:var(--a)">A</div>
+        <div class="meta">
+          <span class="pill air">ON AIR</span>
+          <div class="title">Splanky</div>
+          <div class="sub">Count Basie Orchestra · The Atomic Mr. Basie · 1958</div>
+        </div>
+        <div class="time">
+          <div class="remain mono" style="color:var(--a)">-1:42</div>
+          <div class="elapsed mono">1:51 / 3:33</div>
+        </div>
+      </div>
+      <canvas class="wave" id="waveA"></canvas>
+      <div class="controls">
+        <div class="play" style="border-color:var(--a);color:var(--a)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></div>
+        <div class="btn">Fade out <span class="mono" style="color:var(--muted)">5s</span></div>
+        <div class="bpm">
+          <div class="tempo">
+            <div class="scale"><span>−8%</span><span>Tempo</span><span>+8%</span></div>
+            <div class="track"><div class="thumb" style="left:calc(50% - 5px)"></div></div>
+          </div>
+          <div class="bpmval"><b class="mono">138</b><div>BPM · 0.0%</div></div>
+          <div class="keylock">KEY<svg class="i" style="width:11px;height:11px" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mixer panel">
+      <div class="auto">
+        <div class="row"><span class="label" style="color:var(--ok)">Auto-play</span><div class="toggle"></div></div>
+        <div class="next">Next on <b style="color:var(--b)">Deck B</b> in <b class="mono">1:45</b><br>after a <b>3 s</b> gap</div>
+      </div>
+      <div class="gap">
+        <span class="label">Gap</span>
+        <div class="stepper mono"><span>−</span><b>3.0 s</b><span>+</span></div>
+      </div>
+      <div class="meters">
+        <div class="meter"><div class="bar"><i style="height:72%"></i></div><span style="color:var(--a)">A</span></div>
+        <div class="meter"><div class="bar"><i style="height:0%"></i></div><span style="color:var(--b)">B</span></div>
+      </div>
+      <div class="xfader">
+        <div class="rail"><div class="cap"></div></div>
+        <div class="ends"><span style="color:var(--a)">A · LIVE</span><span style="color:var(--dim)">B</span></div>
+      </div>
+    </div>
+
+    <div class="deck panel">
+      <div class="dhead">
+        <div class="letter" style="background:var(--b)">B</div>
+        <div class="meta">
+          <span class="pill cue"><svg class="i" style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/><rect x="16.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/></svg>CUE · UP NEXT</span>
+          <div class="title">Tain't What You Do (It's the Way That Cha Do It)</div>
+          <div class="sub">Jimmie Lunceford · Rhythm Is Our Business · 1939</div>
+        </div>
+        <div class="time">
+          <div class="remain mono" style="color:var(--b)">-2:56</div>
+          <div class="elapsed mono">0:00 / 2:56</div>
+        </div>
+      </div>
+      <canvas class="wave" id="waveB"></canvas>
+      <div class="controls">
+        <div class="play" style="border-color:var(--b);color:var(--b)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg></div>
+        <div class="btn ghost">Fade out <span class="mono">5s</span></div>
+        <div class="bpm">
+          <div class="tempo">
+            <div class="scale"><span>−8%</span><span>Tempo</span><span>+8%</span></div>
+            <div class="track"><div class="thumb" style="left:calc(37% - 5px)"></div></div>
+          </div>
+          <div class="bpmval"><b class="mono">153</b><div>156 · −2.0%</div></div>
+          <div class="keylock">KEY<svg class="i" style="width:11px;height:11px" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── Library ─────────── -->
+  <div class="lib">
+    <div class="panel">
+      <div class="phead"><span class="label">Library</span><a>+ Folder</a></div>
+      <div class="tree" id="tree"></div>
+    </div>
+
+    <div class="panel results">
+      <div class="search">
+        <div class="sbox"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="#8b94a5" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="qtext">basie</span><span class="caret"></span></div>
+        <div class="scope">in Swing › Lindy Hop · all subfolders <span style="opacity:.6">✕</span></div>
+        <div class="count">214 tracks</div>
+      </div>
+      <div></div>
+      <div style="overflow:hidden">
+        <table>
+          <colgroup><col style="width:30px"><col><col style="width:150px"><col style="width:170px"><col style="width:52px"><col style="width:52px"><col style="width:52px"></colgroup>
+          <thead><tr><th></th><th>TITLE</th><th>ARTIST</th><th>ALBUM</th><th class="r">YEAR</th><th class="r">BPM ▾</th><th class="r">TIME</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="preview">
+        <div class="hpbig"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/><rect x="16.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/></svg></div>
+        <div class="pt"><b>Corner Pocket</b><div>Previewing in headphones</div></div>
+        <canvas class="mini" id="mini"></canvas>
+        <span class="mono" style="color:var(--muted);font-size:12px">1:12 / 5:17</span>
+        <div class="btn ghost" style="height:28px">Stop</div>
+      </div>
+
+      <div class="menu">
+        <div class="it"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="var(--b)" stroke-width="2.4"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7" rx="1.5" fill="var(--b)"/><rect x="16.5" y="14" width="5" height="7" rx="1.5" fill="var(--b)"/></svg>Preview in headphones<span class="k">Space</span></div>
+        <div class="sep"></div>
+        <div class="it warn"><span class="sw" style="background:var(--a)"></span>Load to Deck A<span class="k">on air</span></div>
+        <div class="it hl"><span class="sw" style="background:var(--b)"></span>Load to Deck B<span class="k">Ctrl+2</span></div>
+        <div class="sep"></div>
+        <div class="it">Add to queue<span class="k">Enter</span></div>
+        <div class="it">Play next<span class="k">Shift+Enter</span></div>
+        <div class="sep"></div>
+        <div class="it" style="color:var(--muted)">Edit BPM &amp; trim…</div>
+      </div>
+    </div>
+
+    <div class="panel queue">
+      <div class="phead">
+        <div class="tabs"><span class="on">Queue</span><span>History</span></div>
+        <span style="color:var(--muted);font-size:11.5px">6 tracks · 18:31</span>
+      </div>
+      <div class="qlist" id="queue"></div>
+    </div>
+  </div>
+
+  <div class="ghost">⋮⋮ &nbsp;Every Tub — Count Basie</div>
+</div>
+</div>
+
+<script>
+// ---------- Fit the 1280px design to the available width ----------
+const stage = document.getElementById('stage'), app = document.getElementById('app');
+function fit() {
+  const s = Math.min(1, stage.clientWidth / 1280);
+  app.style.transform = `scale(${s})`;
+  stage.style.height = (870 * s) + 'px';
+}
+addEventListener('resize', fit); fit();
+
+// ---------- Folder tree ----------
+const tree = [
+  [0, '▸', 'Blues', '1,904'],
+  [0, '▾', 'Swing', '9,377'],
+  [1, '▸', 'Balboa', '1,128'],
+  [1, '▾', 'Lindy Hop', '6,402', 'sel'],
+  [2, '▸', 'Artie Shaw', '211'],
+  [2, '▸', 'Benny Goodman', '388'],
+  [2, '▸', 'Chick Webb', '142'],
+  [2, '▾', 'Count Basie', '506'],
+  [3, '', 'April in Paris', '11'],
+  [3, '', 'Complete Decca Recordings', '63'],
+  [3, '', 'The Atomic Mr. Basie', '11'],
+  [2, '▸', 'Duke Ellington', '622'],
+  [2, '▸', 'Jimmie Lunceford', '174'],
+  [2, '▸', 'Modern Bands', '1,207'],
+  [1, '▸', 'Shag', '412'],
+  [1, '▸', 'Slow Swing', '1,435'],
+];
+const folderSvg = '<svg class="i folder" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>';
+document.getElementById('tree').innerHTML = tree.map(([d, c, name, n, sel]) =>
+  `<div class="node ${sel || ''}" style="padding-left:${8 + d * 14}px"><span class="chev">${c}</span>${folderSvg}${name}<span class="n">${n}</span></div>`).join('');
+
+// ---------- Search results ----------
+const hp = '<svg class="i" style="width:13px;height:13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/><rect x="16.5" y="14" width="5" height="7" rx="1.5" fill="currentColor"/></svg>';
+const rows = [
+  ['Every Tub', 'Count Basie', 'Complete Decca Recordings', 1938, 262, '3:15'],
+  ['Jumpin\' at the Woodside', 'Count Basie', 'Complete Decca Recordings', 1938, 236, '3:08'],
+  ['Swingin\' the Blues', 'Count Basie', 'Complete Decca Recordings', 1938, 218, '2:44'],
+  ['One O\'Clock Jump', 'Count Basie', 'Complete Decca Recordings', 1937, 176, '3:03', 'played'],
+  ['Topsy', 'Count Basie', 'Complete Decca Recordings', 1937, 168, '3:02', 'ctx'],
+  ['Jive at Five', 'Count Basie', 'Complete Decca Recordings', 1939, 158, '2:53'],
+  ['Moten Swing', 'Count Basie', 'Complete Decca Recordings', 1940, 150, '3:15'],
+  ['Splanky', 'Count Basie Orchestra', 'The Atomic Mr. Basie', 1958, 138, '3:33', 'played'],
+  ['April in Paris', 'Count Basie Orchestra', 'April in Paris', 1955, 135, '3:52'],
+  ['Corner Pocket', 'Count Basie Orchestra', 'April in Paris', 1955, 130, '5:17', 'prev'],
+  ['Shiny Stockings', 'Count Basie Orchestra', 'April in Paris', 1955, 128, '5:12'],
+  ['Lil\' Darlin\'', 'Count Basie Orchestra', 'The Atomic Mr. Basie', 1958, 68, '4:31'],
+];
+document.getElementById('rows').innerHTML = rows.map(([t, a, al, y, b, tm, cls]) =>
+  `<tr class="${cls || ''}"><td class="hp">${hp}</td><td class="t">${t}</td><td>${a}</td><td>${al}</td><td class="r mono">${y}</td><td class="r mono">${b}</td><td class="r mono">${tm}</td></tr>`).join('');
+
+// ---------- Queue ----------
+const queue = [
+  ['Tain\'t What You Do', 'Jimmie Lunceford', 156, '2:56', 'ondeck'],
+  ['Bli-Blip', 'Duke Ellington', 172, '2:47'],
+  ['Flying Home', 'Lionel Hampton', 180, '3:09'],
+  ['drop'],
+  ['The Jumpin\' Jive', 'Cab Calloway', 188, '2:43'],
+  ['Hallelujah I Love Her So', 'Ray Charles', 138, '2:35'],
+  ['Shiny Stockings', 'Ella Fitzgerald', 132, '4:21'],
+];
+let n = 0;
+document.getElementById('queue').innerHTML = queue.map(([t, a, b, tm, cls]) => t === 'drop' ? '<div class="dropline"></div>' :
+  `<div class="q ${cls || ''}"><span class="grip">⋮⋮</span><span class="num">${++n}</span>
+    <div class="qt"><b>${t}</b><span>${a}${cls ? ' · <span class="tag">DECK B</span>' : ''}</span></div>
+    <div class="qr"><span class="mono">${b}</span><span class="mono">${tm}</span><span class="hp">${hp}</span></div></div>`).join('') +
+  '<div class="qfoot" style="border:0;padding-top:4px"><span>Drag tracks here or right-click › Add to queue</span></div>';
+
+// ---------- Waveforms ----------
+function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+function draw(id, color, played, seed, opts = {}) {
+  const c = document.getElementById(id), r = devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight;
+  c.width = w * r; c.height = h * r;
+  const g = c.getContext('2d'); g.scale(r, r);
+  const rand = rng(seed), bars = Math.floor(w / 3), mid = h / 2;
+  const trimIn = opts.trimIn ?? 0.012, trimOut = opts.trimOut ?? 0.975;
+  for (let i = 0; i < bars; i++) {
+    const p = i / bars;
+    let env = 0.55 + 0.25 * Math.sin(p * 9 + seed) + 0.15 * Math.sin(p * 31);
+    if (p < trimIn || p > trimOut) env = 0.03;
+    else if (p > trimOut - 0.04) env *= (trimOut - p) / 0.04;
+    const amp = Math.max(0.03, Math.min(1, env * (0.55 + 0.45 * rand()))) * (mid - 3);
+    g.fillStyle = p < played ? color : color + '55';
+    g.fillRect(i * 3, mid - amp, 2, amp * 2);
+  }
+  if (opts.markers !== false) {
+    // Dimmed trimmed-off regions and trim flags.
+    g.fillStyle = 'rgba(12,14,18,.55)';
+    g.fillRect(0, 0, w * trimIn, h); g.fillRect(w * trimOut, 0, w, h);
+    g.fillStyle = '#8b94a5';
+    for (const x of [w * trimIn, w * trimOut]) { g.fillRect(x, 0, 1, h); g.fillRect(x - 3, 0, 7, 5); }
+    g.font = '10px Segoe UI, sans-serif'; g.fillStyle = '#8b94a5';
+    g.fillText('END', w * trimOut - 26, 12);
+  }
+  if (played > 0) { g.fillStyle = '#fff'; g.fillRect(w * played - 1, 0, 2, h); }
+}
+function redraw() {
+  draw('waveA', '#22d3ee', 0.521, 7);
+  draw('waveB', '#f5a524', 0.0, 3, { trimIn: 0.02 });
+  draw('mini', '#f5a524', 0.227, 11, { markers: false });
+}
+redraw(); addEventListener('resize', redraw);
+</script>
+</body>
+</html>

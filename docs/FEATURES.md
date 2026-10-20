@@ -3,6 +3,12 @@
 Living document. Requirements come from how the DJ actually works; anything not listed here
 is out of scope until it earns a place.
 
+## Prior art
+
+- **BPM Studio** (ALCATech): used in the past. Expensive and dated now.
+- **Mixxx**: used, but its library support fell short of folder-based browsing and search.
+- **DJay Pro**: the look worth keeping; search only works within the selected folder, not recursively.
+
 ## Library
 
 ### Requirements (from the DJ)
@@ -72,6 +78,29 @@ is out of scope until it earns a place.
   instantly and you can see exactly what's coming.
 - Tracks can also be dragged straight onto a deck (manual mode).
 - Deck count is configurable in the engine from the start (2 by default); the 4-deck UI comes later.
+- **Drag and right-click are redundant by design.** Every track action is available both ways.
+  Right-click on a track (library or queue): *Preview in headphones*, *Load to Deck A/B…*
+  (instant), *Add to queue*, *Play next*.
+- **Auto-play alternates decks** (A, B, A, B…). The **crossfader decides which deck is live**,
+  as in DJay Pro; auto-play moves it to the new deck when the next song starts.
+- **One-button fade-out** per deck, with a configurable length. A fade-out counts as the song
+  ending: the gap starts, then auto-play continues.
+
+## Headphone cue
+
+### Requirements (from the DJ)
+
+- **Preview is essential**, directly from the library file list and from the queue.
+- **Any deck that isn't live plays to the headphones automatically**, as in DJay Pro.
+
+### Design decisions
+
+- **Routing follows the crossfader.** The live deck goes to the main output; every other
+  deck goes to the cue output. No routing buttons to forget mid-set.
+- **A preview player** (headphone icon on every library and queue row) plays a track to the
+  cue output without loading a deck, with its own scrub bar.
+- The engine needs a mixer stage to do this (a deck may feed main, cue, or both), most likely
+  the BASSmix add-on. The current prototype binds each deck to a single device.
 
 ## Look and feel
 
@@ -81,8 +110,4 @@ is out of scope until it earns a place.
 
 ## Open questions
 
-- Headphone routing: should each deck have a "send to headphones" toggle (like a mixer's cue
-  button), and/or should the library have a one-click preview player that plays straight to the
-  headphones without loading a deck?
-- With auto-play on, should the next song alternate between decks (A, B, A, B...)?
-- Is a one-button fade-out wanted for cutting long songs short?
+- What worked well in BPM Studio that should carry over?
