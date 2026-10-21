@@ -69,6 +69,34 @@ public sealed partial class LibraryDatabase
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>The BPM range the DJ chose for a file, if any.</summary>
+    public BpmRange? GetBpmRange(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT min, max FROM bpm_ranges WHERE path = $path;";
+        cmd.Parameters.AddWithValue("$path", path);
+        using var r = cmd.ExecuteReader();
+        return r.Read() ? new BpmRange(r.GetInt32(0), r.GetInt32(1)) : null;
+    }
+
+    /// <summary>Chooses a BPM range for a file, or (null) goes back to automatic detection.</summary>
+    public void SetBpmRange(string path, BpmRange? range)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = range is null
+            ? "DELETE FROM bpm_ranges WHERE path = $path;"
+            : "INSERT INTO bpm_ranges (path, min, max) VALUES ($path, $min, $max) ON CONFLICT(path) DO UPDATE SET min = excluded.min, max = excluded.max;";
+        cmd.Parameters.AddWithValue("$path", path);
+        if (range is { } r)
+        {
+            cmd.Parameters.AddWithValue("$min", r.Min);
+            cmd.Parameters.AddWithValue("$max", r.Max);
+        }
+        cmd.ExecuteNonQuery();
+    }
+
     /// <summary>
     /// Library tracks with no analysis from analyzer <paramref name="version"/> (or later) for the
     /// file as it is now, in folder order.

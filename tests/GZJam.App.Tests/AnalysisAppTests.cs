@@ -1,6 +1,12 @@
 using System.Globalization;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using GZJam.App.ViewModels;
+using GZJam.App.Views;
 using GZJam.Library;
 
 namespace GZJam.App.Tests;
@@ -43,8 +49,10 @@ public sealed class AnalysisAppTests
         Assert.InRange(deck.Deck.Position.TotalSeconds, 2, 2.6);
     }
 
+    private static double Bpm(QueueItem item) => double.Parse(item.BpmText, CultureInfo.CurrentCulture);
+
     [AvaloniaFact]
-    public void A_detected_bpm_shows_in_the_queue_and_fits_the_chosen_range()
+    public void A_detected_bpm_shows_in_the_queue_and_can_be_redetected_in_a_range()
     {
         using var app = new AppHarness();
         Track drums = app.BeatTrack("Drums", bpm: 180);
@@ -52,13 +60,47 @@ public sealed class AnalysisAppTests
         QueueItem item = app.ViewModel.Queue.Items[0];
 
         AppHarness.WaitFor(() => item.BpmText != "");
-        Assert.InRange(double.Parse(item.BpmText, CultureInfo.CurrentCulture), 177, 183);
+        Assert.InRange(Bpm(item), 177, 183);
 
-        // "My music is 60 to 120": 180 can only be double time, so it shows as 90.
-        app.ViewModel.Settings.BpmMax = 120;
-        app.ViewModel.Settings.BpmMin = 60;
+        // "This one's slow": detected again between 60 and 110, it's the half-time pulse.
+        var slow = MainWindowViewModel.BpmRanges[0].Range;
+        Task detecting = app.ViewModel.DetectBpmAsync([drums], slow);
+        AppHarness.WaitFor(() => detecting.IsCompleted && Bpm(item) < 110);
+        Assert.InRange(Bpm(item), 87, 93);
+        Assert.Equal(slow, app.Database.GetBpmRange(drums.Path));   // remembered
 
-        Assert.InRange(double.Parse(item.BpmText, CultureInfo.CurrentCulture), 88, 92);
-        Assert.Equal((60, 120), (app.Settings.BpmMin, app.Settings.BpmMax));
+        detecting = app.ViewModel.DetectBpmAsync([drums], null);   // back to automatic
+        AppHarness.WaitFor(() => detecting.IsCompleted && Bpm(item) > 110);
+        Assert.InRange(Bpm(item), 177, 183);
+        Assert.Null(app.Database.GetBpmRange(drums.Path));
+    }
+
+    [AvaloniaFact]
+    public void Right_clicking_a_decks_bpm_offers_the_ranges()
+    {
+        using var app = new AppHarness();
+        DeckViewModel deck = app.ViewModel.Deck1!;
+        Track drums = app.BeatTrack("Drums", bpm: 180);
+        app.ViewModel.LoadToDeckAsync(deck, drums).GetAwaiter().GetResult();
+        AppHarness.WaitFor(() => deck.Waveform is not null);
+
+        var view = app.Window.FindControl<DeckView>("Deck1View")!;
+        var panel = view.FindControl<StackPanel>("BpmPanel")!;
+        var menu = view.FindControl<ContextMenu>("BpmContextMenu")!;
+        Point point = panel.TranslatePoint(new Point(panel.Bounds.Width / 2, panel.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseDown(point, MouseButton.Right, RawInputModifiers.None);
+        app.Window.MouseUp(point, MouseButton.Right, RawInputModifiers.None);
+        AppHarness.Settle(200);
+        Assert.True(menu.IsOpen);
+        var items = menu.Items.OfType<MenuItem>().ToList();
+        Assert.Equal(["Detect BPM in range", "Automatic", "Slow (60–110)", "Medium (100–160)", "Up-tempo (140–220)", "Fast (200–320)"],
+            items.Select(i => (string)i.Header!));
+        Assert.True(items[1].IsChecked);   // automatic so far
+
+        items.Single(i => (string)i.Header! == "Slow (60–110)").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        menu.Close();
+        AppHarness.WaitFor(() => deck.BpmText is var text && double.TryParse(text, out double bpm) && bpm < 110);
+
+        Assert.Equal(new BpmRange(60, 110), drums.BpmRange);
     }
 }

@@ -152,6 +152,16 @@ public sealed partial class LibraryDatabase
                 waveform     BLOB
             );
             """,
+
+        // 4: BPM ranges the DJ chose for tracks whose tempo was detected wrongly. Separate from
+        // the analysis, which is only a cache: this survives re-analysis and file changes.
+        """
+            CREATE TABLE bpm_ranges (
+                path TEXT PRIMARY KEY,
+                min  INTEGER NOT NULL,
+                max  INTEGER NOT NULL
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -302,7 +312,7 @@ public sealed partial class LibraryDatabase
     {
         string? match = BuildMatchExpression(text);
 
-        var sql = new StringBuilder($"SELECT t.*, a.bpm AS detected_bpm FROM tracks t {JoinAnalysis} WHERE 1 = 1");
+        var sql = new StringBuilder($"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE 1 = 1");
         if (match is not null)
             sql.Append(" AND t.id IN (SELECT rowid FROM tracks_fts WHERE tracks_fts MATCH $match)");
         if (scope is not null)
@@ -383,10 +393,15 @@ public sealed partial class LibraryDatabase
         TrackNumber = GetInt(r, "track_number"),
         TagBpm = r.IsDBNull(r.GetOrdinal("bpm")) ? null : r.GetDouble(r.GetOrdinal("bpm")),
         DetectedBpm = r.IsDBNull(r.GetOrdinal("detected_bpm")) ? null : r.GetDouble(r.GetOrdinal("detected_bpm")),
+        BpmRange = r.IsDBNull(r.GetOrdinal("range_min")) ? null : new BpmRange(r.GetInt32(r.GetOrdinal("range_min")), r.GetInt32(r.GetOrdinal("range_max"))),
         Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
     };
 
     /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
+    /// <summary>A track row plus what the app knows about it: detected BPM and any chosen BPM range.</summary>
+    private const string TrackColumns = "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max";
+    private const string TrackJoins = JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path";
+
     private const string JoinAnalysis =
         "LEFT JOIN analysis a ON a.path = t.path AND a.file_size = t.file_size AND a.modified_utc = t.modified_utc";
 

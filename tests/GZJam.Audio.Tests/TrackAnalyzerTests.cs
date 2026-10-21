@@ -122,6 +122,36 @@ public sealed class TrackAnalyzerTests : IDisposable
         Assert.InRange(found.Value, 70, 74);
     }
 
+    [Theory]
+    [InlineData(120, 180, 300, 240)]   // only half time found: doubled into the range
+    [InlineData(300, 120, 180, 150)]   // double time: halved
+    [InlineData(110, 120, 150, 110)]   // no octave fits: as near as it gets
+    public void A_chosen_range_folds_the_detected_tempo_into_it(double detected, int min, int max, double chosen) =>
+        Assert.Equal(chosen, TrackAnalyzer.ChooseBpm([(detected, 1.0)], (min, max)));
+
+    [Fact]
+    public void A_chosen_range_picks_the_best_tempo_inside_it()
+    {
+        // Not just half or double: a three-to-two mistake is fixed too.
+        (double, double)[] candidates = [(72, 0.5), (216, 0.4), (144, 0.3)];
+
+        Assert.Equal(72, TrackAnalyzer.ChooseBpm(candidates, null));
+        Assert.Equal(216, TrackAnalyzer.ChooseBpm(candidates, (200, 320)));
+        Assert.Equal(144, TrackAnalyzer.ChooseBpm(candidates, (100, 160)));
+    }
+
+    [Fact]
+    public void A_fast_tune_read_as_half_time_is_found_in_a_fast_range()
+    {
+        // A heavy backbeat on a very fast tune: automatic detection may say half time.
+        string path = TestWav.WriteSwingBeat(File("fast.wav"), 240, TimeSpan.FromSeconds(40));
+
+        double? found = _analyzer.Analyze(path, bpmRange: (200, 320)).Bpm;
+
+        Assert.NotNull(found);
+        Assert.InRange(found.Value, 235, 245);
+    }
+
     /// <summary>Joins WAVs written by <see cref="TestWav"/> (same format) into one.</summary>
     private static void Concatenate(string path, params string[] parts)
     {

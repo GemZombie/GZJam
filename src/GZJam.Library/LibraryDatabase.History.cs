@@ -132,7 +132,7 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = $"SELECT t.*, a.bpm AS detected_bpm FROM tracks t {JoinAnalysis} WHERE t.path = $path;";
+        cmd.CommandText = $"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE t.path = $path;";
         cmd.Parameters.AddWithValue("$path", path);
         using var r = cmd.ExecuteReader();
         return r.Read() ? ReadTrack(r) : null;

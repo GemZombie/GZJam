@@ -14,9 +14,13 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
 {
     private enum Priority { Deck, Queue, Library }
 
-    private sealed class Job(string path, FileVersion version, Priority priority)
+    private sealed class Job(string path, FileVersion version, Priority priority, bool redo = false)
     {
         public string Path { get; } = path;
+
+        /// <summary>Analyze again even if there's a saved result. Never merged with other requests.</summary>
+        public bool Redo { get; } = redo;
+        public string Key { get; } = redo ? $"{path}|redo {Guid.NewGuid()}" : path;
         public FileVersion Version { get; } = version;
         public Priority Priority { get; set; } = priority;
         public TaskCompletionSource<TrackAnalysis?> Done { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -62,6 +66,21 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     /// everything else. Null if the file can't be read.
     /// </summary>
     public Task<TrackAnalysis?> GetAsync(string path) => Request(path, Priority.Deck);
+
+    /// <summary>
+    /// Analyzes a file again, ahead of everything else, ignoring the saved result: e.g. the DJ
+    /// has just chosen a BPM range for it. Null if it can't be read, or if the range changed
+    /// again before this finished (a later request has the answer).
+    /// </summary>
+    public Task<TrackAnalysis?> RedoAsync(string path) => Task.Run(() =>
+    {
+        if (FileVersion.Of(path) is not { } version)
+            return Task.FromResult<TrackAnalysis?>(null);
+        var job = new Job(path, version, Priority.Deck, redo: true);
+        lock (_lock)
+            Enqueue(job);
+        return job.Done.Task;
+    });
 
     /// <summary>Moves tracks ahead of the library (e.g. they've just been queued).</summary>
     public void Prioritize(IEnumerable<Track> tracks)
@@ -134,7 +153,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     /// <summary>Adds a job (caller holds the lock).</summary>
     private void Enqueue(Job job)
     {
-        _jobs[job.Path] = job;
+        _jobs[job.Key] = job;
         _waiting[(int)job.Priority].AddLast(job);
         _available.Release();
     }
@@ -172,7 +191,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             TrackAnalysis? result = Analyze(job);
             lock (_lock)
             {
-                _jobs.Remove(job.Path);
+                _jobs.Remove(job.Key);
                 if (job.Priority == Priority.Library)
                     _libraryDone++;
             }
@@ -190,9 +209,12 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         try
         {
             // A queued library track may have been analyzed meanwhile (e.g. loaded onto a deck).
-            if (Load(job.Path, job.Version) is { } saved)
+            if (!job.Redo && Load(job.Path, job.Version) is { } saved)
                 return saved;
-            TrackAnalysis result = _analyzer.Analyze(job.Path, cancellationToken: _stop.Token);
+            BpmRange? range = _database.GetBpmRange(job.Path);
+            TrackAnalysis result = _analyzer.Analyze(job.Path, bpmRange: range is { } r ? (r.Min, r.Max) : null, cancellationToken: _stop.Token);
+            if (_database.GetBpmRange(job.Path) != range)
+                return null;   // the DJ changed the range meanwhile; that request will redo it
             _database.SaveAnalysis(job.Path, job.Version, new StoredAnalysis(
                 TrackAnalyzer.Version, result.Length, result.AudibleStart, result.AudibleEnd, result.Bpm, result.Waveform.ToBytes()));
             return result;

@@ -53,7 +53,11 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     /// </summary>
     public const int MinBpm = 60, MaxBpm = 320;
 
-    public TrackAnalysis Analyze(string path, bool detectBpm = true, CancellationToken cancellationToken = default)
+    /// <param name="bpmRange">
+    /// Where the DJ says the tempo is (when automatic detection got it wrong): the strongest
+    /// tempo inside it is chosen.
+    /// </param>
+    public TrackAnalysis Analyze(string path, bool detectBpm = true, (int Min, int Max)? bpmRange = null, CancellationToken cancellationToken = default)
     {
         // Decode-only work runs on BASS's "no sound" device so it never touches real outputs.
         engine.UseNoSoundDevice();
@@ -74,7 +78,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
             var (start, end) = FindAudible(windows, length);
 
             var candidates = tempo?.Estimate(start, end, MinBpm, MaxBpm) ?? [];
-            return new TrackAnalysis(length, start, end, candidates.Count > 0 ? Math.Round(candidates[0].Bpm) : null, waveform)
+            return new TrackAnalysis(length, start, end, ChooseBpm(candidates, bpmRange) is { } bpm ? Math.Round(bpm) : null, waveform)
             {
                 TempoCandidates = candidates,
             };
@@ -83,6 +87,39 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         {
             Bass.StreamFree(stream);
         }
+    }
+
+    /// <summary>
+    /// The detector's choice, or with a range, the best candidate inside it. If no candidate
+    /// is, the detector's choice is doubled or halved into the range.
+    /// </summary>
+    internal static double? ChooseBpm(IReadOnlyList<(double Bpm, double Score)> candidates, (int Min, int Max)? range)
+    {
+        if (candidates.Count == 0)
+            return null;
+        if (range is not { } r)
+            return candidates[0].Bpm;
+        foreach (var c in candidates)
+        {
+            if (c.Bpm >= r.Min && c.Bpm <= r.Max)
+                return c.Bpm;
+        }
+        return Fold(candidates[0].Bpm, r.Min, r.Max);
+    }
+
+    /// <summary>Doubles or halves <paramref name="bpm"/> into a range (or as near as it gets).</summary>
+    internal static double Fold(double bpm, int min, int max)
+    {
+        double best = bpm, bestDistance = double.MaxValue;
+        foreach (int k in new[] { 0, 1, -1, 2, -2, 3, -3 })
+        {
+            double candidate = bpm * Math.Pow(2, k);
+            // How far outside the range, in octaves (0 inside it).
+            double distance = candidate < min ? Math.Log2(min / candidate) : candidate > max ? Math.Log2(candidate / max) : 0;
+            if (distance < bestDistance - 1e-9)
+                (best, bestDistance) = (candidate, distance);
+        }
+        return best;
     }
 
     /// <summary>Reads every sample once: band peaks per waveform slice, and RMS per silence window.</summary>

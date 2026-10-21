@@ -76,19 +76,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             _resultsByPath[track.Path] = track;
     }
 
-    /// <summary>Shows a newly detected BPM on a track in the results.</summary>
-    public void SetDetectedBpm(string path, double? bpm)
-    {
-        if (_resultsByPath.TryGetValue(path, out Track? track))
-            track.DetectedBpm = bpm;
-    }
-
-    /// <summary>Re-shows every result's BPM (the BPM range changed).</summary>
-    public void RefreshBpms()
-    {
-        foreach (Track track in _resultsByPath.Values)
-            track.RefreshBpm();
-    }
+    /// <summary>The track for a file in the current results, if it's there.</summary>
+    public Track? ResultFor(string path) => _resultsByPath.GetValueOrDefault(path);
 
     partial void OnSelectedFolderChanged(FolderNodeViewModel? value)
     {

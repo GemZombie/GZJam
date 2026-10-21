@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GZJam.Audio;
-using GZJam.Library;
 
 namespace GZJam.App.ViewModels;
 
@@ -82,33 +81,6 @@ public sealed partial class SettingsViewModel : ObservableObject
             _settings.FadeOutSeconds = Math.Clamp(Math.Round(value), 1, 30);
             OnPropertyChanged();
         }
-    }
-
-    /// <summary>Lowest BPM the music is expected to have; detected tempos are doubled or halved into the range.</summary>
-    public double BpmMin
-    {
-        get => _settings.BpmMin;
-        set => SetBpmRange((int)Math.Round(value), _settings.BpmMax);
-    }
-
-    public double BpmMax
-    {
-        get => _settings.BpmMax;
-        set => SetBpmRange(_settings.BpmMin, (int)Math.Round(value));
-    }
-
-    private void SetBpmRange(int min, int max)
-    {
-        min = Math.Clamp(min, 40, 300);
-        max = Math.Clamp(max, min + 10, 400);
-        if (min == _settings.BpmMin && max == _settings.BpmMax)
-            return;
-        (_settings.BpmMin, _settings.BpmMax) = (min, max);
-        BpmRange.Set(min, max);
-        Log.Info($"BPM range: {min}-{max}");
-        OnPropertyChanged(nameof(BpmMin));
-        OnPropertyChanged(nameof(BpmMax));
-        _owner.RefreshBpms();
     }
 
     /// <summary>Re-lists devices, e.g. after plugging in a USB interface.</summary>

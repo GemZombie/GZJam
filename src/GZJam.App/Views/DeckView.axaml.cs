@@ -31,6 +31,23 @@ public partial class DeckView : UserControl
         PlayButton.AddHandler(PointerReleasedEvent, OnPlayReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerCaptureLostEvent, (_, _) => CancelHold(), RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.Click += OnPlayClick;
+        foreach (ContextMenu menu in new[] { BpmContextMenu, ReadoutBpmMenu })
+        {
+            // Opening covers right-click and long-press; Opened also covers menus opened from code.
+            menu.Opening += (_, e) => FillBpmMenu(menu, e);
+            menu.Opened += (_, _) => FillBpmMenu(menu, null);
+        }
+    }
+
+    private void FillBpmMenu(ContextMenu menu, System.ComponentModel.CancelEventArgs? opening)
+    {
+        if (Vm is not { Track: { } track } vm)
+        {
+            if (opening is not null)
+                opening.Cancel = true;   // nothing loaded: no menu
+            return;
+        }
+        BpmMenu.Fill(menu, vm.Owner, [track], withTitle: true);
     }
 
     public string Label

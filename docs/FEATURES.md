@@ -96,13 +96,20 @@ is out of scope until it earns a place.
   BASS_FX's detector got 5 of the library's 28 tagged tracks right; ours gets 19 within 4%,
   with no half/double errors, and the rest mostly 5-7% off (the same recording measures
   steadily, so likely tag inaccuracy). Detected BPMs are shown as whole numbers.
-- **BPM range (Settings):** "my music's tempo range". Detected BPMs outside it are doubled or
-  halved into it, at display time, so changing it needs no re-analysis. Narrower than double
-  (e.g. 120-180) settles every song. Default 60-320 (no correction). Tag BPMs are never changed.
+- **Fixing a wrong BPM, per track (the DJ's request, from another app they used):** right-click
+  the BPM on a deck, or a track in the library or queue › *Detect BPM in range*: Automatic,
+  Slow (60-110), Medium (100-160), Up-tempo (140-220), Fast (200-320). The track is analyzed
+  again and the strongest tempo inside the range is chosen (if none is, the detector's choice is
+  doubled or halved into it), which fixes 3:2 mistakes as well as half/double time. Each range
+  is under double, so there's one answer. Several selected tracks (e.g. a Balboa album) can be
+  set at once. The choice is saved per file (it survives re-analysis), and with a range chosen
+  the detected BPM is shown even over a tag's BPM; Automatic goes back to the tag.
+- A global "my music's tempo range" setting was tried first and dropped: the DJ felt one range
+  for the whole library wouldn't fit, and wanted to fix individual songs instead.
 - Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
   outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
-- Not yet: adjusting trim points by hand, editing/tapping a BPM per track, per-folder BPM ranges,
+- Not yet: adjusting trim points by hand, typing or tapping a BPM, per-folder BPM ranges,
   a zoomed scrolling waveform, loudness matching.
 
 ## Decks, queue and auto-play

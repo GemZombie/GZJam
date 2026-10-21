@@ -8,6 +8,7 @@ namespace GZJam.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly AppSettings _settings;
+    private readonly LibraryDatabase _database;
     private readonly DispatcherTimer _clock;
     private readonly DispatcherTimer _playbackTimer;
 
@@ -18,7 +19,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         AudioEngine? audio = null, MixEngine? mix = null, string? audioError = null)
     {
         _settings = settings;
-        BpmRange.Set(settings.BpmMin, settings.BpmMax);
+        _database = database;
         Audio = audio;
         Mix = mix;
         AudioError = audioError;
@@ -99,23 +100,59 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(BackgroundPercent));
     }
 
-    /// <summary>The BPM range changed: detected BPMs everywhere may fold differently.</summary>
-    public void RefreshBpms()
-    {
-        Library.RefreshBpms();
-        foreach (QueueItem item in Queue.Items)
-            item.Track.RefreshBpm();
-        RefreshDecks();
-    }
+    /// <summary>Every copy of a file's track on screen: in the library results, the queue and on the decks.</summary>
+    private IEnumerable<Track> TracksFor(string path) =>
+        new[] { Library.ResultFor(path) }
+            .Concat(Queue.Items.Select(i => i.Track))
+            .Concat(Decks.Select(d => d.Track))
+            .OfType<Track>()
+            .Where(t => t.Path == path)
+            .Distinct();
 
     /// <summary>A track's analysis is in: show its detected BPM wherever the track is on screen.</summary>
     private void OnAnalyzed(string path, TrackAnalysis analysis)
     {
-        Library.SetDetectedBpm(path, analysis.Bpm);
-        foreach (QueueItem item in Queue.Items.Where(i => i.Track.Path == path))
-            item.Track.DetectedBpm = analysis.Bpm;
-        foreach (DeckViewModel deck in Decks.Where(d => d.Track?.Path == path))
-            deck.Track!.DetectedBpm = analysis.Bpm;
+        foreach (Track track in TracksFor(path))
+            track.DetectedBpm = analysis.Bpm;
+    }
+
+    /// <summary>
+    /// The ranges offered when a tempo was detected wrongly. Each is under double, so there's
+    /// only one choice between half and double time; neighbours overlap.
+    /// </summary>
+    public static IReadOnlyList<(BpmRange Range, string Label)> BpmRanges { get; } =
+    [
+        (new BpmRange(60, 110), "Slow (60–110)"),
+        (new BpmRange(100, 160), "Medium (100–160)"),
+        (new BpmRange(140, 220), "Up-tempo (140–220)"),
+        (new BpmRange(200, 320), "Fast (200–320)"),
+    ];
+
+    /// <summary>
+    /// Detects tracks' BPMs again within a range the DJ chose (null: back to automatic), and
+    /// remembers the choice. With a range, the detected BPM is shown even if the tag has one.
+    /// </summary>
+    public async Task DetectBpmAsync(IReadOnlyList<Track> tracks, BpmRange? range)
+    {
+        if (Analysis is null || tracks.Count == 0)
+            return;
+        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        foreach (string path in paths)
+        {
+            _database.SetBpmRange(path, range);
+            foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
+                track.BpmRange = range;
+        }
+        string what = paths.Count == 1 ? $"\"{tracks[0].DisplayTitle}\"" : $"{paths.Count} tracks";
+        Log.Info($"BPM range for {what}: {range?.ToString() ?? "automatic"}");
+        if (paths.Count > 1)
+            ShowNotice($"Detecting the BPM of {what}…");
+
+        var results = await Task.WhenAll(paths.Select(Analysis.RedoAsync));
+        if (paths.Count == 1 && results[0]?.Bpm is { } bpm && tracks[0].BpmRange == range)
+            ShowNotice($"{what}: {Format.Bpm(tracks[0].Bpm ?? bpm)} BPM");
+        else if (paths.Count > 1)
+            ShowNotice($"BPM detected again for {what}.");
     }
 
     /// <summary>The right-hand panel shows the History tab rather than the Queue.</summary>

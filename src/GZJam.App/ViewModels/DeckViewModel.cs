@@ -41,6 +41,7 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     public Deck Deck { get; }
+    internal MainWindowViewModel Owner => _owner;
     /// <summary>"1", "2".</summary>
     public string Label => Deck.Name;
 

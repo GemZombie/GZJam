@@ -89,5 +89,13 @@ public sealed class ScreenshotTests
         settings.Flyout!.ShowAt(settings);
         app.Screenshot("09-settings");
         settings.Flyout.Hide();
+
+        // Right-click Deck 2's BPM: detect it again in a range.
+        var bpm = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<StackPanel>("BpmPanel")!;
+        var at = bpm.TranslatePoint(new Avalonia.Point(bpm.Bounds.Width / 2, bpm.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseDown(at, MouseButton.Right, RawInputModifiers.None);
+        app.Window.MouseUp(at, MouseButton.Right, RawInputModifiers.None);
+        AppHarness.Settle(300);
+        app.Screenshot("10-bpm-menu");
     }
 }

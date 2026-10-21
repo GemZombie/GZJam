@@ -97,20 +97,6 @@
                 <NumericUpDown Grid.Column="1" Width="120" Minimum="1" Maximum="30" Increment="1"
                                Value="{Binding FadeOutSeconds}" FormatString="0" />
               </Grid>
-
-              <TextBlock Classes="label" Text="BPM DETECTION" Margin="0,8,0,0" />
-              <StackPanel Spacing="6">
-                <TextBlock Text="My music's tempo range (BPM)" FontSize="12" Classes="muted" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <NumericUpDown Width="120" Minimum="40" Maximum="300" Increment="5"
-                                 Value="{Binding BpmMin}" FormatString="0" />
-                  <TextBlock Text="to" FontSize="12" Classes="muted" VerticalAlignment="Center" />
-                  <NumericUpDown Width="120" Minimum="50" Maximum="400" Increment="5"
-                                 Value="{Binding BpmMax}" FormatString="0" />
-                </StackPanel>
-                <TextBlock Classes="dim" FontSize="11" TextWrapping="Wrap" MaxWidth="330" HorizontalAlignment="Left"
-                           Text="Detected tempos outside this are doubled or halved to fit, which fixes half- and double-time mistakes. A range under double (e.g. 120 to 180) settles every song. BPMs from tags are never changed." />
-              </StackPanel>
             </StackPanel>
           </Flyout>
         </Button.Flyout>
@@ -298,6 +284,8 @@
                 <Separator />
                 <MenuItem Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
+                <Separator />
+                <MenuItem x:Name="TrackBpmMenu" Header="Detect BPM in range" />
               </ContextMenu>
             </DataGrid.ContextMenu>
           </DataGrid>
@@ -435,6 +423,8 @@
                   <MenuItem Header="Preview in headphones" Click="OnPreviewQueueSelectedClick" />
                   <MenuItem x:Name="QueueLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadQueueToDeckClick" />
+                  <Separator />
+                  <MenuItem x:Name="QueueBpmMenu" Header="Detect BPM in range" />
                   <Separator />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>

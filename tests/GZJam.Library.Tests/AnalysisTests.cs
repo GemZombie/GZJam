@@ -2,7 +2,7 @@ using GZJam.Testing;
 
 namespace GZJam.Library.Tests;
 
-/// <summary>Saved track analyses, and the BPM range that detected tempos are fitted into.</summary>
+/// <summary>Saved track analyses, and BPM ranges chosen for tracks.</summary>
 public sealed class AnalysisTests : IDisposable
 {
     private readonly TempLibrary _lib = new();
@@ -70,13 +70,34 @@ public sealed class AnalysisTests : IDisposable
         Assert.Equal(150, results["Tagged"].Bpm);   // the tag wins
     }
 
-    [Theory]
-    [InlineData(120, 180, 300, 240)]   // half time, doubled into the range
-    [InlineData(66, 100, 260, 132)]
-    [InlineData(300, 120, 180, 150)]   // double time, halved
-    [InlineData(265, 60, 320, 265)]    // already inside: unchanged
-    [InlineData(110, 120, 150, 110)]   // no octave fits: the nearest stays
-    [InlineData(90, 100, 400, 180)]    // two fit (180, 360): the fewest steps
-    public void Detected_tempos_are_doubled_or_halved_into_the_range(double detected, int min, int max, double shown) =>
-        Assert.Equal(shown, BpmRange.Fold(detected, min, max));
+    [Fact]
+    public void A_chosen_bpm_range_is_remembered_and_can_be_cleared()
+    {
+        string path = _lib.AddMp3("Swing/a.mp3");
+
+        _lib.Database.SetBpmRange(path, new BpmRange(140, 220));
+        Assert.Equal(new BpmRange(140, 220), _lib.Database.GetBpmRange(path));
+
+        _lib.Database.SetBpmRange(path, new BpmRange(200, 320));
+        Assert.Equal(new BpmRange(200, 320), _lib.Database.GetBpmRange(path));
+
+        _lib.Database.SetBpmRange(path, null);
+        Assert.Null(_lib.Database.GetBpmRange(path));
+    }
+
+    [Fact]
+    public void With_a_chosen_range_the_detected_bpm_beats_the_tag()
+    {
+        string path = _lib.AddMp3("Swing/tagged.mp3", new TestMp3.Tags(Title: "Tagged", Bpm: "103"));
+        _lib.AddRootAndScan();
+        _lib.Database.SaveAnalysis(path, FileVersion.Of(path)!.Value, Sample(bpm: 206));
+        _lib.Database.SetBpmRange(path, new BpmRange(200, 320));
+
+        Track track = Assert.Single(_lib.Database.Search(null));
+
+        Assert.Equal(new BpmRange(200, 320), track.BpmRange);
+        Assert.Equal(206, track.Bpm);
+        track.BpmRange = null;   // back to automatic: the tag again
+        Assert.Equal(103, track.Bpm);
+    }
 }

@@ -20,10 +20,10 @@ public partial class MainWindow
 
         PreviewSeek.SeekRequested += (_, fraction) => Vm.Preview?.SeekTo(fraction);
         // Opening covers right-click and long-press; Opened also covers menus opened from code.
-        TrackMenu.Opening += (_, _) => UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
-        TrackMenu.Opened += (_, _) => UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
-        QueueMenu.Opening += (_, _) => UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
-        QueueMenu.Opened += (_, _) => UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
+        TrackMenu.Opening += (_, _) => OnTrackMenuOpening();
+        TrackMenu.Opened += (_, _) => OnTrackMenuOpening();
+        QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
+        QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
         SettingsButton.Flyout!.Opened += (_, _) => Vm.Settings.RefreshDevices();
 
         DataContextChanged += (_, _) =>
@@ -68,6 +68,18 @@ public partial class MainWindow
     // ───────────── Menus ─────────────
 
     /// <summary>Greys out "Load to Deck X" when protection would refuse it, and says why.</summary>
+    private void OnTrackMenuOpening()
+    {
+        UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
+        BpmMenu.Fill(TrackBpmMenu, Vm, SelectedTracks());
+    }
+
+    private void OnQueueMenuOpening()
+    {
+        UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
+        BpmMenu.Fill(QueueBpmMenu, Vm, SelectedQueueItems().Select(i => i.Track).ToList());
+    }
+
     private void UpdateLoadMenuItems(MenuItem loadA, MenuItem loadB, bool oneTrackSelected)
     {
         foreach (var (item, index) in new[] { (loadA, 0), (loadB, 1) })

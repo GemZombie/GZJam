@@ -47,11 +47,25 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
-    /// <summary>The BPM to show: the tag's, or the detected one fitted into the DJ's <see cref="BpmRange"/>.</summary>
-    public double? Bpm => TagBpm ?? (DetectedBpm is { } detected ? BpmRange.Fold(detected) : null);
+    /// <summary>
+    /// The tempo range the DJ chose for this track because detection got it wrong; null for
+    /// automatic. Choosing one also means the detected BPM is preferred to the tag's.
+    /// </summary>
+    public BpmRange? BpmRange
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BpmRange)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bpm)));
+        }
+    }
 
-    /// <summary>Tells bindings <see cref="Bpm"/> may have changed (e.g. the BPM range was changed).</summary>
-    public void RefreshBpm() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bpm)));
+    /// <summary>The BPM to show: the tag's, unless the DJ asked for detection in a range.</summary>
+    public double? Bpm => BpmRange is not null ? DetectedBpm ?? TagBpm : TagBpm ?? DetectedBpm;
 
     public TimeSpan Duration { get; init; }
 

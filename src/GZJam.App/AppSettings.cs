@@ -57,13 +57,6 @@ public sealed class AppSettings
     /// <summary>Seconds of silence auto-play leaves between songs.</summary>
     public double GapSeconds { get; set; } = 3;
 
-    /// <summary>
-    /// The tempo range the music is expected to fall in; detected BPMs are doubled or halved into
-    /// it. The defaults are the detector's own limits (no correction).
-    /// </summary>
-    public int BpmMin { get; set; } = GZJam.Library.BpmRange.Lowest;
-    public int BpmMax { get; set; } = GZJam.Library.BpmRange.Highest;
-
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 

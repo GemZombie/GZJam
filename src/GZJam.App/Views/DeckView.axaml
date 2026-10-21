@@ -24,7 +24,10 @@
           <TextBlock Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis" />
         </StackPanel>
         <Button Grid.Column="2" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
-                ToolTip.Tip="Tap to switch between time left, time elapsed and BPM">
+                ToolTip.Tip="Tap to switch between time left, time elapsed and BPM. Right-click if the BPM is wrong.">
+          <Button.ContextMenu>
+            <ContextMenu x:Name="ReadoutBpmMenu" />
+          </Button.ContextMenu>
           <StackPanel>
             <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="38" FontWeight="SemiBold"
                        HorizontalAlignment="Right" LineHeight="40"
@@ -89,7 +92,12 @@
                   Value="{Binding TempoPercent}" IsEnabled="{Binding HasTrack}" />
         </StackPanel>
 
-        <StackPanel Grid.Column="5" VerticalAlignment="Center" MinWidth="64">
+        <!-- Right-click (or long-press) the BPM to detect it again in a range -->
+        <StackPanel x:Name="BpmPanel" Grid.Column="5" VerticalAlignment="Center" MinWidth="64" Background="Transparent"
+                    ToolTip.Tip="Right-click if the BPM is wrong">
+          <StackPanel.ContextMenu>
+            <ContextMenu x:Name="BpmContextMenu" />
+          </StackPanel.ContextMenu>
           <TextBlock Classes="mono" Text="{Binding BpmText}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Right" />
           <TextBlock Classes="muted" Text="{Binding BpmCaption}" FontSize="10.5" HorizontalAlignment="Right" />
         </StackPanel>
