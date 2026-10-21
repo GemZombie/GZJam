@@ -527,10 +527,28 @@ rather than being a second one.
   in the files. A label no song carries any more is forgotten.
 - Not yet: renaming a label, labels on the queue rows and decks.
 
+### Status: jumps built (2026-10-21)
+
+- **A jump** leaves at the end of one phrase and lands at another, seamlessly: forward skips a
+  part (a 5-minute track's third chorus), backward plays one again (stretching a tune to fit a
+  contra dance). Up to two per song, saved by path (`jumps`, schema upgrade 11).
+- **Setting one:** right-click the waveform › *Jump from here* (or *from the playhead*, after
+  finding the spot in the headphones), then right-click where it lands › *Land the jump here*.
+  *Remove jump 1 (1:42.0 → 3:05.0)* in the same menu. Refused with a reason: too near the start or
+  end, landing within 2 s of where it leaves, or a third jump.
+- **On the waveform:** a marker where it leaves (with an arrow the way it goes) and where it
+  lands; an armed forward jump shades the part it skips, a backward one tints the part it repeats.
+- **The JUMP key** (over the waveform, shown when the song has jumps): its green light means the
+  song will jump. Each jump happens once, then the light goes out; tap to arm again (play a part
+  once more) or, while lit, to cancel for this play. Jumps are armed when the song is loaded and
+  when it's played again from the top.
+- **Seamless:** the audio engine moves the position at the exact sample as the music reaches it
+  (a BASS mixtime position sync on the deck's decode stream), not on the screen's tick; a test
+  checks there's no quiet moment across a jump. Allowed on air, unlike seeking: it's deliberate.
+- **Time left** counts the armed jumps ahead. A forward jump isn't counted as listening for History.
+
 ### Next
 
-- **Jump markers:** one or two per track; tap to jump at the end of a phrase (e.g. to the outro
-  of a 5-minute track).
 - **Exclusive audio output** so system sounds never reach the PA (WASAPI exclusive on Windows,
   ALSA hw devices on Linux), plus the Linux test pass (PipeWire for home use).
 

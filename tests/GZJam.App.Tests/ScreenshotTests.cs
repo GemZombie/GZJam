@@ -123,6 +123,9 @@ public sealed class ScreenshotTests
 
         // Deck 2: the song set to start a few seconds in (say, after applause); its waveform menu.
         vm.Deck2.SetStart(TimeSpan.FromSeconds(12));
+        // ...and a jump that skips a middle chorus.
+        vm.Deck2.StartJump(vm.Deck2.Deck.Length * 0.68);
+        vm.Deck2.LandJump(vm.Deck2.Deck.Length * 0.86);
         var seek2 = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<GZJam.App.Controls.SeekBar>("Seek")!;
         var at2 = seek2.TranslatePoint(new Avalonia.Point(seek2.Bounds.Width * 0.9, seek2.Bounds.Height / 2), app.Window)!.Value;
         app.Window.MouseDown(at2, MouseButton.Right, RawInputModifiers.None);

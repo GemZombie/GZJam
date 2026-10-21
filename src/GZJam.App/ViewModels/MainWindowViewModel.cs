@@ -177,6 +177,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     internal void SaveTrim(string path, ManualTrim trim) => _database.SetTrim(path, trim);
 
+    /// <summary>The jumps the DJ set in a file.</summary>
+    internal IReadOnlyList<SongJump> GetJumps(string path) => _database.GetJumps(path);
+
+    internal void SaveJumps(string path, IReadOnlyList<SongJump> jumps) => _database.SetJumps(path, jumps);
+
     /// <summary>The EQ the DJ set for a file.</summary>
     internal TrackEq GetEq(string path) => _database.GetEq(path);
 

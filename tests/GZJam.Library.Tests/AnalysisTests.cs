@@ -28,6 +28,22 @@ public sealed class AnalysisTests : IDisposable
     }
 
     [Fact]
+    public void A_songs_jumps_are_remembered_in_order()
+    {
+        string path = _lib.AddMp3("Swing/long.mp3");
+        Assert.Empty(_lib.Database.GetJumps(path));
+        SongJump first = new(TimeSpan.FromSeconds(95.5), TimeSpan.FromSeconds(181)), second = new(TimeSpan.FromSeconds(200), TimeSpan.FromSeconds(60));
+
+        _lib.Database.SetJumps(path, [first, second]);
+        Assert.Equal([first, second], _lib.Database.GetJumps(path));
+
+        _lib.Database.SetJumps(path, [second]);
+        Assert.Equal([second], _lib.Database.GetJumps(path));
+        _lib.Database.SetJumps(path, []);
+        Assert.Empty(_lib.Database.GetJumps(path));
+    }
+
+    [Fact]
     public void Loudness_and_peak_are_saved_with_the_analysis()
     {
         string path = _lib.AddMp3("Swing/loud.mp3");

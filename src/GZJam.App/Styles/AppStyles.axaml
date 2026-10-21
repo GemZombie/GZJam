@@ -224,6 +224,14 @@
     <Setter Property="Opacity" Value="0.4" />
   </Style>
 
+  <!-- The JUMP key, small, over the waveform -->
+  <Style Selector="Button.hw.jump">
+    <Setter Property="MinHeight" Value="22" />
+    <Setter Property="Padding" Value="7,0" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="Opacity" Value="0.92" />
+  </Style>
+
   <!-- LEDs: dark when off; lit with a soft glow. Colour by meaning: red = the room, amber = the
        headphones, green = running, accent = something you set. -->
   <Style Selector="Border.led">

@@ -7,6 +7,9 @@ using GZJam.Audio;
 
 namespace GZJam.App.Controls;
 
+/// <summary>A jump drawn on the waveform: where it leaves and lands (fractions of the file), and whether it's armed.</summary>
+public readonly record struct JumpMarker(double From, double To, bool Armed);
+
 /// <summary>
 /// A track's overview waveform with a playhead; press or drag to seek (mouse, touch or pen).
 /// Each bar's solid body is how loud that moment is, with its peaks as a faint outline; bars are
@@ -35,6 +38,14 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<bool> IsEndManualProperty =
         AvaloniaProperty.Register<SeekBar, bool>(nameof(IsEndManual));
 
+    /// <summary>The song's jumps, as fractions of the file.</summary>
+    public static readonly StyledProperty<IReadOnlyList<JumpMarker>?> JumpsProperty =
+        AvaloniaProperty.Register<SeekBar, IReadOnlyList<JumpMarker>?>(nameof(Jumps));
+
+    /// <summary>Where a jump being set leaves from, waiting for where it lands.</summary>
+    public static readonly StyledProperty<double?> PendingJumpFromProperty =
+        AvaloniaProperty.Register<SeekBar, double?>(nameof(PendingJumpFrom));
+
     public static readonly StyledProperty<double> ProgressProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(Progress));
 
@@ -57,7 +68,8 @@ public sealed class SeekBar : Control
     static SeekBar()
     {
         AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
-            WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty);
+            WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty,
+            JumpsProperty, PendingJumpFromProperty);
     }
 
     public Waveform? Waveform
@@ -129,6 +141,18 @@ public sealed class SeekBar : Control
     /// <summary>Raised when the bar is pressed while <see cref="IsLocked"/>.</summary>
     public event EventHandler? LockedPressed;
 
+    public IReadOnlyList<JumpMarker>? Jumps
+    {
+        get => GetValue(JumpsProperty);
+        set => SetValue(JumpsProperty, value);
+    }
+
+    public double? PendingJumpFrom
+    {
+        get => GetValue(PendingJumpFromProperty);
+        set => SetValue(PendingJumpFromProperty, value);
+    }
+
     private bool CanSeek => IsEnabled && !IsLocked;
 
     public override void Render(DrawingContext context)
@@ -157,7 +181,46 @@ public sealed class SeekBar : Control
                     context.DrawRectangle(Fill, null, new Rect(0, 0, x, bounds.Height), CornerRadius, CornerRadius);
             }
         }
+        DrawJumps(context, bounds);
         context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
+    }
+
+    // ───────────── Jumps ─────────────
+
+    private static readonly IBrush JumpBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6));
+    private static readonly IBrush JumpOffBrush = new ImmutableSolidColorBrush(Color.FromArgb(120, 0x9D, 0xBE, 0xE6));
+    private static readonly IBrush SkippedShade = new ImmutableSolidColorBrush(Color.FromArgb(140, 12, 14, 18));
+    private static readonly IBrush RepeatShade = new ImmutableSolidColorBrush(Color.FromArgb(40, 0x9D, 0xBE, 0xE6));
+
+    /// <summary>
+    /// Each jump: a marker where it leaves (with an arrow towards where it lands) and where it lands.
+    /// An armed forward jump shades the part it skips; an armed backward one tints the part it repeats.
+    /// </summary>
+    private void DrawJumps(DrawingContext context, Rect bounds)
+    {
+        foreach (JumpMarker jump in Jumps ?? [])
+        {
+            double from = Math.Clamp(jump.From, 0, 1) * bounds.Width, to = Math.Clamp(jump.To, 0, 1) * bounds.Width;
+            IBrush brush = jump.Armed ? JumpBrush : JumpOffBrush;
+            if (jump.Armed)
+            {
+                var span = new Rect(Math.Min(from, to), 0, Math.Abs(to - from), bounds.Height);
+                context.DrawRectangle(to > from ? SkippedShade : RepeatShade, null, span);
+            }
+            context.DrawRectangle(brush, null, new Rect(from - 1, 0, 2, bounds.Height));
+            context.DrawRectangle(brush, null, new Rect(to - 1, 0, 2, bounds.Height));
+            // An arrow at the bottom of the leaving marker, pointing the way the jump goes.
+            const double arrow = 6;
+            double direction = to > from ? 1 : -1, y = bounds.Height - arrow - 1;
+            var geometry = new PolylineGeometry(
+                [new Point(from, y - arrow / 2), new Point(from + direction * arrow, y), new Point(from, y + arrow / 2)], isFilled: true);
+            context.DrawGeometry(brush, null, geometry);
+        }
+        if (PendingJumpFrom is { } pending)
+        {
+            double at = Math.Clamp(pending, 0, 1) * bounds.Width;
+            context.DrawRectangle(JumpOffBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
+        }
     }
 
     // ───────────── Waveform ─────────────

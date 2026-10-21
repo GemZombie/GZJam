@@ -221,6 +221,17 @@ public sealed partial class LibraryDatabase
             );
             CREATE INDEX ix_track_labels_label ON track_labels(label_id);
             """,
+
+        // 11: Jumps the DJ set in a song (see SongJump), up to two, by path.
+        """
+            CREATE TABLE jumps (
+                path    TEXT NOT NULL,
+                slot    INTEGER NOT NULL,
+                from_ms INTEGER NOT NULL,
+                to_ms   INTEGER NOT NULL,
+                PRIMARY KEY (path, slot)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

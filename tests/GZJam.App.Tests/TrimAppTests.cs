@@ -103,7 +103,8 @@ public sealed class TrimAppTests
         Assert.Equal(TimeSpan.Zero, deck.Deck.Position);   // a right-click doesn't seek
         var items = menu.Items.OfType<MenuItem>().ToList();
         Assert.Equal(["Song starts", "Here (0:05.0)", "At the playhead (0:00.0)", "Automatic (0:00.0)",
-                      "Song ends", "Here (0:05.0)", "At the playhead (0:00.0)", "Automatic (0:20.0)"],
+                      "Song ends", "Here (0:05.0)", "At the playhead (0:00.0)", "Automatic (0:20.0)",
+                      "Jump", "Jump from here (0:05.0)", "Jump from the playhead (0:00.0)"],
             items.Select(i => (string)i.Header!));
 
         items[1].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));

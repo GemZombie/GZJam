@@ -394,6 +394,58 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void An_armed_jump_skips_ahead_without_a_gap()
+    {
+        A.Load(_tone);   // 10 s
+        A.SetJumps([(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(7), true)]);
+        Assert.Equal(5, A.Remaining.TotalSeconds, 1);   // 10 s less the 5 skipped
+        A.Play();
+
+        // Through the jump in 50 ms steps: never a quiet moment.
+        float quietest = Full;
+        for (int i = 0; i < 50; i++)
+        {
+            quietest = Math.Min(quietest, Render(0.05).Main);
+            _mix.Update();
+        }
+
+        Assert.InRange(A.Position.TotalSeconds, 7.3, 7.8);   // 2.5 s played: 2 before the jump, 0.5 after
+        Assert.InRange(quietest, Full * 0.9f, Full * 1.1f);
+        Assert.False(A.Jumps[0].Armed);   // it happens once
+    }
+
+    [Fact]
+    public void A_backward_jump_plays_a_part_again_once_and_can_be_rearmed()
+    {
+        A.Load(_tone);
+        A.SetJumps([(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(1), true)]);
+        int jumped = 0;
+        A.Jumped += (_, _) => jumped++;
+        A.Play();
+
+        void Play(double seconds)
+        {
+            for (double t = 0; t < seconds - 0.001; t += 0.1)
+            {
+                Render(0.1);
+                _mix.Update();
+            }
+        }
+
+        Play(4);   // 0 to 3, back to 1, on to 2
+        Assert.InRange(A.Position.TotalSeconds, 1.8, 2.3);
+        Play(2);   // through 3 again: no second jump
+        Assert.InRange(A.Position.TotalSeconds, 3.8, 4.3);
+        Assert.Equal(1, jumped);
+
+        A.Seek(TimeSpan.FromSeconds(2));
+        A.ArmJumps(true);   // the DJ taps JUMP: once more
+        Play(1.5);
+        Assert.InRange(A.Position.TotalSeconds, 1.3, 1.8);
+        Assert.Equal(2, jumped);
+    }
+
+    [Fact]
     public void Eq_stays_through_a_replay_from_the_end()
     {
         string tone = TestWav.WriteTone(Path.Combine(_dir, "short-hiss.wav"), TimeSpan.FromSeconds(1), frequency: 10000);

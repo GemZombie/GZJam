@@ -38,6 +38,12 @@ public sealed partial class DeckViewModel : ObservableObject
         _settings = settings;
         Deck = deck;
         Readout = settings.DeckReadouts.GetValueOrDefault(Label, DeckReadout.Remaining);
+        deck.Jumped += (_, _) =>
+        {
+            Log.Info($"Deck {Label}: jumped (\"{Title}\")");
+            _lastPosition = Deck.Position;   // a jump isn't listening
+            OnJumpsChanged();
+        };
     }
 
     public Deck Deck { get; }
@@ -219,6 +225,125 @@ public sealed partial class DeckViewModel : ObservableObject
 
     private void ApplyGain() => Deck.GainDb = _matchDb + _eq.Gain;
 
+    // ───────────── Jumps ─────────────
+
+    /// <summary>The shortest jump worth making (and the least distance from a jump to the song's ends).</summary>
+    private static readonly TimeSpan ShortestJump = TimeSpan.FromSeconds(2);
+
+    private List<SongJump> _jumps = [];
+    private TimeSpan? _jumpFrom;   // a jump being set: where it leaves, waiting for where it lands
+
+    /// <summary>The song has jumps (the JUMP key shows).</summary>
+    public bool HasJumps => _jumps.Count > 0;
+
+    /// <summary>A jump is armed: it will happen when the music gets there (the JUMP key's light).</summary>
+    public bool IsJumpArmed => Deck.Jumps.Any(j => j.Armed);
+
+    /// <summary>The jumps as fractions of the file, for the waveform.</summary>
+    public IReadOnlyList<Controls.JumpMarker> JumpMarkers => Deck.Length <= TimeSpan.Zero
+        ? []
+        : Deck.Jumps.Select(j => new Controls.JumpMarker(j.From / Deck.Length, j.To / Deck.Length, j.Armed)).ToList();
+
+    /// <summary>Where a jump being set leaves from, as a fraction (null if none is being set).</summary>
+    public double? PendingJumpFrom => _jumpFrom is { } from && Deck.Length > TimeSpan.Zero ? from / Deck.Length : null;
+
+    /// <summary>A jump is waiting for where it lands.</summary>
+    public bool IsSettingJump => _jumpFrom is not null;
+
+    public bool CanAddJump => _jumps.Count < LibraryDatabase.MaxJumps;
+
+    internal IReadOnlyList<SongJump> SongJumps => _jumps;
+
+    /// <summary>The JUMP key: arms every jump, or (if any is armed) cancels them for this play.</summary>
+    [RelayCommand]
+    private void ToggleJump()
+    {
+        if (!HasJumps)
+            return;
+        bool arm = !IsJumpArmed;
+        Deck.ArmJumps(arm);
+        Log.Info($"Deck {Label}: jumps {(arm ? "armed" : "cancelled")}");
+        OnJumpsChanged();
+    }
+
+    /// <summary>First half of setting a jump: where it leaves (the end of a phrase).</summary>
+    public bool StartJump(TimeSpan from)
+    {
+        if (Track is null)
+            return false;
+        if (!CanAddJump)
+        {
+            ShowHint("Two jumps already: remove one first");
+            return false;
+        }
+        if (from < Deck.Start + ShortestJump || from > Deck.End - ShortestJump)
+        {
+            ShowHint("A jump can't leave that close to the start or end");
+            return false;
+        }
+        _jumpFrom = from;
+        ShowHint("Now right-click where it lands");
+        OnJumpsChanged();
+        return true;
+    }
+
+    /// <summary>Second half: where the jump lands. Saved for the song and armed.</summary>
+    public bool LandJump(TimeSpan to)
+    {
+        if (Track is null || _jumpFrom is not { } from)
+            return false;
+        if ((to - from).Duration() < ShortestJump)
+        {
+            ShowHint("Land the jump further away");
+            return false;
+        }
+        if (to < Deck.Start || to > Deck.End - ShortestJump)
+        {
+            ShowHint("A jump can't land that close to the end");
+            return false;
+        }
+        _jumpFrom = null;
+        if (Hint == "Now right-click where it lands")
+            Hint = null;
+        _jumps = [.. _jumps, new SongJump(from, to)];
+        _owner.SaveJumps(Track.Path, _jumps);
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: jump from {from.TotalSeconds:0.0} s to {to.TotalSeconds:0.0} s in \"{Title}\""));
+        // Keep the others as they are; the new one is armed.
+        Deck.SetJumps(Deck.Jumps.Select(j => (j.From, j.To, j.Armed)).Append((from, to, true)).ToList());
+        OnJumpsChanged();
+        return true;
+    }
+
+    /// <summary>Forgets a jump (or the one being set, at <paramref name="index"/> -1).</summary>
+    public void RemoveJump(int index)
+    {
+        if (index < 0)
+        {
+            _jumpFrom = null;
+            OnJumpsChanged();
+            return;
+        }
+        if (Track is null || index >= _jumps.Count)
+            return;
+        _jumps = _jumps.Where((_, i) => i != index).ToList();
+        _owner.SaveJumps(Track.Path, _jumps);
+        Deck.SetJumps(Deck.Jumps.Where((_, i) => i != index).Select(j => (j.From, j.To, j.Armed)).ToList());
+        Log.Info($"Deck {Label}: removed jump {index + 1} from \"{Title}\"");
+        OnJumpsChanged();
+    }
+
+    private void OnJumpsChanged()
+    {
+        OnPropertyChanged(nameof(HasJumps));
+        OnPropertyChanged(nameof(IsJumpArmed));
+        OnPropertyChanged(nameof(JumpMarkers));
+        OnPropertyChanged(nameof(PendingJumpFrom));
+        OnPropertyChanged(nameof(IsSettingJump));
+        OnPropertyChanged(nameof(CanAddJump));
+        RefreshReadout();
+    }
+
     /// <summary>A song can't be trimmed shorter than this.</summary>
     private static readonly TimeSpan ShortestSong = TimeSpan.FromSeconds(5);
 
@@ -355,7 +480,10 @@ public sealed partial class DeckViewModel : ObservableObject
                 return;
             }
             if (IsFinished)
+            {
                 ResetListening();   // playing it again from the top: a new play
+                Deck.ArmJumps(true);
+            }
             IsFinished = false;
             Deck.Play();
             Log.Info($"Deck {Label}: play \"{Title}\" ({(IsInRoom ? "in the room" : "not in the room")}{(IsCueOn ? ", cue on" : "")})");
@@ -436,6 +564,10 @@ public sealed partial class DeckViewModel : ObservableObject
         _lufs = _peakDb = null;
         _matchDb = 0;
         SetEq(TrackEq.Flat, save: false);
+        _jumpFrom = null;
+        _jumps = [];
+        Deck.SetJumps([]);
+        OnJumpsChanged();
         IsAnalyzing = false;
         OnPropertyChanged(nameof(LevelText));
         Log.Info($"Deck {Label}: eject");
@@ -509,6 +641,10 @@ public sealed partial class DeckViewModel : ObservableObject
         _lufs = _peakDb = null;
         _matchDb = 0;
         SetEq(_owner.GetEq(track.Path), save: false);
+        _jumpFrom = null;
+        _jumps = _owner.GetJumps(track.Path).ToList();
+        Deck.SetJumps(_jumps.Select(j => (j.From, j.To, true)).ToList());
+        OnJumpsChanged();
         if (IsEqSet)
             Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
         Refresh();
@@ -648,7 +784,7 @@ public sealed partial class DeckViewModel : ObservableObject
         if (IsOnAir)
         {
             TimeSpan step = position - _lastPosition;
-            if (step > TimeSpan.Zero)
+            if (step > TimeSpan.Zero && step < TimeSpan.FromSeconds(2))   // a jump or seek isn't listening
                 _heard += step;
             _firstOnAir ??= DateTime.UtcNow;
             if (!_counted && _heard >= CountsAsPlayed)

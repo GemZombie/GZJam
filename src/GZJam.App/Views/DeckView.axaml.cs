@@ -140,6 +140,31 @@ public partial class DeckView : UserControl
         items.Add(Item($"At the playhead ({Time(playhead)})", () => vm.SetEnd(playhead)));
         items.Add(Item($"Automatic ({Time(vm.AutomaticEnd)})", () => vm.SetEnd(null), radio: true, isChecked: !vm.IsEndManual));
 
+        // Jumps: leave at the end of a phrase, land at the start of another.
+        items.Add(new Separator());
+        items.Add(new MenuItem { Header = "Jump", IsEnabled = false });
+        if (vm.IsSettingJump)
+        {
+            if (here is { } h3)
+                items.Add(Item($"Land the jump here ({Time(h3)})", () => vm.LandJump(h3)));
+            items.Add(Item($"Land the jump at the playhead ({Time(playhead)})", () => vm.LandJump(playhead)));
+            items.Add(Item("Cancel this jump", () => { vm.RemoveJump(-1); return true; }));
+        }
+        else if (vm.CanAddJump)
+        {
+            if (here is { } h4)
+                items.Add(Item($"Jump from here ({Time(h4)})", () => vm.StartJump(h4)));
+            items.Add(Item($"Jump from the playhead ({Time(playhead)})", () => vm.StartJump(playhead)));
+        }
+        for (int i = 0; i < vm.SongJumps.Count; i++)
+        {
+            int index = i;
+            SongJumpText(vm.SongJumps[i], out string text);
+            items.Add(Item($"Remove jump {i + 1} ({text})", () => { vm.RemoveJump(index); return true; }));
+        }
+
+        static void SongJumpText(GZJam.Library.SongJump jump, out string text) => text = $"{Time(jump.From)} → {Time(jump.To)}";
+
         static MenuItem Item(string header, Func<bool> action, bool radio = false, bool isChecked = false)
         {
             var item = new MenuItem

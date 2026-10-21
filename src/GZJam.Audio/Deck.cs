@@ -27,12 +27,16 @@ public sealed class Deck : IDisposable
     private TimeSpan _start;
     private TimeSpan? _end;
     private readonly double[] _eqDb = new double[3];   // low, mid, high
+    private readonly List<Jump> _jumps = [];
+    private readonly SyncProcedure _jumpSync;   // kept alive: BASS holds only a pointer to it
+    private volatile bool _jumped;               // set on the audio thread, reported by Update
     private readonly int[] _eqFx = new int[3];
 
     internal Deck(MixEngine mix, int index)
     {
         _mix = mix;
         Index = index;
+        _jumpSync = OnJumpSync;
     }
 
     public int Index { get; }
@@ -50,6 +54,9 @@ public sealed class Deck : IDisposable
     /// finishes. Either way the music on this deck has stopped.
     /// </summary>
     public event EventHandler? Finished;
+
+    /// <summary>Raised from <see cref="MixEngine.Update"/> after an armed jump has happened.</summary>
+    public event EventHandler? Jumped;
 
     public void Load(string path)
     {
@@ -73,6 +80,7 @@ public sealed class Deck : IDisposable
 
         _tempo = tempo;
         CreateEq();
+        SetJumpSyncs();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
         TrackPath = path;
@@ -86,6 +94,8 @@ public sealed class Deck : IDisposable
     public void Unload()
     {
         CancelFade();
+        foreach (Jump jump in _jumps)
+            jump.Sync = 0;   // freed with the stream
         if (_tempo != 0)
         {
             Detach();
@@ -173,8 +183,91 @@ public sealed class Deck : IDisposable
         _end = end > _start ? end : null;
     }
 
-    /// <summary>Real time left until the music ends, accounting for tempo.</summary>
-    public TimeSpan Remaining => Max(TimeSpan.Zero, (End - Position) / (1 + _tempoPercent / 100));
+    /// <summary>Real time left until the music ends, accounting for tempo and the jumps still armed ahead.</summary>
+    public TimeSpan Remaining
+    {
+        get
+        {
+            TimeSpan position = Position, left = End - position;
+            foreach (Jump jump in _jumps)
+            {
+                if (jump.Armed && jump.From > position)
+                    left -= jump.To - jump.From;   // forward: skipped; backward: played again
+            }
+            return Max(TimeSpan.Zero, left / (1 + _tempoPercent / 100));
+        }
+    }
+
+    // ───────────── Jumps ─────────────
+
+    /// <summary>
+    /// A seamless jump from the end of one phrase to another: forward to skip a part, backward to
+    /// play one again. When armed it happens once, at the exact sample, as the music reaches
+    /// <see cref="From"/>; then it disarms.
+    /// </summary>
+    public sealed class Jump(TimeSpan from, TimeSpan to)
+    {
+        public TimeSpan From { get; } = from;
+        public TimeSpan To { get; } = to;
+        public bool Armed { get; internal set; }
+        internal int Sync { get; set; }
+    }
+
+    /// <summary>The track's jumps, in the order they were set.</summary>
+    public IReadOnlyList<Jump> Jumps => _jumps;
+
+    /// <summary>Replaces the jumps (each armed or not). Kept across loads until replaced.</summary>
+    public void SetJumps(IEnumerable<(TimeSpan From, TimeSpan To, bool Armed)> jumps)
+    {
+        RemoveJumpSyncs();
+        _jumps.Clear();
+        foreach (var (from, to, armed) in jumps)
+            _jumps.Add(new Jump(from, to) { Armed = armed });
+        SetJumpSyncs();
+    }
+
+    /// <summary>Arms or disarms every jump (the deck's JUMP key).</summary>
+    public void ArmJumps(bool armed)
+    {
+        RemoveJumpSyncs();
+        foreach (Jump jump in _jumps)
+            jump.Armed = armed;
+        SetJumpSyncs();
+    }
+
+    private void SetJumpSyncs()
+    {
+        if (!IsLoaded)
+            return;
+        foreach (Jump jump in _jumps.Where(j => j.Armed && j.Sync == 0))
+        {
+            long at = Bass.ChannelSeconds2Bytes(_tempo, jump.From.TotalSeconds);
+            // Mixtime: called as the audio is decoded, so moving the position there is seamless.
+            jump.Sync = Bass.ChannelSetSync(_tempo, SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime, at, _jumpSync, (IntPtr)_jumps.IndexOf(jump));
+        }
+    }
+
+    private void RemoveJumpSyncs()
+    {
+        foreach (Jump jump in _jumps.Where(j => j.Sync != 0))
+        {
+            if (IsLoaded)
+                Bass.ChannelRemoveSync(_tempo, jump.Sync);
+            jump.Sync = 0;
+        }
+    }
+
+    /// <summary>On the audio thread, as the music reaches a jump: carry on from where it lands.</summary>
+    private void OnJumpSync(int handle, int channel, int data, IntPtr user)
+    {
+        int index = (int)user;
+        if (index < 0 || index >= _jumps.Count || _jumps[index] is not { Armed: true } jump)
+            return;
+        jump.Armed = false;
+        jump.Sync = 0;
+        Bass.ChannelSetPosition(channel, Bass.ChannelSeconds2Bytes(channel, jump.To.TotalSeconds));
+        _jumped = true;
+    }
 
     /// <summary>Tempo change in percent; -8 plays 8% slower. Pitch is preserved.</summary>
     public double TempoPercent
@@ -286,6 +379,11 @@ public sealed class Deck : IDisposable
     {
         if (!IsLoaded)
             return;
+        if (_jumped)
+        {
+            _jumped = false;
+            Jumped?.Invoke(this, EventArgs.Empty);
+        }
 
         if (_fadeLength is { } length)
         {
