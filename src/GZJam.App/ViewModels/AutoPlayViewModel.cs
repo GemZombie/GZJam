@@ -8,8 +8,9 @@ namespace GZJam.App.ViewModels;
 
 /// <summary>
 /// Auto-play: when the song the room is hearing ends (or is faded out), wait the gap, start the
-/// other deck and move the crossfader to it, then load the next queued track onto the deck that
-/// just finished. Decks alternate 1, 2, 1, 2... Tracks leave the queue as they're loaded.
+/// next deck and move the crossfader to it, then load the next queued track onto the deck after
+/// that. Decks go in number order: 1, 2, 1, 2... or with four, 1, 2, 3, 4, 1... which switches
+/// sides of the crossfader every time. Tracks leave the queue as they're loaded.
 /// Turning auto-play off never touches the current song; it just won't start another.
 /// </summary>
 public sealed partial class AutoPlayViewModel : ObservableObject
@@ -21,6 +22,9 @@ public sealed partial class AutoPlayViewModel : ObservableObject
 
     /// <summary>The deck waiting out the gap, and when it starts.</summary>
     private (DeckViewModel Deck, long Due)? _pending;
+
+    /// <summary>The deck the room heard last, so the next is the one after it.</summary>
+    private DeckViewModel? _current;
 
     public AutoPlayViewModel(MainWindowViewModel owner, MixEngine mix, QueueViewModel queue, AppSettings settings)
     {
@@ -71,11 +75,33 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         OnPropertyChanged(nameof(GapText));
     }
 
-    /// <summary>The deck the crossfader is on: the one the room hears.</summary>
-    private DeckViewModel LiveDeck => _owner.Decks[_mix.LiveDeck.Index];
+    /// <summary>The decks on the side of the crossfader the room hears.</summary>
+    private List<DeckViewModel> LiveSide =>
+        _owner.ActiveDecks.Where(d => Crossfade.Side(d.Deck.Index) == _mix.LiveSide).ToList();
 
-    /// <summary>The deck that plays after the live one.</summary>
-    private DeckViewModel? NextDeck => _owner.Decks.Count < 2 ? null : _owner.Decks[(_mix.LiveDeck.Index + 1) % 2];
+    /// <summary>
+    /// The deck the room hears (or last heard): on the crossfader's side, the one playing, else
+    /// the one heard last, else one with a song ready. With two decks, simply the crossfader's.
+    /// </summary>
+    private DeckViewModel LiveDeck
+    {
+        get
+        {
+            var side = LiveSide;
+            return side.FirstOrDefault(d => d.IsPlaying) ?? side.FirstOrDefault(d => d == _current)
+                ?? side.FirstOrDefault(d => d.IsReady) ?? side[0];
+        }
+    }
+
+    /// <summary>The deck that plays after the live one, in number order.</summary>
+    private DeckViewModel? NextDeck
+    {
+        get
+        {
+            var decks = _owner.ActiveDecks;
+            return decks.Count < 2 ? null : decks[(LiveDeck.Deck.Index + 1) % decks.Count];
+        }
+    }
 
     partial void OnIsOnChanged(bool value)
     {
@@ -97,9 +123,14 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         {
             DeckViewModel live = LiveDeck;
             if (!live.IsReady && !live.IsPlaying)
+                live = LiveSide.FirstOrDefault(d => d.IsReady) ?? live;   // four decks: the side's other one may be ready
+            if (!live.IsReady && !live.IsPlaying)
                 LoadNextOnto(live);
             if (live.IsReady)
+            {
+                _current = live;
                 live.Start();
+            }
         }
         Refill();
     }
@@ -107,8 +138,9 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     /// <summary>A deck's music stopped: its song ended or was faded out.</summary>
     public void OnDeckFinished(DeckViewModel deck)
     {
-        if (!IsOn || deck.Deck != _mix.LiveDeck || _pending is not null)
+        if (!IsOn || Crossfade.Side(deck.Deck.Index) != _mix.LiveSide || _pending is not null)
             return;   // only the song the room was hearing advances the set
+        _current = deck;
 
         DeckViewModel? next = NextDeck;
         if (next is null || next.IsPlaying)
@@ -136,7 +168,8 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         {
             _pending = null;
             // The room is silent during the gap, so the crossfader can jump straight over.
-            _owner.Mixer!.SetNow(pending.Deck.Deck.Index == 0 ? 0 : 1);
+            _owner.Mixer!.SetNow(Crossfade.Side(pending.Deck.Deck.Index));
+            _current = pending.Deck;
             pending.Deck.Start();
         }
         Refill();

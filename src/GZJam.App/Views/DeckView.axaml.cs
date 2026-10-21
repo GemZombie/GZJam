@@ -17,6 +17,20 @@ public partial class DeckView : UserControl
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<DeckView, IBrush?>(nameof(Accent));
 
+    /// <summary>Half height, for four decks: the track on one line, a shorter waveform, smaller buttons.</summary>
+    public static readonly StyledProperty<bool> IsCompactProperty =
+        AvaloniaProperty.Register<DeckView, bool>(nameof(IsCompact));
+
+    /// <summary>A full deck's height; two compact decks and the gap between them fit in it.</summary>
+    public const double FullHeight = 268;
+    public const double CompactGap = 8;
+    public const double CompactHeight = (FullHeight - CompactGap) / 2;
+
+    static DeckView()
+    {
+        IsCompactProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
+    }
+
     /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
     public static readonly TimeSpan HoldToPause = TimeSpan.FromMilliseconds(600);
 
@@ -44,6 +58,55 @@ public partial class DeckView : UserControl
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
         TrimMenu.Opening += (_, e) => FillTrimMenu(e);
         TrimMenu.Opened += (_, _) => FillTrimMenu(null);
+        MoreMenu.Opening += (_, _) => FillMoreMenu();
+        ApplyCompact();
+    }
+
+    public bool IsCompact
+    {
+        get => GetValue(IsCompactProperty);
+        set => SetValue(IsCompactProperty, value);
+    }
+
+    private void ApplyCompact()
+    {
+        bool compact = IsCompact;
+        Classes.Set("compact", compact);
+        MinHeight = compact ? CompactHeight : FullHeight;
+        // Smaller transport buttons; the full sizes come from the app's resources.
+        foreach (var (key, size) in new[] { ("DeckButtonSize", 34.0), ("DeckControlHeight", 28.0), ("DeckPlayIconSize", 12.0), ("DeckPauseIconSize", 11.0) })
+        {
+            if (compact)
+                Resources[key] = size;
+            else
+                Resources.Remove(key);
+        }
+    }
+
+    internal MenuFlyout MoreMenu => (MenuFlyout)MoreButton.Flyout!;
+
+    /// <summary>The ⋯ menu on a compact deck: what the full deck has room to show.</summary>
+    private void FillMoreMenu()
+    {
+        var items = MoreMenu.Items;
+        items.Clear();
+        if (Vm is not { Track: { } track } vm)
+        {
+            items.Add(new MenuItem { Header = "No track loaded", IsEnabled = false });
+            return;
+        }
+        var rating = new MenuItem { Header = "Rating" };
+        MarksMenu.FillRating(rating, vm.Owner, [track]);
+        var energy = new MenuItem { Header = "Energy" };
+        MarksMenu.FillEnergy(energy, vm.Owner, [track]);
+        var bpm = new MenuItem { Header = BpmMenu.Title };
+        BpmMenu.Fill(bpm, vm.Owner, [track]);
+        var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
+        items.Add(rating);
+        items.Add(energy);
+        items.Add(bpm);
+        items.Add(new Separator());
+        items.Add(eject);
     }
 
     private double? _trimMenuAt;

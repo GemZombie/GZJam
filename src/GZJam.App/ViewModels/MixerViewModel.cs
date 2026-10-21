@@ -5,9 +5,9 @@ using GZJam.Audio;
 namespace GZJam.App.ViewModels;
 
 /// <summary>
-/// The mixer column: the crossfader, which fades the room between Deck 1 and Deck 2 (the
-/// headphones are separate: each deck's cue button), plus speaker and headphone volume and the
-/// speakers' level meter.
+/// The mixer column: the crossfader, which fades the room between the left side (Deck 1, and 3
+/// with four decks) and the right (Deck 2, and 4); the headphones are separate: each deck's cue
+/// button. Plus speaker and headphone volume and the speakers' level meter.
 /// </summary>
 public sealed partial class MixerViewModel : ObservableObject
 {
@@ -26,6 +26,7 @@ public sealed partial class MixerViewModel : ObservableObject
     private double? _snapTarget;
     private double _snapFrom;
     private long _snapStarted;
+    private string? _liveText;
 
     public MixerViewModel(MainWindowViewModel owner, MixEngine mix, AppSettings settings)
     {
@@ -139,12 +140,41 @@ public sealed partial class MixerViewModel : ObservableObject
         Changed();
     }
 
-    /// <summary>"1 · LIVE", "2 · LIVE", or "BLEND" when the room hears some of both.</summary>
-    public string LiveText => mix.Crossfader is > 0.03 and < 0.97 ? "BLEND" : $"{mix.LiveDeck.Name} · LIVE";
-    public bool IsDeck1Live => mix.LiveDeck.Index == 0;
-    public bool IsDeck2Live => mix.LiveDeck.Index == 1;
+    /// <summary>
+    /// "1 · LIVE", "2 · LIVE", or "BLEND" when the room hears some of both. With four decks, the
+    /// deck playing on the live side, or both of that side's decks ("1 / 3 · LIVE") if neither is.
+    /// </summary>
+    public string LiveText
+    {
+        get
+        {
+            if (mix.Crossfader is > 0.03 and < 0.97)
+                return "BLEND";
+            int side = mix.LiveSide;
+            if (!owner.FourDecks || mix.LiveDeck.IsPlaying)
+                return $"{mix.LiveDeck.Name} · LIVE";
+            return $"{side + 1} / {side + 3} · LIVE";
+        }
+    }
 
-    /// <summary>Glides the fader fully to Deck 1: a quick, click-free switch that's easy to hit on a touchscreen.</summary>
+    public bool IsDeck1Live => mix.LiveSide == 0;
+    public bool IsDeck2Live => mix.LiveSide == 1;
+
+    /// <summary>Decks 3 and 4 are on screen, so the side buttons show them too.</summary>
+    public bool IsFourDecks => owner.FourDecks;
+
+    public string LeftTip => owner.FourDecks ? "Switch the room to the left: Decks 1 and 3" : "Switch the room to Deck 1";
+    public string RightTip => owner.FourDecks ? "Switch the room to the right: Decks 2 and 4" : "Switch the room to Deck 2";
+
+    internal void DeckCountChanged()
+    {
+        OnPropertyChanged(nameof(IsFourDecks));
+        OnPropertyChanged(nameof(LeftTip));
+        OnPropertyChanged(nameof(RightTip));
+        OnPropertyChanged(nameof(LiveText));
+    }
+
+    /// <summary>Glides the fader fully to the left (Deck 1): a quick, click-free switch that's easy to hit on a touchscreen.</summary>
     [RelayCommand]
     private void SnapTo1() => SnapTo(0);
 
@@ -153,7 +183,7 @@ public sealed partial class MixerViewModel : ObservableObject
 
     private void SnapTo(double target)
     {
-        Log.Info($"Crossfader: switch to Deck {(target == 0 ? 1 : 2)} (from {mix.Crossfader:0.00})");
+        Log.Info($"Crossfader: switch to the {(target == 0 ? "left (Deck 1" : "right (Deck 2")}{(owner.FourDecks ? target == 0 ? " and 3" : " and 4" : "")}) (from {mix.Crossfader:0.00})");
         _snapFrom = mix.Crossfader;
         _snapTarget = target;
         _snapStarted = TimeProvider.System.GetTimestamp();
@@ -164,6 +194,11 @@ public sealed partial class MixerViewModel : ObservableObject
     public void Update()
     {
         UpdateMeter();
+        if (LiveText != _liveText)
+        {
+            _liveText = LiveText;   // with four decks it follows which deck is playing, too
+            OnPropertyChanged(nameof(LiveText));
+        }
         if (_snapTarget is not { } target)
             return;
         double t = Math.Min(1, TimeProvider.System.GetElapsedTime(_snapStarted) / SnapTime);

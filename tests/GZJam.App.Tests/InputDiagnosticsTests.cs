@@ -136,7 +136,7 @@ public sealed class InputDiagnosticsTests
     public async Task Clicking_the_snap_button_reaches_the_end()
     {
         using var app = await TwoDecksPlaying();
-        var b = app.Window.GetVisualDescendants().OfType<Button>().First(x => x.Classes.Contains("side") && (string?)x.Content == "2");
+        var b = app.Window.FindControl<Button>("RightSideButton")!;
         Point p = Centre(app, b);
 
         app.Window.MouseDown(p, MouseButton.Left);

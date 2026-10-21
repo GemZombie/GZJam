@@ -16,6 +16,9 @@ public sealed class MixEngine : IDisposable
     public const int SampleRate = 44100;
     public const int Channels = 2;
 
+    /// <summary>The most decks there can be. The app shows 2 or 4; unused decks cost nothing.</summary>
+    public const int MaxDecks = 4;
+
     private readonly bool _offline;
     private double _crossfader;
 
@@ -23,7 +26,7 @@ public sealed class MixEngine : IDisposable
     /// Mix without audio devices; pull audio with <see cref="OutputBus.Render"/>. For tests.
     /// </param>
     /// <param name="time">Clock for fades; tests pass a manual one.</param>
-    public MixEngine(AudioEngine engine, int deckCount = 2, bool offline = false, TimeProvider? time = null)
+    public MixEngine(AudioEngine engine, int deckCount = MaxDecks, bool offline = false, TimeProvider? time = null)
     {
         Engine = engine;
         _offline = offline;
@@ -46,7 +49,7 @@ public sealed class MixEngine : IDisposable
     public IReadOnlyList<Deck> Decks { get; }
     public PreviewPlayer Preview { get; }
 
-    /// <summary>Crossfader position: 0 = all Deck 1, 1 = all Deck 2.</summary>
+    /// <summary>Crossfader position: 0 = all the left side (Decks 1 and 3), 1 = all the right (2 and 4).</summary>
     public double Crossfader
     {
         get => _crossfader;
@@ -57,8 +60,15 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    /// <summary>The deck the crossfader leans towards (Deck 1 at dead centre). Both may be audible in a blend.</summary>
-    public Deck LiveDeck => Decks.MaxBy(d => Crossfade.Audibility(d.Index, _crossfader))!;
+    /// <summary>The side the crossfader leans towards: 0 = left, 1 = right (left at dead centre).</summary>
+    public int LiveSide => _crossfader <= 0.5 ? 0 : 1;
+
+    /// <summary>
+    /// The deck the crossfader leans towards: the one playing on that side, else the first deck
+    /// on it. Both sides may be audible in a blend.
+    /// </summary>
+    public Deck LiveDeck =>
+        Decks.FirstOrDefault(d => Crossfade.Side(d.Index) == LiveSide && d.IsPlaying) ?? Decks[LiveSide];
 
     /// <summary>
     /// Points the buses at audio devices. Decks and preview keep playing through the switch.

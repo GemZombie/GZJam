@@ -87,6 +87,17 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Four decks on screen rather than two.</summary>
+    public bool FourDecks
+    {
+        get => _owner.FourDecks;
+        set
+        {
+            _owner.SetDeckCount(value ? 4 : 2);
+            OnPropertyChanged();   // refused (a deck is playing): the switch goes back
+        }
+    }
+
     public double FadeOutSeconds
     {
         get => _settings.FadeOutSeconds;

@@ -42,7 +42,7 @@ public sealed partial class DeckViewModel : ObservableObject
 
     public Deck Deck { get; }
     internal MainWindowViewModel Owner => _owner;
-    /// <summary>"1", "2".</summary>
+    /// <summary>"1", "2", "3", "4".</summary>
     public string Label => Deck.Name;
 
     [ObservableProperty]
@@ -204,6 +204,13 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         if (!IsPlaying)
         {
+            if (IsInRoom && _owner.OnAirBeside(this) is { } other)
+            {
+                // Two songs at once in the room, with no fader between them.
+                ShowHint($"Deck {other.Label} is playing. Fade it out first");
+                Log.Info($"Deck {Label}: play refused (Deck {other.Label} is on air on the same side)");
+                return;
+            }
             if (IsFinished)
                 ResetListening();   // playing it again from the top: a new play
             IsFinished = false;

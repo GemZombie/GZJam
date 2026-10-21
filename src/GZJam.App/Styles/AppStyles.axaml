@@ -432,6 +432,14 @@
     <Setter Property="Height" Value="34" />
     <Setter Property="CornerRadius" Value="9" />
   </Style>
+  <Style Selector="Border.badge.small">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="Border.badge.small > TextBlock">
+    <Setter Property="FontSize" Value="13" />
+  </Style>
   <Style Selector="Border.badge > TextBlock">
     <Setter Property="FontSize" Value="16" />
     <Setter Property="FontWeight" Value="Black" />

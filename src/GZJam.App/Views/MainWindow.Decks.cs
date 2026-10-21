@@ -11,7 +11,7 @@ public partial class MainWindow
 {
     private void InitializeDecks()
     {
-        foreach (DeckView deckView in new[] { Deck1View, Deck2View })
+        foreach (DeckView deckView in DeckViews)
         {
             deckView.AddHandler(DragDrop.DragOverEvent, OnDeckDragOver);
             deckView.AddHandler(DragDrop.DragLeaveEvent, (_, _) => deckView.SetDropState(null));
@@ -28,9 +28,26 @@ public partial class MainWindow
 
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is MainWindowViewModel vm)
-                vm.ConfirmAsync = (heading, message) => new ConfirmDialog(heading, message, "Load anyway").ShowDialog<bool>(this);
+            if (DataContext is not MainWindowViewModel vm)
+                return;
+            vm.ConfirmAsync = (heading, message) => new ConfirmDialog(heading, message, "Load anyway").ShowDialog<bool>(this);
+            vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(MainWindowViewModel.FourDecks))
+                    ApplyDeckLayout();
+            };
+            ApplyDeckLayout();
         };
+    }
+
+    private DeckView[] DeckViews => [Deck1View, Deck2View, Deck3View, Deck4View];
+
+    /// <summary>Two full-height decks, or four at half height in the same space.</summary>
+    private void ApplyDeckLayout()
+    {
+        foreach (DeckView view in DeckViews)
+            view.IsCompact = Vm.FourDecks;
+        Deck3View.IsVisible = Deck4View.IsVisible = Vm.FourDecks;
     }
 
     private DeckViewModel? DeckAt(int index) => Vm.Decks.ElementAtOrDefault(index);
@@ -70,7 +87,7 @@ public partial class MainWindow
     /// <summary>Greys out "Load to Deck X" when protection would refuse it, and says why.</summary>
     private void OnTrackMenuOpening()
     {
-        UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
+        UpdateLoadMenuItems([TrackLoad1, TrackLoad2, TrackLoad3, TrackLoad4], SelectedTracks().Count == 1);
         var tracks = SelectedTracks();
         MarksMenu.FillRating(TrackRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
@@ -79,18 +96,20 @@ public partial class MainWindow
 
     private void OnQueueMenuOpening()
     {
-        UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
+        UpdateLoadMenuItems([QueueLoad1, QueueLoad2, QueueLoad3, QueueLoad4], SelectedQueueItems().Count == 1);
         var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
         MarksMenu.FillRating(QueueRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
         BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
     }
 
-    private void UpdateLoadMenuItems(MenuItem loadA, MenuItem loadB, bool oneTrackSelected)
+    private void UpdateLoadMenuItems(MenuItem[] items, bool oneTrackSelected)
     {
-        foreach (var (item, index) in new[] { (loadA, 0), (loadB, 1) })
+        for (int index = 0; index < items.Length; index++)
         {
+            MenuItem item = items[index];
             DeckViewModel? deck = DeckAt(index);
+            item.IsVisible = index < Vm.ActiveDecks.Count;
             bool canLoad = deck is not null && Vm.CanLoad(deck);
             item.IsEnabled = oneTrackSelected && canLoad;
             item.Header = deck is { IsPlaying: true } && !canLoad

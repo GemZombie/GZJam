@@ -19,8 +19,8 @@ public partial class MainWindow
         HistoryList.AddHandler(PointerPressedEvent, OnHistoryPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         HistoryList.AddHandler(PointerMovedEvent, OnHistoryPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
         HistoryList.AddHandler(PointerReleasedEvent, (_, _) => _historyPress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
-        HistoryMenu.Opening += (_, _) => UpdateLoadMenuItems(HistoryLoad1, HistoryLoad2, SelectedPlays().Count == 1);
-        HistoryMenu.Opened += (_, _) => UpdateLoadMenuItems(HistoryLoad1, HistoryLoad2, SelectedPlays().Count == 1);
+        HistoryMenu.Opening += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
+        HistoryMenu.Opened += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
     }
 
     private List<PlayItem> SelectedPlays() => HistoryList.SelectedItems?.OfType<PlayItem>().ToList() ?? [];

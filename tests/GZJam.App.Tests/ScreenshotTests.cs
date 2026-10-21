@@ -126,5 +126,15 @@ public sealed class ScreenshotTests
         app.Window.MouseUp(at2, MouseButton.Right, RawInputModifiers.None);
         AppHarness.Settle(300);
         app.Screenshot("13-trim-menu");
+        seek2.ContextMenu!.Close();
+
+        // Four decks in the space of two: Deck 3 ready under Deck 1, Deck 4 empty.
+        vm.SetDeckCount(4);
+        vm.LoadToDeckAsync(vm.Deck3!, tracks[7]).GetAwaiter().GetResult();
+        AppHarness.WaitFor(() => vm.Deck3!.Waveform is not null, TimeSpan.FromSeconds(30));
+        vm.Deck3!.TempoPercent = 1.5;
+        library.SearchText = "jump";
+        app.Play(0.2);
+        app.Screenshot("14-four-decks");
     }
 }

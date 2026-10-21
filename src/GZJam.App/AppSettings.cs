@@ -56,6 +56,12 @@ public sealed class AppSettings
     /// </summary>
     public bool MonoSpeakers { get; set; } = true;
 
+    /// <summary>
+    /// How many decks are on screen: 2, or 4 (half height, 1 and 3 on the left of the mixer, 2 and
+    /// 4 on the right).
+    /// </summary>
+    public int DeckCount { get; set; } = 2;
+
     /// <summary>Speaker and headphone volume, 0-100.</summary>
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;

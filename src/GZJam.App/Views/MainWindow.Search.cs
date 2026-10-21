@@ -21,7 +21,7 @@ public partial class MainWindow
 
         // Near a deck's tempo as the room would hear it (with its tempo slider), within the
         // slider's reach, so anything listed could be pitched to match.
-        foreach (DeckViewModel deck in Vm.Decks)
+        foreach (DeckViewModel deck in Vm.ActiveDecks)
         {
             bool has = deck.CurrentBpm is not null;
             int bpm = (int)Math.Round(deck.CurrentBpm ?? 0);

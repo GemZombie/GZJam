@@ -47,6 +47,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (mix is not null)
         {
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
+            _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
             Preview = new PreviewViewModel(this, mix.Preview);
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
@@ -206,9 +207,58 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public bool ShowQueue => !ShowHistory;
     public AudioEngine? Audio { get; }
     public MixEngine? Mix { get; }
+    /// <summary>Every deck the mixer has, shown or not.</summary>
     public IReadOnlyList<DeckViewModel> Decks { get; } = [];
     public DeckViewModel? Deck1 => Decks.ElementAtOrDefault(0);
     public DeckViewModel? Deck2 => Decks.ElementAtOrDefault(1);
+    public DeckViewModel? Deck3 => Decks.ElementAtOrDefault(2);
+    public DeckViewModel? Deck4 => Decks.ElementAtOrDefault(3);
+
+    private int _deckCount;
+
+    /// <summary>The decks on screen, in playing order: 1, 2 (, 3, 4).</summary>
+    public IReadOnlyList<DeckViewModel> ActiveDecks => Decks.Take(_deckCount).ToList();
+
+    /// <summary>Four decks on screen rather than two (a setting).</summary>
+    public bool FourDecks => _deckCount == 4;
+
+    /// <summary>
+    /// Shows 2 or 4 decks. Going back to 2 is refused while Deck 3 or 4 is playing; otherwise
+    /// they're emptied. Returns whether it changed.
+    /// </summary>
+    public bool SetDeckCount(int count)
+    {
+        count = count == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
+        if (count == _deckCount)
+            return false;
+        var hidden = Decks.Skip(count).ToList();
+        if (hidden.FirstOrDefault(d => d.IsPlaying) is { } playing)
+        {
+            ShowNotice($"Deck {playing.Label} is playing. Stop it before going back to two decks.");
+            OnPropertyChanged(nameof(FourDecks));   // put the switch back
+            return false;
+        }
+        foreach (DeckViewModel deck in hidden)
+        {
+            deck.IsCueOn = false;
+            deck.EjectCommand.Execute(null);
+        }
+        _deckCount = count;
+        _settings.DeckCount = count;
+        Log.Info($"Decks: {count}");
+        OnPropertyChanged(nameof(FourDecks));
+        OnPropertyChanged(nameof(ActiveDecks));
+        Mixer?.DeckCountChanged();
+        AutoPlay?.Refresh();
+        return true;
+    }
+
+    /// <summary>
+    /// Another deck on the same side of the crossfader that the room is hearing. Only one song at
+    /// a time per side: the next one waits until it's faded out.
+    /// </summary>
+    internal DeckViewModel? OnAirBeside(DeckViewModel deck) => ActiveDecks.FirstOrDefault(d =>
+        d != deck && d.IsOnAir && Crossfade.Side(d.Deck.Index) == Crossfade.Side(deck.Deck.Index));
     public MixerViewModel? Mixer { get; }
     public PreviewViewModel? Preview { get; }
     public AutoPlayViewModel? AutoPlay { get; }

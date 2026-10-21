@@ -129,7 +129,7 @@ is out of scope until it earns a place.
 - With auto-play on, the next queued track is preloaded onto the idle deck, so it starts
   instantly and you can see exactly what's coming.
 - Tracks can also be dragged straight onto a deck (manual mode).
-- Deck count is configurable in the engine from the start (2 by default); the 4-deck UI comes later.
+- Deck count is configurable: 2 by default, or 4 (Settings › *Four decks*); see the four-deck status below.
 - **Drag and right-click are redundant by design.** Every track action is available both ways.
   Right-click on a track (library or queue): *Preview in headphones*, *Load to Deck 1/B…*
   (instant), *Add to queue*, *Play next*.
@@ -370,6 +370,28 @@ lock, and automatic history.
   on the deck the room is hearing (it would stop dead).
 - Not yet: dragging the markers directly.
 
+### Status: four decks built (2026-10-21)
+
+Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses nothing:
+
+- Settings › *Four decks* (off by default; remembered). Deck 3 sits under Deck 1 and Deck 4 under
+  Deck 2, each half height (two compact decks plus the gap are exactly one full deck, 268 px).
+  New colours: Deck 3 pink, Deck 4 lime.
+- **Compact deck:** number, ON AIR, title and artist on one line, with time left beside them; a
+  shorter waveform (trim menu still on right-click); play, cue, fade out, tempo (tap the % to
+  reset) and BPM. Eject, rating, energy and *Detect BPM in range* move to a ⋯ menu.
+- **Crossfader:** left side is Decks 1 and 3, right side 2 and 4 (DJay, Mixxx and Serato all do
+  this). The side buttons show both numbers; the live label names the deck playing on the live
+  side ("3 · LIVE"), or both ("1 / 3 · LIVE") when neither is.
+- **One song per side:** starting a deck the room would hear while the other deck on that side is
+  on air is refused with "Deck 1 is playing. Fade it out first". Off the room's side it plays
+  as usual (for the headphones).
+- **Auto-play** goes in number order, 1, 2, 3, 4, 1..., so every change crosses the crossfader.
+  It keeps the next deck loaded, as with two.
+- *Load to Deck 3 / 4* in the library, queue and history menus; *Near Deck 3/4* in the BPM button.
+- Going back to two decks is refused while Deck 3 or 4 is playing; otherwise they're emptied.
+- The engine always has four decks; ones not on screen are empty and cost nothing.
+
 ### Next
 
 - **Per-deck EQ** (low / mid / high), chiefly to cut hiss on record transfers, remembered per
@@ -389,7 +411,7 @@ lock, and automatic history.
 
 - Booth (monitor) output: a third bus; syncing separate sound cards is the hard part.
 - Grouping versions of the same song (live / studio), perhaps by matching titles.
-- Ordered saved playlists, a sweepable mid EQ, 4 decks in the UI.
+- Ordered saved playlists, a sweepable mid EQ.
 - Importing a Mixxx library (ratings, crates, cue points) to make switching easy.
 
 ## Decided against

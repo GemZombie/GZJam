@@ -17,6 +17,8 @@
       <Color x:Key="DimColor">#5D6574</Color>
       <Color x:Key="Deck1Color">#22D3EE</Color>
       <Color x:Key="Deck2Color">#F5A524</Color>
+      <Color x:Key="Deck3Color">#F472B6</Color>
+      <Color x:Key="Deck4Color">#A3E635</Color>
       <Color x:Key="OnAirColor">#F04444</Color>
       <Color x:Key="OkColor">#34D399</Color>
       <Color x:Key="AccentColor">#8F74FF</Color>
@@ -32,6 +34,8 @@
       <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}" />
       <SolidColorBrush x:Key="Deck1Brush" Color="{StaticResource Deck1Color}" />
       <SolidColorBrush x:Key="Deck2Brush" Color="{StaticResource Deck2Color}" />
+      <SolidColorBrush x:Key="Deck3Brush" Color="{StaticResource Deck3Color}" />
+      <SolidColorBrush x:Key="Deck4Brush" Color="{StaticResource Deck4Color}" />
       <SolidColorBrush x:Key="OnAirBrush" Color="{StaticResource OnAirColor}" />
       <SolidColorBrush x:Key="OkBrush" Color="{StaticResource OkColor}" />
       <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
@@ -48,6 +52,8 @@
       -->
       <x:Double x:Key="DeckButtonSize">54</x:Double>
       <x:Double x:Key="DeckControlHeight">36</x:Double>
+      <x:Double x:Key="DeckPlayIconSize">18</x:Double>
+      <x:Double x:Key="DeckPauseIconSize">16</x:Double>
 
       <!-- Fluent theme overrides -->
       <Color x:Key="SystemAccentColor">#8F74FF</Color>
