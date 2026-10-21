@@ -14,13 +14,42 @@
     <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">win-x64</BassRid>
     <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('OSX'))">osx</BassRid>
     <BassRid Condition="'$(BassRid)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">linux-x64</BassRid>
+    <BassDir>$(MSBuildThisFileDirectory)$(BassRid)\</BassDir>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)$(BassRid)\*.dll;$(MSBuildThisFileDirectory)$(BassRid)\*.so;$(MSBuildThisFileDirectory)$(BassRid)\*.dylib"
+  <!--
+    macOS: libbass_fx and libbassmix load libbass through @rpath, which doesn't include their own
+    folder, so they fail to load ("Library not loaded: @rpath/libbass.dylib"). Built on a Mac,
+    copies of them are pointed at @loader_path (their own folder) and signed again, ad hoc. A
+    macOS build made on Windows or Linux can't do this and won't load them.
+  -->
+  <PropertyGroup Condition="'$(BassRid)' == 'osx' And $([MSBuild]::IsOSPlatform('OSX'))">
+    <BassDir>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)bass-osx/</BassDir>
+    <BassPatchForMac>true</BassPatchForMac>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(BassPatchForMac)' == 'true'">
+    <BassMacLibrary Include="$(MSBuildThisFileDirectory)osx\*.dylib" />
+    <None Include="@(BassMacLibrary->'$(BassDir)%(Filename)%(Extension)')"
           Link="%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest"
           Visible="false" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(BassPatchForMac)' != 'true'">
+    <None Include="$(BassDir)*.dll;$(BassDir)*.so;$(BassDir)*.dylib"
+          Link="%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+
+  <Target Name="PatchBassForMac" Condition="'$(BassPatchForMac)' == 'true'" BeforeTargets="PrepareForBuild"
+          Inputs="@(BassMacLibrary)" Outputs="@(BassMacLibrary->'$(BassDir)%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(BassMacLibrary)" DestinationFolder="$(BassDir)" />
+    <Exec Command="install_name_tool -change @rpath/libbass.dylib @loader_path/libbass.dylib &quot;$(BassDir)%(BassMacLibrary.Filename)%(BassMacLibrary.Extension)&quot;"
+          IgnoreStandardErrorWarningFormat="true" />
+    <Exec Command="codesign --force --sign - &quot;$(BassDir)%(BassMacLibrary.Filename)%(BassMacLibrary.Extension)&quot;" />
+  </Target>
 </Project>
