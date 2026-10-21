@@ -67,7 +67,28 @@
       <x:Double x:Key="DeckPlayIconSize">18</x:Double>
       <x:Double x:Key="DeckPauseIconSize">16</x:Double>
 
-      <!-- Fluent theme overrides -->
+      <!-- Fluent theme overrides: small corners; menus, drop-downs and flyouts in the panel colours -->
+      <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+      <CornerRadius x:Key="OverlayCornerRadius">6</CornerRadius>
+      <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#171A21" />
+      <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#2F3542" />
+      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#262C38" />
+      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#1E232C" />
+      <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#13161C" />
+      <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#2F3542" />
+      <SolidColorBrush x:Key="ComboBoxBackground" Color="#0E1116" />
+      <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#141820" />
+      <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#2F3542" />
+      <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#46505E" />
+      <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#171A21" />
+      <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#2F3542" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#262C38" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#2E7FA3CF" />
+      <SolidColorBrush x:Key="TextControlBackground" Color="#0E1116" />
+      <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#0E1116" />
+      <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#0E1116" />
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="#2F3542" />
+      <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#7FA3CF" />
       <Color x:Key="SystemAccentColor">#6F93C0</Color>
       <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#2E7FA3CF" />
       <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#3D7FA3CF" />

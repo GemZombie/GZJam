@@ -455,11 +455,11 @@
 
   <!-- Top bar -->
   <Style Selector="Button.output-chip">
-    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="Background" Value="{StaticResource PanelBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="11,5" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="10,6" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.icon-button">
@@ -478,13 +478,59 @@
   <Style Selector="Border.preview-bar">
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
     <Setter Property="BorderThickness" Value="0,1,0,0" />
-    <Setter Property="Padding" Value="12,9" />
-    <Setter Property="Background">
-      <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-        <GradientStop Color="#24F5A524" Offset="0" />
-        <GradientStop Color="#00F5A524" Offset="0.7" />
-      </LinearGradientBrush>
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="Background" Value="#11141A" />
+  </Style>
+  <Style Selector="Border.preview-edge">
+    <Setter Property="Width" Value="2" />
+    <Setter Property="Background" Value="{StaticResource Deck2Brush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="-12,-8,0,-8" />
+  </Style>
+
+  <!-- On/off settings: a key with an LED and ON / OFF, instead of a phone-style switch -->
+  <Style Selector="ToggleButton.switch">
+    <Setter Property="MinWidth" Value="62" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_Key" Background="{StaticResource KeyBrush}" BorderBrush="{StaticResource KeyEdgeBrush}"
+                BorderThickness="1" CornerRadius="4" Padding="9,0" MinHeight="{TemplateBinding MinHeight}">
+          <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border x:Name="PART_Led" Classes="led green" />
+            <TextBlock x:Name="PART_Text" Text="OFF" FontSize="10.5" FontWeight="Bold" LetterSpacing="0.8"
+                       Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
     </Setter>
+  </Style>
+  <Style Selector="ToggleButton.switch:checked /template/ Border#PART_Led">
+    <Setter Property="Background" Value="{StaticResource OkBrush}" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B33CC97C" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="ToggleButton.switch:checked /template/ TextBlock#PART_Text">
+    <Setter Property="Text" Value="ON" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.switch:pointerover /template/ Border#PART_Key">
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.switch:disabled">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <!-- A setting's name and its explanation -->
+  <Style Selector="TextBlock.setting">
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.setting-help">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
   <!-- Small icon buttons in list rows (preview) -->
@@ -510,7 +556,7 @@
     <Setter Property="CornerRadius" Value="4" />
   </Style>
   <!-- The EQ panel's frame: the app's panel colours rather than the stock flyout grey -->
-  <Style Selector="FlyoutPresenter.eq">
+  <Style Selector="FlyoutPresenter.eq, FlyoutPresenter.panel">
     <Setter Property="Background" Value="{StaticResource PanelBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
     <Setter Property="BorderThickness" Value="1" />

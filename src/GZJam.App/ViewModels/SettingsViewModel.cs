@@ -105,8 +105,17 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             _settings.FadeOutSeconds = Math.Clamp(Math.Round(value), 1, 30);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(FadeOutText));
         }
     }
+
+    public string FadeOutText => $"{FadeOutSeconds:0} s";
+
+    [RelayCommand]
+    private void FadeOutShorter() => FadeOutSeconds -= 1;
+
+    [RelayCommand]
+    private void FadeOutLonger() => FadeOutSeconds += 1;
 
     /// <summary>Re-lists devices, e.g. after plugging in a USB interface.</summary>
     [RelayCommand]

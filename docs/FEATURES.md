@@ -453,7 +453,21 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   eye now that it's solid.
 - An empty compact deck's "No track loaded" is dimmed.
 
-Next: settings, menus and the top bar (pass 3).
+### Look, pass 3: settings, menus, top bar (2026-10-21)
+
+- **Settings** in the panel colours (like the EQ panel), grouped with dividers. On/off settings
+  are keys with a green LED and ON/OFF (`ToggleButton.switch`), not phone-style switches.
+  Fade-out length is − / readout / +, like the gap, instead of a number box. Setting names are
+  semibold, explanations muted beneath.
+- **Menus, drop-downs and text boxes** everywhere take the app's colours and 4-6 px corners via
+  Fluent theme overrides (`ControlCornerRadius`, `MenuFlyoutPresenterBackground`,
+  `ComboBox*`, `TextControl*`), instead of the stock grey.
+- **Top bar:** a plain monochrome GZ mark instead of the gradient tile; the clock in a small
+  readout window; the outputs as square indicators with an LED (green connected, red/amber not)
+  and MAIN / CUE in small caps.
+- **Headphone preview bar:** flat, with an amber edge and an amber headphones icon instead of an
+  orange gradient and a filled tile; STOP is a key.
+- The folder-scope chip's text is neutral (it was lavender).
 
 ### Next
 
