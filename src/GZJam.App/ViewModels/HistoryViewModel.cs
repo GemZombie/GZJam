@@ -126,7 +126,7 @@ public sealed partial class HistoryViewModel : ObservableObject
         string songs = $"{session.PlayCount} {(session.PlayCount == 1 ? "song" : "songs")}";
         if (session.Name is { } name)
             return $"{name} · {local.ToString("MMM d", CultureInfo.CurrentCulture)} · {songs}";
-        string when = session.Id == _current?.Id ? "This session" : local.ToString("ddd MMM d, yyyy · h:mm tt", CultureInfo.CurrentCulture);
+        string when = session.Id == _current?.Id ? "This session" : $"{local.ToString("ddd MMM d, yyyy", CultureInfo.CurrentCulture)} · {local.ToString("t", CultureInfo.CurrentCulture)}";
         return $"{when} · {songs}";
     }
 
