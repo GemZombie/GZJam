@@ -131,14 +131,17 @@ public sealed class HistoryAppTests
 
         var history = new HistoryViewModel(app.Database);
 
-        Assert.Equal(["This session", "Sat Oct 17, 2026 · 7:42 PM · 1 song"], history.Sessions.Select(s => s.Label));
+        Assert.Equal(["This session", "Sat Oct 17, 2026 · 7:42 PM · 1 song"], history.Sessions.Select(s => Spaced(s.Label)));
         Assert.Empty(history.Plays);   // nothing played tonight yet
 
         history.SelectedSession = history.Sessions[1];
         PlayItem play = Assert.Single(history.Plays);
         Assert.Equal("Last week's opener", play.Title);
-        Assert.Equal("7:42 PM", play.TimeText);
+        Assert.Equal("7:42 PM", Spaced(play.TimeText));
     }
+
+    // On Linux and macOS, .NET takes time formats from ICU, which puts a narrow no-break space before PM.
+    private static string Spaced(string text) => text.Replace((char)0x202F, ' ');
 
     [AvaloniaFact]
     public async Task Tabs_switch_between_queue_and_history()
