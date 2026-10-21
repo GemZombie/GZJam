@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             x:Class="GZJam.App.Views.EqPanel"
+             x:DataType="vm:DeckViewModel">
+  <!-- A deck's EQ: low, mid and high, saved for the song. Opens from the deck's EQ button. -->
+  <UserControl.Resources>
+    <!-- No coloured fill up to the thumb: on an EQ that reads as "boost" even for a cut. The
+         tick marks 0 dB instead. -->
+    <SolidColorBrush x:Key="SliderTrackValueFill" Color="#2F3542" />
+    <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#2F3542" />
+    <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#2F3542" />
+    <SolidColorBrush x:Key="SliderTickBarFill" Color="#8B94A5" />
+  </UserControl.Resources>
+  <StackPanel Width="236" Spacing="10" Margin="4">
+    <StackPanel Spacing="1">
+      <TextBlock Classes="label" Text="{Binding Label, StringFormat='DECK {0} EQ'}" />
+      <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+      <Slider x:Name="EqLowSlider" Classes="eq" Value="{Binding EqLow}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
+      <Slider x:Name="EqMidSlider" Grid.Column="1" Classes="eq" Value="{Binding EqMid}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
+      <Slider x:Name="EqHighSlider" Grid.Column="2" Classes="eq" Value="{Binding EqHigh}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
+
+      <TextBlock Grid.Row="1" Classes="label" Text="LOW" HorizontalAlignment="Center" />
+      <TextBlock Grid.Row="1" Grid.Column="1" Classes="label" Text="MID" HorizontalAlignment="Center" />
+      <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="HIGH" HorizontalAlignment="Center" />
+
+      <!-- Tap a value to put that band back to flat -->
+      <Button Grid.Row="2" Classes="link" HorizontalAlignment="Center" Command="{Binding FlatBandCommand}" CommandParameter="low"
+              ToolTip.Tip="Bass, below about 150 Hz. Tap to reset.">
+        <TextBlock Classes="mono" Text="{Binding EqLowText}" />
+      </Button>
+      <Button Grid.Row="2" Grid.Column="1" Classes="link" HorizontalAlignment="Center" Command="{Binding FlatBandCommand}" CommandParameter="mid"
+              ToolTip.Tip="The middle, around 1 kHz. Tap to reset.">
+        <TextBlock Classes="mono" Text="{Binding EqMidText}" />
+      </Button>
+      <Button Grid.Row="2" Grid.Column="2" Classes="link" HorizontalAlignment="Center" Command="{Binding FlatBandCommand}" CommandParameter="high"
+              ToolTip.Tip="Treble and hiss, above about 5 kHz. Tap to reset.">
+        <TextBlock Classes="mono" Text="{Binding EqHighText}" />
+      </Button>
+    </Grid>
+
+    <Grid ColumnDefinitions="*,8,*">
+      <Button x:Name="LessHissButton" Classes="deck-button" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding LessHissCommand}" ToolTip.Tip="Turns the treble down 6 dB: a starting point for a hissy transfer">
+        <TextBlock Text="Less hiss" />
+      </Button>
+      <Button x:Name="FlatButton" Grid.Column="2" Classes="deck-button" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding FlatEqCommand}" ToolTip.Tip="All three back to 0 dB">
+        <TextBlock Text="Flat" />
+      </Button>
+    </Grid>
+    <TextBlock Classes="muted" FontSize="11" TextWrapping="Wrap"
+               Text="Remembered for this song. Heard in the room and your headphones alike." />
+  </StackPanel>
+</UserControl>

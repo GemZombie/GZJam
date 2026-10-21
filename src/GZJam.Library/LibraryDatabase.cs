@@ -182,6 +182,17 @@ public sealed partial class LibraryDatabase
                 end_ms   INTEGER
             );
             """,
+
+        // 7: A deck's EQ for each file, in dB (see TrackEq), e.g. the treble cut that tames one
+        // record transfer's hiss. Belongs to the recording, so it's kept per file. Flat: no row.
+        """
+            CREATE TABLE eq (
+                path    TEXT PRIMARY KEY,
+                low_db  REAL NOT NULL,
+                mid_db  REAL NOT NULL,
+                high_db REAL NOT NULL
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

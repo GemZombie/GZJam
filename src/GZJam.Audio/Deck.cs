@@ -6,8 +6,8 @@ namespace GZJam.Audio;
 
 /// <summary>
 /// One track player. The file is decoded through a BASS_FX tempo stream (tempo changes keep the
-/// pitch), then split so the same audio feeds both the main and the cue bus. The crossfader sets
-/// the main split's volume; <see cref="Cue"/> switches the cue split on or off.
+/// pitch) and three EQ filters, then split so the same audio feeds both the main and the cue bus.
+/// The crossfader sets the main split's volume; <see cref="Cue"/> switches the cue split on or off.
 /// </summary>
 public sealed class Deck : IDisposable
 {
@@ -25,6 +25,8 @@ public sealed class Deck : IDisposable
     private TimeSpan? _fadeLength;
     private TimeSpan _start;
     private TimeSpan? _end;
+    private readonly double[] _eqDb = new double[3];   // low, mid, high
+    private readonly int[] _eqFx = new int[3];
 
     internal Deck(MixEngine mix, int index)
     {
@@ -69,6 +71,7 @@ public sealed class Deck : IDisposable
         }
 
         _tempo = tempo;
+        CreateEq();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
         TrackPath = path;
@@ -90,6 +93,7 @@ public sealed class Deck : IDisposable
             Bass.StreamFree(_tempo);
         }
         _tempo = _splitMain = _splitCue = 0;
+        Array.Clear(_eqFx);   // freed with the stream
         _playing = false;
         _ended = false;
         TrackPath = null;
@@ -180,6 +184,52 @@ public sealed class Deck : IDisposable
             _tempoPercent = Math.Clamp(value, -50, 50);
             ApplyTempo();
         }
+    }
+
+    // EQ: shelves below 150 Hz and above 5 kHz (where record hiss lives), a bell around 1 kHz.
+    private static readonly (BQFType Type, float Hz)[] EqBands =
+        [(BQFType.LowShelf, 150), (BQFType.PeakingEQ, 1000), (BQFType.HighShelf, 5000)];
+
+    /// <summary>EQ in dB (0 = flat), heard in the room and the headphones alike. Kept across loads.</summary>
+    public (double Low, double Mid, double High) Eq => (_eqDb[0], _eqDb[1], _eqDb[2]);
+
+    public void SetEq(double low, double mid, double high)
+    {
+        (_eqDb[0], _eqDb[1], _eqDb[2]) = (low, mid, high);
+        for (int band = 0; band < EqBands.Length; band++)
+            ApplyEq(band);
+    }
+
+    private void CreateEq()
+    {
+        for (int band = 0; band < EqBands.Length; band++)
+        {
+            _eqFx[band] = Bass.ChannelSetFX(_tempo, EffectType.BQF, band);
+            if (_eqFx[band] == 0)
+                throw new AudioException($"Could not add EQ to Deck {Name}", Bass.LastError);
+            ApplyEq(band);
+        }
+    }
+
+    private void ApplyEq(int band)
+    {
+        if (_eqFx[band] == 0)
+            return;
+        var (type, hz) = EqBands[band];
+        bool shelf = type != BQFType.PeakingEQ;
+        // BASS takes a shelf's slope or a bell's width (Q), and refuses a filter given both.
+        var parameters = new BQFParameters
+        {
+            lFilter = type,
+            fCenter = hz,
+            fGain = (float)_eqDb[band],
+            fBandwidth = 0,
+            fQ = shelf ? 0 : 0.7f,   // the bell: about two octaves wide
+            fS = shelf ? 0.8f : 0,   // the shelves: a gentle slope
+            lChannel = FXChannelFlags.All,
+        };
+        if (!Bass.FXSetParameters(_eqFx[band], parameters))
+            throw new AudioException($"Could not set Deck {Name}'s EQ", Bass.LastError);
     }
 
     /// <summary>Deck volume, 0.0 to 1.0, on top of the crossfader.</summary>

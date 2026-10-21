@@ -343,6 +343,56 @@ public sealed class MixEngineTests : IDisposable
         Assert.Equal(Full * 0.2f, cue, 0.02f);
     }
 
+    [Theory]
+    [InlineData(60, 0)]      // bass: the low shelf
+    [InlineData(1000, 1)]    // the middle: the bell
+    [InlineData(10000, 2)]   // hiss territory: the high shelf
+    public void Each_eq_band_cuts_its_own_part_of_the_sound(double hz, int band)
+    {
+        string tone = TestWav.WriteTone(Path.Combine(_dir, $"{hz}.wav"), TimeSpan.FromSeconds(10), frequency: hz);
+        A.Load(tone);
+        A.Cue = true;
+        A.Play();
+        Render(0.1);
+        var cut = new double[3];
+        cut[band] = -24;
+
+        A.SetEq(cut[0], cut[1], cut[2]);
+        Render(0.3);   // what was already mixed plays out
+        var (main, cue) = Render();
+
+        Assert.InRange(main, 0, Full * 0.15f);   // about -20 dB or more
+        Assert.InRange(cue, 0, Full * 0.15f);    // the headphones hear the recording the same way
+
+        // The other bands leave it alone.
+        var others = new double[3];
+        for (int b = 0; b < 3; b++)
+            others[b] = b == band ? 0 : -24;
+        A.SetEq(others[0], others[1], others[2]);
+        Render(0.3);
+        Assert.InRange(Render().Main, Full * 0.6f, Full * 1.1f);
+    }
+
+    [Fact]
+    public void Eq_stays_through_a_replay_from_the_end()
+    {
+        string tone = TestWav.WriteTone(Path.Combine(_dir, "short-hiss.wav"), TimeSpan.FromSeconds(1), frequency: 10000);
+        A.Load(tone);
+        A.SetEq(0, 0, -24);
+        A.Play();
+        for (int i = 0; i < 20 && A.IsPlaying; i++)
+        {
+            Render(0.1);
+            _mix.Update();
+        }
+        Assert.False(A.IsPlaying);
+
+        A.Play();   // reloads the file from the start
+        Render(0.3);
+        Assert.InRange(Render().Main, 0, Full * 0.15f);
+        Assert.Equal((0.0, 0.0, -24.0), A.Eq);
+    }
+
     [Fact]
     public void The_limiter_stops_a_loud_blend_from_clipping()
     {

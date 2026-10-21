@@ -76,6 +76,74 @@ public sealed partial class DeckViewModel : ObservableObject
     public TimeSpan AutomaticStart => _autoStart ?? TimeSpan.Zero;
     public TimeSpan AutomaticEnd => _autoEnd ?? Deck.Length;
 
+    // ───────────── EQ ─────────────
+
+    private TrackEq _eq;
+
+    /// <summary>EQ in dB, 0 = flat. Saved for the song as it's changed, and heard in the headphones too.</summary>
+    public double EqLow
+    {
+        get => _eq.Low;
+        set => SetEq(_eq with { Low = value });
+    }
+
+    public double EqMid
+    {
+        get => _eq.Mid;
+        set => SetEq(_eq with { Mid = value });
+    }
+
+    public double EqHigh
+    {
+        get => _eq.High;
+        set => SetEq(_eq with { High = value });
+    }
+
+    public string EqLowText => Db(_eq.Low);
+    public string EqMidText => Db(_eq.Mid);
+    public string EqHighText => Db(_eq.High);
+
+    /// <summary>The song has EQ set (the deck's EQ button lights up).</summary>
+    public bool IsEqSet => !_eq.IsFlat;
+
+    public double EqMinDb => TrackEq.MinDb;
+    public double EqMaxDb => TrackEq.MaxDb;
+
+    private static string Db(double db) =>
+        db == 0 ? "0 dB" : db.ToString("+0.#' dB';−0.#' dB'", CultureInfo.CurrentCulture);
+
+    [RelayCommand]
+    private void FlatEq() => SetEq(TrackEq.Flat);
+
+    /// <summary>A starting point for a hissy transfer: the treble down 6 dB.</summary>
+    [RelayCommand]
+    private void LessHiss() => SetEq(_eq with { High = -6 });
+
+    /// <summary>Tapping a band's value puts that band back to flat.</summary>
+    [RelayCommand]
+    private void FlatBand(string band) => SetEq(band switch
+    {
+        "low" => _eq with { Low = 0 },
+        "mid" => _eq with { Mid = 0 },
+        _ => _eq with { High = 0 },
+    });
+
+    /// <summary>Applies EQ to the deck (in half-dB steps, within range) and saves it for the song.</summary>
+    private void SetEq(TrackEq eq, bool save = true)
+    {
+        static double Step(double db) => Math.Round(Math.Clamp(db, TrackEq.MinDb, TrackEq.MaxDb) * 2) / 2;
+        eq = new TrackEq(Step(eq.Low), Step(eq.Mid), Step(eq.High));
+        bool changed = eq != _eq;
+        _eq = eq;
+        Deck.SetEq(eq.Low, eq.Mid, eq.High);
+        if (!changed)
+            return;
+        if (save && Track is not null)
+            _owner.SaveEq(Track.Path, eq);
+        foreach (string name in new[] { nameof(EqLow), nameof(EqMid), nameof(EqHigh), nameof(EqLowText), nameof(EqMidText), nameof(EqHighText), nameof(IsEqSet) })
+            OnPropertyChanged(name);
+    }
+
     /// <summary>A song can't be trimmed shorter than this.</summary>
     private static readonly TimeSpan ShortestSong = TimeSpan.FromSeconds(5);
 
@@ -290,6 +358,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = default;
         OnTrimChanged();
+        SetEq(TrackEq.Flat, save: false);
         IsAnalyzing = false;
         Log.Info($"Deck {Label}: eject");
         Refresh();
@@ -359,6 +428,9 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = _owner.GetTrim(track.Path);
         ApplyTrim();
+        SetEq(_owner.GetEq(track.Path), save: false);
+        if (IsEqSet)
+            Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
         Refresh();
         _ = AnalyzeAsync(track);
     }

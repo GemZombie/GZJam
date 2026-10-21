@@ -116,4 +116,19 @@ public sealed class AnalysisTests : IDisposable
         _lib.Database.SetTrim(path, default);   // both back to automatic
         Assert.True(_lib.Database.GetTrim(path).IsEmpty);
     }
+
+    [Fact]
+    public void A_songs_eq_is_remembered_and_forgotten_when_flat()
+    {
+        string path = _lib.AddMp3("78s/hissy.mp3");
+        Assert.True(_lib.Database.GetEq(path).IsFlat);
+
+        _lib.Database.SetEq(path, new TrackEq(0, -1.5, -6));
+        Assert.Equal(new TrackEq(0, -1.5, -6), _lib.Database.GetEq(path));
+        _lib.Database.SetEq(path, new TrackEq(2, -1.5, -9));
+        Assert.Equal(new TrackEq(2, -1.5, -9), _lib.Database.GetEq(path));
+
+        _lib.Database.SetEq(path, TrackEq.Flat);
+        Assert.True(_lib.Database.GetEq(path).IsFlat);
+    }
 }

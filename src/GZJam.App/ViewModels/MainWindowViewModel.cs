@@ -161,6 +161,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     internal void SaveTrim(string path, ManualTrim trim) => _database.SetTrim(path, trim);
 
+    /// <summary>The EQ the DJ set for a file.</summary>
+    internal TrackEq GetEq(string path) => _database.GetEq(path);
+
+    internal void SaveEq(string path, TrackEq eq) => _database.SetEq(path, eq);
+
     // ───────────── Ratings and energy ─────────────
 
     /// <summary>Rates tracks (saved in the library, never in the files) wherever they are on screen.</summary>

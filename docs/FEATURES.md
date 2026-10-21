@@ -392,10 +392,22 @@ Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses no
 - Going back to two decks is refused while Deck 3 or 4 is playing; otherwise they're emptied.
 - The engine always has four decks; ones not on screen are empty and cost nothing.
 
+### Status: per-deck EQ built (2026-10-21)
+
+- An **EQ** chip on each deck (beside the heart and energy bars; on a compact deck, beside the
+  time) opens three upright sliders: **low** (shelf below 150 Hz), **mid** (bell around 1 kHz),
+  **high** (shelf above 5 kHz, where record hiss lives). -24 to +6 dB in half-dB steps, a mark at
+  0 dB. Tap a band's value to flatten it; *Less hiss* (treble -6 dB) as a starting point; *Flat*.
+- The chip lights purple when the song has EQ, so it's clear at a glance.
+- **Remembered per song** (`eq`, schema upgrade 7), saved as it's changed, and applied whenever the
+  song is loaded on any deck. Flat forgets it. Never written into the files.
+- It's the recording that's being fixed, so the EQ is heard in the room and the headphones alike
+  (BASS_FX biquad filters on the deck's decoded stream, before the speaker/headphone split). It
+  can be changed while the room is listening.
+- Not a performance EQ: no permanent knobs, since social dance DJs set it once per recording.
+
 ### Next
 
-- **Per-deck EQ** (low / mid / high), chiefly to cut hiss on record transfers, remembered per
-  track since the hiss belongs to the recording.
 - **Loudness matching** between tracks (planned), maybe with a one-knob compressor for old,
   unmastered recordings.
 - **Labels** (Mixxx's crates, renamed): "Lindy", "Female vocals". Shown as tags, not a second

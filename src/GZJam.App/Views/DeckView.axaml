@@ -66,7 +66,7 @@
           </Border>
           <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                      Classes.dim="{Binding !HasTrack}" ToolTip.Tip="{Binding Title}" />
-          <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="2">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="2">
             <!-- Rate the song while it plays: tap to cycle, like the library columns -->
             <Button x:Name="RatingButton" Classes="row-icon" Padding="3,2" Click="OnRatingClick" IsVisible="{Binding HasTrack}"
                     VerticalAlignment="Center" ToolTip.Tip="Would you play this for a dance? Tap: ♥ yes, then broken heart: no, then unrated.">
@@ -76,7 +76,16 @@
                     VerticalAlignment="Center" ToolTip.Tip="Energy. Tap: low, medium, high, then unset.">
               <c:EnergyIcon Energy="{Binding Track.Energy, FallbackValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
             </Button>
-            <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis"
+            <!-- EQ for this song (lit when set) -->
+            <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ" Margin="3,0,2,0"
+                    IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedLeft">
+                  <v:EqPanel />
+                </Flyout>
+              </Button.Flyout>
+            </Button>
+            <TextBlock Grid.Column="3" Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis"
                        VerticalAlignment="Center" Margin="4,0,0,0" />
           </Grid>
         </StackPanel>
@@ -95,7 +104,7 @@
       </Grid>
 
       <!-- The same on one line, for four decks -->
-      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
         <Border Classes="badge small" VerticalAlignment="Center"
                 Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
           <TextBlock Text="{Binding Label}" />
@@ -109,7 +118,15 @@
           <Run Text="  " />
           <Run Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource MutedBrush}" />
         </TextBlock>
-        <Button Grid.Column="3" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Center"
+        <Button x:Name="CompactEqButton" Grid.Column="3" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ"
+                IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <v:EqPanel />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Button Grid.Column="4" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Center"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM.">
           <StackPanel Orientation="Horizontal" Spacing="7">
             <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"

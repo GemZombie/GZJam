@@ -136,5 +136,14 @@ public sealed class ScreenshotTests
         library.SearchText = "jump";
         app.Play(0.2);
         app.Screenshot("14-four-decks");
+
+        // Deck 3's EQ: the treble down for a hissy transfer.
+        vm.Deck3.LessHissCommand.Execute(null);
+        vm.Deck3.EqLow = 1.5;
+        var eq = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck3View")!.FindControl<Button>("CompactEqButton")!;
+        eq.Flyout!.ShowAt(eq);
+        app.Screenshot("15-eq");
+        eq.Flyout.Hide();
+        vm.Deck3.FlatEqCommand.Execute(null);
     }
 }
