@@ -28,6 +28,19 @@ public sealed class AnalysisTests : IDisposable
     }
 
     [Fact]
+    public void Loudness_and_peak_are_saved_with_the_analysis()
+    {
+        string path = _lib.AddMp3("Swing/loud.mp3");
+        FileVersion version = FileVersion.Of(path)!.Value;
+
+        _lib.Database.SaveAnalysis(path, version, Sample() with { Lufs = -19.4, PeakDb = -2.1 });
+        StoredAnalysis found = _lib.Database.GetAnalysis(path, version)!;
+
+        Assert.Equal(-19.4, found.Lufs);
+        Assert.Equal(-2.1, found.PeakDb);
+    }
+
+    [Fact]
     public void A_changed_file_needs_analyzing_again()
     {
         string path = _lib.AddMp3("Swing/a.mp3");
@@ -130,5 +143,9 @@ public sealed class AnalysisTests : IDisposable
 
         _lib.Database.SetEq(path, TrackEq.Flat);
         Assert.True(_lib.Database.GetEq(path).IsFlat);
+
+        // The DJ's gain for the song is kept with its EQ; gain alone isn't flat.
+        _lib.Database.SetEq(path, new TrackEq(0, 0, 0, Gain: -3.5));
+        Assert.Equal(-3.5, _lib.Database.GetEq(path).Gain);
     }
 }

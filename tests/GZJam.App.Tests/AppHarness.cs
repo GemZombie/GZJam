@@ -33,7 +33,8 @@ public sealed class AppHarness : IDisposable
         _work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
         MusicPath = musicFolder ?? Path.Combine(_work, "Music");
         Database = new LibraryDatabase(Path.Combine(_work, "library.db"));
-        Settings = settings ?? new AppSettings();
+        // Loudness matching off unless a test asks for it: level checks expect tones at their own level.
+        Settings = settings ?? new AppSettings { MatchLoudness = false };
         if (musicFolder is null)
             GenerateMusic(MusicPath);
         Database.AddRoot(MusicPath);
@@ -57,9 +58,9 @@ public sealed class AppHarness : IDisposable
     public string WorkDirectory => _work;
 
     /// <summary>A track backed by a generated tone (real audio, unlike the silent test MP3s).</summary>
-    public Track ToneTrack(string title, double seconds = 20, double silenceBefore = 0, double silenceAfter = 0)
+    public Track ToneTrack(string title, double seconds = 20, double silenceBefore = 0, double silenceAfter = 0, double amplitude = 0.5)
     {
-        string path = TestWav.WriteTone(Path.Combine(_work, "tones", title + ".wav"), TimeSpan.FromSeconds(seconds),
+        string path = TestWav.WriteTone(Path.Combine(_work, "tones", title + ".wav"), TimeSpan.FromSeconds(seconds), amplitude: amplitude,
             silenceBefore: TimeSpan.FromSeconds(silenceBefore), silenceAfter: TimeSpan.FromSeconds(silenceAfter));
         return new Track { Path = path, Folder = "", FileName = title + ".wav", Title = title, Artist = "Test Band", TagBpm = 150 };
     }

@@ -87,6 +87,22 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Loudness matching (see <see cref="AppSettings.MatchLoudness"/>).</summary>
+    public bool MatchLoudness
+    {
+        get => _settings.MatchLoudness;
+        set
+        {
+            if (value == _settings.MatchLoudness)
+                return;
+            _settings.MatchLoudness = value;
+            Log.Info($"Loudness matching {(value ? "on" : "off")}");
+            foreach (DeckViewModel deck in _owner.Decks)
+                deck.LoudnessSettingChanged();
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Four decks on screen rather than two.</summary>
     public bool FourDecks
     {

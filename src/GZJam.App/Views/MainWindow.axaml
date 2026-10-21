@@ -86,6 +86,14 @@
                 <ToggleButton x:Name="MonoSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
                               IsChecked="{Binding MonoSpeakers}" />
               </Grid>
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                <StackPanel Spacing="1">
+                  <TextBlock Classes="setting" Text="Match loudness" />
+                  <TextBlock Classes="setting-help" Text="Quiet old transfers and loud remasters play at about the same level. Adjust a song in its EQ panel (GAIN)." />
+                </StackPanel>
+                <ToggleButton x:Name="MatchLoudnessSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                              IsChecked="{Binding MatchLoudness}" />
+              </Grid>
 
               <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
               <TextBlock Classes="label" Text="DECKS" />

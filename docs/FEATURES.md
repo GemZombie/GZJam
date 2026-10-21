@@ -469,10 +469,29 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   orange gradient and a filled tile; STOP is a key.
 - The folder-scope chip's text is neutral (it was lavender).
 
+### Status: loudness matching built (2026-10-21)
+
+- **Measured** in the analysis pass (`LoudnessMeter`): integrated loudness per EBU R128 / ITU-R
+  BS.1770 (K-weighting, 400 ms blocks every 100 ms, absolute and relative gating), in LUFS, plus the
+  sample peak. Mono files count as dual mono, since both speakers play them. Stored with the
+  analysis (schema upgrade 8); the analyzer version went to 2, so the library is re-analyzed once
+  in the background (about 50 minutes for 12,686 tracks; a track loaded onto a deck jumps the queue).
+- **Matched** (`LoudnessMatch`): each deck is turned towards **-16 LUFS**. Cuts are unlimited;
+  boosts stop at +9 dB and where the track's peaks would go more than 1.5 dB over full scale (the
+  limiter absorbs that much without its light coming on). On a 228-track sample of the real
+  library: median -15.9 LUFS (so a typical song barely moves), 80% between -19.4 and -11.8;
+  7% held back by their peaks, the quietest ending at -20 LUFS.
+- Heard in the room and the headphones alike (deck gain on both splits). If a song's measurement
+  arrives while the room is hearing it, or matching is switched on or off mid-song, the level eases
+  over at 3 dB a second rather than jumping; off air it changes at once.
+- **Settings › Match loudness**, on by default.
+- **GAIN** fader in the deck's EQ panel: the DJ's adjustment for a song on top of matching, saved
+  with its EQ (same -24..+6 dB range as the bands, so every fader's 0 dB lines up with the scale).
+  Under the faders: the song's loudness and what matching does ("-19.5 LUFS · matching +3.5 dB").
+- Not built: a one-knob compressor for old, unmastered recordings (wait and see if it's needed).
+
 ### Next
 
-- **Loudness matching** between tracks (planned), maybe with a one-knob compressor for old,
-  unmastered recordings.
 - **Labels** (Mixxx's crates, renamed): "Lindy", "Female vocals". Shown as tags, not a second
   tree; searchable with `label:`. They cut across the folder tree rather than competing with it.
 - **Played recently:** a "last played" column and dimming songs played tonight, so you don't

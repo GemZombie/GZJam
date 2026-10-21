@@ -374,6 +374,26 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void Gain_turns_a_deck_up_or_down_in_the_room_and_the_headphones()
+    {
+        string quiet = TestWav.WriteTone(Path.Combine(_dir, "quiet.wav"), TimeSpan.FromSeconds(10), amplitude: 0.25);
+        A.Load(quiet);
+        A.Cue = true;
+        A.Play();
+        Render(0.1);
+
+        A.GainDb = 6;   // a quiet track brought up: above unity
+        Render(0.3);
+        var (main, cue) = Render();
+        Assert.Equal(0.5f, main, 0.03f);
+        Assert.Equal(0.5f, cue, 0.03f);
+
+        A.GainDb = -6;
+        Render(0.3);
+        Assert.Equal(0.125f, Render().Main, 0.02f);
+    }
+
+    [Fact]
     public void Eq_stays_through_a_replay_from_the_end()
     {
         string tone = TestWav.WriteTone(Path.Combine(_dir, "short-hiss.wav"), TimeSpan.FromSeconds(1), frequency: 10000);

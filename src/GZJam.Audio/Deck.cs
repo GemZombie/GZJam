@@ -19,6 +19,7 @@ public sealed class Deck : IDisposable
     private bool _ended;
     private double _tempoPercent;
     private double _volume = 1;
+    private double _gain = 1;   // loudness matching and the DJ's own gain, as a factor
     private double _mainGain;
     private bool _cue;
     private long _fadeStarted;
@@ -232,6 +233,20 @@ public sealed class Deck : IDisposable
             throw new AudioException($"Could not set Deck {Name}'s EQ", Bass.LastError);
     }
 
+    /// <summary>
+    /// Gain in dB on top of everything else (loudness matching plus the DJ's adjustment), heard in
+    /// the room and the headphones alike. Kept across loads.
+    /// </summary>
+    public double GainDb
+    {
+        get => 20 * Math.Log10(_gain);
+        set
+        {
+            _gain = Math.Pow(10, Math.Clamp(value, -30, 20) / 20);
+            ApplyVolumes();
+        }
+    }
+
     /// <summary>Deck volume, 0.0 to 1.0, on top of the crossfader.</summary>
     public double Volume
     {
@@ -353,7 +368,7 @@ public sealed class Deck : IDisposable
     {
         if (!IsLoaded)
             return;
-        double level = _volume * FadeFactor;
+        double level = _volume * _gain * FadeFactor;
         Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
         Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, _cue ? level : 0);
     }

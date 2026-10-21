@@ -163,7 +163,11 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         if (_database.GetAnalysis(path, version) is not { } stored || stored.Version < TrackAnalyzer.Version ||
             Waveform.FromBytes(stored.Waveform) is not { } waveform)
             return null;
-        return new TrackAnalysis(stored.Length, stored.AudibleStart, stored.AudibleEnd, stored.Bpm, waveform);
+        return new TrackAnalysis(stored.Length, stored.AudibleStart, stored.AudibleEnd, stored.Bpm, waveform)
+        {
+            Lufs = stored.Lufs,
+            PeakDb = stored.PeakDb,
+        };
     }
 
     private void Work()
@@ -216,7 +220,11 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             if (_database.GetBpmRange(job.Path) != range)
                 return null;   // the DJ changed the range meanwhile; that request will redo it
             _database.SaveAnalysis(job.Path, job.Version, new StoredAnalysis(
-                TrackAnalyzer.Version, result.Length, result.AudibleStart, result.AudibleEnd, result.Bpm, result.Waveform.ToBytes()));
+                TrackAnalyzer.Version, result.Length, result.AudibleStart, result.AudibleEnd, result.Bpm, result.Waveform.ToBytes())
+            {
+                Lufs = result.Lufs,
+                PeakDb = result.PeakDb,
+            });
             return result;
         }
         catch (OperationCanceledException)

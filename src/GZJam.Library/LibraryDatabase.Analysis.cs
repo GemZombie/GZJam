@@ -4,7 +4,14 @@ namespace GZJam.Library;
 
 /// <summary>A saved track analysis, as the analyzer of <paramref name="Version"/> left it.</summary>
 /// <param name="Waveform">The overview waveform, in the audio layer's own format.</param>
-public sealed record StoredAnalysis(int Version, TimeSpan Length, TimeSpan AudibleStart, TimeSpan AudibleEnd, double? Bpm, byte[]? Waveform);
+public sealed record StoredAnalysis(int Version, TimeSpan Length, TimeSpan AudibleStart, TimeSpan AudibleEnd, double? Bpm, byte[]? Waveform)
+{
+    /// <summary>Integrated loudness in LUFS.</summary>
+    public double? Lufs { get; init; }
+
+    /// <summary>Sample peak in dB below full scale.</summary>
+    public double? PeakDb { get; init; }
+}
 
 /// <summary>Identifies one version of a file on disk: when it changes, its analysis is stale.</summary>
 public readonly record struct FileVersion(long Size, long ModifiedTicks)
@@ -33,7 +40,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT version, length_ms, start_ms, end_ms, bpm, waveform FROM analysis
+            SELECT version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db FROM analysis
             WHERE path = $path AND file_size = $size AND modified_utc = $mod;
             """;
         cmd.Parameters.AddWithValue("$path", path);
@@ -48,7 +55,11 @@ public sealed partial class LibraryDatabase
             TimeSpan.FromMilliseconds(r.GetInt64(2)),
             TimeSpan.FromMilliseconds(r.GetInt64(3)),
             r.IsDBNull(4) ? null : r.GetDouble(4),
-            r.IsDBNull(5) ? null : (byte[])r.GetValue(5));
+            r.IsDBNull(5) ? null : (byte[])r.GetValue(5))
+        {
+            Lufs = r.IsDBNull(6) ? null : r.GetDouble(6),
+            PeakDb = r.IsDBNull(7) ? null : r.GetDouble(7),
+        };
     }
 
     public void SaveAnalysis(string path, FileVersion version, StoredAnalysis analysis)
@@ -56,12 +67,12 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO analysis (path, file_size, modified_utc, version, length_ms, start_ms, end_ms, bpm, waveform)
-            VALUES ($path, $size, $mod, $version, $length, $start, $end, $bpm, $waveform)
+            INSERT INTO analysis (path, file_size, modified_utc, version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db)
+            VALUES ($path, $size, $mod, $version, $length, $start, $end, $bpm, $waveform, $lufs, $peak)
             ON CONFLICT(path) DO UPDATE SET
                 file_size = excluded.file_size, modified_utc = excluded.modified_utc, version = excluded.version,
                 length_ms = excluded.length_ms, start_ms = excluded.start_ms, end_ms = excluded.end_ms,
-                bpm = excluded.bpm, waveform = excluded.waveform;
+                bpm = excluded.bpm, waveform = excluded.waveform, lufs = excluded.lufs, peak_db = excluded.peak_db;
             """;
         cmd.Parameters.AddWithValue("$path", path);
         cmd.Parameters.AddWithValue("$size", version.Size);
@@ -72,6 +83,8 @@ public sealed partial class LibraryDatabase
         cmd.Parameters.AddWithValue("$end", (long)analysis.AudibleEnd.TotalMilliseconds);
         cmd.Parameters.AddWithValue("$bpm", (object?)analysis.Bpm ?? DBNull.Value);
         cmd.Parameters.Add(new SqliteParameter("$waveform", SqliteType.Blob) { Value = (object?)analysis.Waveform ?? DBNull.Value });
+        cmd.Parameters.AddWithValue("$lufs", (object?)analysis.Lufs ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$peak", (object?)analysis.PeakDb ?? DBNull.Value);
         cmd.ExecuteNonQuery();
     }
 

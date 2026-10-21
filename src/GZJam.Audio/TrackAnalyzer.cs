@@ -8,19 +8,26 @@ namespace GZJam.Audio;
 /// <param name="Bpm">Detected tempo in whole BPM (it's good to a few percent), or null if not asked for or not found.</param>
 public sealed record TrackAnalysis(TimeSpan Length, TimeSpan AudibleStart, TimeSpan AudibleEnd, double? Bpm, Waveform Waveform)
 {
+    /// <summary>Integrated loudness in LUFS (see <see cref="LoudnessMeter"/>), or null if it couldn't be measured.</summary>
+    public double? Lufs { get; init; }
+
+    /// <summary>The highest sample, in dB below full scale.</summary>
+    public double? PeakDb { get; init; }
+
     /// <summary>The tempos considered, best first (for tuning the detector).</summary>
     internal IReadOnlyList<(double Bpm, double Score)> TempoCandidates { get; init; } = [];
 }
 
 /// <summary>
 /// Analyzes a track in one decode: the overview waveform, where the audible music starts and
-/// ends (so the gap between songs is real silence, the same every time), and its BPM.
+/// ends (so the gap between songs is real silence, the same every time), its BPM, and how loud
+/// it is (for loudness matching).
 /// Safe to run on several threads at once; nothing is ever played.
 /// </summary>
 public sealed class TrackAnalyzer(AudioEngine engine)
 {
     /// <summary>Bump when the results would change, so stored analyses get redone.</summary>
-    public const int Version = 1;
+    public const int Version = 2;   // 2: loudness and peak
 
     /// <summary>Slices in the overview waveform: about one per pixel of a wide deck.</summary>
     public const int WaveformSlices = 1000;
@@ -74,13 +81,16 @@ public sealed class TrackAnalyzer(AudioEngine engine)
             var length = TimeSpan.FromSeconds((double)totalFrames / rate);
 
             var tempo = detectBpm ? new TempoDetector(rate) : null;
-            var (waveform, windows) = Decode(stream, channels, rate, totalFrames, tempo, cancellationToken);
+            var loudness = new LoudnessMeter(channels, rate);
+            var (waveform, windows) = Decode(stream, channels, rate, totalFrames, tempo, loudness, cancellationToken);
             var (start, end) = FindAudible(windows, length);
 
             var candidates = tempo?.Estimate(start, end, MinBpm, MaxBpm) ?? [];
             return new TrackAnalysis(length, start, end, ChooseBpm(candidates, bpmRange) is { } bpm ? Math.Round(bpm) : null, waveform)
             {
                 TempoCandidates = candidates,
+                Lufs = loudness.IntegratedLufs is { } lufs ? Math.Round(lufs, 1) : null,
+                PeakDb = loudness.PeakDb is { } peak ? Math.Round(peak, 1) : null,
             };
         }
         finally
@@ -123,7 +133,8 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     }
 
     /// <summary>Reads every sample once: band peaks per waveform slice, and RMS per silence window.</summary>
-    private static (Waveform, List<float>) Decode(int stream, int channels, int rate, long totalFrames, TempoDetector? tempo, CancellationToken cancellationToken)
+    private static (Waveform, List<float>) Decode(int stream, int channels, int rate, long totalFrames, TempoDetector? tempo,
+        LoudnessMeter meter, CancellationToken cancellationToken)
     {
         int slices = (int)Math.Clamp(totalFrames / 64, 1, WaveformSlices);
         var low = new float[slices];
@@ -150,6 +161,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
             if (bytes <= 0)
                 break;
             int frames = bytes / sizeof(float) / channels;
+            meter.Push(buffer, frames);
             for (int f = 0; f < frames; f++, frame++)
             {
                 float m = 0;

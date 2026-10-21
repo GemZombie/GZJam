@@ -58,6 +58,7 @@ public sealed partial class DeckViewModel : ObservableObject
 
     /// <summary>The track is being analyzed (its waveform isn't ready yet).</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LevelText))]
     public partial bool IsAnalyzing { get; private set; }
 
     /// <summary>Where the music starts and ends, as fractions of the file (silence either side is skipped).</summary>
@@ -99,6 +100,15 @@ public sealed partial class DeckViewModel : ObservableObject
         set => SetEq(_eq with { High = value });
     }
 
+    /// <summary>The DJ's own gain for this song, on top of loudness matching (the same range as the bands).</summary>
+    public double EqGain
+    {
+        get => _eq.Gain;
+        set => SetEq(_eq with { Gain = value });
+    }
+
+    public string EqGainText => Db(_eq.Gain);
+
     public string EqLowText => Db(_eq.Low);
     public string EqMidText => Db(_eq.Mid);
     public string EqHighText => Db(_eq.High);
@@ -125,24 +135,89 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         "low" => _eq with { Low = 0 },
         "mid" => _eq with { Mid = 0 },
+        "gain" => _eq with { Gain = 0 },
         _ => _eq with { High = 0 },
     });
 
     /// <summary>Applies EQ to the deck (in half-dB steps, within range) and saves it for the song.</summary>
     private void SetEq(TrackEq eq, bool save = true)
     {
-        static double Step(double db) => Math.Round(Math.Clamp(db, TrackEq.MinDb, TrackEq.MaxDb) * 2) / 2;
-        eq = new TrackEq(Step(eq.Low), Step(eq.Mid), Step(eq.High));
+        static double Step(double db, double min, double max) => Math.Round(Math.Clamp(db, min, max) * 2) / 2;
+        eq = new TrackEq(Step(eq.Low, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Mid, TrackEq.MinDb, TrackEq.MaxDb),
+            Step(eq.High, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Gain, TrackEq.MinDb, TrackEq.MaxDb));
         bool changed = eq != _eq;
         _eq = eq;
         Deck.SetEq(eq.Low, eq.Mid, eq.High);
+        ApplyGain();
         if (!changed)
             return;
         if (save && Track is not null)
             _owner.SaveEq(Track.Path, eq);
-        foreach (string name in new[] { nameof(EqLow), nameof(EqMid), nameof(EqHigh), nameof(EqLowText), nameof(EqMidText), nameof(EqHighText), nameof(IsEqSet) })
+        foreach (string name in new[] { nameof(EqLow), nameof(EqMid), nameof(EqHigh), nameof(EqGain), nameof(EqLowText), nameof(EqMidText),
+                     nameof(EqHighText), nameof(EqGainText), nameof(IsEqSet), nameof(LevelText) })
             OnPropertyChanged(name);
     }
+
+    // ───────────── Loudness matching ─────────────
+
+    /// <summary>How fast matching may change the level of a song the room is hearing (dB per second).</summary>
+    private const double OnAirRampDbPerSecond = 3;
+
+    private double? _lufs, _peakDb;
+    private double _matchDb;         // what matching applies now (eases towards the target on air)
+    private long _matchMovedAt;
+
+    /// <summary>What loudness matching would apply to this song: 0 if it's off or not measured yet.</summary>
+    private double MatchTargetDb => _settings.MatchLoudness && _lufs is { } lufs ? LoudnessMatch.GainDb(lufs, _peakDb) : 0;
+
+    /// <summary>The song's measured loudness and what matching does to it, for the EQ panel.</summary>
+    public string LevelText
+    {
+        get
+        {
+            if (Track is null)
+                return "";
+            if (_lufs is not { } lufs)
+                return IsAnalyzing ? "Measuring loudness…" : "Loudness not measured";
+            string measured = string.Create(CultureInfo.CurrentCulture, $"{lufs:0.0} LUFS").Replace('-', '−');
+            return _settings.MatchLoudness
+                ? $"{measured} · matching {Db(MatchTargetDb)}"
+                : $"{measured} · loudness matching off";
+        }
+    }
+
+    /// <summary>Loudness matching was turned on or off in Settings.</summary>
+    internal void LoudnessSettingChanged()
+    {
+        UpdateMatch(force: !IsOnAir);
+        OnPropertyChanged(nameof(LevelText));
+    }
+
+    /// <summary>
+    /// Moves matching towards its target: at once if the room isn't hearing this deck, gently if
+    /// it is (e.g. the analysis arrived while the song was already on air), so nothing jumps.
+    /// </summary>
+    private void UpdateMatch(bool force = false)
+    {
+        double target = MatchTargetDb;
+        long now = TimeProvider.System.GetTimestamp();
+        double elapsed = _matchMovedAt == 0 ? 0 : TimeProvider.System.GetElapsedTime(_matchMovedAt, now).TotalSeconds;
+        _matchMovedAt = now;
+        if (Math.Abs(target - _matchDb) < 0.01)
+            return;
+        if (force || !IsOnAir)
+        {
+            _matchDb = target;
+        }
+        else
+        {
+            double step = OnAirRampDbPerSecond * Math.Min(elapsed, 0.1);
+            _matchDb += Math.Clamp(target - _matchDb, -step, step);
+        }
+        ApplyGain();
+    }
+
+    private void ApplyGain() => Deck.GainDb = _matchDb + _eq.Gain;
 
     /// <summary>A song can't be trimmed shorter than this.</summary>
     private static readonly TimeSpan ShortestSong = TimeSpan.FromSeconds(5);
@@ -358,8 +433,11 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = default;
         OnTrimChanged();
+        _lufs = _peakDb = null;
+        _matchDb = 0;
         SetEq(TrackEq.Flat, save: false);
         IsAnalyzing = false;
+        OnPropertyChanged(nameof(LevelText));
         Log.Info($"Deck {Label}: eject");
         Refresh();
     }
@@ -428,6 +506,8 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = _owner.GetTrim(track.Path);
         ApplyTrim();
+        _lufs = _peakDb = null;
+        _matchDb = 0;
         SetEq(_owner.GetEq(track.Path), save: false);
         if (IsEqSet)
             Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
@@ -458,6 +538,12 @@ public sealed partial class DeckViewModel : ObservableObject
         Track!.DetectedBpm = analysis.Bpm;
         _autoStart = analysis.AudibleStart;
         _autoEnd = analysis.AudibleEnd;
+        (_lufs, _peakDb) = (analysis.Lufs, analysis.PeakDb);
+        UpdateMatch();
+        OnPropertyChanged(nameof(LevelText));
+        if (_lufs is { } lufs)
+            Log.Info(string.Create(CultureInfo.InvariantCulture,
+                $"Deck {Label}: loudness {lufs:0.0} LUFS, peak {_peakDb:0.0} dB; matching {MatchTargetDb:+0.0;-0.0;0} dB"));
         ApplyTrim();
         Log.Info(string.Create(CultureInfo.InvariantCulture,
             $"Deck {Label}: music from {analysis.AudibleStart.TotalSeconds:0.00} s to {analysis.AudibleEnd.TotalSeconds:0.00} s of {analysis.Length.TotalSeconds:0.00} s, BPM {analysis.Bpm?.ToString() ?? "unknown"}"));
@@ -582,6 +668,7 @@ public sealed partial class DeckViewModel : ObservableObject
     public void Refresh()
     {
         TrackListening();
+        UpdateMatch();
         if (IsPauseArmed && !PauseNeedsConfirm)
             Disarm();   // no longer on air (or the setting changed): a single tap pauses again
         OnPropertyChanged(nameof(IsPlaying));

@@ -20,7 +20,7 @@ public sealed class ScreenshotTests
     public void Real_library_screenshots()
     {
         Assert.SkipUnless(Directory.Exists(MusicFolder), $"{MusicFolder} not found");
-        using var app = new AppHarness(MusicFolder);
+        using var app = new AppHarness(MusicFolder, new AppSettings());   // default settings: loudness matching on
         var library = app.Library;
 
         app.Screenshot("01-whole-library");

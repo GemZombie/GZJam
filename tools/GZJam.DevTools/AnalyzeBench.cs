@@ -50,6 +50,7 @@ internal static class AnalyzeBench
                 $"({total.Elapsed.TotalSeconds / results.Count:0.00} s per track; {audioMinutes * 60 / total.Elapsed.TotalSeconds / threads:0}x real time per thread)");
             Console.WriteLine($"Per track: median {Median(ok.Select(r => r.Took.TotalSeconds)):0.00} s, slowest {ok.Max(r => r.Took.TotalSeconds):0.00} s");
             Console.WriteLine($"Estimate for the whole library: {TimeSpan.FromSeconds(total.Elapsed.TotalSeconds / results.Count * all.Count):h\\:mm}");
+            ReportLoudness(ok.Select(r => r.Result!).ToList());
             foreach (var r in results.Where(r => r.Error is not null))
                 Console.WriteLine($"  FAILED {r.Track.Path}: {r.Error}");
 
@@ -166,5 +167,30 @@ internal static class AnalyzeBench
     {
         var sorted = values.Order().ToList();
         return sorted.Count == 0 ? 0 : sorted[sorted.Count / 2];
+    }
+
+    /// <summary>How loud the library is, and what loudness matching would do to it.</summary>
+    private static void ReportLoudness(IReadOnlyList<TrackAnalysis> results)
+    {
+        var measured = results.Where(r => r.Lufs is not null).ToList();
+        if (measured.Count == 0)
+            return;
+        static string Pcts(IEnumerable<double> values)
+        {
+            var sorted = values.Order().ToList();
+            double P(double p) => sorted[(int)Math.Round(p * (sorted.Count - 1))];
+            return $"min {sorted[0],6:0.0}  10% {P(0.1),6:0.0}  median {P(0.5),6:0.0}  90% {P(0.9),6:0.0}  max {sorted[^1],6:0.0}";
+        }
+        double Gain(TrackAnalysis r) => LoudnessMatch.GainDb(r.Lufs!.Value, r.PeakDb);
+        var gains = measured.Select(Gain).ToList();
+        int peakLimited = measured.Count(r => LoudnessMatch.TargetLufs - r.Lufs!.Value > Gain(r) + 0.05 && Gain(r) < LoudnessMatch.MaxBoostDb);
+        int maxed = gains.Count(g => g >= LoudnessMatch.MaxBoostDb);
+        Console.WriteLine();
+        Console.WriteLine($"Loudness of {measured.Count} tracks (target {LoudnessMatch.TargetLufs} LUFS):");
+        Console.WriteLine($"  LUFS       {Pcts(measured.Select(r => r.Lufs!.Value))}");
+        Console.WriteLine($"  peak dBFS  {Pcts(measured.Select(r => r.PeakDb ?? 0))}");
+        Console.WriteLine($"  gain dB    {Pcts(gains)}");
+        Console.WriteLine($"  after      {Pcts(measured.Select(r => r.Lufs!.Value + Gain(r)))}");
+        Console.WriteLine($"  turned up {gains.Count(g => g > 0)}, down {gains.Count(g => g < 0)}; held back by peaks {peakLimited}; at the +{LoudnessMatch.MaxBoostDb} dB limit {maxed}");
     }
 }

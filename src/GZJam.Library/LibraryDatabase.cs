@@ -193,6 +193,14 @@ public sealed partial class LibraryDatabase
                 high_db REAL NOT NULL
             );
             """,
+
+        // 8: Loudness matching. The analysis measures each file's loudness and peak (a cache, like
+        // the rest of it); the DJ's own gain for a song sits with its EQ (user data).
+        """
+            ALTER TABLE analysis ADD COLUMN lufs REAL;
+            ALTER TABLE analysis ADD COLUMN peak_db REAL;
+            ALTER TABLE eq ADD COLUMN gain_db REAL NOT NULL DEFAULT 0;
+            """,
     ];
 
     // ───────────── Roots ─────────────

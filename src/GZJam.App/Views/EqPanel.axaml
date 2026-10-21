@@ -50,7 +50,7 @@
     </Style>
   </UserControl.Styles>
 
-  <StackPanel Width="252" Spacing="12">
+  <StackPanel Width="316" Spacing="12">
     <StackPanel Spacing="2">
       <TextBlock Classes="label" Text="{Binding Label, StringFormat='DECK {0} · EQ'}" />
       <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
@@ -59,7 +59,7 @@
     <!-- The faders, in a recessed well -->
     <Border Background="{StaticResource WellBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
             CornerRadius="4" Padding="6,10,10,8">
-      <Grid ColumnDefinitions="28,*,*,*" RowDefinitions="160,Auto,Auto">
+      <Grid ColumnDefinitions="28,*,*,*,13,*" RowDefinitions="160,Auto,Auto">
         <c:EqScale Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
         <c:Fader Classes="eq" x:Name="EqLowFader" Grid.Column="1" Value="{Binding EqLow}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="Bass, below about 150 Hz. Double-tap for 0 dB." />
         <c:Fader Classes="eq" x:Name="EqMidFader" Grid.Column="2" Value="{Binding EqMid}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="The middle, around 1 kHz. Double-tap for 0 dB." />
@@ -91,8 +91,23 @@
           <TextBlock Classes="eq-band" Text="HIGH" />
           <TextBlock Classes="eq-hz" Text="5 kHz" />
         </StackPanel>
+
+        <!-- The song's level, on top of loudness matching -->
+        <Border Grid.Column="4" Grid.RowSpan="3" Width="1" Background="{StaticResource LineBrush}" HorizontalAlignment="Center" />
+        <c:Fader x:Name="EqGainFader" Grid.Column="5" Classes="eq" Value="{Binding EqGain}"
+                 Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}"
+                 ToolTip.Tip="This song's level, on top of loudness matching. Double-tap for 0 dB." />
+        <Button Grid.Row="1" Grid.Column="5" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
+                Command="{Binding FlatBandCommand}" CommandParameter="gain" ToolTip.Tip="Tap for 0 dB">
+          <TextBlock Classes="eq-value" Text="{Binding EqGainText}" />
+        </Button>
+        <StackPanel Grid.Row="2" Grid.Column="5">
+          <TextBlock Classes="eq-band" Text="GAIN" />
+          <TextBlock Classes="eq-hz" Text="± level" />
+        </StackPanel>
       </Grid>
     </Border>
+    <TextBlock x:Name="LevelInfo" Classes="eq-hz" HorizontalAlignment="Left" Text="{Binding LevelText}" Margin="2,-4,0,0" />
 
     <Grid ColumnDefinitions="*,8,*">
       <Button x:Name="LessHissButton" Classes="eq-action" Command="{Binding LessHissCommand}"

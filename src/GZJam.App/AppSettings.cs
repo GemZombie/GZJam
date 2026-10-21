@@ -62,6 +62,12 @@ public sealed class AppSettings
     /// </summary>
     public int DeckCount { get; set; } = 2;
 
+    /// <summary>
+    /// Turn each track up or down towards the same loudness (measured when it's analyzed), so a
+    /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
+    /// </summary>
+    public bool MatchLoudness { get; set; } = true;
+
     /// <summary>Speaker and headphone volume, 0-100.</summary>
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;
