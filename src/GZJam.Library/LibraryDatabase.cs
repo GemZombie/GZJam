@@ -172,6 +172,16 @@ public sealed partial class LibraryDatabase
                 energy INTEGER NOT NULL DEFAULT 0
             );
             """,
+
+        // 6: Where the DJ set a song to start or end by hand (e.g. after the applause on a live
+        // recording), overriding the automatic silence trim. Null: automatic.
+        """
+            CREATE TABLE trims (
+                path     TEXT PRIMARY KEY,
+                start_ms INTEGER,
+                end_ms   INTEGER
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

@@ -155,6 +155,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ShowNotice($"BPM detected again for {what}.");
     }
 
+    /// <summary>Where the DJ set a file to start and end.</summary>
+    internal ManualTrim GetTrim(string path) => _database.GetTrim(path);
+
+    internal void SaveTrim(string path, ManualTrim trim) => _database.SetTrim(path, trim);
+
     // ───────────── Ratings and energy ─────────────
 
     /// <summary>Rates tracks (saved in the library, never in the files) wherever they are on screen.</summary>

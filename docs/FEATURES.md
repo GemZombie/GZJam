@@ -109,7 +109,7 @@ is out of scope until it earns a place.
 - Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
   outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
-- Not yet: adjusting trim points by hand, typing or tapping a BPM, per-folder BPM ranges,
+- Not yet: typing or tapping a BPM, per-folder BPM ranges,
   a zoomed scrolling waveform, loudness matching.
 
 ## Decks, queue and auto-play
@@ -356,6 +356,18 @@ lock, and automatic history.
   the active one ("BPM ≈144").
 - The deck row is now sized by the mixer column (at least 300 px), with auto-play's status line
   always reserved, so its height never changes mid-set.
+
+### Status: item 6 built (start and end by hand)
+
+- Right-click (or long-press) a deck's waveform: *Song starts* › *Here* (where you clicked),
+  *At the playhead* (find the spot in the headphones first), or *Automatic*; the same for
+  *Song ends*. Times shown to a tenth of a second.
+- Saved per file (`trims`, schema upgrade 6) and applied on load straight away, before analysis
+  returns; it overrules the automatic trim. A deck still at the top moves to the new start.
+- A hand-set point gets a purple marker with a flag, so you can see it isn't automatic.
+- Refused with a hint: a start or end leaving under 5 s of song, and an end before the playhead
+  on the deck the room is hearing (it would stop dead).
+- Not yet: dragging the markers directly.
 
 ### Next
 

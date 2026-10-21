@@ -16,6 +16,12 @@ public readonly record struct FileVersion(long Size, long ModifiedTicks)
     }
 }
 
+/// <summary>Where the DJ set a song to start and end by hand; null parts are automatic (silence trimming).</summary>
+public readonly record struct ManualTrim(TimeSpan? Start, TimeSpan? End)
+{
+    public bool IsEmpty => Start is null && End is null;
+}
+
 /// <summary>A library track still waiting for analysis.</summary>
 public sealed record PendingAnalysis(string Path, FileVersion Version, bool HasTagBpm);
 
@@ -94,6 +100,38 @@ public sealed partial class LibraryDatabase
             cmd.Parameters.AddWithValue("$min", r.Min);
             cmd.Parameters.AddWithValue("$max", r.Max);
         }
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>Where the DJ set a file to start and end, if they did.</summary>
+    public ManualTrim GetTrim(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT start_ms, end_ms FROM trims WHERE path = $path;";
+        cmd.Parameters.AddWithValue("$path", path);
+        using var r = cmd.ExecuteReader();
+        if (!r.Read())
+            return default;
+        return new ManualTrim(
+            r.IsDBNull(0) ? null : TimeSpan.FromMilliseconds(r.GetInt64(0)),
+            r.IsDBNull(1) ? null : TimeSpan.FromMilliseconds(r.GetInt64(1)));
+    }
+
+    /// <summary>Saves where the DJ set a file to start and end (both automatic: forgets the file).</summary>
+    public void SetTrim(string path, ManualTrim trim)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = trim.IsEmpty
+            ? "DELETE FROM trims WHERE path = $path;"
+            : """
+              INSERT INTO trims (path, start_ms, end_ms) VALUES ($path, $start, $end)
+                  ON CONFLICT(path) DO UPDATE SET start_ms = excluded.start_ms, end_ms = excluded.end_ms;
+              """;
+        cmd.Parameters.AddWithValue("$path", path);
+        cmd.Parameters.AddWithValue("$start", trim.Start is { } start ? (long)start.TotalMilliseconds : DBNull.Value);
+        cmd.Parameters.AddWithValue("$end", trim.End is { } end ? (long)end.TotalMilliseconds : DBNull.Value);
         cmd.ExecuteNonQuery();
     }
 

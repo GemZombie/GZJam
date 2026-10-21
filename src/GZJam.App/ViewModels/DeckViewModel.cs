@@ -64,6 +64,21 @@ public sealed partial class DeckViewModel : ObservableObject
     public double TrimStart => Deck.Length > TimeSpan.Zero ? Deck.Start / Deck.Length : 0;
     public double TrimEnd => Deck.Length > TimeSpan.Zero ? Deck.End / Deck.Length : 1;
 
+    // Where the song starts and ends: set by the DJ, else found by analysis, else the whole file.
+    private TimeSpan? _autoStart, _autoEnd;
+    private ManualTrim _manualTrim;
+
+    /// <summary>The DJ set where this song starts (rather than silence trimming finding it).</summary>
+    public bool IsStartManual => _manualTrim.Start is not null;
+    public bool IsEndManual => _manualTrim.End is not null;
+
+    /// <summary>Where silence trimming says the music starts and ends.</summary>
+    public TimeSpan AutomaticStart => _autoStart ?? TimeSpan.Zero;
+    public TimeSpan AutomaticEnd => _autoEnd ?? Deck.Length;
+
+    /// <summary>A song can't be trimmed shorter than this.</summary>
+    private static readonly TimeSpan ShortestSong = TimeSpan.FromSeconds(5);
+
     /// <summary>Shown briefly over the position bar, e.g. "Tap again to pause".</summary>
     [ObservableProperty]
     public partial string? Hint { get; private set; }
@@ -265,6 +280,9 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.Unload();
         Track = null;
         Waveform = null;
+        _autoStart = _autoEnd = null;
+        _manualTrim = default;
+        OnTrimChanged();
         IsAnalyzing = false;
         Log.Info($"Deck {Label}: eject");
         Refresh();
@@ -330,7 +348,10 @@ public sealed partial class DeckViewModel : ObservableObject
         Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path})");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
-        OnTrimChanged();
+        // A start set by hand applies straight away; silence trimming follows with the analysis.
+        _autoStart = _autoEnd = null;
+        _manualTrim = _owner.GetTrim(track.Path);
+        ApplyTrim();
         Refresh();
         _ = AnalyzeAsync(track);
     }
@@ -356,13 +377,9 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         Waveform = analysis.Waveform;
         Track!.DetectedBpm = analysis.Bpm;
-        Deck.SetTrim(analysis.AudibleStart, analysis.AudibleEnd);
-        // Still at the top: skip the silence before the music. (Mid-track, leave it be.)
-        if (!IsPlaying && !IsFinished && Deck.Position < analysis.AudibleStart)
-        {
-            Deck.Seek(analysis.AudibleStart);
-            _lastPosition = Deck.Position;   // a jump isn't listening
-        }
+        _autoStart = analysis.AudibleStart;
+        _autoEnd = analysis.AudibleEnd;
+        ApplyTrim();
         Log.Info(string.Create(CultureInfo.InvariantCulture,
             $"Deck {Label}: music from {analysis.AudibleStart.TotalSeconds:0.00} s to {analysis.AudibleEnd.TotalSeconds:0.00} s of {analysis.Length.TotalSeconds:0.00} s, BPM {analysis.Bpm?.ToString() ?? "unknown"}"));
         OnPropertyChanged(nameof(TrackBpm));
@@ -374,6 +391,71 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(TrimStart));
         OnPropertyChanged(nameof(TrimEnd));
+        OnPropertyChanged(nameof(IsStartManual));
+        OnPropertyChanged(nameof(IsEndManual));
+    }
+
+    /// <summary>
+    /// Sets the deck's start and end: the DJ's, else the automatic ones. A deck still at the top
+    /// moves to the start, skipping the silence (or applause) before it; mid-track, it stays put.
+    /// </summary>
+    private void ApplyTrim()
+    {
+        TimeSpan start = _manualTrim.Start ?? AutomaticStart, end = _manualTrim.End ?? AutomaticEnd;
+        Deck.SetTrim(start, end);
+        if (!IsPlaying && !IsFinished && Deck.Position < start)
+        {
+            Deck.Seek(start);
+            _lastPosition = Deck.Position;   // a jump isn't listening
+        }
+        OnTrimChanged();
+        Refresh();
+    }
+
+    /// <summary>
+    /// Starts the song at <paramref name="at"/> from now on (saved for the file), or (null) where
+    /// silence trimming says. Returns false, with a hint, if that's not possible.
+    /// </summary>
+    public bool SetStart(TimeSpan? at)
+    {
+        if (Track is null)
+            return false;
+        if (at is { } start && start > Deck.End - ShortestSong)
+        {
+            ShowHint("The start must come before the end");
+            return false;
+        }
+        _manualTrim = _manualTrim with { Start = at };
+        _owner.SaveTrim(Track.Path, _manualTrim);
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: start of \"{Title}\" {(at is { } t ? $"set to {t.TotalSeconds:0.0} s" : "automatic")}"));
+        ApplyTrim();
+        return true;
+    }
+
+    /// <summary>Ends the song at <paramref name="at"/> from now on (saved for the file), or (null) where silence trimming says.</summary>
+    public bool SetEnd(TimeSpan? at)
+    {
+        if (Track is null)
+            return false;
+        TimeSpan end = at ?? AutomaticEnd;
+        if (end < Deck.Start + ShortestSong)
+        {
+            ShowHint("The end must come after the start");
+            return false;
+        }
+        if (IsOnAir && IsPlaying && end <= Deck.Position + TimeSpan.FromSeconds(1))
+        {
+            // The room would hear it stop dead.
+            ShowHint("That part has already played");
+            return false;
+        }
+        _manualTrim = _manualTrim with { End = at };
+        _owner.SaveTrim(Track.Path, _manualTrim);
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: end of \"{Title}\" {(at is { } t ? $"set to {t.TotalSeconds:0.0} s" : "automatic")}"));
+        ApplyTrim();
+        return true;
     }
 
     private async void ShowHint(string text)

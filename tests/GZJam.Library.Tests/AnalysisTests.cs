@@ -100,4 +100,20 @@ public sealed class AnalysisTests : IDisposable
         track.BpmRange = null;   // back to automatic: the tag again
         Assert.Equal(103, track.Bpm);
     }
+
+    [Fact]
+    public void A_start_and_end_set_by_hand_are_remembered_separately()
+    {
+        string path = _lib.AddMp3("Live/applause.mp3");
+        Assert.True(_lib.Database.GetTrim(path).IsEmpty);
+
+        _lib.Database.SetTrim(path, new ManualTrim(TimeSpan.FromSeconds(6.4), null));
+        Assert.Equal(new ManualTrim(TimeSpan.FromSeconds(6.4), null), _lib.Database.GetTrim(path));
+
+        _lib.Database.SetTrim(path, new ManualTrim(TimeSpan.FromSeconds(6.4), TimeSpan.FromSeconds(181.25)));
+        Assert.Equal(TimeSpan.FromSeconds(181.25), _lib.Database.GetTrim(path).End);
+
+        _lib.Database.SetTrim(path, default);   // both back to automatic
+        Assert.True(_lib.Database.GetTrim(path).IsEmpty);
+    }
 }

@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using GZJam.App.ViewModels;
+using GZJam.Audio;
 
 namespace GZJam.App.Views;
 
@@ -37,7 +38,61 @@ public partial class DeckView : UserControl
             menu.Opening += (_, e) => FillBpmMenu(menu, e);
             menu.Opened += (_, _) => FillBpmMenu(menu, null);
         }
+        // Remember where on the waveform the menu was asked for, so "here" means that spot.
+        Seek.AddHandler(ContextRequestedEvent, (_, e) =>
+            _trimMenuAt = e.TryGetPosition(Seek, out Point point) ? Seek.FractionAt(point) : null,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+        TrimMenu.Opening += (_, e) => FillTrimMenu(e);
+        TrimMenu.Opened += (_, _) => FillTrimMenu(null);
     }
+
+    private double? _trimMenuAt;
+
+    /// <summary>
+    /// The waveform's menu: start or end the song where it was clicked, or at the playhead (after
+    /// listening for the spot in the headphones), or go back to the automatic trim.
+    /// </summary>
+    private void FillTrimMenu(System.ComponentModel.CancelEventArgs? opening)
+    {
+        if (Vm is not { HasTrack: true } vm)
+        {
+            if (opening is not null)
+                opening.Cancel = true;
+            return;
+        }
+        Deck deck = vm.Deck;
+        TimeSpan playhead = deck.Position;
+        TimeSpan? here = _trimMenuAt is { } fraction ? deck.Length * fraction : null;
+        var items = TrimMenu.Items;
+        items.Clear();
+        items.Add(new MenuItem { Header = "Song starts", IsEnabled = false });
+        if (here is { } h)
+            items.Add(Item($"Here ({Time(h)})", () => vm.SetStart(h)));
+        items.Add(Item($"At the playhead ({Time(playhead)})", () => vm.SetStart(playhead)));
+        items.Add(Item($"Automatic ({Time(vm.AutomaticStart)})", () => vm.SetStart(null), radio: true, isChecked: !vm.IsStartManual));
+        items.Add(new Separator());
+        items.Add(new MenuItem { Header = "Song ends", IsEnabled = false });
+        if (here is { } h2)
+            items.Add(Item($"Here ({Time(h2)})", () => vm.SetEnd(h2)));
+        items.Add(Item($"At the playhead ({Time(playhead)})", () => vm.SetEnd(playhead)));
+        items.Add(Item($"Automatic ({Time(vm.AutomaticEnd)})", () => vm.SetEnd(null), radio: true, isChecked: !vm.IsEndManual));
+
+        static MenuItem Item(string header, Func<bool> action, bool radio = false, bool isChecked = false)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                ToggleType = radio ? MenuItemToggleType.CheckBox : MenuItemToggleType.None,
+                IsChecked = isChecked,
+            };
+            item.Click += (_, _) => action();
+            return item;
+        }
+    }
+
+    /// <summary>"1:04.2": tenths, since start and end points are about precision.</summary>
+    private static string Time(TimeSpan t) =>
+        string.Create(System.Globalization.CultureInfo.CurrentCulture, $"{(int)t.TotalMinutes}:{t.Seconds:00}.{t.Milliseconds / 100}");
 
     private void FillBpmMenu(ContextMenu menu, System.ComponentModel.CancelEventArgs? opening)
     {

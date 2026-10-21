@@ -27,6 +27,14 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<double> TrimEndProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(TrimEnd), 1);
 
+    /// <summary>The start was set by hand: its marker stands out.</summary>
+    public static readonly StyledProperty<bool> IsStartManualProperty =
+        AvaloniaProperty.Register<SeekBar, bool>(nameof(IsStartManual));
+
+    /// <summary>The end was set by hand: its marker stands out.</summary>
+    public static readonly StyledProperty<bool> IsEndManualProperty =
+        AvaloniaProperty.Register<SeekBar, bool>(nameof(IsEndManual));
+
     public static readonly StyledProperty<double> ProgressProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(Progress));
 
@@ -49,7 +57,7 @@ public sealed class SeekBar : Control
     static SeekBar()
     {
         AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
-            WaveformProperty, TrimStartProperty, TrimEndProperty);
+            WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty);
     }
 
     public Waveform? Waveform
@@ -69,6 +77,21 @@ public sealed class SeekBar : Control
         get => GetValue(TrimEndProperty);
         set => SetValue(TrimEndProperty, value);
     }
+
+    public bool IsStartManual
+    {
+        get => GetValue(IsStartManualProperty);
+        set => SetValue(IsStartManualProperty, value);
+    }
+
+    public bool IsEndManual
+    {
+        get => GetValue(IsEndManualProperty);
+        set => SetValue(IsEndManualProperty, value);
+    }
+
+    /// <summary>The position (0..1) at a point on the bar.</summary>
+    public double FractionAt(Point point) => Bounds.Width > 0 ? Math.Clamp(point.X / Bounds.Width, 0, 1) : 0;
 
     public double Progress
     {
@@ -142,6 +165,7 @@ public sealed class SeekBar : Control
     private const double BarStep = 3, BarWidth = 2;
     private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
     private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
+    private static readonly IBrush ManualMarker = new ImmutableSolidColorBrush(Color.FromRgb(0xA9, 0x94, 0xFF));
 
     // Bars depend only on the waveform and the size, so they're worked out once, not every frame.
     private (Waveform Waveform, Size Size)? _barsFor;
@@ -165,16 +189,31 @@ public sealed class SeekBar : Control
 
         // Trimmed silence at either end: shaded, with a marker where the music starts and ends.
         double start = Math.Clamp(TrimStart, 0, 1) * bounds.Width, end = Math.Clamp(TrimEnd, 0, 1) * bounds.Width;
-        if (start >= 1)
+        // A point the DJ set by hand gets a brighter, wider marker with a small flag at the top.
+        if (start >= 1 || IsStartManual)
         {
             context.DrawRectangle(TrimShade, null, new Rect(0, 0, start, bounds.Height));
-            context.DrawRectangle(TrimMarker, null, new Rect(start, 0, 1, bounds.Height));
+            DrawMarker(context, start, bounds.Height, IsStartManual, pointsRight: true);
         }
-        if (end <= bounds.Width - 1)
+        if (end <= bounds.Width - 1 || IsEndManual)
         {
             context.DrawRectangle(TrimShade, null, new Rect(end, 0, bounds.Width - end, bounds.Height));
-            context.DrawRectangle(TrimMarker, null, new Rect(end - 1, 0, 1, bounds.Height));
+            DrawMarker(context, end - 1, bounds.Height, IsEndManual, pointsRight: false);
         }
+    }
+
+    private static void DrawMarker(DrawingContext context, double x, double height, bool manual, bool pointsRight)
+    {
+        if (!manual)
+        {
+            context.DrawRectangle(TrimMarker, null, new Rect(x, 0, 1, height));
+            return;
+        }
+        context.DrawRectangle(ManualMarker, null, new Rect(x - 0.5, 0, 2, height));
+        const double flag = 7;
+        var tip = new Point(pointsRight ? x + flag : x - flag, flag / 2);
+        var geometry = new PolylineGeometry([new Point(x, 0), tip, new Point(x, flag)], isFilled: true);
+        context.DrawGeometry(ManualMarker, null, geometry);
     }
 
     private static (Rect, Rect, IBrush, IBrush, IBrush)[] BuildBars(Waveform waveform, Rect bounds)

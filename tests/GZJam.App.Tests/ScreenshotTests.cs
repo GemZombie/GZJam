@@ -117,5 +117,14 @@ public sealed class ScreenshotTests
         library.SearchText = "~bpm:180 -rating:no";
         AppHarness.Settle();
         app.Screenshot("12-bpm-filtered");
+
+        // Deck 2: the song set to start a few seconds in (say, after applause); its waveform menu.
+        vm.Deck2.SetStart(TimeSpan.FromSeconds(12));
+        var seek2 = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<GZJam.App.Controls.SeekBar>("Seek")!;
+        var at2 = seek2.TranslatePoint(new Avalonia.Point(seek2.Bounds.Width * 0.9, seek2.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseDown(at2, MouseButton.Right, RawInputModifiers.None);
+        app.Window.MouseUp(at2, MouseButton.Right, RawInputModifiers.None);
+        AppHarness.Settle(300);
+        app.Screenshot("13-trim-menu");
     }
 }
