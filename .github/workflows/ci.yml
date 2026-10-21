@@ -1,0 +1,69 @@
+# Quick check that GZJam builds and its tests pass: on every push to main and on pull requests.
+# No packages here; those come from release.yml.
+#
+# Linux and Windows run every time. macOS minutes count ten times over against a private repo's
+# allowance, so macOS runs only when asked for: Actions › CI › Run workflow › "Include macOS".
+# (The release workflow always builds and tests on all three.)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+    inputs:
+      macos:
+        description: Include macOS
+        type: boolean
+        default: true
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.macos && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","windows-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'lib/bass/Bass.targets') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Build
+        run: dotnet build GZJam.slnx -c Release
+
+      - name: Test
+        run: dotnet test GZJam.slnx -c Release --no-build
+
+      - name: Keep the test logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.os }}
+          path: tests/*/bin/Release/net10.0/TestResults/
+          retention-days: 7
+          if-no-files-found: ignore

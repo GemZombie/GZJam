@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=GZJam
+Comment=DJ software for social dances
+Exec=GZJam
+Terminal=false
+Categories=AudioVideo;Audio;Player;

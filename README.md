@@ -31,7 +31,8 @@ Build a self-contained copy on any machine (it includes .NET and the Linux BASS 
 dotnet publish src/GZJam.App -c Release -r linux-x64 --self-contained -o publish/linux-x64
 ```
 
-Copy `publish/linux-x64` to the Linux machine and run `./GZJam` from it. Or, with the .NET 10 SDK
+Copy `publish/linux-x64` to the Linux machine and run `./GZJam` from it, or unpack a release
+tarball (see *Builds and releases*) and run `./install.sh`. Or, with the .NET 10 SDK
 installed there, `dotnet run --project src/GZJam.App` from a clone. Settings go in
 `~/.config/GZJam`, the library database and the activity log (`logs/`) in `~/.local/share/GZJam`.
 
@@ -65,6 +66,43 @@ dotnet test
 
 UI tests run headless. `ScreenshotTests` also renders the window over a real music folder
 (`C:\music`, or `GZJAM_SCREENSHOT_MUSIC`) and saves PNGs to `%TEMP%\gzjam-screenshots`.
+
+## Builds and releases
+
+GitHub Actions, in `.github/workflows`:
+
+- **CI** (`ci.yml`) builds and runs the tests on Linux and Windows for every push to `main` and
+  every pull request (not for changes to Markdown or `docs/` only). It makes no packages. macOS
+  minutes cost ten times as much in a private repo, so macOS runs only from Actions › CI ›
+  *Run workflow*.
+- **Release** (`release.yml`) runs the tests on each OS, then builds the packages:
+
+  | | |
+  |---|---|
+  | Windows | `GZJam-<version>-windows-x64-setup.exe`: installs for the current user, no admin prompt; also a portable `.zip` |
+  | macOS | `GZJam-<version>-macos-arm64.dmg` (Apple Silicon) and `-macos-x64.dmg` (Intel) |
+  | Linux | `GZJam-<version>-linux-x64.tar.gz`: run `./install.sh` from it for a launcher entry and a `gzjam` command (`./install.sh --uninstall` removes it) |
+
+  Push a version tag to draft a GitHub release with them attached, then publish the draft by hand:
+
+  ```
+  git tag v0.2.0
+  git push origin v0.2.0
+  ```
+
+  A tag with a suffix (`v0.2.0-beta.1`) is marked as a pre-release. Actions › Release ›
+  *Run workflow* builds test packages without a release; they're kept with the run for 14 days.
+
+Uninstalling never removes settings, the library database or the DJ's data, and never touches music.
+
+The packages aren't signed yet, so the first launch asks for confirmation:
+
+- **Windows** SmartScreen shows "Windows protected your PC": click *More info* › *Run anyway*.
+- **macOS** says it can't verify the app: open System Settings › Privacy & Security and click
+  *Open Anyway*, or run `xattr -dr com.apple.quarantine /Applications/GZJam.app`.
+
+Packaging files are in `packaging/` (the Inno Setup script, the macOS `Info.plist` and bundle
+script, the Linux tarball and install scripts).
 
 ## Layout
 

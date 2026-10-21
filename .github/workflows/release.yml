@@ -1,0 +1,149 @@
+# Builds GZJam's install packages on each OS, after its tests pass there:
+#   Windows  GZJam-<version>-windows-x64-setup.exe (installer) and a portable .zip
+#   macOS    GZJam-<version>-macos-arm64.dmg (Apple Silicon) and -macos-x64.dmg (Intel)
+#   Linux    GZJam-<version>-linux-x64.tar.gz (with install.sh)
+#
+# Pushing a version tag (git tag v0.2.0 && git push origin v0.2.0) builds them and drafts a GitHub
+# release with them attached; publish the draft by hand once it looks right. Running the workflow
+# by hand (Actions › Release › Run workflow) builds test packages only, kept as run artifacts.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version for the test packages (blank for 0.0.0-dev.<run number>)
+        type: string
+        default: ''
+
+concurrency:
+  group: release-${{ github.ref }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  package:
+    name: Package (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+          - name: linux
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'lib/bass/Bass.targets') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          elif [[ -n "$INPUT_VERSION" ]]; then
+            version="${INPUT_VERSION#v}"
+          else
+            version="0.0.0-dev.$GITHUB_RUN_NUMBER"
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$version' isn't a version like 1.2.0 or 1.2.0-beta.1"
+            exit 1
+          fi
+          prefix="${version%%-*}"
+          suffix=""
+          [[ "$version" == *-* ]] && suffix="${version#*-}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "PUBLISH_ARGS=-c Release --self-contained -p:VersionPrefix=$prefix -p:VersionSuffix=$suffix" >> "$GITHUB_ENV"
+          echo "Packaging GZJam $version"
+
+      - name: Test
+        run: dotnet test GZJam.slnx -c Release
+
+      - name: Package for Windows
+        if: matrix.name == 'windows'
+        shell: pwsh
+        run: |
+          dotnet publish src/GZJam.App $env:PUBLISH_ARGS.Split(' ') -r win-x64 -o publish/GZJam
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path publish/GZJam -DestinationPath "dist/GZJam-$env:VERSION-windows-x64.zip"
+
+          $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe", "$env:ProgramFiles\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+            $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe", "$env:ProgramFiles\Inno Setup*\ISCC.exe" | Select-Object -First 1
+          }
+          & $iscc.FullName /Qp "/DVersion=$env:VERSION" "/DSourceDir=$PWD\publish\GZJam" "/DOutputDir=$PWD\dist" packaging\windows\GZJam.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Package for macOS
+        if: matrix.name == 'macos'
+        run: |
+          for arch in arm64 x64; do
+            dotnet publish src/GZJam.App $PUBLISH_ARGS -r "osx-$arch" -o "publish/osx-$arch"
+            bash packaging/macos/package.sh "publish/osx-$arch" "$VERSION" "$arch" dist
+          done
+
+      - name: Package for Linux
+        if: matrix.name == 'linux'
+        run: |
+          dotnet publish src/GZJam.App $PUBLISH_ARGS -r linux-x64 -o publish/linux-x64
+          bash packaging/linux/package.sh publish/linux-x64 "$VERSION" dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages-${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Draft the GitHub release
+    if: github.ref_type == 'tag'
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: packages-*
+          path: dist
+          merge-multiple: true
+
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          prerelease=""
+          [[ "$version" == *-* ]] && prerelease="--prerelease"
+          gh release create "$GITHUB_REF_NAME" dist/* --draft $prerelease --verify-tag \
+            --title "GZJam $version" --generate-notes

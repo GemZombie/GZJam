@@ -2,3 +2,7 @@
 *.dll binary
 *.so binary
 *.png binary
+*.dylib binary
+*.sh text eol=lf
+*.desktop text eol=lf
+*.plist text eol=lf
