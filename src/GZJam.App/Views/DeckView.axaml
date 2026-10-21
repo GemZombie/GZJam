@@ -80,7 +80,7 @@
             <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ" Margin="3,0,2,0"
                     IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
               <Button.Flyout>
-                <Flyout Placement="BottomEdgeAlignedLeft">
+                <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="eq">
                   <v:EqPanel />
                 </Flyout>
               </Button.Flyout>
@@ -121,7 +121,7 @@
         <Button x:Name="CompactEqButton" Grid.Column="3" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ"
                 IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
           <Button.Flyout>
-            <Flyout Placement="BottomEdgeAlignedRight">
+            <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="eq">
               <v:EqPanel />
             </Flyout>
           </Button.Flyout>

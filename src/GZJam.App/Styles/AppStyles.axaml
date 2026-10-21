@@ -432,17 +432,13 @@
     <Setter Property="Height" Value="34" />
     <Setter Property="CornerRadius" Value="9" />
   </Style>
-  <!-- The EQ sliders: upright, like a mixer's, in half-dB steps -->
-  <Style Selector="Slider.eq">
-    <Setter Property="Orientation" Value="Vertical" />
-    <Setter Property="Height" Value="130" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="TickFrequency" Value="0.5" />
-    <Setter Property="IsSnapToTickEnabled" Value="True" />
-    <Setter Property="SmallChange" Value="0.5" />
-    <Setter Property="LargeChange" Value="3" />
-    <Setter Property="Ticks" Value="0" />
-    <Setter Property="TickPlacement" Value="Outside" />
+  <!-- The EQ panel's frame: the app's panel colours rather than the stock flyout grey -->
+  <Style Selector="FlyoutPresenter.eq">
+    <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="16,14" />
   </Style>
 
   <!-- A deck's EQ button: quiet when flat, lit when the song has EQ set -->

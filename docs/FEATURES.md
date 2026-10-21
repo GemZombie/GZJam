@@ -395,9 +395,14 @@ Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses no
 ### Status: per-deck EQ built (2026-10-21)
 
 - An **EQ** chip on each deck (beside the heart and energy bars; on a compact deck, beside the
-  time) opens three upright sliders: **low** (shelf below 150 Hz), **mid** (bell around 1 kHz),
-  **high** (shelf above 5 kHz, where record hiss lives). -24 to +6 dB in half-dB steps, a mark at
-  0 dB. Tap a band's value to flatten it; *Less hiss* (treble -6 dB) as a starting point; *Flat*.
+  time) opens a panel laid out like a graphic EQ: a dB scale, three faders and the frequencies
+  under them: **low** (shelf below 150 Hz), **mid** (bell around 1 kHz), **high** (shelf above
+  5 kHz, where record hiss lives). -24 to +6 dB in half-dB steps.
+- The faders (`EqFader`) are drawn like hardware: a ladder line every 3 dB, a brighter 0 dB line
+  across all three, a slot and a metal cap matching the crossfader's. The slot and the lines
+  between 0 dB and the cap light up in purple, so a cut reads as a cut. Drag, press to jump,
+  double-tap for 0 dB, mouse wheel or arrow keys for half a dB.
+- Tap a band's value to flatten it; *Less hiss* (treble -6 dB) as a starting point; *Flat*.
 - The chip lights purple when the song has EQ, so it's clear at a glance.
 - **Remembered per song** (`eq`, schema upgrade 7), saved as it's changed, and applied whenever the
   song is loaded on any deck. Flat forgets it. Never written into the files.
