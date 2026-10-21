@@ -296,6 +296,17 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
+              <!-- Rating: tap to cycle unrated, ♥, broken heart -->
+              <DataGridTemplateColumn Header="♥" Width="34" CanUserResize="False" SortMemberPath="Rating">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="lib:Track">
+                    <Button Classes="row-icon" Padding="4" Click="OnRatingCellClick" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            ToolTip.Tip="Would you play this for a dance? Tap: ♥ yes, then broken heart: no, then unrated.">
+                      <c:RatingIcon Rating="{Binding Rating}" Width="15" Height="15" />
+                    </Button>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Title" Width="2*" MinWidth="140" x:DataType="lib:Track"
                                   Binding="{Binding DisplayTitle}" />
               <DataGridTextColumn Header="Artist" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
@@ -308,6 +319,17 @@
                                   Binding="{Binding Year}" />
               <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Bpm, Converter={x:Static app:Converters.Bpm}}" SortMemberPath="Bpm" />
+              <!-- Energy: tap to cycle unset, low, medium, high -->
+              <DataGridTemplateColumn Header="Energy" Width="76" CanUserResize="False" SortMemberPath="Energy">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="lib:Track">
+                    <Button Classes="row-icon" Padding="8,4" Click="OnEnergyCellClick" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            ToolTip.Tip="Energy. Tap: low, medium, high, then unset.">
+                      <c:EnergyIcon Energy="{Binding Energy}" Width="16" Height="13" />
+                    </Button>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Time" Width="76" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Duration, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
             </DataGrid.Columns>
@@ -323,6 +345,8 @@
                 <MenuItem Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
                 <Separator />
+                <MenuItem x:Name="TrackRatingMenu" Header="Rating" />
+                <MenuItem x:Name="TrackEnergyMenu" Header="Energy" />
                 <MenuItem x:Name="TrackBpmMenu" Header="Detect BPM in range" />
               </ContextMenu>
             </DataGrid.ContextMenu>
@@ -442,6 +466,8 @@
                       <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                      <c:RatingIcon Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12" VerticalAlignment="Center" />
+                      <c:EnergyIcon Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10" VerticalAlignment="Center" />
                       <TextBlock Classes="muted mono" Text="{Binding BpmText}" FontSize="11" />
                       <TextBlock Classes="muted mono" Text="{Binding DurationText}" FontSize="11" />
                     </StackPanel>
@@ -462,6 +488,8 @@
                   <MenuItem x:Name="QueueLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadQueueToDeckClick" />
                   <Separator />
+                  <MenuItem x:Name="QueueRatingMenu" Header="Rating" />
+                  <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
                   <MenuItem x:Name="QueueBpmMenu" Header="Detect BPM in range" />
                   <Separator />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />

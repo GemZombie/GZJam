@@ -71,13 +71,19 @@ public partial class MainWindow
     private void OnTrackMenuOpening()
     {
         UpdateLoadMenuItems(TrackLoad1, TrackLoad2, SelectedTracks().Count == 1);
-        BpmMenu.Fill(TrackBpmMenu, Vm, SelectedTracks());
+        var tracks = SelectedTracks();
+        MarksMenu.FillRating(TrackRatingMenu, Vm, tracks);
+        MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
+        BpmMenu.Fill(TrackBpmMenu, Vm, tracks);
     }
 
     private void OnQueueMenuOpening()
     {
         UpdateLoadMenuItems(QueueLoad1, QueueLoad2, SelectedQueueItems().Count == 1);
-        BpmMenu.Fill(QueueBpmMenu, Vm, SelectedQueueItems().Select(i => i.Track).ToList());
+        var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
+        MarksMenu.FillRating(QueueRatingMenu, Vm, tracks);
+        MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
+        BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
     }
 
     private void UpdateLoadMenuItems(MenuItem loadA, MenuItem loadB, bool oneTrackSelected)
@@ -112,6 +118,18 @@ public partial class MainWindow
     {
         if ((sender as Control)?.DataContext is Track track)
             Vm.Preview?.Toggle(track);
+    }
+
+    private void OnRatingCellClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is Track track)
+            Vm.CycleRating(track);
+    }
+
+    private void OnEnergyCellClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is Track track)
+            Vm.CycleEnergy(track);
     }
 
     private void OnPreviewQueueItemClick(object? sender, RoutedEventArgs e)

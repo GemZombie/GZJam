@@ -3,6 +3,7 @@
              xmlns:v="using:GZJam.App.Views"
              xmlns:vm="using:GZJam.App.ViewModels"
              xmlns:c="using:GZJam.App.Controls"
+             xmlns:lib="using:GZJam.Library"
              x:Class="GZJam.App.Views.DeckView"
              x:DataType="vm:DeckViewModel">
   <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}" Padding="16,14">
@@ -21,7 +22,19 @@
           </Border>
           <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                      Classes.dim="{Binding !HasTrack}" ToolTip.Tip="{Binding Title}" />
-          <TextBlock Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis" />
+          <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="2">
+            <!-- Rate the song while it plays: tap to cycle, like the library columns -->
+            <Button x:Name="RatingButton" Classes="row-icon" Padding="3,2" Click="OnRatingClick" IsVisible="{Binding HasTrack}"
+                    VerticalAlignment="Center" ToolTip.Tip="Would you play this for a dance? Tap: ♥ yes, then broken heart: no, then unrated.">
+              <c:RatingIcon Rating="{Binding Track.Rating, FallbackValue={x:Static lib:Rating.Unrated}}" Width="14" Height="14" />
+            </Button>
+            <Button x:Name="EnergyButton" Grid.Column="1" Classes="row-icon" Padding="5,3" Click="OnEnergyClick" IsVisible="{Binding HasTrack}"
+                    VerticalAlignment="Center" ToolTip.Tip="Energy. Tap: low, medium, high, then unset.">
+              <c:EnergyIcon Energy="{Binding Track.Energy, FallbackValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
+            </Button>
+            <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center" Margin="4,0,0,0" />
+          </Grid>
         </StackPanel>
         <Button Grid.Column="2" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM. Right-click if the BPM is wrong.">

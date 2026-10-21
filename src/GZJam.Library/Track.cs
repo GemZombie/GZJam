@@ -69,6 +69,32 @@ public sealed class Track : INotifyPropertyChanged
 
     public TimeSpan Duration { get; init; }
 
+    /// <summary>The DJ's rating. Kept in the library database, never written to the file.</summary>
+    public Rating Rating
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rating)));
+        }
+    }
+
+    /// <summary>The DJ's energy mark. Kept in the library database, never written to the file.</summary>
+    public Energy Energy
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Energy)));
+        }
+    }
+
     /// <summary>Title tag, or the file name when the tag is missing.</summary>
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
 

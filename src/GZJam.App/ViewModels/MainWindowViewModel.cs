@@ -155,6 +155,44 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ShowNotice($"BPM detected again for {what}.");
     }
 
+    // ───────────── Ratings and energy ─────────────
+
+    /// <summary>Rates tracks (saved in the library, never in the files) wherever they are on screen.</summary>
+    public void SetRating(IReadOnlyList<Track> tracks, Rating rating)
+    {
+        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        _database.SetRating(paths, rating);
+        foreach (string path in paths)
+            foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
+                track.Rating = rating;
+        Log.Info($"Rating for {Describe(tracks, paths)}: {rating}");
+    }
+
+    /// <summary>Marks tracks' energy wherever they are on screen.</summary>
+    public void SetEnergy(IReadOnlyList<Track> tracks, Energy energy)
+    {
+        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        _database.SetEnergy(paths, energy);
+        foreach (string path in paths)
+            foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
+                track.Energy = energy;
+        Log.Info($"Energy for {Describe(tracks, paths)}: {energy}");
+    }
+
+    /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
+    public void CycleRating(Track track) => SetRating([track], track.Rating switch
+    {
+        Rating.Unrated => Rating.Loved,
+        Rating.Loved => Rating.Rejected,
+        _ => Rating.Unrated,
+    });
+
+    /// <summary>A tap on a track's energy bars: unset → low → medium → high → unset.</summary>
+    public void CycleEnergy(Track track) => SetEnergy([track], track.Energy == Energy.High ? Energy.Unset : track.Energy + 1);
+
+    private static string Describe(IReadOnlyList<Track> tracks, IReadOnlyList<string> paths) =>
+        paths.Count == 1 ? $"\"{tracks[0].DisplayTitle}\"" : $"{paths.Count} tracks";
+
     /// <summary>The right-hand panel shows the History tab rather than the Queue.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowQueue))]

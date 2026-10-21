@@ -328,6 +328,17 @@ lock, and automatic history.
   -12 dB), remembered. No boost above 100.
 - The deck row grew from 268 to 312 px to fit them, which also makes the waveforms taller.
 
+### Status: item 4 built (ratings and energy)
+
+- **Rating** column (♥) and **Energy** column (three rising bars) in the library; tap to cycle
+  (unrated → ♥ → broken heart → unrated; unset → low → medium → high → unset). Both columns sort.
+- The same two buttons on each deck, beside the artist, to mark the song while it plays.
+- Queue rows show the heart and bars when set. Right-click (library or queue) › *Rating* /
+  *Energy* marks several tracks at once.
+- Stored in the library database (`marks`, schema upgrade 5) by path; files are never touched.
+  Marks survive rescans and tag changes.
+- Drawn as vector icons, not emoji, so they look the same on every system.
+
 ### Next
 
 - **Per-deck EQ** (low / mid / high), chiefly to cut hiss on record transfers, remembered per

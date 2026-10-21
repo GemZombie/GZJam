@@ -104,6 +104,18 @@ public partial class DeckView : UserControl
         PlayButton.Classes.Remove("holding");
     }
 
+    private void OnRatingClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is { Track: { } track } vm)
+            vm.Owner.CycleRating(track);
+    }
+
+    private void OnEnergyClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is { Track: { } track } vm)
+            vm.Owner.CycleEnergy(track);
+    }
+
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
         if (_holdCompleted)

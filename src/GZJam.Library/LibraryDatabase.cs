@@ -162,6 +162,16 @@ public sealed partial class LibraryDatabase
                 max  INTEGER NOT NULL
             );
             """,
+
+        // 5: The DJ's rating and energy marks per file (see Rating, Energy). User data, like
+        // bpm_ranges: kept by path, never written into the music files.
+        """
+            CREATE TABLE marks (
+                path   TEXT PRIMARY KEY,
+                rating INTEGER NOT NULL DEFAULT 0,
+                energy INTEGER NOT NULL DEFAULT 0
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -395,13 +405,17 @@ public sealed partial class LibraryDatabase
         DetectedBpm = r.IsDBNull(r.GetOrdinal("detected_bpm")) ? null : r.GetDouble(r.GetOrdinal("detected_bpm")),
         BpmRange = r.IsDBNull(r.GetOrdinal("range_min")) ? null : new BpmRange(r.GetInt32(r.GetOrdinal("range_min")), r.GetInt32(r.GetOrdinal("range_max"))),
         Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
+        Rating = (Rating)(GetInt(r, "rating") ?? 0),
+        Energy = (Energy)(GetInt(r, "energy") ?? 0),
     };
 
-    /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
-    /// <summary>A track row plus what the app knows about it: detected BPM and any chosen BPM range.</summary>
-    private const string TrackColumns = "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max";
-    private const string TrackJoins = JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path";
+    /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
+    private const string TrackColumns =
+        "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, m.rating AS rating, m.energy AS energy";
+    private const string TrackJoins =
+        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN marks m ON m.path = t.path";
 
+    /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
     private const string JoinAnalysis =
         "LEFT JOIN analysis a ON a.path = t.path AND a.file_size = t.file_size AND a.modified_utc = t.modified_utc";
 

@@ -38,6 +38,12 @@ public sealed class ScreenshotTests
         library.SearchText = "jump";
         AppHarness.Settle();
         var tracks = library.Results;
+        // Some marks, as a DJ would have made them (in the throwaway database, not the files).
+        app.ViewModel.SetRating([tracks[0], tracks[1], tracks[4]], GZJam.Library.Rating.Loved);
+        app.ViewModel.SetRating([tracks[5]], GZJam.Library.Rating.Rejected);
+        app.ViewModel.SetEnergy([tracks[0], tracks[2]], GZJam.Library.Energy.High);
+        app.ViewModel.SetEnergy([tracks[1]], GZJam.Library.Energy.Medium);
+        app.ViewModel.SetEnergy([tracks[4]], GZJam.Library.Energy.Low);
         app.ViewModel.Queue.Add(tracks.Take(5));
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         grid.SelectedIndex = 3;
