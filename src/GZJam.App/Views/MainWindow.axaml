@@ -120,38 +120,14 @@
 
     <!-- ───────────── Decks + mixer ───────────── -->
     <Grid Grid.Row="2" ColumnDefinitions="*,212,*" ColumnSpacing="12">
-      <!-- The row is as tall as the mixer column needs; the decks are at least this tall -->
-      <v:DeckView x:Name="Deck1View" Label="1" Accent="{StaticResource Deck1Brush}" MinHeight="300"
+      <!-- The row is as tall as the decks or the mixer column need, whichever is more -->
+      <v:DeckView x:Name="Deck1View" Label="1" Accent="{StaticResource Deck1Brush}" MinHeight="268"
                   DataContext="{Binding Deck1}" DragDrop.AllowDrop="True" />
 
       <Border Grid.Column="1" Classes="panel" Padding="14">
-        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8">
-          <!-- Auto-play: plays through the queue, alternating decks, with the gap between songs -->
-          <Border Classes="autoplay" Classes.on="{Binding IsOn}"
-                  DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
-            <StackPanel Spacing="2">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" />
-                <ToggleSwitch x:Name="AutoPlaySwitch" Grid.Column="1" OnContent="" OffContent="" Margin="0,-6"
-                              IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
-                              ToolTip.Tip="Play through the queue automatically, alternating decks" />
-              </Grid>
-              <!-- Always takes its line, so the deck row never changes height when auto-play starts -->
-              <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis" MinHeight="15" />
-            </StackPanel>
-          </Border>
-          <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="4"
-                DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel"
-                ToolTip.Tip="Silence between songs when auto-play moves to the next one">
-            <TextBlock Classes="label" Text="GAP" />
-            <Button Grid.Column="1" Classes="step" Content="−" Command="{Binding GapDownCommand}" />
-            <TextBlock Grid.Column="2" Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold"
-                       VerticalAlignment="Center" MinWidth="44" TextAlignment="Center" />
-            <Button Grid.Column="3" Classes="step" Content="+" Command="{Binding GapUpCommand}" />
-          </Grid>
-
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
           <!-- Speakers: level meter (one bar in mono, two in stereo), limit light, volume; headphone volume -->
-          <StackPanel Grid.Row="2" Spacing="5" VerticalAlignment="Center" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
+          <StackPanel Spacing="5" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
               <c:LevelMeter x:Name="MainMeter" Height="11" VerticalAlignment="Center" IsMono="{Binding IsMono}"
                             Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
@@ -179,7 +155,7 @@
             </Grid>
           </StackPanel>
 
-          <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
+          <StackPanel Grid.Row="2" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
             <c:CrossfaderControl x:Name="Crossfader" Height="56" Value="{Binding Crossfader}"
                                  ToolTip.Tip="Crossfader: fades the room between Deck 1 and Deck 2" />
             <Grid ColumnDefinitions="Auto,*,Auto">
@@ -194,7 +170,7 @@
         </Grid>
       </Border>
 
-      <v:DeckView x:Name="Deck2View" Grid.Column="2" Label="2" Accent="{StaticResource Deck2Brush}" MinHeight="300"
+      <v:DeckView x:Name="Deck2View" Grid.Column="2" Label="2" Accent="{StaticResource Deck2Brush}" MinHeight="268"
                   DataContext="{Binding Deck2}" DragDrop.AllowDrop="True" />
     </Grid>
 
@@ -329,7 +305,7 @@
               <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Bpm, Converter={x:Static app:Converters.Bpm}}" SortMemberPath="Bpm" />
               <!-- Energy: tap to cycle unset, low, medium, high -->
-              <DataGridTemplateColumn Header="Energy" Width="80" CanUserResize="False" SortMemberPath="Energy">
+              <DataGridTemplateColumn Header="Energy" Width="84" CanUserResize="False" SortMemberPath="Energy">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate DataType="lib:Track">
                     <Button Classes="row-icon" Padding="8,4" Click="OnEnergyCellClick" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -399,8 +375,30 @@
 
       <!-- Queue and History -->
       <Border Grid.Column="4" Classes="panel">
-        <Grid RowDefinitions="Auto,*">
-          <Border Classes="panel-header" Padding="8,0,14,0">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <!-- Auto-play: plays through the queue, alternating decks, with the gap between songs.
+               Above the tabs, so its status stays in view on the History tab too. -->
+          <Border Classes="autoplay" Classes.on="{Binding IsOn}" Margin="8,8,8,0"
+                  DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
+            <StackPanel Spacing="2">
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" VerticalAlignment="Center" />
+                <ToggleSwitch x:Name="AutoPlaySwitch" Grid.Column="1" OnContent="" OffContent="" Margin="4,-6,0,-6"
+                              IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
+                              ToolTip.Tip="Play through the queue automatically, alternating decks" />
+                <TextBlock Grid.Column="3" Classes="label" Text="GAP" VerticalAlignment="Center" Margin="0,0,2,0"
+                           ToolTip.Tip="Silence between songs when auto-play moves to the next one" />
+                <Button Grid.Column="4" Classes="step" Content="−" Command="{Binding GapDownCommand}" />
+                <TextBlock Grid.Column="5" Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold"
+                           VerticalAlignment="Center" MinWidth="40" TextAlignment="Center" />
+                <Button Grid.Column="6" Classes="step" Content="+" Command="{Binding GapUpCommand}" />
+              </Grid>
+              <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"
+                         IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Row="1" Classes="panel-header" Padding="8,0,14,0">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
               <ToggleButton Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
@@ -414,7 +412,7 @@
           </Border>
 
           <!-- History: everything the room heard, by session -->
-          <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding ShowHistory}">
+          <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding ShowHistory}">
             <ComboBox x:Name="SessionPicker" Margin="8,8,8,2" HorizontalAlignment="Stretch"
                       ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
                       ToolTip.Tip="Pick a session (gig) to look back on" />
@@ -457,7 +455,7 @@
                        Text="Songs appear here once the room has heard them for 30 seconds." />
           </Grid>
 
-          <Panel Grid.Row="1" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True"
+          <Panel Grid.Row="2" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True"
                  IsVisible="{Binding ShowQueue}">
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>

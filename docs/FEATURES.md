@@ -326,7 +326,6 @@ lock, and automatic history.
   decks blended), and stays lit 1.5 s so it's noticed.
 - **Volume** sliders for speakers and headphones in the mixer column (audio taper: the middle is
   -12 dB), remembered. No boost above 100.
-- The deck row grew from 268 to 312 px to fit them, which also makes the waveforms taller.
 
 ### Status: item 4 built (ratings and energy)
 
@@ -354,8 +353,10 @@ lock, and automatic history.
   (the deck's tempo as the room hears it, with its slider), the four tempo ranges, or *Any BPM*.
   It writes the filter into the search text, replacing any BPM filter already there, and shows
   the active one ("BPM ≈144").
-- The deck row is now sized by the mixer column (at least 300 px), with auto-play's status line
-  always reserved, so its height never changes mid-set.
+- **Auto-play and the gap moved to the top of the queue panel** (the DJ's suggestion): they run
+  the queue, so they belong with it. They sit above the Queue/History tabs so auto-play's status
+  stays in view on either tab. The mixer column is now just meter, volumes and crossfader, and
+  the decks are back to their original 268 px.
 
 ### Status: item 6 built (start and end by hand)
 
