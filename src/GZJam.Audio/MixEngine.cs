@@ -76,6 +76,8 @@ public sealed class MixEngine : IDisposable
 
         Main = CreateBus(main);
         Cue = CreateBus(cue);
+        Main.CopySettingsFrom(oldMain);
+        Cue.CopySettingsFrom(oldCue);
 
         foreach (Deck deck in Decks)
             deck.Attach();

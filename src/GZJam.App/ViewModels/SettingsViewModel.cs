@@ -73,6 +73,20 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>The speakers play mono (the headphones stay stereo).</summary>
+    public bool MonoSpeakers
+    {
+        get => _owner.Mixer?.IsMono ?? _settings.MonoSpeakers;
+        set
+        {
+            if (_owner.Mixer is { } mixer)
+                mixer.IsMono = value;
+            else
+                _settings.MonoSpeakers = value;
+            OnPropertyChanged();
+        }
+    }
+
     public double FadeOutSeconds
     {
         get => _settings.FadeOutSeconds;

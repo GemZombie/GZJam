@@ -47,7 +47,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (mix is not null)
         {
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
-            Mixer = new MixerViewModel(this, mix);
+            Mixer = new MixerViewModel(this, mix, settings);
             Preview = new PreviewViewModel(this, mix.Preview);
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
             foreach (DeckViewModel deck in Decks)

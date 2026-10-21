@@ -11,7 +11,7 @@
         Width="1440" Height="900" MinWidth="1024" MinHeight="680"
         WindowStartupLocation="CenterScreen">
 
-  <Grid RowDefinitions="40,Auto,268,*" Margin="16" RowSpacing="12">
+  <Grid RowDefinitions="40,Auto,312,*" Margin="16" RowSpacing="12">
 
     <!-- ───────────── Top bar ───────────── -->
     <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="4,0">
@@ -82,6 +82,15 @@
                 <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
               </StackPanel>
               <Button Classes="link" Content="Refresh device list" Command="{Binding RefreshDevicesCommand}" />
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                  <TextBlock Text="Speakers in mono" FontSize="12" />
+                  <TextBlock Classes="muted" FontSize="11" TextWrapping="Wrap"
+                             Text="The whole floor hears instruments recorded on one side. Headphones stay stereo." />
+                </StackPanel>
+                <ToggleSwitch x:Name="MonoSwitch" Grid.Column="1" OnContent="" OffContent="" VerticalAlignment="Center"
+                              IsChecked="{Binding MonoSpeakers}" />
+              </Grid>
 
               <TextBlock Classes="label" Text="DECK SAFETY" Margin="0,8,0,0" />
               <StackPanel Spacing="4">
@@ -140,8 +149,37 @@
             <Button Grid.Column="3" Classes="step" Content="+" Command="{Binding GapUpCommand}" />
           </Grid>
 
+          <!-- Speakers: level meter (one bar in mono, two in stereo), limit light, volume; headphone volume -->
+          <StackPanel Grid.Row="2" Spacing="5" VerticalAlignment="Center" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <c:LevelMeter x:Name="MainMeter" Height="11" VerticalAlignment="Center" IsMono="{Binding IsMono}"
+                            Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
+                            ToolTip.Tip="What the speakers are playing. One bar: mono (change in Settings)." />
+              <Border Grid.Column="1" Classes="limit" Classes.on="{Binding IsLimiting}"
+                      ToolTip.Tip="Lights when the speakers are too loud and the limiter is holding them down. Turn down a deck or the main volume.">
+                <TextBlock Text="LIMIT" />
+              </Border>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,28" ColumnSpacing="6" ToolTip.Tip="Main (speaker) volume">
+              <Path Data="{StaticResource IconSpeaker}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2"
+                    StrokeJoin="Round" StrokeLineCap="Round" Stretch="Uniform" Width="13" Height="12" VerticalAlignment="Center" />
+              <Slider x:Name="MainVolumeSlider" Grid.Column="1" Classes="volume" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10"
+                      Value="{Binding MainVolume}" />
+              <TextBlock Grid.Column="2" Classes="mono muted" Text="{Binding MainVolumeText}" FontSize="11"
+                         VerticalAlignment="Center" TextAlignment="Right" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,28" ColumnSpacing="6" ToolTip.Tip="Headphone volume">
+              <Path Data="{StaticResource IconHeadphones}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2"
+                    Stretch="Uniform" Width="13" Height="12" VerticalAlignment="Center" />
+              <Slider x:Name="CueVolumeSlider" Grid.Column="1" Classes="volume" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10"
+                      Value="{Binding CueVolume}" />
+              <TextBlock Grid.Column="2" Classes="mono muted" Text="{Binding CueVolumeText}" FontSize="11"
+                         VerticalAlignment="Center" TextAlignment="Right" />
+            </Grid>
+          </StackPanel>
+
           <StackPanel Grid.Row="3" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
-            <c:CrossfaderControl x:Name="Crossfader" Height="64" Value="{Binding Crossfader}"
+            <c:CrossfaderControl x:Name="Crossfader" Height="56" Value="{Binding Crossfader}"
                                  ToolTip.Tip="Crossfader: fades the room between Deck 1 and Deck 2" />
             <Grid ColumnDefinitions="Auto,*,Auto">
               <Button Classes="side" Content="1" Command="{Binding SnapTo1Command}"

@@ -290,6 +290,66 @@ is out of scope until it earns a place.
 - **Fonts stay consistent across the app for now.** The deck readout font (especially time
   left) may be revisited once it's on screen in the real app.
 
+## Roadmap: getting ready for other DJs (2026-10-21)
+
+The plan is to give GZJam away, free, to DJs in the social/partner dance community. A fellow DJ
+(Lindy and contra; uses Mixxx with 4 decks at a weekly dance, on Linux) reviewed what he relies
+on and what he misses. Already covered by what's built: seeing the queue and next track at a
+glance (his reason for 4 decks), per-deck headphone cue and library preview, tempo with key
+lock, and automatic history.
+
+### Now: before handing it to other DJs
+
+1. **Mono output** for the speakers: a setting, on by default. Early stereo jazz often puts the
+   drums hard on one side, so half the floor loses the beat. Headphones stay stereo.
+2. **Master volume, level meter and clip light** for the speakers, with a safety limiter so
+   nothing that's turned up can distort. Matters most when a laptop feeds a PA directly.
+3. **Headphone volume.** (Hearing the room while previewing already works: cue the live deck.)
+4. **Ratings, three-way:** unrated / ♥ (I'd play this for a dance) / 💔 (I wouldn't). Five stars
+   become an inconsistent mess; the useful question is yes or no. Plus an **energy** mark
+   (low / medium / high). Both stored in the library database, never in the files. Settable
+   from the library, queue and decks; searchable.
+5. **Search by BPM and by field:** `bpm:130-150`, `~bpm:140` (within 8%), `artist:basie`,
+   `year:1938`, and rating/energy. Plus a tap-friendly way to do the BPM range.
+6. **Set where a song starts (and ends) by hand**, e.g. after applause on a live recording.
+   Already in the track prep spec; overrides the automatic trim, saved per file.
+
+### Status: items 1-3 built (2026-10-21)
+
+- Every output goes through volume → mono fold-down (speakers only) → a safety limiter → meter,
+  in one BASS DSP on the output mixer (`OutputBus`). Settings carry over when outputs change.
+- **Mono:** Settings › *Speakers in mono*, on by default. The meter shows one bar in mono, two in
+  stereo.
+- **Limiter:** ceiling just under full scale; instant attack, 300 ms release. Loud MP3s often
+  decode a little over full scale (one in the library peaks at +1.3 dB), which it absorbs quietly;
+  the **LIMIT** light only comes on when it has to turn things down by more than 2 dB (two loud
+  decks blended), and stays lit 1.5 s so it's noticed.
+- **Volume** sliders for speakers and headphones in the mixer column (audio taper: the middle is
+  -12 dB), remembered. No boost above 100.
+- The deck row grew from 268 to 312 px to fit them, which also makes the waveforms taller.
+
+### Next
+
+- **Per-deck EQ** (low / mid / high), chiefly to cut hiss on record transfers, remembered per
+  track since the hiss belongs to the recording.
+- **Loudness matching** between tracks (planned), maybe with a one-knob compressor for old,
+  unmastered recordings.
+- **Labels** (Mixxx's crates, renamed): "Lindy", "Female vocals". Shown as tags, not a second
+  tree; searchable with `label:`. They cut across the folder tree rather than competing with it.
+- **Played recently:** a "last played" column and dimming songs played tonight, so you don't
+  repeat last week's set. Name a session ("Hot Jam, Oct 14").
+- **Jump markers:** one or two per track; tap to jump at the end of a phrase (e.g. to the outro
+  of a 5-minute track).
+- **Exclusive audio output** so system sounds never reach the PA (WASAPI exclusive on Windows,
+  ALSA hw devices on Linux), plus the Linux test pass (PipeWire for home use).
+
+### Later, maybe
+
+- Booth (monitor) output: a third bus; syncing separate sound cards is the hard part.
+- Grouping versions of the same song (live / studio), perhaps by matching titles.
+- Ordered saved playlists, a sweepable mid EQ, 4 decks in the UI.
+- Importing a Mixxx library (ratings, crates, cue points) to make switching easy.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

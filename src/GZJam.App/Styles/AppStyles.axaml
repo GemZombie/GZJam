@@ -187,6 +187,32 @@
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
   </Style>
 
+  <!-- The limiter light in the mixer: dark until the speakers are too loud -->
+  <Style Selector="Border.limit">
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="5,1" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
+  </Style>
+  <Style Selector="Border.limit > TextBlock">
+    <Setter Property="FontSize" Value="9.5" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+  </Style>
+  <Style Selector="Border.limit.on">
+    <Setter Property="Background" Value="{StaticResource OnAirBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource OnAirBrush}" />
+  </Style>
+  <Style Selector="Border.limit.on > TextBlock">
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <!-- Compact volume sliders in the mixer column -->
+  <Style Selector="Slider.volume">
+    <Setter Property="Margin" Value="0,-8" />
+  </Style>
+
   <!-- Per-deck cue (headphones) toggle; lit amber when on -->
   <Style Selector="ToggleButton.cue-button">
     <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />

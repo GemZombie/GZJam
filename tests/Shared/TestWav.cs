@@ -8,12 +8,13 @@ public static class TestWav
 {
     public const int SampleRate = 44100;
 
+    /// <param name="right">The right channel's level relative to the left: 0 for a tone only on the left.</param>
     public static string WriteTone(string path, TimeSpan duration, double amplitude = 0.5, double frequency = 440,
-        TimeSpan silenceBefore = default, TimeSpan silenceAfter = default)
+        TimeSpan silenceBefore = default, TimeSpan silenceAfter = default, double right = 1)
     {
         int before = Frames(silenceBefore), tone = Frames(duration);
         return Write(path, before + tone + Frames(silenceAfter), i =>
-            i >= before && i < before + tone ? Math.Sin(2 * Math.PI * frequency * (i - before) / SampleRate) * amplitude : 0);
+            i >= before && i < before + tone ? Math.Sin(2 * Math.PI * frequency * (i - before) / SampleRate) * amplitude : 0, right);
     }
 
     /// <summary>
@@ -46,7 +47,7 @@ public static class TestWav
 
     private static int Frames(TimeSpan t) => (int)(t.TotalSeconds * SampleRate);
 
-    private static string Write(string path, int frames, Func<int, double> sample)
+    private static string Write(string path, int frames, Func<int, double> sample, double right = 1)
     {
         const int channels = 2, bytesPerSample = 2;
         int dataBytes = frames * channels * bytesPerSample;
@@ -68,9 +69,9 @@ public static class TestWav
         writer.Write(dataBytes);
         for (int i = 0; i < frames; i++)
         {
-            short value = (short)(sample(i) * short.MaxValue);
-            writer.Write(value);
-            writer.Write(value);
+            double value = sample(i);
+            writer.Write((short)(value * short.MaxValue));
+            writer.Write((short)(value * right * short.MaxValue));
         }
         return path;
     }

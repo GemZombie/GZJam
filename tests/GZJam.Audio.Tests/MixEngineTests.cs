@@ -298,6 +298,81 @@ public sealed class MixEngineTests : IDisposable
         Assert.InRange(A.Position.TotalSeconds, 1, 1.3);
     }
 
+    [Fact]
+    public void Mono_puts_a_one_sided_recording_in_both_speakers()
+    {
+        // Drums hard left, as on plenty of early stereo jazz.
+        string left = TestWav.WriteTone(Path.Combine(_dir, "left.wav"), TimeSpan.FromSeconds(10), right: 0);
+        A.Load(left);
+        A.Play();
+        Render(0.1);
+
+        _mix.Main.TakeLevels();
+        Render();
+        var stereo = _mix.Main.TakeLevels();
+        Assert.Equal(Full, stereo.Left, 0.02f);
+        Assert.InRange(stereo.Right, 0, Silent);
+
+        _mix.Main.Mono = true;
+        Render();
+        var mono = _mix.Main.TakeLevels();
+        Assert.Equal(Full / 2, mono.Left, 0.02f);
+        Assert.Equal(mono.Left, mono.Right, 0.001f);
+
+        // Only the speakers: the headphones stay stereo.
+        A.Cue = true;
+        Render(0.1);
+        _mix.Cue.TakeLevels();
+        Render();
+        Assert.InRange(_mix.Cue.TakeLevels().Right, 0, Silent);
+    }
+
+    [Fact]
+    public void Volume_turns_an_output_down()
+    {
+        A.Load(_tone);
+        A.Cue = true;
+        A.Play();
+        _mix.Main.Volume = 0.5f;
+        _mix.Cue.Volume = 0.2f;
+        Render(0.1);
+
+        var (main, cue) = Render();
+
+        Assert.Equal(Full * 0.5f, main, 0.02f);
+        Assert.Equal(Full * 0.2f, cue, 0.02f);
+    }
+
+    [Fact]
+    public void The_limiter_stops_a_loud_blend_from_clipping()
+    {
+        string loud = TestWav.WriteTone(Path.Combine(_dir, "loud.wav"), TimeSpan.FromSeconds(10), amplitude: 0.95);
+        A.Load(loud);
+        B.Load(loud);
+        A.Play();
+        B.Play();
+        _mix.Crossfader = 0.5;   // both decks at equal power: 0.95 x 1.41 would clip
+        Render(0.1);
+        _mix.Main.TakeLevels();
+
+        var (main, _) = Render();
+        var levels = _mix.Main.TakeLevels();
+
+        Assert.InRange(main, 0.8f, OutputBus.Ceiling + 0.001f);
+        Assert.True(levels.Limited);
+
+        // A normal level isn't touched, and the light goes out.
+        B.Pause();
+        _mix.Crossfader = 0;
+        _mix.Main.Volume = 0.5f;
+        Render(1);
+        _mix.Main.TakeLevels();
+        Render();
+        levels = _mix.Main.TakeLevels();
+        Assert.Equal(0.475f, levels.Left, 0.02f);
+        Assert.False(levels.Limited);
+    }
+
     [Theory]
     [InlineData(0.0, 0.0)]     // fader away from the deck: silent in the room
     [InlineData(1.0, 1.0)]     // fader on the deck: full

@@ -50,6 +50,16 @@ public sealed class AppSettings
     /// <summary>Headphones.</summary>
     public AudioDevicePreference? CueDevice { get; set; }
 
+    /// <summary>
+    /// The speakers play mono, so the whole floor hears instruments recorded on one side.
+    /// On by default: right for dance floors. The headphones stay stereo.
+    /// </summary>
+    public bool MonoSpeakers { get; set; } = true;
+
+    /// <summary>Speaker and headphone volume, 0-100.</summary>
+    public double MainVolume { get; set; } = 100;
+    public double CueVolume { get; set; } = 100;
+
     public PlayingDeckLoad LoadOntoPlayingDeck { get; set; } = PlayingDeckLoad.Block;
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;
