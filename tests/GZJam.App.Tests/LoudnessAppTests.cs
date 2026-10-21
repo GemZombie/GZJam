@@ -64,7 +64,7 @@ public sealed class LoudnessAppTests
         app.Play(0.1);
         Assert.InRange(deck.Deck.GainDb, matched, matched + 1);   // no jump: about 3 dB a second
 
-        for (int i = 0; i < 150 && deck.Deck.GainDb < -0.01; i++)
+        for (int i = 0; i < 150 && deck.Deck.GainDb < 0; i++)
         {
             app.Play(0.033);
             Thread.Sleep(30);

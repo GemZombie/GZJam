@@ -110,6 +110,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         _typingDelay?.Cancel();
         if (_suppressSearch)
             return;
+        IsSearching = true;
         var delay = _typingDelay = new CancellationTokenSource();
         Task.Delay(SearchDelay, delay.Token).ContinueWith(_ => Dispatcher.UIThread.Post(() =>
         {
@@ -359,8 +360,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     // ───────────── Search ─────────────
 
+    /// <summary>A search is waiting out the typing delay or running: <see cref="Results"/> is about to change.</summary>
+    internal bool IsSearching { get; private set; }
+
     private void RunSearch()
     {
+        IsSearching = true;
         _searchCancel?.Cancel();
         var cancel = _searchCancel = new CancellationTokenSource();
         int version = ++_searchVersion;
@@ -369,11 +374,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
         Task.Run(() => _database.Search(text, scope, cancel.Token), cancel.Token).ContinueWith(t =>
         {
-            if (t.IsCompletedSuccessfully && version == _searchVersion)
+            if (version == _searchVersion)
                 Dispatcher.UIThread.Post(() =>
                 {
-                    if (version == _searchVersion)
+                    if (version != _searchVersion)
+                        return;
+                    if (t.IsCompletedSuccessfully)
                         Results = t.Result;
+                    IsSearching = false;
                 });
         }, TaskScheduler.Default);
     }

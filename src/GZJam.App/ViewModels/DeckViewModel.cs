@@ -209,9 +209,9 @@ public sealed partial class DeckViewModel : ObservableObject
         long now = TimeProvider.System.GetTimestamp();
         double elapsed = _matchMovedAt == 0 ? 0 : TimeProvider.System.GetElapsedTime(_matchMovedAt, now).TotalSeconds;
         _matchMovedAt = now;
-        if (Math.Abs(target - _matchDb) < 0.01)
+        if (target == _matchDb)
             return;
-        if (force || !IsOnAir)
+        if (force || !IsOnAir || Math.Abs(target - _matchDb) < 0.01)
         {
             _matchDb = target;
         }

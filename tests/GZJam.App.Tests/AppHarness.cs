@@ -28,6 +28,9 @@ public sealed class AppHarness : IDisposable
 
     private readonly string _work;
 
+    /// <summary>The harness a test is using (UI tests run one at a time, on Avalonia's thread).</summary>
+    private static AppHarness? _current;
+
     public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true)
     {
         _work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
@@ -45,6 +48,7 @@ public sealed class AppHarness : IDisposable
         ViewModel = new MainWindowViewModel(Database, Settings, Audio, Mix);
         Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
         Window.Show();
+        _current = this;
         if (start)
             Start();
     }
@@ -105,11 +109,16 @@ public sealed class AppHarness : IDisposable
         Dispatcher.UIThread.RunJobs();
     }
 
-    /// <summary>Lets debounce timers fire and background searches land.</summary>
+    /// <summary>
+    /// Lets debounce timers fire and background searches land: runs the UI for
+    /// <paramref name="milliseconds"/>, then for as long as a library search is still on its way
+    /// (slow CI machines can take longer than the fixed wait).
+    /// </summary>
     public static void Settle(int milliseconds = 400)
     {
         var until = DateTime.UtcNow.AddMilliseconds(milliseconds);
-        while (DateTime.UtcNow < until)
+        var latest = until.AddSeconds(10);
+        while (DateTime.UtcNow < until || (_current?.Library.IsSearching == true && DateTime.UtcNow < latest))
         {
             Dispatcher.UIThread.RunJobs();
             Thread.Sleep(15);
@@ -160,6 +169,8 @@ public sealed class AppHarness : IDisposable
 
     public void Dispose()
     {
+        if (_current == this)
+            _current = null;
         Window.Close();
         ViewModel.Dispose();   // also disposes the mix
         Audio.Dispose();
