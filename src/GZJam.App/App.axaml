@@ -15,13 +15,13 @@
       <Color x:Key="TextColor">#E7EAF0</Color>
       <Color x:Key="MutedColor">#8B94A5</Color>
       <Color x:Key="DimColor">#5D6574</Color>
-      <Color x:Key="Deck1Color">#22D3EE</Color>
-      <Color x:Key="Deck2Color">#F5A524</Color>
-      <Color x:Key="Deck3Color">#F472B6</Color>
-      <Color x:Key="Deck4Color">#A3E635</Color>
+      <Color x:Key="Deck1Color">#36C2DC</Color>
+      <Color x:Key="Deck2Color">#EEA23A</Color>
+      <Color x:Key="Deck3Color">#DB7FA8</Color>
+      <Color x:Key="Deck4Color">#9DC653</Color>
       <Color x:Key="OnAirColor">#F04444</Color>
-      <Color x:Key="OkColor">#34D399</Color>
-      <Color x:Key="AccentColor">#8F74FF</Color>
+      <Color x:Key="OkColor">#3CC97C</Color>
+      <Color x:Key="AccentColor">#7FA3CF</Color>
 
       <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
       <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
@@ -39,9 +39,9 @@
       <SolidColorBrush x:Key="OnAirBrush" Color="{StaticResource OnAirColor}" />
       <SolidColorBrush x:Key="OkBrush" Color="{StaticResource OkColor}" />
       <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-      <SolidColorBrush x:Key="AccentSoftBrush" Color="#388F74FF" />
-      <SolidColorBrush x:Key="AccentFaintBrush" Color="#228F74FF" />
-      <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24F5A524" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#337FA3CF" />
+      <SolidColorBrush x:Key="AccentFaintBrush" Color="#1F7FA3CF" />
+      <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24EEA23A" />
 
       <!-- Hardware-style keys (Button.hw): moulded dark plastic, a touch lighter under the pointer -->
       <LinearGradientBrush x:Key="KeyBrush" StartPoint="0%,0%" EndPoint="0%,100%">
@@ -68,17 +68,17 @@
       <x:Double x:Key="DeckPauseIconSize">16</x:Double>
 
       <!-- Fluent theme overrides -->
-      <Color x:Key="SystemAccentColor">#8F74FF</Color>
-      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#388F74FF" />
-      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#4A8F74FF" />
-      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#2A8F74FF" />
-      <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#3A8F74FF" />
+      <Color x:Key="SystemAccentColor">#6F93C0</Color>
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#2E7FA3CF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#3D7FA3CF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#227FA3CF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#307FA3CF" />
       <SolidColorBrush x:Key="DataGridRowHoveredBackgroundColor" Color="#14FFFFFF" />
       <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent" />
       <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush" Color="{StaticResource MutedColor}" />
       <SolidColorBrush x:Key="DataGridGridLinesBrush" Color="#1A1E26" />
-      <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#388F74FF" />
-      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#4A8F74FF" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#2E7FA3CF" />
+      <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#3D7FA3CF" />
 
       <!-- Icons -->
       <StreamGeometry x:Key="IconHeadphones">M3 15v-3a9 9 0 0 1 18 0v3 M2.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z M16.5 15.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z</StreamGeometry>

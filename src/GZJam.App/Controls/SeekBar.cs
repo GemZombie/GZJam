@@ -165,7 +165,7 @@ public sealed class SeekBar : Control
     private const double BarStep = 2, BarWidth = 2;   // touching: a solid shape, like a DJ deck's
     private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
     private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
-    private static readonly IBrush ManualMarker = new ImmutableSolidColorBrush(Color.FromRgb(0xA9, 0x94, 0xFF));
+    private static readonly IBrush ManualMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6));
 
     // Bars depend only on the waveform and the size, so they're worked out once, not every frame.
     private (Waveform Waveform, Size Size)? _barsFor;
@@ -262,7 +262,11 @@ public sealed class SeekBar : Control
         double max = Math.Max(r, Math.Max(g, b));
         if (max <= 0)
             return Color.FromRgb(120, 120, 120);
-        return Color.FromRgb((byte)(255 * r / max), (byte)(255 * g / max), (byte)(255 * b / max));
+        (r, g, b) = (r / max, g / max, b / max);
+        // Less saturated and a little darker than pure band colours: easier on the eye in a dark room.
+        double grey = 0.3 * r + 0.55 * g + 0.15 * b;
+        static byte Tone(double c, double grey) => (byte)(255 * 0.9 * (0.72 * c + 0.28 * grey));
+        return Color.FromRgb(Tone(r, grey), Tone(g, grey), Tone(b, grey));
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

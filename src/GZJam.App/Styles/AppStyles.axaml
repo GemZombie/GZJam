@@ -8,12 +8,12 @@
     <Setter Property="FontSize" Value="13" />
   </Style>
 
-  <!-- Rounded panel surfaces -->
+  <!-- Panel surfaces: square-ish, like equipment rather than cards -->
   <Style Selector="Border.panel">
     <Setter Property="Background" Value="{StaticResource PanelBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="6" />
     <Setter Property="ClipToBounds" Value="True" />
   </Style>
   <Style Selector="Border.panel-header">
@@ -65,7 +65,7 @@
   <Style Selector="TextBox.search">
     <Setter Property="Background" Value="{StaticResource WellBrush}" />
     <Setter Property="BorderBrush" Value="#3A4152" />
-    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="MinHeight" Value="34" />
     <Setter Property="Padding" Value="34,7,30,7" />
     <Setter Property="FontSize" Value="13.5" />
@@ -81,26 +81,25 @@
 
   <!-- Scope chip -->
   <Style Selector="Border.chip">
-    <Setter Property="Background" Value="#248F74FF" />
-    <Setter Property="BorderBrush" Value="#598F74FF" />
+    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="CornerRadius" Value="3" />
     <Setter Property="Padding" Value="9,3,4,3" />
   </Style>
 
   <!-- The BPM filter button by the search box; tinted like the scope chip while a filter is set -->
   <Style Selector="Button.bpm-filter">
     <Setter Property="Padding" Value="10,5" />
-    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="MinHeight" Value="30" />
     <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
   </Style>
   <Style Selector="Button.bpm-filter.on">
-    <Setter Property="Background" Value="#248F74FF" />
-    <Setter Property="BorderBrush" Value="#598F74FF" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Foreground" Value="#C8BCFF" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
   </Style>
 
   <!-- Folder tree -->
@@ -142,23 +141,27 @@
   <!-- Queue -->
   <Style Selector="ListBox.queue">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Padding" Value="6" />
+    <Setter Property="Padding" Value="0" />
   </Style>
   <Style Selector="ListBox.queue ListBoxItem">
     <Setter Property="Padding" Value="0" />
-    <Setter Property="Margin" Value="0,0,0,4" />
-    <Setter Property="CornerRadius" Value="7" />
-    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="#1C2027" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
   <Style Selector="ListBox.queue ListBoxItem:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="#202530" />
+    <Setter Property="Background" Value="#0AFFFFFF" />
   </Style>
   <Style Selector="ListBox.queue ListBoxItem:selected /template/ ContentPresenter">
-    <Setter Property="Background" Value="#388F74FF" />
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
   </Style>
-  <Style Selector="ListBox.queue ListBoxItem:nth-child(1)">
-    <Setter Property="BorderBrush" Value="#668F74FF" />
-    <Setter Property="BorderThickness" Value="1" />
+  <!-- The song auto-play takes next: a thin bar at its left edge -->
+  <Style Selector="Border.next-bar">
+    <Setter Property="Width" Value="2" />
+    <Setter Property="Background" Value="{StaticResource MutedBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
   </Style>
 
   <!-- Hardware-style keys: dark, square-ish, bold small caps; state is shown by an LED, not by
@@ -230,7 +233,7 @@
   </Style>
   <Style Selector="Border.led.on.accent">
     <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-    <Setter Property="BoxShadow" Value="0 0 6 1 #B38F74FF" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B37FA3CF" />
   </Style>
 
   <!-- A deck's ON AIR / OFF AIR, beside its LED -->
@@ -263,7 +266,7 @@
   </Style>
 
   <Style Selector="Border.pill">
-    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="CornerRadius" Value="3" />
     <Setter Property="Padding" Value="7,2" />
     <Setter Property="Margin" Value="0,0,0,3" />
     <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
@@ -326,7 +329,7 @@
     <Setter Property="Background" Value="#E61F2430" />
     <Setter Property="BorderBrush" Value="#39404F" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="Padding" Value="10,5" />
   </Style>
 
@@ -384,35 +387,35 @@
   <Style Selector="Button.deck-button">
     <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
     <Setter Property="Padding" Value="12,0" />
-    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="FontSize" Value="12.5" />
   </Style>
 
-  <!-- Auto-play panel: lights up green when on -->
+  <!-- Auto-play strip above the queue tabs -->
   <Style Selector="Border.autoplay">
-    <Setter Property="CornerRadius" Value="9" />
-    <Setter Property="Padding" Value="12,9" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="#3334D399" />
-    <Setter Property="Background" Value="#0A34D399" />
-  </Style>
-  <Style Selector="Border.autoplay.on">
-    <Setter Property="BorderBrush" Value="#8034D399" />
-    <Setter Property="Background" Value="#2234D399" />
+    <Setter Property="Padding" Value="10,10,10,8" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
 
-  <!-- Small − / + steppers (gap) -->
+  <!-- Small − / + keys (gap) -->
   <Style Selector="Button.step">
-    <Setter Property="MinWidth" Value="{DynamicResource DeckControlHeight}" />
-    <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
+    <Setter Property="MinWidth" Value="30" />
+    <Setter Property="MinHeight" Value="30" />
     <Setter Property="Padding" Value="0" />
-    <Setter Property="CornerRadius" Value="7" />
-    <Setter Property="FontSize" Value="16" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="15" />
+  </Style>
+  <!-- A small dark readout window, like an LCD on a mixer -->
+  <Style Selector="Border.readout-window">
+    <Setter Property="Background" Value="#07090C" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="MinHeight" Value="30" />
   </Style>
 
   <Style Selector="Button.side">
@@ -438,7 +441,7 @@
   </Style>
   <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{StaticResource OkBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TextBrush}" />
   </Style>
   <Style Selector="ToggleButton.tab:checked">
     <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
@@ -462,7 +465,7 @@
   <Style Selector="Button.icon-button">
     <Setter Property="Width" Value="34" />
     <Setter Property="Height" Value="34" />
-    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
@@ -511,7 +514,7 @@
     <Setter Property="Background" Value="{StaticResource PanelBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Padding" Value="16,14" />
   </Style>
 

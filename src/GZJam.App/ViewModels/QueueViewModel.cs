@@ -21,7 +21,11 @@ public sealed partial class QueueItem : ObservableObject
     public Track Track { get; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNext))]
     public partial int Number { get; set; }
+
+    /// <summary>First in line: auto-play takes it next.</summary>
+    public bool IsNext => Number == 1;
 
     public string Title => Track.DisplayTitle;
     public string Artist => Track.Artist ?? "";

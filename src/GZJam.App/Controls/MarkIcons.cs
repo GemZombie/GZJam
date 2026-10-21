@@ -20,7 +20,7 @@ public sealed class RatingIcon : Control
     public static readonly StyledProperty<bool> ShowUnratedProperty =
         AvaloniaProperty.Register<RatingIcon, bool>(nameof(ShowUnrated), true);
 
-    public static readonly IBrush LovedBrush = new ImmutableSolidColorBrush(Color.Parse("#F0507A"));
+    public static readonly IBrush LovedBrush = new ImmutableSolidColorBrush(Color.Parse("#D9545C"));
     private static readonly IBrush RejectedBrush = new ImmutableSolidColorBrush(Color.Parse("#7A8292"));
     private static readonly IPen UnratedPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#4A5263")), 1.6);
 
@@ -89,8 +89,8 @@ public sealed class EnergyIcon : Control
     public static readonly StyledProperty<bool> ShowUnsetProperty =
         AvaloniaProperty.Register<EnergyIcon, bool>(nameof(ShowUnset), true);
 
-    private static readonly IBrush Lit = new ImmutableSolidColorBrush(Color.Parse("#A994FF"));
-    private static readonly IBrush Unlit = new ImmutableSolidColorBrush(Color.Parse("#343B49"));
+    private static readonly IBrush Lit = new ImmutableSolidColorBrush(Color.Parse("#C3C9D4"));
+    private static readonly IBrush Unlit = new ImmutableSolidColorBrush(Color.Parse("#2F3542"));
 
     static EnergyIcon() => AffectsRender<EnergyIcon>(EnergyProperty, ShowUnsetProperty);
 

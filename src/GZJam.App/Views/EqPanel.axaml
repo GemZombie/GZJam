@@ -37,7 +37,7 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="CornerRadius" Value="4" />
       <Setter Property="Padding" Value="10,5" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="FontWeight" Value="SemiBold" />
@@ -58,7 +58,7 @@
 
     <!-- The faders, in a recessed well -->
     <Border Background="{StaticResource WellBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
-            CornerRadius="8" Padding="6,10,10,8">
+            CornerRadius="4" Padding="6,10,10,8">
       <Grid ColumnDefinitions="28,*,*,*" RowDefinitions="160,Auto,Auto">
         <c:EqScale Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
         <c:Fader Classes="eq" x:Name="EqLowFader" Grid.Column="1" Value="{Binding EqLow}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="Bass, below about 150 Hz. Double-tap for 0 dB." />

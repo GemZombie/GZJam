@@ -399,20 +399,24 @@
         <Grid RowDefinitions="Auto,Auto,*">
           <!-- Auto-play: plays through the queue, alternating decks, with the gap between songs.
                Above the tabs, so its status stays in view on the History tab too. -->
-          <Border Classes="autoplay" Classes.on="{Binding IsOn}" Margin="8,8,8,0"
-                  DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
-            <StackPanel Spacing="2">
-              <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
-                <TextBlock Classes="label" Text="AUTO-PLAY" Foreground="{StaticResource OkBrush}" VerticalAlignment="Center" />
-                <ToggleSwitch x:Name="AutoPlaySwitch" Grid.Column="1" OnContent="" OffContent="" Margin="4,-6,0,-6"
-                              IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
-                              ToolTip.Tip="Play through the queue automatically, alternating decks" />
-                <TextBlock Grid.Column="3" Classes="label" Text="GAP" VerticalAlignment="Center" Margin="0,0,2,0"
+          <Border Classes="autoplay" DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
+            <StackPanel Spacing="6">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                <ToggleButton x:Name="AutoPlaySwitch" Classes="hw" MinHeight="30" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
+                              ToolTip.Tip="Play through the queue automatically, alternating decks">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Border Classes="led green" Classes.on="{Binding IsOn}" />
+                    <TextBlock Text="AUTO-PLAY" />
+                  </StackPanel>
+                </ToggleButton>
+                <TextBlock Grid.Column="2" Classes="fader-label" Text="GAP" VerticalAlignment="Center" Margin="0,0,3,0"
                            ToolTip.Tip="Silence between songs when auto-play moves to the next one" />
-                <Button Grid.Column="4" Classes="step" Content="−" Command="{Binding GapDownCommand}" />
-                <TextBlock Grid.Column="5" Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold"
-                           VerticalAlignment="Center" MinWidth="40" TextAlignment="Center" />
-                <Button Grid.Column="6" Classes="step" Content="+" Command="{Binding GapUpCommand}" />
+                <Button Grid.Column="3" Classes="hw step" Content="−" Command="{Binding GapDownCommand}" />
+                <Border Grid.Column="4" Classes="readout-window" MinWidth="58">
+                  <TextBlock Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold" FontSize="12.5"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <Button Grid.Column="5" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
               </Grid>
               <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"
                          IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -484,6 +488,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
                   <Grid ColumnDefinitions="Auto,20,*,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent">
+                    <Border Classes="next-bar" IsVisible="{Binding IsNext}" Grid.ColumnSpan="2" />
                     <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
                     <Border Classes="grip" Background="Transparent" Width="26" Cursor="SizeAll"
                             ToolTip.Tip="Drag to reorder">
@@ -533,7 +538,7 @@
                        TextAlignment="Center" IsHitTestVisible="False" IsVisible="{Binding Queue.IsEmpty}"
                        Text="Drag tracks here&#10;or right-click › Add to queue" />
 
-            <Border x:Name="QueueDropLine" Height="2" CornerRadius="1" Margin="8,0" VerticalAlignment="Top"
+            <Border x:Name="QueueDropLine" Height="2" Margin="8,0" VerticalAlignment="Top"
                     Background="{StaticResource AccentBrush}" IsVisible="False" IsHitTestVisible="False" />
           </Panel>
         </Grid>

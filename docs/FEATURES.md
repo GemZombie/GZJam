@@ -436,8 +436,24 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
 - Crossfader cap: square corners and a white index line, matching the other faders.
 - An empty deck's readout is dimmed rather than showing a bright "-0:00".
 
-Next passes: colour and corners app-wide (purple retired as the general accent), the queue as a
-list, auto-play as a lit key; then settings, menus and the top bar.
+### Look, pass 2: colour and corners (2026-10-21)
+
+- **Purple retired.** The accent is now a muted steel blue (#7FA3CF), used sparingly: selected
+  rows and folders (a faint tint), focus, the active BPM filter, "set by you" (the EQ LED and lit
+  fader slot, hand-set start/end markers). Energy bars are light grey; the loved heart a muted
+  red rather than pink. Deck colours a little less candy-bright (cyan, amber, rose, olive);
+  the green a little less minty.
+- **Corners:** panels 6 px (were 10), buttons and search box 4, chips 3. The EQ panel and its
+  well follow.
+- **Queue and history:** a plain list with dividers instead of rounded cards; the song auto-play
+  takes next has a thin bar at its left edge.
+- **Auto-play:** a key with a green LED instead of a switch in a glowing green box; the gap is a
+  small readout window between − and + keys. The Queue/History tab underline is white, not green.
+- **Waveform** colours toned down (a quarter of the way to grey, slightly darker): easier on the
+  eye now that it's solid.
+- An empty compact deck's "No track loaded" is dimmed.
+
+Next: settings, menus and the top bar (pass 3).
 
 ### Next
 
