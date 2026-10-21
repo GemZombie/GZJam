@@ -32,7 +32,7 @@ internal static class TagReader
                 Comment = ReadComment(tagFile),
                 Year = tag.Year > 0 ? (int)tag.Year : null,
                 TrackNumber = tag.Track > 0 ? (int)tag.Track : null,
-                Bpm = ReadBpm(tagFile),
+                TagBpm = ReadBpm(tagFile),
                 Duration = tagFile.Properties?.Duration ?? TimeSpan.Zero,
             };
         }
@@ -68,9 +68,12 @@ internal static class TagReader
         return file.Tag.BeatsPerMinute > 0 ? NormalizeBpm(file.Tag.BeatsPerMinute) : null;
     }
 
-    /// <summary>Some taggers store BPM x 100 ("13200" for 132.00). Scale those back.</summary>
+    /// <summary>Some taggers store BPM x 10 ("1320" for 132.0) or x 100 ("13200"). Scale those back.</summary>
     internal static double NormalizeBpm(double bpm) =>
-        bpm > 400 && bpm / 100 is >= 30 and <= 400 ? bpm / 100 : bpm;
+        bpm <= 400 ? bpm
+        : bpm / 10 is >= 40 and <= 400 ? bpm / 10
+        : bpm / 100 is >= 30 and <= 400 ? bpm / 100
+        : bpm;
 
     /// <summary>
     /// The user-visible comment. ID3 files often carry extra COMM frames from iTunes

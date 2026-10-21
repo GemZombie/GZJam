@@ -34,10 +34,13 @@
         </Button>
       </Grid>
 
-      <!-- Position (waveform later). Seeking is blocked while the room is hearing the deck. -->
+      <!-- Waveform and position. Seeking is blocked while the room is hearing the deck. -->
       <Panel Grid.Row="1">
         <c:SeekBar x:Name="Seek" MinHeight="48" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
+                   Waveform="{Binding Waveform}" TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
                    Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+        <TextBlock Classes="dim" Text="Analyzing…" FontSize="11" Margin="10,6" HorizontalAlignment="Left" VerticalAlignment="Top"
+                   IsVisible="{Binding IsAnalyzing}" IsHitTestVisible="False" />
         <Border Classes="hint" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <TextBlock Text="{Binding Hint}" />

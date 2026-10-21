@@ -1,7 +1,9 @@
+using System.ComponentModel;
+
 namespace GZJam.Library;
 
 /// <summary>One audio file in the library, with the tag data read from it.</summary>
-public sealed class Track
+public sealed class Track : INotifyPropertyChanged
 {
     public long Id { get; init; }
     public long RootId { get; init; }
@@ -24,11 +26,39 @@ public sealed class Track
     public string? Comment { get; init; }
     public int? Year { get; init; }
     public int? TrackNumber { get; init; }
-    public double? Bpm { get; init; }
+
+    /// <summary>BPM from the file's tag. Always preferred to a detected one.</summary>
+    public double? TagBpm { get; init; }
+
+    /// <summary>
+    /// BPM found by analysis, as detected. Set when analysis finishes, which may be after the
+    /// track is on screen.
+    /// </summary>
+    public double? DetectedBpm
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DetectedBpm)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bpm)));
+        }
+    }
+
+    /// <summary>The BPM to show: the tag's, or the detected one fitted into the DJ's <see cref="BpmRange"/>.</summary>
+    public double? Bpm => TagBpm ?? (DetectedBpm is { } detected ? BpmRange.Fold(detected) : null);
+
+    /// <summary>Tells bindings <see cref="Bpm"/> may have changed (e.g. the BPM range was changed).</summary>
+    public void RefreshBpm() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bpm)));
+
     public TimeSpan Duration { get; init; }
 
     /// <summary>Title tag, or the file name when the tag is missing.</summary>
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public override string ToString() => $"{DisplayTitle} - {Artist}";
 }

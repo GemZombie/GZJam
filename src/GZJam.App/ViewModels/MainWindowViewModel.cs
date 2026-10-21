@@ -18,12 +18,30 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         AudioEngine? audio = null, MixEngine? mix = null, string? audioError = null)
     {
         _settings = settings;
+        BpmRange.Set(settings.BpmMin, settings.BpmMax);
         Audio = audio;
         Mix = mix;
         AudioError = audioError;
         Library = new LibraryViewModel(database);
         Queue = new QueueViewModel();
         History = new HistoryViewModel(database);
+        if (audio is not null)
+        {
+            Analysis = new TrackAnalysisService(database, audio);
+            Analysis.Analyzed += OnAnalyzed;
+            Analysis.PropertyChanged += (_, _) => BackgroundChanged();
+            Library.Scanned += Analysis.QueueLibrary;
+            Queue.Items.CollectionChanged += (_, e) =>
+            {
+                if (e.NewItems is not null)
+                    Analysis.Prioritize(e.NewItems.Cast<QueueItem>().Select(i => i.Track));
+            };
+        }
+        Library.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(LibraryViewModel.ScanStatus) or nameof(LibraryViewModel.ScanPercent))
+                BackgroundChanged();
+        };
 
         if (mix is not null)
         {
@@ -67,6 +85,38 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public LibraryViewModel Library { get; }
     public QueueViewModel Queue { get; }
     public HistoryViewModel History { get; }
+
+    /// <summary>Waveforms, silence trimming and BPM detection; null without audio.</summary>
+    public TrackAnalysisService? Analysis { get; }
+
+    /// <summary>What's happening in the background (scanning, then analyzing), for the top bar.</summary>
+    public string? BackgroundStatus => Library.ScanStatus ?? Analysis?.Status;
+    public double BackgroundPercent => Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
+
+    private void BackgroundChanged()
+    {
+        OnPropertyChanged(nameof(BackgroundStatus));
+        OnPropertyChanged(nameof(BackgroundPercent));
+    }
+
+    /// <summary>The BPM range changed: detected BPMs everywhere may fold differently.</summary>
+    public void RefreshBpms()
+    {
+        Library.RefreshBpms();
+        foreach (QueueItem item in Queue.Items)
+            item.Track.RefreshBpm();
+        RefreshDecks();
+    }
+
+    /// <summary>A track's analysis is in: show its detected BPM wherever the track is on screen.</summary>
+    private void OnAnalyzed(string path, TrackAnalysis analysis)
+    {
+        Library.SetDetectedBpm(path, analysis.Bpm);
+        foreach (QueueItem item in Queue.Items.Where(i => i.Track.Path == path))
+            item.Track.DetectedBpm = analysis.Bpm;
+        foreach (DeckViewModel deck in Decks.Where(d => d.Track?.Path == path))
+            deck.Track!.DetectedBpm = analysis.Bpm;
+    }
 
     /// <summary>The right-hand panel shows the History tab rather than the Queue.</summary>
     [ObservableProperty]
@@ -114,7 +164,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ConnectSavedOutputs();
         if (Mix is not null)
             _playbackTimer.Start();
-        _ = Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder);
+        _ = StartLibraryAsync();
+    }
+
+    private async Task StartLibraryAsync()
+    {
+        await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder);
+        Analysis?.QueueLibrary();   // after the scan, so new files are included
     }
 
     /// <summary>
@@ -239,6 +295,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _clock.Stop();
         _playbackTimer.Stop();
         Library.Dispose();
+        Analysis?.Dispose();   // stops decoding before BASS goes away
         Mix?.Dispose();
         Audio?.Dispose();
     }

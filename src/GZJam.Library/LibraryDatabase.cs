@@ -135,6 +135,23 @@ public sealed partial class LibraryDatabase
             CREATE INDEX ix_plays_session ON plays(session_id, played_utc);
             CREATE INDEX ix_plays_path ON plays(path);
             """,
+
+        // 3: track analysis (waveform, audible start and end, detected BPM). Keyed by path, not
+        // track id, so it also covers files played from outside the library. The file's size and
+        // modified time say whether it still describes the file on disk.
+        """
+            CREATE TABLE analysis (
+                path         TEXT PRIMARY KEY,
+                file_size    INTEGER NOT NULL,
+                modified_utc INTEGER NOT NULL,
+                version      INTEGER NOT NULL,
+                length_ms    INTEGER NOT NULL,
+                start_ms     INTEGER NOT NULL,
+                end_ms       INTEGER NOT NULL,
+                bpm          REAL,
+                waveform     BLOB
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -285,7 +302,7 @@ public sealed partial class LibraryDatabase
     {
         string? match = BuildMatchExpression(text);
 
-        var sql = new StringBuilder("SELECT t.* FROM tracks t WHERE 1 = 1");
+        var sql = new StringBuilder($"SELECT t.*, a.bpm AS detected_bpm FROM tracks t {JoinAnalysis} WHERE 1 = 1");
         if (match is not null)
             sql.Append(" AND t.id IN (SELECT rowid FROM tracks_fts WHERE tracks_fts MATCH $match)");
         if (scope is not null)
@@ -364,9 +381,14 @@ public sealed partial class LibraryDatabase
         Comment = GetString(r, "comment"),
         Year = GetInt(r, "year"),
         TrackNumber = GetInt(r, "track_number"),
-        Bpm = r.IsDBNull(r.GetOrdinal("bpm")) ? null : r.GetDouble(r.GetOrdinal("bpm")),
+        TagBpm = r.IsDBNull(r.GetOrdinal("bpm")) ? null : r.GetDouble(r.GetOrdinal("bpm")),
+        DetectedBpm = r.IsDBNull(r.GetOrdinal("detected_bpm")) ? null : r.GetDouble(r.GetOrdinal("detected_bpm")),
         Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
     };
+
+    /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
+    private const string JoinAnalysis =
+        "LEFT JOIN analysis a ON a.path = t.path AND a.file_size = t.file_size AND a.modified_utc = t.modified_utc";
 
     private static string? GetString(SqliteDataReader r, string column)
     {

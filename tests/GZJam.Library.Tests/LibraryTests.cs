@@ -34,9 +34,11 @@ public sealed class ScanningTests : IDisposable
     [Theory]
     [InlineData("13200", 132.0)]
     [InlineData("26000", 260.0)]
+    [InlineData("1320", 132.0)]
+    [InlineData("1180", 118.0)]
     [InlineData("180", 180.0)]
     [InlineData("98.5", 98.5)]
-    public void Bpm_stored_times_100_is_scaled_back(string tagValue, double expected)
+    public void Bpm_stored_times_10_or_100_is_scaled_back(string tagValue, double expected)
     {
         _lib.AddMp3("Swing/a.mp3", new TestMp3.Tags(Title: "A", Bpm: tagValue));
         _lib.AddRootAndScan();

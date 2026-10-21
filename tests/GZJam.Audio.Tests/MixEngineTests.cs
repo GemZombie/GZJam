@@ -274,6 +274,30 @@ public sealed class MixEngineTests : IDisposable
         Assert.InRange(Render().Main, 0, Silent);
     }
 
+    [Fact]
+    public void A_trimmed_track_finishes_where_the_music_ends_and_replays_from_where_it_starts()
+    {
+        A.Load(_tone);   // 10 s
+        A.SetTrim(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(4));
+        A.Seek(A.Start);
+        int finished = 0;
+        A.Finished += (_, _) => finished++;
+        A.Play();
+
+        Render(2.5);
+        _mix.Update();
+        Assert.Equal(0, finished);
+        Assert.InRange(A.Remaining.TotalSeconds, 0, 0.6);   // counts down to the end of the music, not the file
+
+        Render(1);
+        _mix.Update();
+        Assert.Equal(1, finished);
+        Assert.False(A.IsPlaying);
+
+        A.Play();
+        Assert.InRange(A.Position.TotalSeconds, 1, 1.3);
+    }
+
     [Theory]
     [InlineData(0.0, 0.0)]     // fader away from the deck: silent in the room
     [InlineData(1.0, 1.0)]     // fader on the deck: full

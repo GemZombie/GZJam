@@ -51,6 +51,18 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial DeckReadout Readout { get; private set; }
 
+    /// <summary>The track's overview waveform, once analyzed.</summary>
+    [ObservableProperty]
+    public partial Waveform? Waveform { get; private set; }
+
+    /// <summary>The track is being analyzed (its waveform isn't ready yet).</summary>
+    [ObservableProperty]
+    public partial bool IsAnalyzing { get; private set; }
+
+    /// <summary>Where the music starts and ends, as fractions of the file (silence either side is skipped).</summary>
+    public double TrimStart => Deck.Length > TimeSpan.Zero ? Deck.Start / Deck.Length : 0;
+    public double TrimEnd => Deck.Length > TimeSpan.Zero ? Deck.End / Deck.Length : 1;
+
     /// <summary>Shown briefly over the position bar, e.g. "Tap again to pause".</summary>
     [ObservableProperty]
     public partial string? Hint { get; private set; }
@@ -251,6 +263,8 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         Deck.Unload();
         Track = null;
+        Waveform = null;
+        IsAnalyzing = false;
         Log.Info($"Deck {Label}: eject");
         Refresh();
     }
@@ -287,8 +301,8 @@ public sealed partial class DeckViewModel : ObservableObject
 
     internal void Rewind()
     {
-        Deck.Seek(TimeSpan.Zero);
-        _lastPosition = TimeSpan.Zero;
+        Deck.Seek(Deck.Start);
+        _lastPosition = Deck.Position;
         Refresh();
     }
 
@@ -296,7 +310,7 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         // A song shorter than the threshold counts if it played to its end in the room. A song
         // faded out early (a false start, the wrong track) doesn't.
-        if (!_counted && _firstOnAir is { } since && Deck.Position >= Deck.Length - TimeSpan.FromSeconds(1))
+        if (!_counted && _firstOnAir is { } since && Deck.Position >= Deck.End - TimeSpan.FromSeconds(1))
             CountAsPlayed(since);
         IsFinished = true;
         Refresh();
@@ -311,10 +325,54 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.Load(track.Path);
         Deck.TempoPercent = 0;
         Track = track;
+        Waveform = null;
         Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path})");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
+        OnTrimChanged();
         Refresh();
+        _ = AnalyzeAsync(track);
+    }
+
+    /// <summary>
+    /// Fetches the track's analysis (instant if it's been analyzed before), then shows the
+    /// waveform and trims the silence at either end.
+    /// </summary>
+    private async Task AnalyzeAsync(Track track)
+    {
+        if (_owner.Analysis is not { } analysis)
+            return;
+        IsAnalyzing = true;
+        TrackAnalysis? result = await analysis.GetAsync(track.Path);
+        if (Track != track)
+            return;   // something else was loaded meanwhile
+        IsAnalyzing = false;
+        if (result is not null)
+            Apply(result);
+    }
+
+    private void Apply(TrackAnalysis analysis)
+    {
+        Waveform = analysis.Waveform;
+        Track!.DetectedBpm = analysis.Bpm;
+        Deck.SetTrim(analysis.AudibleStart, analysis.AudibleEnd);
+        // Still at the top: skip the silence before the music. (Mid-track, leave it be.)
+        if (!IsPlaying && !IsFinished && Deck.Position < analysis.AudibleStart)
+        {
+            Deck.Seek(analysis.AudibleStart);
+            _lastPosition = Deck.Position;   // a jump isn't listening
+        }
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: music from {analysis.AudibleStart.TotalSeconds:0.00} s to {analysis.AudibleEnd.TotalSeconds:0.00} s of {analysis.Length.TotalSeconds:0.00} s, BPM {analysis.Bpm?.ToString() ?? "unknown"}"));
+        OnPropertyChanged(nameof(TrackBpm));
+        OnTrimChanged();
+        Refresh();
+    }
+
+    private void OnTrimChanged()
+    {
+        OnPropertyChanged(nameof(TrimStart));
+        OnPropertyChanged(nameof(TrimEnd));
     }
 
     private async void ShowHint(string text)

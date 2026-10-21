@@ -20,6 +20,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private int _searchVersion;
     private bool _suppressSearch;
     private (string RootPath, string Folder)? _pendingSelection;
+    private Dictionary<string, Track> _resultsByPath = new(StringComparer.Ordinal);
 
     public LibraryViewModel(LibraryDatabase database)
     {
@@ -29,6 +30,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     }
 
     public ObservableCollection<FolderNodeViewModel> Roots { get; } = [];
+
+    /// <summary>A scan added, changed or removed tracks.</summary>
+    public event Action? Scanned;
 
     [ObservableProperty]
     public partial FolderNodeViewModel? SelectedFolder { get; set; }
@@ -63,6 +67,27 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             string where = SelectedFolder is { } f ? $" in {f.Name}" : "";
             return string.IsNullOrWhiteSpace(SearchText) ? $"No tracks{where}." : $"Nothing matches \"{SearchText.Trim()}\"{where}.";
         }
+    }
+
+    partial void OnResultsChanged(IReadOnlyList<Track> value)
+    {
+        _resultsByPath = new Dictionary<string, Track>(value.Count, StringComparer.Ordinal);
+        foreach (Track track in value)
+            _resultsByPath[track.Path] = track;
+    }
+
+    /// <summary>Shows a newly detected BPM on a track in the results.</summary>
+    public void SetDetectedBpm(string path, double? bpm)
+    {
+        if (_resultsByPath.TryGetValue(path, out Track? track))
+            track.DetectedBpm = bpm;
+    }
+
+    /// <summary>Re-shows every result's BPM (the BPM range changed).</summary>
+    public void RefreshBpms()
+    {
+        foreach (Track track in _resultsByPath.Values)
+            track.RefreshBpm();
     }
 
     partial void OnSelectedFolderChanged(FolderNodeViewModel? value)
@@ -186,6 +211,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 // A remembered folder may only exist once its root has been scanned (e.g. a fresh database).
                 RestorePendingSelection();
                 RunSearch();
+                Scanned?.Invoke();
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

@@ -21,7 +21,7 @@ public sealed record PlayRecord(
         Title = Title,
         Artist = Artist,
         Album = Album,
-        Bpm = Bpm,
+        TagBpm = Bpm,
         Duration = Duration,
     };
 }
@@ -132,7 +132,7 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = "SELECT * FROM tracks WHERE path = $path;";
+        cmd.CommandText = $"SELECT t.*, a.bpm AS detected_bpm FROM tracks t {JoinAnalysis} WHERE t.path = $path;";
         cmd.Parameters.AddWithValue("$path", path);
         using var r = cmd.ExecuteReader();
         return r.Read() ? ReadTrack(r) : null;

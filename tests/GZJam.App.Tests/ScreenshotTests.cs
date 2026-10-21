@@ -59,6 +59,7 @@ public sealed class ScreenshotTests
         var vm = app.ViewModel;
         vm.LoadToDeckAsync(vm.Deck1!, tracks[1]).GetAwaiter().GetResult();
         vm.LoadToDeckAsync(vm.Deck2!, tracks[2]).GetAwaiter().GetResult();
+        AppHarness.WaitFor(() => vm.Deck1!.Waveform is not null && vm.Deck2!.Waveform is not null, TimeSpan.FromSeconds(30));
         vm.Deck1!.TogglePlayCommand.Execute(null);
         vm.Deck2!.TempoPercent = -2.5;
         vm.Deck2.IsCueOn = true;
@@ -83,5 +84,10 @@ public sealed class ScreenshotTests
         vm.ShowHistory = true;
         app.Play(0.1);
         app.Screenshot("08-history");
+
+        var settings = app.Window.FindControl<Button>("SettingsButton")!;
+        settings.Flyout!.ShowAt(settings);
+        app.Screenshot("09-settings");
+        settings.Flyout.Hide();
     }
 }

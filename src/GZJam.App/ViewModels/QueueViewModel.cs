@@ -6,9 +6,19 @@ using GZJam.Library;
 namespace GZJam.App.ViewModels;
 
 /// <summary>A track waiting in the queue. The same track can be queued more than once.</summary>
-public sealed partial class QueueItem(Track track) : ObservableObject
+public sealed partial class QueueItem : ObservableObject
 {
-    public Track Track { get; } = track;
+    public QueueItem(Track track)
+    {
+        Track = track;
+        track.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(Track.Bpm))
+                OnPropertyChanged(nameof(BpmText));   // detected after it was queued
+        };
+    }
+
+    public Track Track { get; }
 
     [ObservableProperty]
     public partial int Number { get; set; }

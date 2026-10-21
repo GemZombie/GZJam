@@ -23,6 +23,8 @@ public sealed class Deck : IDisposable
     private bool _cue;
     private long _fadeStarted;
     private TimeSpan? _fadeLength;
+    private TimeSpan _start;
+    private TimeSpan? _end;
 
     internal Deck(MixEngine mix, int index)
     {
@@ -49,6 +51,8 @@ public sealed class Deck : IDisposable
     public void Load(string path)
     {
         Unload();
+        _start = TimeSpan.Zero;
+        _end = null;
         _mix.Engine.UseNoSoundDevice();
 
         // Prescan gives exact length and seeking for VBR MP3s.
@@ -96,7 +100,7 @@ public sealed class Deck : IDisposable
         if (!IsLoaded)
             return;
         if (_ended)
-            Seek(TimeSpan.Zero);
+            Seek(_start);
         _playing = true;
         SetPaused(false);
     }
@@ -127,7 +131,9 @@ public sealed class Deck : IDisposable
             // A finished source can't be rewound inside the mixer; reload it cleanly instead.
             string path = TrackPath!;
             bool wasPlaying = _playing;
+            var (start, end) = (_start, _end);
             Load(path);
+            (_start, _end) = (start, end);
             _playing = wasPlaying;
         }
 
@@ -146,8 +152,24 @@ public sealed class Deck : IDisposable
         ? TimeSpan.Zero
         : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetLength(_tempo)));
 
-    /// <summary>Real time left to play, accounting for tempo.</summary>
-    public TimeSpan Remaining => Max(TimeSpan.Zero, (Length - Position) / (1 + _tempoPercent / 100));
+    /// <summary>Where the music starts: playing from the top starts here, skipping silence.</summary>
+    public TimeSpan Start => _start;
+
+    /// <summary>Where the music ends: the track counts as finished here, so trailing silence isn't played.</summary>
+    public TimeSpan End => _end is { } end && end < Length ? end : Length;
+
+    /// <summary>
+    /// Sets where the music starts and ends (from analysis). Doesn't move the playhead; a track
+    /// that's still at the top can be moved to <paramref name="start"/> with <see cref="Seek"/>.
+    /// </summary>
+    public void SetTrim(TimeSpan start, TimeSpan end)
+    {
+        _start = start < TimeSpan.Zero ? TimeSpan.Zero : start;
+        _end = end > _start ? end : null;
+    }
+
+    /// <summary>Real time left until the music ends, accounting for tempo.</summary>
+    public TimeSpan Remaining => Max(TimeSpan.Zero, (End - Position) / (1 + _tempoPercent / 100));
 
     /// <summary>Tempo change in percent; -8 plays 8% slower. Pitch is preserved.</summary>
     public double TempoPercent
@@ -211,7 +233,10 @@ public sealed class Deck : IDisposable
             ApplyVolumes();
         }
 
-        if (_playing && !_ended && Bass.ChannelIsActive(_splitMain) == PlaybackState.Stopped && Position >= Length - TimeSpan.FromMilliseconds(250))
+        // The end of the music (trailing silence is trimmed), or the end of the file.
+        if (_playing && !_ended && (
+                (_end is not null && Position >= End) ||
+                (Bass.ChannelIsActive(_splitMain) == PlaybackState.Stopped && Position >= Length - TimeSpan.FromMilliseconds(250))))
         {
             _ended = true;
             _playing = false;

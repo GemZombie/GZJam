@@ -41,7 +41,7 @@ public sealed class AppHarness : IDisposable
         // Real BASS mixing, but offline: nothing plays aloud, and tests pull audio with Render().
         Audio = new AudioEngine();
         Mix = new MixEngine(Audio, offline: true);
-        ViewModel = new MainWindowViewModel(Database, Settings, mix: Mix);
+        ViewModel = new MainWindowViewModel(Database, Settings, Audio, Mix);
         Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
         Window.Show();
         if (start)
@@ -57,10 +57,18 @@ public sealed class AppHarness : IDisposable
     public string WorkDirectory => _work;
 
     /// <summary>A track backed by a generated tone (real audio, unlike the silent test MP3s).</summary>
-    public Track ToneTrack(string title, double seconds = 20)
+    public Track ToneTrack(string title, double seconds = 20, double silenceBefore = 0, double silenceAfter = 0)
     {
-        string path = TestWav.WriteTone(Path.Combine(_work, "tones", title + ".wav"), TimeSpan.FromSeconds(seconds));
-        return new Track { Path = path, Folder = "", FileName = title + ".wav", Title = title, Artist = "Test Band", Bpm = 150 };
+        string path = TestWav.WriteTone(Path.Combine(_work, "tones", title + ".wav"), TimeSpan.FromSeconds(seconds),
+            silenceBefore: TimeSpan.FromSeconds(silenceBefore), silenceAfter: TimeSpan.FromSeconds(silenceAfter));
+        return new Track { Path = path, Folder = "", FileName = title + ".wav", Title = title, Artist = "Test Band", TagBpm = 150 };
+    }
+
+    /// <summary>A drum pattern at <paramref name="bpm"/> with no BPM tag, for tempo detection.</summary>
+    public Track BeatTrack(string title, double bpm, double seconds = 30)
+    {
+        string path = TestWav.WriteSwingBeat(Path.Combine(_work, "beats", title + ".wav"), bpm, TimeSpan.FromSeconds(seconds));
+        return new Track { Path = path, Folder = "", FileName = title + ".wav", Title = title, Artist = "Test Drummer" };
     }
 
     /// <summary>Plays <paramref name="seconds"/> of audio through the offline mix, then runs a UI tick.</summary>

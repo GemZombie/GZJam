@@ -74,6 +74,37 @@ is out of scope until it earns a place.
   Results are cached in the database, so the library is usable immediately while analysis runs.
 - A BPM already in the tags (ID3 `TBPM`) is used rather than re-detected.
 
+### Status: analysis built (rest of step 3, plus waveforms from step 4), 2026-10-21
+
+- **One decode per track** (`TrackAnalyzer`) gives the overview waveform, the audible start and
+  end, and the BPM. About 0.4 s per track per thread; the whole 12,686-track library takes
+  roughly 25-40 minutes once, on 1-3 below-normal-priority threads. Results are saved in the
+  library database (keyed by path, invalidated when the file's size or date changes).
+- **Order:** a track loaded onto a deck is analyzed first, then queued tracks, then the rest of
+  the library in folder order. Progress shows in the top bar ("Analyzing tracks… n / total").
+- **Silence:** 50 ms windows; silence is anything 40 dB below the track's loud passages (95th
+  percentile) or below -60 dBFS. 50 ms is kept before the first note and 250 ms after the last.
+  On the real library the median trim is 0.2 s at the start and 3 s at the end (old transfers
+  often carry seconds of hiss). Checked against loudness plots of real endings: fades and final
+  chords are kept.
+- **Decks use the trims:** a loaded track is cued at its first note; it counts as finished
+  (so the gap starts) where the music ends; "time left" counts down to there. The waveform shades
+  the trimmed parts.
+- **BPM** is our own detector (`TempoDetector`): spectral-flux onsets, autocorrelation across
+  1-4 beats, then a swing-aware half/double-time check (a regular pulse midway between the
+  slow beats means they're really two beats; a ballad's swung eighths fall at 2/3, not 1/2).
+  BASS_FX's detector got 5 of the library's 28 tagged tracks right; ours gets 19 within 4%,
+  with no half/double errors, and the rest mostly 5-7% off (the same recording measures
+  steadily, so likely tag inaccuracy). Detected BPMs are shown as whole numbers.
+- **BPM range (Settings):** "my music's tempo range". Detected BPMs outside it are doubled or
+  halved into it, at display time, so changing it needs no re-analysis. Narrower than double
+  (e.g. 120-180) settles every song. Default 60-320 (no correction). Tag BPMs are never changed.
+- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
+- **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
+  outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
+- Not yet: adjusting trim points by hand, editing/tapping a BPM per track, per-folder BPM ranges,
+  a zoomed scrolling waveform, loudness matching.
+
 ## Decks, queue and auto-play
 
 ### Requirements (from the DJ)
@@ -134,8 +165,8 @@ is out of scope until it earns a place.
   move the crossfader to it, refill the finished deck from the queue. Stops (with a notice)
   when the queue runs out. Turning it off never touches the current song.
 - A song that runs out in the headphones only isn't "used": it rewinds and stays next.
-- Gap: − / + in the mixer (0-15 s, 0.5 s steps), remembered. Measured from the end of the file
-  until silence trimming lands.
+- Gap: − / + in the mixer (0-15 s, 0.5 s steps), remembered. Measured from where the music
+  ends (silence trimming), not the end of the file.
 - The crossfader's last 4% at each end snaps to the end; a deck counts as "in the room" from
   about -20 dB; tapping a locked position bar says how to unlock it.
 
@@ -146,7 +177,8 @@ is out of scope until it earns a place.
   easy to miss), and confusion from the crossfader also driving the headphones.
 - **Decision: the crossfader is only a crossfade between the decks for the room.** The
   headphones are chosen per deck with a cue button. Pause protection is off by default.
-- Not yet: auto-play, the gap, silence trimming, BPM detection (step 3); waveforms (step 4).
+- Auto-play, the gap, silence trimming, BPM detection and waveforms have since been built (see
+  Track prep).
 
 ## Queue as a crate
 

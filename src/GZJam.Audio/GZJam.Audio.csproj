@@ -12,6 +12,11 @@
     <PackageReference Include="ManagedBass.Mix" Version="4.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="GZJam.Audio.Tests" />
+    <InternalsVisibleTo Include="GZJam.DevTools" />
+  </ItemGroup>
+
   <!-- Native BASS binaries are copied by lib/bass/Bass.targets, imported by each app. -->
 
 </Project>

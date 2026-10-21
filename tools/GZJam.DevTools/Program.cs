@@ -1,13 +1,32 @@
 using System.Diagnostics;
+using GZJam.DevTools;
 using GZJam.Library;
 
-// Developer utilities.
-//   bench <music folder>   Scan a folder into a throwaway database and report timings and tag coverage.
-//                          Read-only: music files are never modified.
+// Developer utilities. Read-only: music files are never modified.
+//   bench <music folder>             Scan a folder into a throwaway database; report timings and tag coverage.
+//   analyze <music folder> [count]   Analyze tracks (waveform, silence, BPM): speed, and detected BPM
+//                                    against the tagged BPMs.
+
+if (args is ["swing", var swingBpm, var swingBackbeat])
+{
+    string file = Path.Combine(Path.GetTempPath(), $"gzjam-swing-{swingBpm}-{swingBackbeat}.wav");
+    GZJam.Testing.TestWav.WriteSwingBeat(file, double.Parse(swingBpm), TimeSpan.FromSeconds(40), backbeat: double.Parse(swingBackbeat));
+    return AnalyzeBench.Tempo(file);
+}
+
+if (args is ["tempo", var tempoFile])
+    return AnalyzeBench.Tempo(tempoFile);
+
+if (args is ["envelope", var envelopeFile])
+    return AnalyzeBench.Envelope(envelopeFile);
+
+if (args is ["analyze", var analyzeFolder, ..])
+    return await AnalyzeBench.RunAsync(analyzeFolder, args.Length > 2 ? int.Parse(args[2]) : 60);
 
 if (args is not ["bench", var musicFolder])
 {
     Console.WriteLine("usage: GZJam.DevTools bench <music folder>");
+    Console.WriteLine("       GZJam.DevTools analyze <music folder> [count]");
     return 1;
 }
 
@@ -45,7 +64,7 @@ try
     Console.WriteLine($"  album     {Pct(all.Count(t => t.Album is not null))}");
     Console.WriteLine($"  genre     {Pct(all.Count(t => t.Genre is not null))}");
     Console.WriteLine($"  year      {Pct(all.Count(t => t.Year is not null))}");
-    Console.WriteLine($"  bpm       {Pct(all.Count(t => t.Bpm is not null))}");
+    Console.WriteLine($"  bpm       {Pct(all.Count(t => t.TagBpm is not null))}");
     Console.WriteLine($"  comment   {Pct(all.Count(t => t.Comment is not null))}");
     Console.WriteLine($"  duration  {Pct(all.Count(t => t.Duration > TimeSpan.Zero))}");
 
@@ -54,7 +73,7 @@ try
     foreach (var g in all.Where(t => t.Genre is not null).GroupBy(t => t.Genre!).OrderByDescending(g => g.Count()).Take(12))
         Console.WriteLine($"  {g.Count(),6:N0}  {g.Key}");
 
-    var bpms = all.Where(t => t.Bpm is not null).Select(t => t.Bpm!.Value).Order().ToList();
+    var bpms = all.Where(t => t.TagBpm is not null).Select(t => t.TagBpm!.Value).Order().ToList();
     if (bpms.Count > 0)
         Console.WriteLine($"\nBPM range: {bpms[0]:0} - {bpms[^1]:0}, median {bpms[bpms.Count / 2]:0}");
 

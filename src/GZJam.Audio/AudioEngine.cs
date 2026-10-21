@@ -14,6 +14,7 @@ public sealed class AudioEngine : IDisposable
     internal const int NoSoundDevice = 0;
 
     private readonly HashSet<int> _initializedDevices = [];
+    private readonly Lock _lock = new();   // analysis threads decode alongside the UI thread
 
     public AudioEngine()
     {
@@ -83,16 +84,25 @@ public sealed class AudioEngine : IDisposable
     /// <summary>Initializes a device for output if it isn't already.</summary>
     internal void EnsureInitialized(int deviceIndex)
     {
-        if (_initializedDevices.Contains(deviceIndex))
-            return;
+        lock (_lock)
+        {
+            if (_initializedDevices.Contains(deviceIndex))
+                return;
 
-        if (!Bass.Init(deviceIndex) && Bass.LastError != Errors.Already)
-            throw new AudioException($"Could not open output device {deviceIndex}", Bass.LastError);
+            if (!Bass.Init(deviceIndex) && Bass.LastError != Errors.Already)
+                throw new AudioException($"Could not open output device {deviceIndex}", Bass.LastError);
 
-        _initializedDevices.Add(deviceIndex);
+            _initializedDevices.Add(deviceIndex);
+        }
     }
 
     public void Dispose()
+    {
+        lock (_lock)
+            FreeDevices();
+    }
+
+    private void FreeDevices()
     {
         foreach (int device in _initializedDevices)
         {

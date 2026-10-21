@@ -18,7 +18,7 @@ public sealed class HistoryTests : IDisposable
         FileName = title + ".mp3",
         Title = title,
         Artist = "Count Basie",
-        Bpm = 150,
+        TagBpm = 150,
         Duration = TimeSpan.FromMinutes(3),
     };
 
