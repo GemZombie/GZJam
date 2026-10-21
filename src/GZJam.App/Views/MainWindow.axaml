@@ -140,58 +140,48 @@
                     IsVisible="False" DataContext="{Binding Deck3}" DragDrop.AllowDrop="True" />
       </Grid>
 
-      <Border Grid.Column="1" Classes="panel" Padding="14">
-        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
-          <!-- Speakers: level meter (one bar in mono, two in stereo), limit light, volume; headphone volume -->
-          <StackPanel Spacing="5" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-              <c:LevelMeter x:Name="MainMeter" Height="11" VerticalAlignment="Center" IsMono="{Binding IsMono}"
-                            Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
-                            ToolTip.Tip="What the speakers are playing. One bar: mono (change in Settings)." />
-              <Border Grid.Column="1" Classes="limit" Classes.on="{Binding IsLimiting}"
-                      ToolTip.Tip="Lights when the speakers are too loud and the limiter is holding them down. Turn down a deck or the main volume.">
-                <TextBlock Text="LIMIT" />
-              </Border>
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,28" ColumnSpacing="6" ToolTip.Tip="Main (speaker) volume">
-              <Path Data="{StaticResource IconSpeaker}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2"
-                    StrokeJoin="Round" StrokeLineCap="Round" Stretch="Uniform" Width="13" Height="12" VerticalAlignment="Center" />
-              <Slider x:Name="MainVolumeSlider" Grid.Column="1" Classes="volume" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10"
-                      Value="{Binding MainVolume}" />
-              <TextBlock Grid.Column="2" Classes="mono muted" Text="{Binding MainVolumeText}" FontSize="11"
-                         VerticalAlignment="Center" TextAlignment="Right" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,28" ColumnSpacing="6" ToolTip.Tip="Headphone volume">
-              <Path Data="{StaticResource IconHeadphones}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2"
-                    Stretch="Uniform" Width="13" Height="12" VerticalAlignment="Center" />
-              <Slider x:Name="CueVolumeSlider" Grid.Column="1" Classes="volume" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10"
-                      Value="{Binding CueVolume}" />
-              <TextBlock Grid.Column="2" Classes="mono muted" Text="{Binding CueVolumeText}" FontSize="11"
-                         VerticalAlignment="Center" TextAlignment="Right" />
-            </Grid>
-          </StackPanel>
+      <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the crossfader -->
+      <Border Grid.Column="1" Classes="panel" Padding="14,12">
+        <Grid RowDefinitions="*,Auto,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
+          <Grid ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
+            <c:LevelMeter x:Name="MainMeter" IsMono="{Binding IsMono}" Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
+                          Margin="0,6,0,6"
+                          ToolTip.Tip="What the speakers are playing. One column: mono (change in Settings)." />
+            <c:Fader x:Name="MainVolumeFader" Grid.Column="1" Classes="volume" Value="{Binding MainVolume}"
+                     ToolTip.Tip="{Binding MainVolumeTip}" />
+            <c:Fader x:Name="CueVolumeFader" Grid.Column="2" Classes="volume" Value="{Binding CueVolume}"
+                     ToolTip.Tip="{Binding CueVolumeTip}" />
 
-          <StackPanel Grid.Row="2" Spacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
-            <c:CrossfaderControl x:Name="Crossfader" Height="56" Value="{Binding Crossfader}"
-                                 ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <!-- With four decks each side button carries both of that side's numbers -->
-              <Button x:Name="LeftSideButton" Classes="side" Command="{Binding SnapTo1Command}" ToolTip.Tip="{Binding LeftTip}">
-                <StackPanel Orientation="Horizontal" Spacing="5">
-                  <TextBlock Text="1" Foreground="{StaticResource Deck1Brush}" />
-                  <TextBlock Text="3" Foreground="{StaticResource Deck3Brush}" IsVisible="{Binding IsFourDecks}" />
-                </StackPanel>
-              </Button>
-              <TextBlock Grid.Column="1" Classes="label" HorizontalAlignment="Center" VerticalAlignment="Center"
-                         Text="{Binding LiveText}" />
-              <Button x:Name="RightSideButton" Grid.Column="2" Classes="side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
-                <StackPanel Orientation="Horizontal" Spacing="5">
-                  <TextBlock Text="2" Foreground="{StaticResource Deck2Brush}" />
-                  <TextBlock Text="4" Foreground="{StaticResource Deck4Brush}" IsVisible="{Binding IsFourDecks}" />
-                </StackPanel>
-              </Button>
-            </Grid>
-          </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left"
+                        ToolTip.Tip="Lights when the speakers are too loud and the limiter is holding them down. Turn down a deck or the main volume.">
+              <Border x:Name="LimitLed" Classes="led red" Classes.on="{Binding IsLimiting}" Width="6" Height="6" />
+              <TextBlock Classes="fader-label" Text="LIMIT" />
+            </StackPanel>
+            <TextBlock Grid.Row="1" Grid.Column="1" Classes="fader-label" Text="MAIN" HorizontalAlignment="Center" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Classes="fader-label" Text="PHONES" HorizontalAlignment="Center" />
+          </Grid>
+
+          <c:CrossfaderControl x:Name="Crossfader" Grid.Row="2" Height="44" Value="{Binding Crossfader}"
+                               ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
+          <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto">
+            <!-- The side the room hears has its light on. With four decks each carries both of that side's numbers. -->
+            <Button x:Name="LeftSideButton" Classes="hw side" Command="{Binding SnapTo1Command}" ToolTip.Tip="{Binding LeftTip}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border Classes="led red" Classes.on="{Binding IsDeck1Live}" />
+                <TextBlock Text="1" Foreground="{StaticResource Deck1Brush}" />
+                <TextBlock Text="3" Foreground="{StaticResource Deck3Brush}" IsVisible="{Binding IsFourDecks}" />
+              </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Text="{Binding LiveText}" />
+            <Button x:Name="RightSideButton" Grid.Column="2" Classes="hw side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border Classes="led red" Classes.on="{Binding IsDeck2Live}" />
+                <TextBlock Text="2" Foreground="{StaticResource Deck2Brush}" />
+                <TextBlock Text="4" Foreground="{StaticResource Deck4Brush}" IsVisible="{Binding IsFourDecks}" />
+              </StackPanel>
+            </Button>
+          </Grid>
         </Grid>
       </Border>
 

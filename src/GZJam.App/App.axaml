@@ -43,6 +43,18 @@
       <SolidColorBrush x:Key="AccentFaintBrush" Color="#228F74FF" />
       <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24F5A524" />
 
+      <!-- Hardware-style keys (Button.hw): moulded dark plastic, a touch lighter under the pointer -->
+      <LinearGradientBrush x:Key="KeyBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#2A2F39" Offset="0" />
+        <GradientStop Color="#1D2129" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="KeyHoverBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#333946" Offset="0" />
+        <GradientStop Color="#242933" Offset="1" />
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="KeyPressedBrush" Color="#171A20" />
+      <SolidColorBrush x:Key="KeyEdgeBrush" Color="#363C48" />
+
       <!-- First available wins: Windows, macOS, Linux. -->
       <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, SF Mono, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 

@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:GZJam.App.Controls">
 
   <Style Selector="Window">
     <Setter Property="Background" Value="{StaticResource BgBrush}" />
@@ -160,6 +161,90 @@
     <Setter Property="BorderThickness" Value="1" />
   </Style>
 
+  <!-- Hardware-style keys: dark, square-ish, bold small caps; state is shown by an LED, not by
+       filling the key with colour. Works for Button and ToggleButton. -->
+  <Style Selector=":is(Button).hw">
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="11,0" />
+    <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="0.6" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector=":is(Button).hw:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
+    <Setter Property="BorderBrush" Value="#46505E" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+  </Style>
+  <Style Selector=":is(Button).hw:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyPressedBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.hw:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.hw:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
+  </Style>
+  <Style Selector=":is(Button).hw:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
+  </Style>
+  <Style Selector=":is(Button).hw:disabled">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <!-- LEDs: dark when off; lit with a soft glow. Colour by meaning: red = the room, amber = the
+       headphones, green = running, accent = something you set. -->
+  <Style Selector="Border.led">
+    <Setter Property="Width" Value="7" />
+    <Setter Property="Height" Value="7" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="#262B33" />
+    <Setter Property="BorderBrush" Value="#111318" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.led.on">
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Border.led.on.red">
+    <Setter Property="Background" Value="{StaticResource OnAirBrush}" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B3F04444" />
+  </Style>
+  <Style Selector="Border.led.on.amber">
+    <Setter Property="Background" Value="{StaticResource Deck2Brush}" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B3F5A524" />
+  </Style>
+  <Style Selector="Border.led.on.green">
+    <Setter Property="Background" Value="{StaticResource OkBrush}" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B334D399" />
+  </Style>
+  <Style Selector="Border.led.on.accent">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Setter Property="BoxShadow" Value="0 0 6 1 #B38F74FF" />
+  </Style>
+
+  <!-- A deck's ON AIR / OFF AIR, beside its LED -->
+  <Style Selector="TextBlock.status">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.2" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.status.air">
+    <Setter Property="Foreground" Value="{StaticResource OnAirBrush}" />
+  </Style>
+
   <!-- Decks -->
   <Style Selector="Border.deck">
     <Setter Property="Transitions">
@@ -167,9 +252,6 @@
         <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
       </Transitions>
     </Setter>
-  </Style>
-  <Style Selector="Border.deck.onair">
-    <Setter Property="BorderBrush" Value="#73F04444" />
   </Style>
   <Style Selector="Border.deck.drop-ok">
     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
@@ -223,31 +305,21 @@
     <Setter Property="Foreground" Value="White" />
   </Style>
 
-  <!-- Compact volume sliders in the mixer column -->
-  <Style Selector="Slider.volume">
-    <Setter Property="Margin" Value="0,-8" />
+  <!-- Main and phones faders: 0-100 on the audio taper, with lines at the dB marks
+       (0, -6, -12, -18, -24, -30, -40 dB, off); the slot lit grey up to the cap. -->
+  <Style Selector="c|Fader.volume">
+    <Setter Property="Minimum" Value="0" />
+    <Setter Property="Maximum" Value="100" />
+    <Setter Property="Step" Value="1" />
+    <Setter Property="Origin" Value="0" />
+    <Setter Property="LightLines" Value="False" />
+    <Setter Property="Lines" Value="0,10,17.78,25.12,35.48,50.12,70.79,100" />
   </Style>
-
-  <!-- Per-deck cue (headphones) toggle; lit amber when on -->
-  <Style Selector="ToggleButton.cue-button">
-    <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
-    <Setter Property="Padding" Value="11,0" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="FontSize" Value="12.5" />
+  <Style Selector="TextBlock.fader-label">
+    <Setter Property="FontSize" Value="9.5" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.cue-button:checked /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource Deck2Brush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource Deck2Brush}" />
-  </Style>
-  <Style Selector="ToggleButton.cue-button:checked">
-    <Setter Property="Foreground" Value="#111" />
-  </Style>
-  <Style Selector="ToggleButton.cue-button:checked:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="#FFB84A" />
   </Style>
 
   <Style Selector="Border.hint">
@@ -265,6 +337,10 @@
     <Setter Property="Padding" Value="4,0" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
+  <!-- Nothing loaded: the readout stays out of the way -->
+  <Style Selector="Button.readout.empty">
+    <Setter Property="Opacity" Value="0.3" />
+  </Style>
   <Style Selector="Button.readout:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="#0DFFFFFF" />
   </Style>
@@ -277,16 +353,16 @@
     <Setter Property="Height" Value="{DynamicResource DeckButtonSize}" />
     <Setter Property="CornerRadius" Value="999" />
     <Setter Property="BorderThickness" Value="2" />
-    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.play:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="#14FFFFFF" />
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
   </Style>
-  <Style Selector="Button.play.playing /template/ ContentPresenter">
-    <Setter Property="Background" Value="#1AFFFFFF" />
+  <Style Selector="Button.play:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyPressedBrush}" />
   </Style>
   <!-- Filling up while the live deck's pause is being held -->
   <Style Selector="Button.play.holding /template/ ContentPresenter">
@@ -340,12 +416,10 @@
   </Style>
 
   <Style Selector="Button.side">
-    <Setter Property="MinHeight" Value="{DynamicResource DeckControlHeight}" />
     <Setter Property="MinWidth" Value="52" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="Padding" Value="9,0" />
+    <Setter Property="FontSize" Value="13" />
   </Style>
 
   <!-- Panel tabs (Queue / History) -->
@@ -428,9 +502,9 @@
     <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
   </Style>
   <Style Selector="Border.badge">
-    <Setter Property="Width" Value="34" />
-    <Setter Property="Height" Value="34" />
-    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="CornerRadius" Value="4" />
   </Style>
   <!-- The EQ panel's frame: the app's panel colours rather than the stock flyout grey -->
   <Style Selector="FlyoutPresenter.eq">
@@ -441,37 +515,35 @@
     <Setter Property="Padding" Value="16,14" />
   </Style>
 
-  <!-- A deck's EQ button: quiet when flat, lit when the song has EQ set -->
+  <!-- A deck's EQ button: a tiny key whose LED is lit while the song has EQ set -->
   <Style Selector="Button.eq-chip">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="5" />
-    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Padding" Value="5,1,6,1" />
     <Setter Property="MinHeight" Value="18" />
-    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontSize" Value="9.5" />
     <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="0.8" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.eq-chip:pointerover">
+  <Style Selector="Button.eq-chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
     <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
   </Style>
-  <Style Selector="Button.eq-chip.on">
-    <Setter Property="Foreground" Value="#0C0E12" />
-    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-  </Style>
-  <Style Selector="Button.eq-chip.on /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+  <Style Selector="Button.eq-chip Border.led">
+    <Setter Property="Width" Value="5" />
+    <Setter Property="Height" Value="5" />
   </Style>
 
   <Style Selector="Border.badge.small">
-    <Setter Property="Width" Value="24" />
-    <Setter Property="Height" Value="24" />
-    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+    <Setter Property="CornerRadius" Value="3" />
   </Style>
   <Style Selector="Border.badge.small > TextBlock">
     <Setter Property="FontSize" Value="13" />

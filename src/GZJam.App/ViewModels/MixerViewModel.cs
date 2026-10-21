@@ -54,6 +54,7 @@ public sealed partial class MixerViewModel : ObservableObject
             mix.Main.Volume = Gain(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(MainVolumeText));
+            OnPropertyChanged(nameof(MainVolumeTip));
         }
     }
 
@@ -70,11 +71,23 @@ public sealed partial class MixerViewModel : ObservableObject
             mix.Cue.Volume = Gain(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(CueVolumeText));
+            OnPropertyChanged(nameof(CueVolumeTip));
         }
     }
 
-    public string MainVolumeText => $"{MainVolume:0}";
-    public string CueVolumeText => $"{CueVolume:0}";
+    public string MainVolumeText => Db(MainVolume);
+    public string CueVolumeText => Db(CueVolume);
+    public string MainVolumeTip => $"Main (speaker) volume: {MainVolumeText}";
+    public string CueVolumeTip => $"Phones (headphone) volume: {CueVolumeText}";
+
+    /// <summary>A volume as the dB it turns the output down by: "0 dB", "−6 dB", "off".</summary>
+    private static string Db(double percent)
+    {
+        if (percent <= 0)
+            return "off";
+        double db = 20 * Math.Log10(Gain(percent));
+        return Math.Abs(db) < 0.05 ? "0 dB" : $"−{-db:0.#} dB";
+    }
 
     /// <summary>The speakers play mono (a setting, on by default).</summary>
     public bool IsMono

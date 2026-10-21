@@ -52,7 +52,7 @@ public sealed class SeekBar : Control
         AvaloniaProperty.Register<SeekBar, bool>(nameof(IsLocked));
 
     public static readonly StyledProperty<double> CornerRadiusProperty =
-        AvaloniaProperty.Register<SeekBar, double>(nameof(CornerRadius), 7);
+        AvaloniaProperty.Register<SeekBar, double>(nameof(CornerRadius), 3);
 
     static SeekBar()
     {
@@ -162,7 +162,7 @@ public sealed class SeekBar : Control
 
     // ───────────── Waveform ─────────────
 
-    private const double BarStep = 3, BarWidth = 2;
+    private const double BarStep = 2, BarWidth = 2;   // touching: a solid shape, like a DJ deck's
     private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
     private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
     private static readonly IBrush ManualMarker = new ImmutableSolidColorBrush(Color.FromRgb(0xA9, 0x94, 0xFF));

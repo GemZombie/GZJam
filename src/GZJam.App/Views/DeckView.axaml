@@ -39,8 +39,21 @@
     <Style Selector="v|DeckView.compact TextBlock.bpm">
       <Setter Property="FontSize" Value="18" />
     </Style>
-    <Style Selector="v|DeckView.compact Slider.tempo">
-      <Setter Property="Margin" Value="0,-8" />
+    <Style Selector="c|PitchFader">
+      <Setter Property="Height" Value="40" />
+    </Style>
+    <Style Selector="v|DeckView.compact c|PitchFader">
+      <Setter Property="Height" Value="26" />
+    </Style>
+    <!-- On air: a red bar along the top edge (the frame's padding is undone so it reaches the edges) -->
+    <Style Selector="Border.onair-bar">
+      <Setter Property="Height" Value="3" />
+      <Setter Property="Background" Value="{StaticResource OnAirBrush}" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Margin" Value="-16,-14,-16,0" />
+    </Style>
+    <Style Selector="v|DeckView.compact Border.onair-bar">
+      <Setter Property="Margin" Value="-12,-8,-12,0" />
     </Style>
     <Style Selector="StackPanel.tempo">
       <Setter Property="Width" Value="170" />
@@ -51,6 +64,7 @@
   </UserControl.Styles>
 
   <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}">
+    <Panel>
     <Grid Classes="deck-rows" RowDefinitions="Auto,*,Auto">
 
       <!-- Number, track, readout -->
@@ -60,10 +74,10 @@
           <TextBlock Text="{Binding Label}" />
         </Border>
         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-          <Border Classes="pill" Classes.air="{Binding IsOnAir}" Classes.offair="{Binding IsOffAir}"
-                  IsVisible="{Binding IsPlaying}" HorizontalAlignment="Left">
-            <TextBlock Text="{Binding Status}" />
-          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsPlaying}" Margin="0,0,0,2">
+            <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+            <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
+          </StackPanel>
           <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                      Classes.dim="{Binding !HasTrack}" ToolTip.Tip="{Binding Title}" />
           <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="2">
@@ -77,8 +91,12 @@
               <c:EnergyIcon Energy="{Binding Track.Energy, FallbackValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
             </Button>
             <!-- EQ for this song (lit when set) -->
-            <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ" Margin="3,0,2,0"
+            <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Margin="4,0,2,0"
                     IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <Border Classes="led accent" Classes.on="{Binding IsEqSet}" />
+                <TextBlock Text="EQ" />
+              </StackPanel>
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="eq">
                   <v:EqPanel />
@@ -89,7 +107,7 @@
                        VerticalAlignment="Center" Margin="4,0,0,0" />
           </Grid>
         </StackPanel>
-        <Button Grid.Column="2" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
+        <Button Grid.Column="2" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM. Right-click if the BPM is wrong.">
           <Button.ContextMenu>
             <ContextMenu x:Name="ReadoutBpmMenu" />
@@ -109,24 +127,28 @@
                 Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
           <TextBlock Text="{Binding Label}" />
         </Border>
-        <Border Grid.Column="1" Classes="pill" Classes.air="{Binding IsOnAir}" Classes.offair="{Binding IsOffAir}"
-                IsVisible="{Binding IsPlaying}" VerticalAlignment="Center">
-          <TextBlock Text="{Binding Status}" />
-        </Border>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsPlaying}" VerticalAlignment="Center">
+          <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+          <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
+        </StackPanel>
         <TextBlock Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}">
           <Run Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
           <Run Text="  " />
           <Run Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource MutedBrush}" />
         </TextBlock>
-        <Button x:Name="CompactEqButton" Grid.Column="3" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Content="EQ"
+        <Button x:Name="CompactEqButton" Grid.Column="3" Classes="eq-chip" Classes.on="{Binding IsEqSet}"
                 IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <Border Classes="led accent" Classes.on="{Binding IsEqSet}" />
+            <TextBlock Text="EQ" />
+          </StackPanel>
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="eq">
               <v:EqPanel />
             </Flyout>
           </Button.Flyout>
         </Button>
-        <Button Grid.Column="4" Classes="readout" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Center"
+        <Button Grid.Column="4" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Center"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM.">
           <StackPanel Orientation="Horizontal" Spacing="7">
             <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"
@@ -171,17 +193,16 @@
           </Panel>
         </Button>
         <!-- Cue: this deck in the headphones, whatever the crossfader is doing -->
-        <ToggleButton Grid.Column="1" Classes="cue-button" IsChecked="{Binding IsCueOn}"
+        <ToggleButton x:Name="CueButton" Grid.Column="1" Classes="hw cue-button" IsChecked="{Binding IsCueOn}"
                       ToolTip.Tip="Cue: send this deck to your headphones">
-          <StackPanel Orientation="Horizontal" Spacing="7">
-            <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[ToggleButton].Foreground}"
-                  StrokeThickness="2.2" Stretch="Uniform" Width="15" Height="14" VerticalAlignment="Center" />
-            <TextBlock Text="Cue" VerticalAlignment="Center" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Border Classes="led amber" Classes.on="{Binding IsCueOn}" />
+            <TextBlock Text="CUE" />
           </StackPanel>
         </ToggleButton>
-        <Button Grid.Column="2" Classes="deck-button" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
+        <Button Grid.Column="2" Classes="hw" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
                 ToolTip.Tip="Fade out and stop (length in Settings)">
-          <TextBlock Text="Fade out" />
+          <TextBlock Text="FADE OUT" />
         </Button>
         <Panel Grid.Column="3" Classes="full-only">
           <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}" HorizontalAlignment="Left"
@@ -194,16 +215,12 @@
             <TextBlock Classes="mono" Text="{Binding TempoText}" FontSize="11" MinWidth="38" TextAlignment="Right" />
           </Button>
           <StackPanel Grid.Column="1" Classes="tempo" VerticalAlignment="Center" Spacing="0">
-            <Grid Classes="full-only" ColumnDefinitions="*,Auto,*">
-              <TextBlock Classes="dim" Text="−8%" FontSize="10" VerticalAlignment="Center" />
-              <Button Grid.Column="1" Classes="link" Padding="6,0" Command="{Binding ResetTempoCommand}"
-                      ToolTip.Tip="Tempo (pitch stays the same). Tap to reset.">
-                <TextBlock Classes="mono" Text="{Binding TempoText}" FontSize="11" />
-              </Button>
-              <TextBlock Grid.Column="2" Classes="dim" Text="+8%" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            </Grid>
-            <Slider Classes="tempo" Minimum="-8" Maximum="8" SmallChange="0.1" LargeChange="1"
-                    Value="{Binding TempoPercent}" IsEnabled="{Binding HasTrack}" />
+            <Button Classes="link full-only" Padding="6,0" HorizontalAlignment="Center" Command="{Binding ResetTempoCommand}"
+                    ToolTip.Tip="Tempo (pitch stays the same). Tap to reset.">
+              <TextBlock Classes="mono" Text="{Binding TempoText}" FontSize="11" />
+            </Button>
+            <c:PitchFader x:Name="TempoFader" Value="{Binding TempoPercent}" IsEnabled="{Binding HasTrack}"
+                          ToolTip.Tip="Tempo, ±8% (pitch stays the same). Drag; double-tap for 0." />
           </StackPanel>
         </Grid>
 
@@ -227,5 +244,7 @@
         </Button>
       </Grid>
     </Grid>
+    <Border Classes="onair-bar" IsVisible="{Binding IsOnAir}" IsHitTestVisible="False" />
+    </Panel>
   </Border>
 </UserControl>

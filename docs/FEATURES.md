@@ -411,6 +411,34 @@ Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses no
   can be changed while the room is listening.
 - Not a performance EQ: no permanent knobs, since social dance DJs set it once per recording.
 
+### Look: controls drawn like hardware, pass 1 of 3 (2026-10-21)
+
+The UI read as generic ("AI-looking"): stock sliders and switches beside drawn controls, purple on
+everything, big rounded cards and pills. The direction: draw controls like the hardware they
+stand for, colour only where it means something, tighter corners. Pass 1 (decks and mixer):
+
+- **Tempo:** a pitch fader (`PitchFader`): a tick every 1%, longer at 0 and ±4, labels under it
+  on a full deck, a centre notch lit green at exactly 0, the crossfader's cap. Dragging is
+  relative: pressing beside the cap never jumps the tempo of a song the room may be dancing to.
+  Double-tap for 0, wheel or arrow keys for 0.1%.
+- **Keys with LEDs** (`Button.hw`, `Border.led`): CUE, FADE OUT and the mixer's side buttons are
+  dark keys; state is an LED, not a key filled with colour. LED colours by meaning: red = the
+  room (on air, the live side, limit), amber = headphones, green = running, accent = set by you
+  (EQ).
+- **ON AIR:** a red LED and small caps, and a red bar along the deck's top edge, instead of a
+  filled pill and a red outline. Number badges smaller and squarer.
+- **Play:** a dark round key with a ring in the deck's colour.
+- **Waveform:** solid (bars touching), as on DJ decks; tighter corners.
+- **Mixer strip:** an upright LED meter (one column in mono, two in stereo) with a dB scale and a
+  peak marker that holds 1.2 s; LIMIT is an LED under it; main and phones are upright faders
+  (`Fader`, shared with the EQ) with lines at the dB marks of the volume curve; tooltips give the
+  level in dB. Fills the space the old sliders left empty.
+- Crossfader cap: square corners and a white index line, matching the other faders.
+- An empty deck's readout is dimmed rather than showing a bright "-0:00".
+
+Next passes: colour and corners app-wide (purple retired as the general accent), the queue as a
+list, auto-play as a lit key; then settings, menus and the top bar.
+
 ### Next
 
 - **Loudness matching** between tracks (planned), maybe with a one-knob compressor for old,

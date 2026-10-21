@@ -50,8 +50,8 @@ public sealed class MixerTests
         Assert.Equal(full, mixer.LevelRight, 3);
         Assert.False(mixer.IsLimiting);
 
-        var slider = app.Window.FindControl<Slider>("MainVolumeSlider")!;
-        slider.Value = 50;
+        var fader = app.Window.FindControl<Fader>("MainVolumeFader")!;
+        fader.Value = 50;
         Assert.Equal(50, app.Settings.MainVolume);
         for (int i = 0; i < 30; i++)
             app.Play(0.05);   // the meter falls back gradually

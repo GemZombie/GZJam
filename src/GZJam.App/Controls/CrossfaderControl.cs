@@ -31,7 +31,7 @@ public sealed class CrossfaderControl : Control
     private static readonly IBrush SlotEdgeBrush = new SolidColorBrush(Color.Parse("#262B34"));
     private static readonly IBrush ShadowBrush = new SolidColorBrush(Color.FromArgb(110, 0, 0, 0));
     private static readonly IPen CapPen = new Pen(new SolidColorBrush(Color.Parse("#4E535C")), 1);
-    private static readonly IBrush CapGripBrush = new SolidColorBrush(Color.FromArgb(60, 0, 0, 0));
+    private static readonly IBrush IndexBrush = new SolidColorBrush(Color.Parse("#F2F4F8"));
     private static readonly IBrush CapBrush = new LinearGradientBrush
     {
         StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
@@ -110,9 +110,9 @@ public sealed class CrossfaderControl : Control
         var cap = new Rect(centre.X - CapWidth / 2, centre.Y - capHeight / 2 - 3, CapWidth, capHeight);
         using (context.PushOpacity(IsEnabled ? 1 : 0.4))
         {
-            context.DrawRectangle(ShadowBrush, null, cap.Translate(new Vector(1.5, 2.5)), 8, 8);
-            context.DrawRectangle(CapBrush, CapPen, cap, 8, 8);
-            context.DrawRectangle(CapGripBrush, null, new Rect(cap.X + 4, cap.Center.Y - 1, CapWidth - 8, 2), 1, 1);
+            context.DrawRectangle(ShadowBrush, null, cap.Translate(new Vector(0, 2)), 3, 3);
+            context.DrawRectangle(CapBrush, CapPen, cap, 3, 3);
+            context.DrawRectangle(IndexBrush, null, new Rect(cap.Center.X - 1, cap.Y + 4, 2, cap.Height - 8));
         }
     }
 

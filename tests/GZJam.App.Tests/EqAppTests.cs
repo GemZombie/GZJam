@@ -81,7 +81,7 @@ public sealed class EqAppTests
         Assert.NotNull(panel);
         panel.FindControl<Button>("LessHissButton")!.Command!.Execute(null);
         // Press the low fader at the -12 dB line: the cap jumps there.
-        var low = panel.FindControl<GZJam.App.Controls.EqFader>("EqLowFader")!;
+        var low = panel.FindControl<GZJam.App.Controls.Fader>("EqLowFader")!;
         var at = low.TranslatePoint(new Avalonia.Point(low.Bounds.Width / 2, low.YOf(-12)), app.Window)!.Value;
         app.Window.MouseDown(at, Avalonia.Input.MouseButton.Left);
         app.Window.MouseUp(at, Avalonia.Input.MouseButton.Left);
