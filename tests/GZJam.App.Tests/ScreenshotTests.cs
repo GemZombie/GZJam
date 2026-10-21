@@ -44,6 +44,9 @@ public sealed class ScreenshotTests
         app.ViewModel.SetEnergy([tracks[0], tracks[2]], GZJam.Library.Energy.High);
         app.ViewModel.SetEnergy([tracks[1]], GZJam.Library.Energy.Medium);
         app.ViewModel.SetEnergy([tracks[4]], GZJam.Library.Energy.Low);
+        app.ViewModel.SetLabel([tracks[0], tracks[2], tracks[4]], "Lindy", on: true);
+        app.ViewModel.SetLabel([tracks[0]], "Balboa", on: true);
+        app.ViewModel.SetLabel([tracks[5]], "Female vocals", on: true);
         app.ViewModel.Queue.Add(tracks.Take(5));
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         grid.SelectedIndex = 3;

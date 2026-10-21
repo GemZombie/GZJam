@@ -31,6 +31,7 @@ public partial class MainWindow
             if (DataContext is not MainWindowViewModel vm)
                 return;
             vm.ConfirmAsync = (heading, message) => new ConfirmDialog(heading, message, "Load anyway").ShowDialog<bool>(this);
+            vm.PromptAsync = (heading, message, ok) => new PromptDialog(heading, message, ok).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(MainWindowViewModel.FourDecks))
@@ -91,6 +92,7 @@ public partial class MainWindow
         var tracks = SelectedTracks();
         MarksMenu.FillRating(TrackRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
+        LabelsMenu.Fill(TrackLabelsMenu, Vm, tracks);
         BpmMenu.Fill(TrackBpmMenu, Vm, tracks);
     }
 
@@ -100,6 +102,7 @@ public partial class MainWindow
         var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
         MarksMenu.FillRating(QueueRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
+        LabelsMenu.Fill(QueueLabelsMenu, Vm, tracks);
         BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
     }
 

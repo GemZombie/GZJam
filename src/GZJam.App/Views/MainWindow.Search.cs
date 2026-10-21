@@ -8,9 +8,47 @@ public partial class MainWindow
 {
     private MenuFlyout BpmFilterMenu => (MenuFlyout)BpmFilterButton.Flyout!;
 
+    private MenuFlyout LabelFilterMenu => (MenuFlyout)LabelFilterButton.Flyout!;
+
     private void InitializeSearch()
     {
         BpmFilterMenu.Opening += (_, _) => FillBpmFilterMenu();
+        LabelFilterMenu.Opening += (_, _) => FillLabelFilterMenu();
+    }
+
+    /// <summary>The label button: each label (with how many songs), songs without one, or any.</summary>
+    private void FillLabelFilterMenu()
+    {
+        var library = Vm.Library;
+        var items = LabelFilterMenu.Items;
+        items.Clear();
+        string? current = library.LabelFilter;
+        foreach (var label in Vm.GetLabels())
+            items.Add(Choice($"{label.Name}  ({label.Count})", label.Name, label.Name.Equals(current, StringComparison.OrdinalIgnoreCase)));
+        if (items.Count > 0)
+            items.Add(new Separator());
+        items.Add(Choice("Songs without a label", "none", "none".Equals(current, StringComparison.OrdinalIgnoreCase)));
+        items.Add(Choice("Any label", null, false, enabled: current is not null));
+        items.Add(new MenuItem
+        {
+            Header = "Label songs: right-click them › Labels.\nOr type label:lindy  -label:balboa",
+            IsEnabled = false,
+            FontSize = 11,
+        });
+
+        MenuItem Choice(string header, string? label, bool isChecked, bool enabled = true)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                IsEnabled = enabled,
+                ToggleType = label is null ? MenuItemToggleType.None : MenuItemToggleType.Radio,
+                GroupName = "label-filter",
+                IsChecked = isChecked,
+            };
+            item.Click += (_, _) => library.SetLabelFilter(label);
+            return item;
+        }
     }
 
     private void FillBpmFilterMenu()
@@ -34,7 +72,7 @@ public partial class MainWindow
         items.Add(Choice("Any BPM", null, library.HasBpmFilter));
         items.Add(new MenuItem
         {
-            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  energy:high  -played:7  -word to leave out",
+            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  label:lindy  -played:7  -word to leave out",
             IsEnabled = false,
             FontSize = 11,
         });

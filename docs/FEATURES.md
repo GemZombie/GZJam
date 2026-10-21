@@ -509,10 +509,26 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   hidden, since the folder tree already sorts music by genre and style.
 - Not built: exporting a set list from History.
 
+### Status: labels built (2026-10-21)
+
+Mixxx's crates, renamed: "Lindy", "Balboa", "Female vocals". They cut across the folder tree
+rather than being a second one.
+
+- **Tagging:** right-click songs (library or queue) › *Labels*: every label, ticked if all the
+  selected songs carry it ("(some)" if only some do); a tap puts it on all of them or takes it off.
+  *New label…* asks for a name (`PromptDialog`). Names are case-insensitive; the first spelling wins.
+- **Shown** as small chips after the title in the library. The title keeps at least 100 px; on a
+  narrow window the chips are clipped (hide Album from the column menu to make room).
+- **Filtering:** a *Label* button beside the BPM button lists the labels with how many songs carry
+  each, plus *Songs without a label* and *Any label*; it writes `label:` into the search text and
+  shows the active one. Typed: `label:lindy` (a prefix, any case), `label:"female vocals"`,
+  `label:none`, `-label:balboa`. A label filter's results update when labels change.
+- **Stored** in the library database by path (`labels`, `track_labels`, schema upgrade 10), never
+  in the files. A label no song carries any more is forgotten.
+- Not yet: renaming a label, labels on the queue rows and decks.
+
 ### Next
 
-- **Labels** (Mixxx's crates, renamed): "Lindy", "Female vocals". Shown as tags, not a second
-  tree; searchable with `label:`. They cut across the folder tree rather than competing with it.
 - **Jump markers:** one or two per track; tap to jump at the end of a phrase (e.g. to the outro
   of a 5-minute track).
 - **Exclusive audio output** so system sounds never reach the PA (WASAPI exclusive on Windows,

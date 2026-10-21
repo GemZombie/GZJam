@@ -95,6 +95,19 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
+    /// <summary>The DJ's labels on this song ("Lindy", "Female vocals"), alphabetically. Kept in the library database.</summary>
+    public IReadOnlyList<string> Labels
+    {
+        get;
+        set
+        {
+            if (field.SequenceEqual(value))
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Labels)));
+        }
+    } = [];
+
     /// <summary>When the room last heard this file (from History), or null if never.</summary>
     public DateTime? LastPlayedUtc
     {

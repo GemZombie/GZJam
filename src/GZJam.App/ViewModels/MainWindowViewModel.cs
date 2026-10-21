@@ -206,6 +206,34 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Log.Info($"Energy for {Describe(tracks, paths)}: {energy}");
     }
 
+    // ───────────── Labels ─────────────
+
+    /// <summary>Every label, with how many songs carry it.</summary>
+    public IReadOnlyList<LabelInfo> GetLabels() => _database.GetLabels();
+
+    /// <summary>Puts a label on tracks (creating it if new) or takes it off, wherever they are on screen.</summary>
+    public void SetLabel(IReadOnlyList<Track> tracks, string name, bool on)
+    {
+        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        if (paths.Count == 0 || string.IsNullOrWhiteSpace(name))
+            return;
+        if (on)
+            name = _database.AddLabel(paths, name);
+        else
+            _database.RemoveLabel(paths, name);
+        foreach (string path in paths)
+        {
+            var labels = _database.GetLabels(path);
+            foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
+                track.Labels = labels;
+        }
+        Log.Info($"Label \"{name}\" {(on ? "on" : "off")} {Describe(tracks, paths)}");
+        Library.LabelsChanged();
+    }
+
+    /// <summary>Asks the DJ for a short piece of text (heading, message, button); the window supplies the dialog.</summary>
+    public Func<string, string, string, Task<string?>>? PromptAsync { get; set; }
+
     /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
     public void CycleRating(Track track) => SetRating([track], track.Rating switch
     {

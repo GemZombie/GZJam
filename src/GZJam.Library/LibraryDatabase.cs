@@ -206,6 +206,21 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE sessions ADD COLUMN name TEXT;
             """,
+
+        // 10: Labels (Mixxx's crates): "Lindy", "Female vocals". Many per song, kept by path like
+        // the other marks; never written into the files.
+        """
+            CREATE TABLE labels (
+                id   INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE COLLATE NOCASE
+            );
+            CREATE TABLE track_labels (
+                path     TEXT NOT NULL,
+                label_id INTEGER NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
+                PRIMARY KEY (path, label_id)
+            );
+            CREATE INDEX ix_track_labels_label ON track_labels(label_id);
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -444,15 +459,18 @@ public sealed partial class LibraryDatabase
         Energy = (Energy)(GetInt(r, "energy") ?? 0),
         LastPlayedUtc = r.IsDBNull(r.GetOrdinal("last_played")) ? null : new DateTime(r.GetInt64(r.GetOrdinal("last_played")), DateTimeKind.Utc),
         PlayCount = GetInt(r, "play_count") ?? 0,
+        Labels = ReadLabels(GetString(r, "labels")),
     };
 
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
     private const string TrackColumns =
         "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, m.rating AS rating, m.energy AS energy, " +
-        "lp.last_played AS last_played, lp.play_count AS play_count";
+        "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels";
     private const string TrackJoins =
         JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN marks m ON m.path = t.path " +
-        "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path";
+        "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path " +
+        "LEFT JOIN (SELECT tl.path, group_concat(l.name, char(31)) AS labels FROM track_labels tl JOIN labels l ON l.id = tl.label_id " +
+        "GROUP BY tl.path) lb ON lb.path = t.path";
 
     /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
     private const string JoinAnalysis =

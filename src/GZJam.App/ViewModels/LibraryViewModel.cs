@@ -103,6 +103,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(BpmFilter));
         OnPropertyChanged(nameof(BpmFilterLabel));
         OnPropertyChanged(nameof(HasBpmFilter));
+        OnPropertyChanged(nameof(LabelFilter));
+        OnPropertyChanged(nameof(LabelFilterLabel));
+        OnPropertyChanged(nameof(HasLabelFilter));
         // Debounce typing: each keystroke restarts the delay, so a fast typist triggers one search.
         _typingDelay?.Cancel();
         if (_suppressSearch)
@@ -134,12 +137,47 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// </summary>
     public void SetBpmFilter(string? filter) => SearchText = ReplaceBpmFilter(SearchText, filter);
 
-    internal static string ReplaceBpmFilter(string text, string? filter)
+    internal static string ReplaceBpmFilter(string text, string? filter) => ReplaceFilter(text, IsBpmFilter, filter);
+
+    /// <summary>Swaps the filters <paramref name="matches"/> picks out of the search text for <paramref name="filter"/> (null: just removes them).</summary>
+    private static string ReplaceFilter(string text, Func<string, bool> matches, string? filter)
     {
-        var tokens = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !IsBpmFilter(t)).ToList();
+        var tokens = LibraryDatabase.SearchTokens(text).Where(t => !matches(t)).ToList();
         if (filter is not null)
             tokens.Add(filter);
         return string.Join(' ', tokens);
+    }
+
+    // ───────────── Label filter ─────────────
+
+    /// <summary>The label being filtered on ("Lindy"), "none" for songs without labels, or null.</summary>
+    public string? LabelFilter => LibraryDatabase.SearchTokens(SearchText).Where(IsLabelFilter)
+        .Select(t => t[(t.IndexOf(':') + 1)..].Trim('"')).LastOrDefault(v => v.Length > 0);
+
+    /// <summary>The label button's text: "Label", or the label it's filtering on.</summary>
+    public string LabelFilterLabel => LabelFilter switch
+    {
+        null => "Label",
+        var l when l.Equals("none", StringComparison.OrdinalIgnoreCase) => "No label",
+        var l => l,
+    };
+
+    public bool HasLabelFilter => LabelFilter is not null;
+
+    /// <summary>Filters on a label (quoted if it has spaces), "none", or (null) no label filter.</summary>
+    public void SetLabelFilter(string? label) => SearchText = ReplaceLabelFilter(SearchText, label);
+
+    internal static string ReplaceLabelFilter(string text, string? label) =>
+        ReplaceFilter(text, IsLabelFilter, label is null ? null : label.Contains(' ') ? $"label:\"{label}\"" : $"label:{label}");
+
+    private static bool IsLabelFilter(string token) =>
+        token.StartsWith("label:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("labels:", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Labels were added or taken off: a label filter's results may have changed.</summary>
+    public void LabelsChanged()
+    {
+        if (HasLabelFilter)
+            RunSearch();
     }
 
     private static bool IsBpmFilter(string token) =>

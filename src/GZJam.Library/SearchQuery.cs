@@ -14,6 +14,7 @@ namespace GZJam.Library;
 /// <item><c>year:1938</c>, <c>year:1935-1940</c>, <c>year:&lt;1950</c></item>
 /// <item><c>rating:yes</c> (♥), <c>rating:no</c> (broken heart), <c>rating:none</c></item>
 /// <item><c>energy:high</c>, <c>energy:medium</c>, <c>energy:low</c>, <c>energy:none</c>, <c>energy:2-3</c></item>
+/// <item><c>label:lindy</c> (a label starting with that), <c>label:"female vocals"</c>, <c>label:none</c></item>
 /// <item><c>played:7</c> (the room heard it in the last 7 days), <c>played:never</c>, <c>played:yes</c>;
 /// <c>-played:7</c> leaves out last week's songs</item>
 /// </list>
@@ -86,6 +87,7 @@ internal sealed class SearchQuery
             "rating" => RatingCondition(value),
             "energy" => EnergyCondition(value),
             "played" => PlayedCondition(value),
+            "label" or "labels" => LabelCondition(value),
             var f when TextColumns.TryGetValue(f, out string? column) => TextCondition(column, value, negated),
             _ => null,
         };
@@ -101,7 +103,7 @@ internal sealed class SearchQuery
     }
 
     private static bool IsKnownField(string field) =>
-        TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy" or "played";
+        TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy" or "played" or "label" or "labels";
 
     private void AddWords(string token, bool negated)
     {
@@ -187,6 +189,18 @@ internal sealed class SearchQuery
         return NumberCondition("COALESCE(m.energy, 0)", number, roundExact: false);
     }
 
+    /// <summary>A label whose name starts with the value (any case), or "none" for songs without labels.</summary>
+    private string? LabelCondition(string value)
+    {
+        value = value.Trim();
+        if (value.Length == 0)
+            return null;
+        if (value.Equals("none", StringComparison.OrdinalIgnoreCase))
+            return "t.path NOT IN (SELECT path FROM track_labels)";
+        string pattern = value.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
+        return $"t.path IN (SELECT tl.path FROM track_labels tl JOIN labels l ON l.id = tl.label_id WHERE l.name LIKE {Parameter(pattern)} ESCAPE '\\')";
+    }
+
     /// <summary>"never", "yes", or a number of days: played within that many days.</summary>
     private string? PlayedCondition(string value)
     {
@@ -218,7 +232,7 @@ internal sealed class SearchQuery
         : value;
 
     /// <summary>Splits on spaces, keeping quoted text together: <c>artist:"count basie" jump</c> is two tokens.</summary>
-    private static IEnumerable<string> Tokenize(string text)
+    internal static IEnumerable<string> Tokenize(string text)
     {
         var token = new StringBuilder();
         bool quoted = false;
