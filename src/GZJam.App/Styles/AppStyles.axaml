@@ -87,6 +87,21 @@
     <Setter Property="Padding" Value="9,3,4,3" />
   </Style>
 
+  <!-- The BPM filter button by the search box; tinted like the scope chip while a filter is set -->
+  <Style Selector="Button.bpm-filter">
+    <Setter Property="Padding" Value="10,5" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+  </Style>
+  <Style Selector="Button.bpm-filter.on">
+    <Setter Property="Background" Value="#248F74FF" />
+    <Setter Property="BorderBrush" Value="#598F74FF" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="#C8BCFF" />
+  </Style>
+
   <!-- Folder tree -->
   <Style Selector="TreeView.folders TreeViewItem">
     <Setter Property="MinHeight" Value="26" />

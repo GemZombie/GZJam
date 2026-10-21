@@ -103,5 +103,19 @@ public sealed class ScreenshotTests
         app.Window.MouseUp(at, MouseButton.Right, RawInputModifiers.None);
         AppHarness.Settle(300);
         app.Screenshot("10-bpm-menu");
+        app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<ContextMenu>("BpmContextMenu")!.Close();
+
+        // The BPM filter by the search box.
+        var filter = app.Window.FindControl<Button>("BpmFilterButton")!;
+        var on = filter.TranslatePoint(new Avalonia.Point(filter.Bounds.Width / 2, filter.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseDown(on, MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseUp(on, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(300);
+        Assert.True(filter.Flyout!.IsOpen, "BPM filter menu didn't open");
+        app.Screenshot("11-bpm-filter");
+        filter.Flyout.Hide();
+        library.SearchText = "~bpm:180 -rating:no";
+        AppHarness.Settle();
+        app.Screenshot("12-bpm-filtered");
     }
 }

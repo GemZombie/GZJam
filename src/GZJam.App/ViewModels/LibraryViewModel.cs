@@ -92,6 +92,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     partial void OnSearchTextChanged(string value)
     {
+        OnPropertyChanged(nameof(BpmFilter));
+        OnPropertyChanged(nameof(BpmFilterLabel));
+        OnPropertyChanged(nameof(HasBpmFilter));
         // Debounce typing: each keystroke restarts the delay, so a fast typist triggers one search.
         _typingDelay?.Cancel();
         if (_suppressSearch)
@@ -103,6 +106,39 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 RunSearch();
         }), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
     }
+
+    /// <summary>The BPM filter in the search text (<c>bpm:130-150</c>, <c>~bpm:140</c>), if any.</summary>
+    public string? BpmFilter => FindBpmFilters(SearchText).LastOrDefault();
+
+    /// <summary>The BPM button's label: "BPM", or the filter it has set ("BPM 130-150", "BPM ≈140").</summary>
+    public string BpmFilterLabel => BpmFilter switch
+    {
+        null => "BPM",
+        var f when f.StartsWith('~') => $"BPM ≈{f[5..]}",
+        var f => $"BPM {f[4..]}",
+    };
+
+    public bool HasBpmFilter => BpmFilter is not null;
+
+    /// <summary>
+    /// Puts a BPM filter in the search text in place of any already there (null: removes it), so
+    /// tapping a range and typing one are the same thing.
+    /// </summary>
+    public void SetBpmFilter(string? filter) => SearchText = ReplaceBpmFilter(SearchText, filter);
+
+    internal static string ReplaceBpmFilter(string text, string? filter)
+    {
+        var tokens = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !IsBpmFilter(t)).ToList();
+        if (filter is not null)
+            tokens.Add(filter);
+        return string.Join(' ', tokens);
+    }
+
+    private static bool IsBpmFilter(string token) =>
+        token.StartsWith("bpm:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("~bpm:", StringComparison.OrdinalIgnoreCase);
+
+    private static IEnumerable<string> FindBpmFilters(string text) =>
+        text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(IsBpmFilter).Select(t => t.ToLowerInvariant());
 
     [RelayCommand]
     private void ClearScope() => SelectedFolder = null;

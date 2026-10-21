@@ -315,16 +315,17 @@ public sealed partial class LibraryDatabase
 
     /// <summary>
     /// Finds tracks matching every word of <paramref name="text"/> (as word prefixes) in any tag or
-    /// folder name, within <paramref name="scope"/> and everything beneath it. Empty text lists
-    /// everything in scope. Results are in folder order, as they appear on disk.
+    /// folder name, and any filters in it (<c>bpm:130-150</c>, <c>artist:basie</c>, <c>-rating:no</c>;
+    /// see <see cref="SearchQuery"/>), within <paramref name="scope"/> and everything beneath it.
+    /// Empty text lists everything in scope. Results are in folder order, as they appear on disk.
     /// </summary>
     public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default)
     {
-        string? match = BuildMatchExpression(text);
+        var query = SearchQuery.Parse(text);
 
         var sql = new StringBuilder($"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE 1 = 1");
-        if (match is not null)
-            sql.Append(" AND t.id IN (SELECT rowid FROM tracks_fts WHERE tracks_fts MATCH $match)");
+        foreach (string condition in query.Conditions)
+            sql.Append(" AND ").Append(condition);
         if (scope is not null)
         {
             sql.Append(" AND t.root_id = $root");
@@ -336,8 +337,8 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = sql.ToString();
-        if (match is not null)
-            cmd.Parameters.AddWithValue("$match", match);
+        foreach (var (name, value) in query.Parameters)
+            cmd.Parameters.AddWithValue(name, value);
         if (scope is not null)
         {
             cmd.Parameters.AddWithValue("$root", scope.RootId);

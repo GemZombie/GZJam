@@ -52,6 +52,7 @@ public partial class MainWindow : Window
 
         InitializeDecks();
         InitializeHistory();
+        InitializeSearch();
     }
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;

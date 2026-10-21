@@ -339,6 +339,24 @@ lock, and automatic history.
   Marks survive rescans and tag changes.
 - Drawn as vector icons, not emoji, so they look the same on every system.
 
+### Status: item 5 built (search filters)
+
+- Typed filters, close to Mixxx's so its users feel at home (`SearchQuery`):
+  `bpm:140` (anything that rounds to it), `bpm:130-150`, `bpm:>200`; `~bpm:140` = within 8%,
+  the tempo slider's reach, so everything listed could be pitched to 140; `year:1938`,
+  `year:1935-1940`, `year:<1950`; `artist:basie`, `title:`, `album:`, `genre:`, `comment:`,
+  `folder:` (quote several words: `artist:"count basie"`); `rating:yes|no|none`;
+  `energy:high|medium|low|none` or `energy:2-3`. A leading `-` leaves things out
+  (`-rating:no`, `-live`). Filters combine with ordinary words and the folder scope.
+- BPM filters use the BPM the app shows (the tag's, or the detected one; see Track prep).
+- A half-typed filter (`bpm:`, `rating:`) is ignored rather than emptying the list.
+- **BPM button** by the search box (tap-friendly): *Near Deck 1 (144 BPM)* / *Near Deck 2*
+  (the deck's tempo as the room hears it, with its slider), the four tempo ranges, or *Any BPM*.
+  It writes the filter into the search text, replacing any BPM filter already there, and shows
+  the active one ("BPM ≈144").
+- The deck row is now sized by the mixer column (at least 300 px), with auto-play's status line
+  always reserved, so its height never changes mid-set.
+
 ### Next
 
 - **Per-deck EQ** (low / mid / high), chiefly to cut hiss on record transfers, remembered per
