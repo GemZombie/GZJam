@@ -201,6 +201,11 @@ public sealed partial class LibraryDatabase
             ALTER TABLE analysis ADD COLUMN peak_db REAL;
             ALTER TABLE eq ADD COLUMN gain_db REAL NOT NULL DEFAULT 0;
             """,
+
+        // 9: A name for a session, e.g. "Hot Jam, Oct 14". Null: known by its date.
+        """
+            ALTER TABLE sessions ADD COLUMN name TEXT;
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -437,13 +442,17 @@ public sealed partial class LibraryDatabase
         Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
         Rating = (Rating)(GetInt(r, "rating") ?? 0),
         Energy = (Energy)(GetInt(r, "energy") ?? 0),
+        LastPlayedUtc = r.IsDBNull(r.GetOrdinal("last_played")) ? null : new DateTime(r.GetInt64(r.GetOrdinal("last_played")), DateTimeKind.Utc),
+        PlayCount = GetInt(r, "play_count") ?? 0,
     };
 
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
     private const string TrackColumns =
-        "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, m.rating AS rating, m.energy AS energy";
+        "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, m.rating AS rating, m.energy AS energy, " +
+        "lp.last_played AS last_played, lp.play_count AS play_count";
     private const string TrackJoins =
-        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN marks m ON m.path = t.path";
+        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN marks m ON m.path = t.path " +
+        "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path";
 
     /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
     private const string JoinAnalysis =

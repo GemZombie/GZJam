@@ -95,6 +95,45 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
+    /// <summary>When the room last heard this file (from History), or null if never.</summary>
+    public DateTime? LastPlayedUtc
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LastPlayedUtc)));
+        }
+    }
+
+    /// <summary>How many times the room has heard it, across all sessions.</summary>
+    public int PlayCount
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayCount)));
+        }
+    }
+
+    /// <summary>Played in the session going on now (tonight's gig): shown dimmed so it isn't repeated.</summary>
+    public bool IsPlayedTonight
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPlayedTonight)));
+        }
+    }
+
     /// <summary>Title tag, or the file name when the tag is missing.</summary>
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
 

@@ -64,6 +64,24 @@ public sealed partial class HistoryViewModel : ObservableObject
         }
     }
 
+    /// <summary>When tonight's session began (null before its first song): songs played since are "played tonight".</summary>
+    public DateTime? CurrentSessionStartUtc => _current?.StartedUtc;
+
+    /// <summary>The selected session's name, for renaming.</summary>
+    public string? SelectedName => SelectedSession?.Session?.Name;
+
+    public bool CanRename => SelectedSession?.Session is not null;
+
+    /// <summary>Names the selected session ("Hot Jam, Oct 14"); empty goes back to its date.</summary>
+    public void RenameSelected(string? name)
+    {
+        if (SelectedSession?.Session is not { } session)
+            return;
+        _database.RenameSession(session.Id, name);
+        Log.Info($"History: session {session.Id} named \"{name}\"");
+        Reload(keepCurrentSelected: false);
+    }
+
     /// <summary>Whether the selected session is the one being recorded into now.</summary>
     private bool ShowingCurrent => SelectedSession is { } s && (s.Session is null || s.Session.Id == _current?.Id);
 
@@ -81,7 +99,7 @@ public sealed partial class HistoryViewModel : ObservableObject
     /// <summary>Re-reads the session list; keeps the selection, or picks "This session".</summary>
     public void Reload(bool keepCurrentSelected = true)
     {
-        long? selectedId = SelectedSession?.Session?.Id;
+        long? selectedId = SelectedSession?.Session?.Id ?? (keepCurrentSelected ? null : _current?.Id);
         bool selectCurrent = SelectedSession is null || (keepCurrentSelected && ShowingCurrent);
 
         var sessions = _database.GetSessions();
@@ -105,11 +123,19 @@ public sealed partial class HistoryViewModel : ObservableObject
     private string Label(PlaySession session)
     {
         DateTime local = session.StartedUtc.ToLocalTime();
+        string songs = $"{session.PlayCount} {(session.PlayCount == 1 ? "song" : "songs")}";
+        if (session.Name is { } name)
+            return $"{name} · {local.ToString("MMM d", CultureInfo.CurrentCulture)} · {songs}";
         string when = session.Id == _current?.Id ? "This session" : local.ToString("ddd MMM d, yyyy · h:mm tt", CultureInfo.CurrentCulture);
-        return $"{when} · {session.PlayCount} {(session.PlayCount == 1 ? "song" : "songs")}";
+        return $"{when} · {songs}";
     }
 
-    partial void OnSelectedSessionChanged(SessionChoice? value) => LoadPlays();
+    partial void OnSelectedSessionChanged(SessionChoice? value)
+    {
+        LoadPlays();
+        OnPropertyChanged(nameof(SelectedName));
+        OnPropertyChanged(nameof(CanRename));
+    }
 
     private void LoadPlays()
     {

@@ -34,7 +34,7 @@ public partial class MainWindow
         items.Add(Choice("Any BPM", null, library.HasBpmFilter));
         items.Add(new MenuItem
         {
-            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  energy:high  -word to leave out",
+            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  energy:high  -played:7  -word to leave out",
             IsEnabled = false,
             FontSize = 11,
         });

@@ -21,6 +21,31 @@ public partial class MainWindow
         HistoryList.AddHandler(PointerReleasedEvent, (_, _) => _historyPress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
         HistoryMenu.Opening += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
         HistoryMenu.Opened += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
+        RenameSessionButton.Flyout!.Opened += (_, _) =>
+        {
+            SessionNameBox.Text = Vm.History.SelectedName ?? "";
+            SessionNameBox.Focus();
+            SessionNameBox.SelectAll();
+        };
+    }
+
+    private void SaveSessionName(string? name)
+    {
+        Vm.History.RenameSelected(name);
+        RenameSessionButton.Flyout!.Hide();
+    }
+
+    private void OnSessionNameSaveClick(object? sender, RoutedEventArgs e) => SaveSessionName(SessionNameBox.Text);
+
+    private void OnSessionNameClearClick(object? sender, RoutedEventArgs e) => SaveSessionName(null);
+
+    private void OnSessionNameKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            SaveSessionName(SessionNameBox.Text);
+            e.Handled = true;
+        }
     }
 
     private List<PlayItem> SelectedPlays() => HistoryList.SelectedItems?.OfType<PlayItem>().ToList() ?? [];

@@ -79,6 +79,12 @@ public sealed class AppSettings
     /// <summary>Seconds of silence auto-play leaves between songs.</summary>
     public double GapSeconds { get; set; } = 3;
 
+    /// <summary>
+    /// Library columns the DJ has hidden, by header. Genre starts hidden: the folder tree already
+    /// sorts music by genre and style, and a laptop can't fit every column.
+    /// </summary>
+    public List<string> HiddenColumns { get; set; } = ["Genre"];
+
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 

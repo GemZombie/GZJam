@@ -342,6 +342,8 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Played" Width="86" CellStyleClasses="num" x:DataType="lib:Track"
+                                  Binding="{Binding LastPlayedUtc, Converter={x:Static app:Converters.Ago}}" SortMemberPath="LastPlayedUtc" />
               <DataGridTextColumn Header="Time" Width="76" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Duration, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
             </DataGrid.Columns>
@@ -445,9 +447,28 @@
 
           <!-- History: everything the room heard, by session -->
           <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding ShowHistory}">
-            <ComboBox x:Name="SessionPicker" Margin="8,8,8,2" HorizontalAlignment="Stretch"
-                      ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
-                      ToolTip.Tip="Pick a session (gig) to look back on" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="8,8,8,2">
+              <ComboBox x:Name="SessionPicker" HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
+                        ToolTip.Tip="Pick a session (gig) to look back on" />
+              <!-- Name the session: "Hot Jam, Oct 14" -->
+              <Button x:Name="RenameSessionButton" Grid.Column="1" Classes="hw" MinHeight="30" Content="NAME"
+                      IsEnabled="{Binding History.CanRename}" ToolTip.Tip="Name this session, e.g. the dance it was for">
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel">
+                    <StackPanel Width="240" Spacing="8">
+                      <TextBlock Classes="label" Text="SESSION NAME" />
+                      <TextBox x:Name="SessionNameBox" Watermark="e.g. Hot Jam, Oct 14" KeyDown="OnSessionNameKeyDown" />
+                      <Grid ColumnDefinitions="*,8,*">
+                        <Button Classes="hw" Content="SAVE" HorizontalAlignment="Stretch" Click="OnSessionNameSaveClick" />
+                        <Button Grid.Column="2" Classes="hw" Content="CLEAR" HorizontalAlignment="Stretch" Click="OnSessionNameClearClick"
+                                ToolTip.Tip="Go back to the date" />
+                      </Grid>
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
             <ListBox x:Name="HistoryList" Grid.Row="1" Classes="queue history" ItemsSource="{Binding History.Plays}">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:PlayItem">
@@ -494,7 +515,8 @@
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
-                  <Grid ColumnDefinitions="Auto,20,*,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent">
+                  <Grid ColumnDefinitions="Auto,20,*,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent"
+                        Opacity="{Binding Track.IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}">
                     <Border Classes="next-bar" IsVisible="{Binding IsNext}" Grid.ColumnSpan="2" />
                     <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
                     <Border Classes="grip" Background="Transparent" Width="26" Cursor="SizeAll"

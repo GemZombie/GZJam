@@ -18,6 +18,25 @@ public static class Format
     };
 
     public static string Count(int n) => n.ToString("N0", CultureInfo.CurrentCulture);
+
+    /// <summary>How long ago, briefly: "Today", "3 days", "2 wk", "5 mo", "2 yr"; "" for never.</summary>
+    public static string Ago(DateTime? utc, DateTime? nowUtc = null)
+    {
+        if (utc is not { } then)
+            return "";
+        DateTime now = (nowUtc ?? DateTime.UtcNow).ToLocalTime();
+        DateTime local = then.ToLocalTime();
+        int days = (now.Date - local.Date).Days;
+        return days switch
+        {
+            <= 0 => "Today",
+            1 => "1 day",
+            < 14 => $"{days} days",
+            < 60 => $"{days / 7} wk",
+            < 730 => $"{days / 30} mo",
+            _ => $"{days / 365} yr",
+        };
+    }
 }
 
 public static class Converters
@@ -25,4 +44,8 @@ public static class Converters
     public static readonly IValueConverter Duration = new FuncValueConverter<TimeSpan, string>(t => Format.Duration(t));
     public static readonly IValueConverter Bpm = new FuncValueConverter<double?, string>(Format.Bpm);
     public static readonly IValueConverter Count = new FuncValueConverter<int, string>(Format.Count);
+    public static readonly IValueConverter Ago = new FuncValueConverter<DateTime?, string>(t => Format.Ago(t));
+
+    /// <summary>Played tonight: dimmed, so it isn't played again by mistake.</summary>
+    public static readonly IValueConverter Dimmed = new FuncValueConverter<bool, double>(played => played ? 0.4 : 1);
 }

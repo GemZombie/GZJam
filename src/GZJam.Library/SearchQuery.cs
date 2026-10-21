@@ -14,6 +14,8 @@ namespace GZJam.Library;
 /// <item><c>year:1938</c>, <c>year:1935-1940</c>, <c>year:&lt;1950</c></item>
 /// <item><c>rating:yes</c> (♥), <c>rating:no</c> (broken heart), <c>rating:none</c></item>
 /// <item><c>energy:high</c>, <c>energy:medium</c>, <c>energy:low</c>, <c>energy:none</c>, <c>energy:2-3</c></item>
+/// <item><c>played:7</c> (the room heard it in the last 7 days), <c>played:never</c>, <c>played:yes</c>;
+/// <c>-played:7</c> leaves out last week's songs</item>
 /// </list>
 /// A leading <c>-</c> excludes: <c>-rating:no</c>, <c>-live</c>. Anything that isn't a complete
 /// filter (say, <c>bpm:</c> half typed) is ignored rather than emptying the results.
@@ -39,19 +41,19 @@ internal sealed class SearchQuery
     private readonly List<string> _conditions = [];
     private readonly Dictionary<string, object> _parameters = [];
     private readonly List<string> _words = [];
+    private readonly DateTime _nowUtc;
 
-    private SearchQuery()
-    {
-    }
+    private SearchQuery(DateTime nowUtc) => _nowUtc = nowUtc;
 
-    /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r) and marks (m).</summary>
+    /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r), marks (m) and plays (lp).</summary>
     public IReadOnlyList<string> Conditions => _conditions;
 
     public IReadOnlyDictionary<string, object> Parameters => _parameters;
 
-    public static SearchQuery Parse(string? text)
+    /// <param name="nowUtc">For <c>played:</c> filters; defaults to now.</param>
+    public static SearchQuery Parse(string? text, DateTime? nowUtc = null)
     {
-        var query = new SearchQuery();
+        var query = new SearchQuery(nowUtc ?? DateTime.UtcNow);
         foreach (string token in Tokenize(text ?? ""))
             query.Add(token);
         if (LibraryDatabase.BuildMatchExpression(string.Join(' ', query._words)) is { } match)
@@ -83,6 +85,7 @@ internal sealed class SearchQuery
             "year" => NumberCondition("t.year", value, roundExact: false),
             "rating" => RatingCondition(value),
             "energy" => EnergyCondition(value),
+            "played" => PlayedCondition(value),
             var f when TextColumns.TryGetValue(f, out string? column) => TextCondition(column, value, negated),
             _ => null,
         };
@@ -98,7 +101,7 @@ internal sealed class SearchQuery
     }
 
     private static bool IsKnownField(string field) =>
-        TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy";
+        TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy" or "played";
 
     private void AddWords(string token, bool negated)
     {
@@ -182,6 +185,21 @@ internal sealed class SearchQuery
             var other => other,
         };
         return NumberCondition("COALESCE(m.energy, 0)", number, roundExact: false);
+    }
+
+    /// <summary>"never", "yes", or a number of days: played within that many days.</summary>
+    private string? PlayedCondition(string value)
+    {
+        switch (value.ToLowerInvariant())
+        {
+            case "never" or "no" or "none":
+                return "lp.last_played IS NULL";
+            case "yes" or "ever" or "y":
+                return "lp.last_played IS NOT NULL";
+        }
+        if (!TryNumber(value, out double days) || days <= 0)
+            return null;
+        return $"lp.last_played >= {Parameter((_nowUtc - TimeSpan.FromDays(days)).Ticks)}";
     }
 
     private string Parameter(object value)

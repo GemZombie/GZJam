@@ -3,7 +3,11 @@ using Microsoft.Data.Sqlite;
 namespace GZJam.Library;
 
 /// <summary>A DJ session: one gig's worth of plays.</summary>
-public sealed record PlaySession(long Id, DateTime StartedUtc, DateTime? LastPlayUtc, int PlayCount, TimeSpan TotalDuration);
+public sealed record PlaySession(long Id, DateTime StartedUtc, DateTime? LastPlayUtc, int PlayCount, TimeSpan TotalDuration)
+{
+    /// <summary>What the DJ called it ("Hot Jam, Oct 14"), or null.</summary>
+    public string? Name { get; init; }
+}
 
 /// <summary>A track played to the room, with its details as they were at the time.</summary>
 public sealed record PlayRecord(
@@ -78,7 +82,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT s.id, s.started_utc, MAX(p.played_utc), COUNT(p.id), COALESCE(SUM(p.duration_ms), 0)
+            SELECT s.id, s.started_utc, MAX(p.played_utc), COUNT(p.id), COALESCE(SUM(p.duration_ms), 0), s.name
             FROM sessions s LEFT JOIN plays p ON p.session_id = s.id
             GROUP BY s.id
             HAVING COUNT(p.id) > 0 OR s.id = (SELECT MAX(id) FROM sessions)
@@ -93,7 +97,10 @@ public sealed partial class LibraryDatabase
                 new DateTime(r.GetInt64(1), DateTimeKind.Utc),
                 r.IsDBNull(2) ? null : new DateTime(r.GetInt64(2), DateTimeKind.Utc),
                 r.GetInt32(3),
-                TimeSpan.FromMilliseconds(r.GetInt64(4))));
+                TimeSpan.FromMilliseconds(r.GetInt64(4)))
+            {
+                Name = r.IsDBNull(5) ? null : r.GetString(5),
+            });
         }
         return sessions;
     }
@@ -136,6 +143,17 @@ public sealed partial class LibraryDatabase
         cmd.Parameters.AddWithValue("$path", path);
         using var r = cmd.ExecuteReader();
         return r.Read() ? ReadTrack(r) : null;
+    }
+
+    /// <summary>Names a session; an empty name goes back to its date.</summary>
+    public void RenameSession(long sessionId, string? name)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "UPDATE sessions SET name = $name WHERE id = $id;";
+        cmd.Parameters.AddWithValue("$name", string.IsNullOrWhiteSpace(name) ? DBNull.Value : name.Trim());
+        cmd.Parameters.AddWithValue("$id", sessionId);
+        cmd.ExecuteNonQuery();
     }
 
     public void DeleteSession(long sessionId)

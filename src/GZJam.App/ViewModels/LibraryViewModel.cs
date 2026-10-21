@@ -69,8 +69,16 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>When tonight's session began, so its songs can be dimmed; null if nothing's been played yet.</summary>
+    public Func<DateTime?> TonightSince { get; set; } = () => null;
+
     partial void OnResultsChanged(IReadOnlyList<Track> value)
     {
+        if (TonightSince() is { } since)
+        {
+            foreach (Track track in value)
+                track.IsPlayedTonight = track.LastPlayedUtc >= since;
+        }
         _resultsByPath = new Dictionary<string, Track>(value.Count, StringComparer.Ordinal);
         foreach (Track track in value)
             _resultsByPath[track.Path] = track;

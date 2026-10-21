@@ -490,12 +490,29 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   Under the faders: the song's loudness and what matching does ("-19.5 LUFS · matching +3.5 dB").
 - Not built: a one-knob compressor for old, unmastered recordings (wait and see if it's needed).
 
+### Status: played recently built (2026-10-21)
+
+- Every track knows when the room last heard it and how often, from History (joined in the
+  library query; nothing extra to keep in step).
+- **Played** column in the library: "Today", "3 days", "2 wk", "5 mo", "2 yr", blank for never;
+  sorts by date.
+- **Played tonight** (since the current session began) is dimmed in the library and the queue, as
+  soon as it counts as played (30 s in the room), and in any later search. Restarting mid-gig keeps
+  the session, so the dimming survives.
+- **`played:` filter:** `played:7` (heard in the last 7 days), `-played:7` (leave out last week's
+  set; never-played songs stay), `played:never`, `played:yes`. Listed in the BPM button's hint.
+- **Naming a session:** History tab › NAME next to the session picker: "Hot Jam, Oct 14". The
+  picker then shows "Hot Jam, Oct 14 · Oct 14 · 23 songs". Clear goes back to the date. Stored in
+  `sessions.name` (schema upgrade 9).
+- **Choosing columns:** right-click (or long-press) a column header to show or hide ♥ Rating,
+  Album, Genre, Year, BPM, Energy and Played; remembered. A laptop can't fit them all. Genre starts
+  hidden, since the folder tree already sorts music by genre and style.
+- Not built: exporting a set list from History.
+
 ### Next
 
 - **Labels** (Mixxx's crates, renamed): "Lindy", "Female vocals". Shown as tags, not a second
   tree; searchable with `label:`. They cut across the folder tree rather than competing with it.
-- **Played recently:** a "last played" column and dimming songs played tonight, so you don't
-  repeat last week's set. Name a session ("Hot Jam, Oct 14").
 - **Jump markers:** one or two per track; tap to jump at the end of a phrase (e.g. to the outro
   of a 5-minute track).
 - **Exclusive audio output** so system sounds never reach the PA (WASAPI exclusive on Windows,

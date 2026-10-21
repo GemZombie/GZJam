@@ -1,6 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:GZJam.App.Controls">
+        xmlns:c="using:GZJam.App.Controls"
+        xmlns:app="using:GZJam.App"
+        xmlns:lib="using:GZJam.Library">
 
   <Style Selector="Window">
     <Setter Property="Background" Value="{StaticResource BgBrush}" />
@@ -125,6 +127,10 @@
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="Padding" Value="8,0" />
     <Setter Property="MinHeight" Value="32" />
+  </Style>
+  <!-- Played tonight: dimmed, so it isn't played again by mistake -->
+  <Style Selector="DataGrid.tracks DataGridRow" x:DataType="lib:Track">
+    <Setter Property="Opacity" Value="{Binding IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}" />
   </Style>
   <Style Selector="DataGrid.tracks DataGridCell">
     <Setter Property="Padding" Value="8,0" />

@@ -26,6 +26,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Library = new LibraryViewModel(database);
         Queue = new QueueViewModel();
         History = new HistoryViewModel(database);
+        Library.TonightSince = () => History.CurrentSessionStartUtc;
         if (audio is not null)
         {
             Analysis = new TrackAnalysisService(database, audio);
@@ -53,7 +54,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
             foreach (DeckViewModel deck in Decks)
             {
-                deck.PlayedToRoom += (d, firstOnAir) => History.Record(d.Track!, firstOnAir, d.Label, d.TempoPercent, d.Deck.Length);
+                deck.PlayedToRoom += (d, firstOnAir) =>
+                {
+                    History.Record(d.Track!, firstOnAir, d.Label, d.TempoPercent, d.Deck.Length);
+                    MarkPlayed(d.Track!.Path, firstOnAir);
+                };
                 deck.Deck.Finished += (_, _) =>
                 {
                     if (deck.Deck.IsInRoom)
@@ -109,6 +114,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             .OfType<Track>()
             .Where(t => t.Path == path)
             .Distinct();
+
+    /// <summary>The room heard a song: wherever it's on screen, it's now "played tonight".</summary>
+    private void MarkPlayed(string path, DateTime playedUtc)
+    {
+        foreach (Track track in TracksFor(path))
+        {
+            track.LastPlayedUtc = playedUtc;
+            track.PlayCount++;
+            track.IsPlayedTonight = true;
+        }
+    }
 
     /// <summary>A track's analysis is in: show its detected BPM wherever the track is on screen.</summary>
     private void OnAnalyzed(string path, TrackAnalysis analysis)
@@ -418,6 +434,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (Notice == text)
             Notice = null;
     }
+
+    /// <summary>Library columns the DJ has hidden (by header); changed by the column menu, saved with the settings.</summary>
+    public List<string> HiddenColumns => _settings.HiddenColumns;
 
     /// <summary>Copies state worth remembering into the settings before they're saved.</summary>
     public void SaveState()
