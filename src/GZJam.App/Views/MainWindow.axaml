@@ -497,10 +497,18 @@
               <ComboBox x:Name="SessionPicker" HorizontalAlignment="Stretch"
                         ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
                         ToolTip.Tip="Pick a session (gig) to look back on" />
-              <!-- Name the session: "Hot Jam, Oct 14" -->
-              <Button x:Name="RenameSessionButton" Grid.Column="1" Classes="hw small" Content="NAME"
-                      IsEnabled="{Binding History.CanRename}" ToolTip.Tip="Name this session, e.g. the dance it was for">
+              <!-- The session's menu: name it ("Hot Jam, Oct 14"), export its set list, delete it -->
+              <Button x:Name="SessionMenuButton" Grid.Column="1" Classes="hw small" Content="⋯" MinWidth="40" FontSize="15"
+                      IsEnabled="{Binding History.CanRename}" ToolTip.Tip="Name, export or delete this session">
                 <Button.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem x:Name="NameSessionItem" Header="Name this session…" Click="OnNameSessionClick" />
+                    <MenuItem x:Name="ExportSetListItem" Header="Export set list…" Click="OnExportSetListClick" />
+                    <Separator />
+                    <MenuItem x:Name="DeleteSessionItem" Header="Delete this session…" Click="OnDeleteSessionClick" />
+                  </MenuFlyout>
+                </Button.Flyout>
+                <FlyoutBase.AttachedFlyout>
                   <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel">
                     <StackPanel Width="240" Spacing="8">
                       <TextBlock Classes="label" Text="SESSION NAME" />
@@ -512,7 +520,7 @@
                       </Grid>
                     </StackPanel>
                   </Flyout>
-                </Button.Flyout>
+                </FlyoutBase.AttachedFlyout>
               </Button>
             </Grid>
             <ListBox x:Name="HistoryList" Grid.Row="1" Classes="queue history" ItemsSource="{Binding History.Plays}">

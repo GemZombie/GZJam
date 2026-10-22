@@ -27,6 +27,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Queue = new QueueViewModel();
         History = new HistoryViewModel(database);
         Library.TonightSince = () => History.CurrentSessionStartUtc;
+        History.SessionDeleted += wasTonight =>
+        {
+            // Played dates and counts come from History: show them without the deleted session.
+            Library.RefreshResults();
+            if (wasTonight)
+            {
+                foreach (Track track in Queue.Items.Select(i => i.Track).Concat(Decks.Select(d => d.Track)).OfType<Track>())
+                    track.IsPlayedTonight = false;
+            }
+        };
         if (audio is not null)
         {
             Analysis = new TrackAnalysisService(database, audio);
@@ -401,8 +411,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ───────────── Decks ─────────────
 
-    /// <summary>Asks the user to confirm something; the window supplies the dialog.</summary>
-    public Func<string, string, Task<bool>>? ConfirmAsync { get; set; }
+    /// <summary>Asks the user to confirm something (heading, message, the confirm button's text); the window supplies the dialog.</summary>
+    public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }
 
     /// <summary>Whether a load onto this deck would go ahead without being refused outright.</summary>
     public bool CanLoad(DeckViewModel deck) => !deck.IsPlaying || _settings.LoadOntoPlayingDeck != PlayingDeckLoad.Block;
@@ -425,7 +435,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     string where = deck.IsOnAir ? " to the room" : "";
                     if (ConfirmAsync is null || !await ConfirmAsync(
                             $"Replace the track on Deck {deck.Label}?",
-                            $"\"{deck.Title}\" is still playing{where}. Loading \"{track.DisplayTitle}\" will stop it."))
+                            $"\"{deck.Title}\" is still playing{where}. Loading \"{track.DisplayTitle}\" will stop it.",
+                            "Load anyway"))
                         return false;
                     break;
             }

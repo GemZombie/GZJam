@@ -360,6 +360,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     // ───────────── Search ─────────────
 
+    /// <summary>Searches again, e.g. after History changed what's been played.</summary>
+    public void RefreshResults() => RunSearch();
+
     /// <summary>A search is waiting out the typing delay or running: <see cref="Results"/> is about to change.</summary>
     internal bool IsSearching { get; private set; }
 

@@ -210,7 +210,15 @@ is out of scope until it earns a place.
   onto a deck or into the queue, loaded via right-click, or shown in the folder tree.
 - Stored in the library database (schema upgrade 2) with its own copy of title/artist/album, so
   old sessions stay readable after files move or leave the library.
-- Later: mark tracks already played tonight in the library list; export a set list.
+- **Session menu** (the ⋯ key beside the session picker, built 2026-10-22):
+  - *Name this session…*: "Hot Jam, Oct 14" (was the NAME key).
+  - *Export set list…*: saves where the DJ picks, as readable text (a heading with the name, date,
+    times, song count and length, then a numbered line per song: time, title, artist, BPM as
+    the room heard it, length) or CSV for a spreadsheet (date, time, title, artist, album, BPM,
+    tempo change, length, deck, file; UTF-8 with a byte-order mark for Excel). Suggested name:
+    "Set list - Hot Jam, Oct 14 - 2026-10-17".
+  - *Delete this session…*: asks first; the session and its songs leave History and the Played
+    column forgets them. Deleting tonight's session starts a fresh one with the next song.
 
 ## Headphone cue
 

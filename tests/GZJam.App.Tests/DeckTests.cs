@@ -135,7 +135,7 @@ public sealed class DeckTests
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("First"));
         a.TogglePlayCommand.Execute(null);
         string? asked = null;
-        app.ViewModel.ConfirmAsync = (heading, _) =>
+        app.ViewModel.ConfirmAsync = (heading, _, _) =>
         {
             asked = heading;
             return Task.FromResult(confirm);

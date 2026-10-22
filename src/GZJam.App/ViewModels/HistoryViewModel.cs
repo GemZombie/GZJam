@@ -82,6 +82,36 @@ public sealed partial class HistoryViewModel : ObservableObject
         Reload(keepCurrentSelected: false);
     }
 
+    /// <summary>The selected session's set list: a file name (without extension), the readable list, and CSV.</summary>
+    public (string FileName, string Text, string Csv)? SetListForSelected()
+    {
+        if (SelectedSession?.Session is not { } session)
+            return null;
+        var plays = _database.GetPlays(session.Id);
+        return (SetList.FileName(session, plays), SetList.Text(session, plays, CultureInfo.CurrentCulture), SetList.Csv(plays));
+    }
+
+    /// <summary>A session was deleted; true if it was tonight's.</summary>
+    public event Action<bool>? SessionDeleted;
+
+    /// <summary>
+    /// Deletes the selected session and its songs from History (the music files are untouched).
+    /// Deleting tonight's session starts a fresh one with the next song.
+    /// </summary>
+    public void DeleteSelected()
+    {
+        if (SelectedSession?.Session is not { } session)
+            return;
+        bool wasCurrent = session.Id == _current?.Id;
+        _database.DeleteSession(session.Id);
+        Log.Info($"History: deleted session {session.Id} \"{SelectedSession.Label}\"");
+        if (wasCurrent)
+            _current = null;
+        SelectedSession = null;
+        Reload();
+        SessionDeleted?.Invoke(wasCurrent);
+    }
+
     /// <summary>Whether the selected session is the one being recorded into now.</summary>
     private bool ShowingCurrent => SelectedSession is { } s && (s.Session is null || s.Session.Id == _current?.Id);
 

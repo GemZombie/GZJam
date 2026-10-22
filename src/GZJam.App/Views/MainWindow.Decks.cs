@@ -25,7 +25,7 @@ public partial class MainWindow
         {
             if (DataContext is not MainWindowViewModel vm)
                 return;
-            vm.ConfirmAsync = (heading, message) => new ConfirmDialog(heading, message, "Load anyway").ShowDialog<bool>(this);
+            vm.ConfirmAsync = (heading, message, confirm) => new ConfirmDialog(heading, message, confirm).ShowDialog<bool>(this);
             vm.PromptAsync = (heading, message, ok) => new PromptDialog(heading, message, ok).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {

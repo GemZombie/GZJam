@@ -93,6 +93,11 @@ public sealed class ScreenshotTests
         vm.ShowHistory = true;
         app.Play(0.1);
         app.Screenshot("08-history");
+        var sessionMenu = app.Window.FindControl<Button>("SessionMenuButton")!;
+        sessionMenu.Flyout!.ShowAt(sessionMenu);
+        AppHarness.Settle(200);
+        app.Screenshot("08b-session-menu");
+        sessionMenu.Flyout.Hide();
 
         var settings = app.Window.FindControl<Button>("SettingsButton")!;
         settings.Flyout!.ShowAt(settings);
