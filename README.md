@@ -117,6 +117,12 @@ GitHub Actions, in `.github/workflows`:
   A tag with a suffix (`v0.2.0-beta.1`) is marked as a pre-release. Actions › Release ›
   *Run workflow* builds test packages without a release; they're kept with the run for 14 days.
 
+  **Version numbers:** every release build gets a new one; a tag is never moved or reused, even
+  for a draft nobody has seen. The patch number is for fixes only (0.2.0 → 0.2.1), the minor
+  number for anything new (0.2.x → 0.3.0), and 1.0 for when GZJam is ready for any swing DJ.
+  After a release, `VersionPrefix` in `src/GZJam.App/GZJam.App.csproj` goes up to the next minor
+  version, so builds made in between read "0.3.0-dev".
+
 Uninstalling never removes settings, the library database or the DJ's data, and never touches music.
 
 The packages aren't signed yet, so the first launch asks for confirmation:
