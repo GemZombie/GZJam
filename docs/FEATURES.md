@@ -271,11 +271,16 @@ is out of scope until it earns a place.
   shows it won't take the song, the queue shows a line where it would go and scrolls when held
   near its top or bottom edge, and holding it over the Queue tab opens the queue. Escape cancels.
 - **Fixed after the DJ's first try (2026-10-22): drags from library rows "almost never" worked,
-  worst on the title.** A real finger wobbles, so the list reacted to the swipe before the drag was
-  recognised, and the press hadn't always selected its row: dragging "the selection" carried
-  nothing (or another song). A drag now carries the row under the finger (with the rest of the
-  selection if that row is selected). Tests now move a finger as a real one does: a couple of
-  pixels at a time, wobbling.
+  worst on the title.** Found by driving GZJam with real Windows touch input (`InjectTouchInput`,
+  on the DJ's touchscreen laptop): the list's own touch scrolling starts after 5 px of movement,
+  either way, and from then on keeps the finger's moves to itself, while a drag needs 14 px to be
+  told from a scroll. A real finger always wobbles 5 px first. The list's scrolling now waits
+  18 px, so GZJam decides first: sideways becomes a drag, up-and-down is handed to the list to
+  scroll. And a drag carries the row under the finger (with the rest of the selection if that
+  row is selected): a finger's press doesn't always select its row in time. Checked by real touch:
+  sideways swipes from Title and Artist to the queue, a vertical swipe scrolling, a held song
+  dragged up to a deck, the queue reordered by its grip, a queue song held and dropped on a deck,
+  and hold-and-lift opening the menu.
 - **Press and hold** (a third of a second) picks a song up: it then drags in any direction,
   straight up to a deck included. Held and lifted without moving, it opens the song's menu, as
   long-press did before (the menu no longer opens while the finger is still down, which ended the
