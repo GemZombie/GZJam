@@ -34,6 +34,7 @@ Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\GZJam.exe
+SetupIconFile=..\..\src\GZJam.App\Assets\gzjam.ico
 CloseApplications=yes
 
 [Tasks]

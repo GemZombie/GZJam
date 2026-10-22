@@ -6,6 +6,7 @@ using GZJam.Library;
 //   bench <music folder>             Scan a folder into a throwaway database; report timings and tag coverage.
 //   analyze <music folder> [count]   Analyze tracks (waveform, silence, BPM): speed, and detected BPM
 //                                    against the tagged BPMs.
+//   icon <repo folder>               Draw the app icon: the .ico, .png and .icns files.
 
 if (args is ["swing", var swingBpm, var swingBackbeat])
 {
@@ -13,6 +14,9 @@ if (args is ["swing", var swingBpm, var swingBackbeat])
     GZJam.Testing.TestWav.WriteSwingBeat(file, double.Parse(swingBpm), TimeSpan.FromSeconds(40), backbeat: double.Parse(swingBackbeat));
     return AnalyzeBench.Tempo(file);
 }
+
+if (args is ["icon", var repoFolder])
+    return IconArt.Generate(repoFolder);
 
 if (args is ["tempo", var tempoFile])
     return AnalyzeBench.Tempo(tempoFile);

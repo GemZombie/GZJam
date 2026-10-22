@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\gzjam.ico</ApplicationIcon>
     <AssemblyName>GZJam</AssemblyName>
     <RootNamespace>GZJam.App</RootNamespace>
   </PropertyGroup>
@@ -17,6 +18,11 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The window icon. The icon files are drawn by tools/GZJam.DevTools: icon <repo folder>. -->
+    <AvaloniaResource Include="Assets\gzjam.png" />
   </ItemGroup>
 
   <ItemGroup>

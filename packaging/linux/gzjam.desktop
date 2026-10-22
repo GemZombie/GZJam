@@ -3,5 +3,6 @@ Type=Application
 Name=GZJam
 Comment=DJ software for social dances
 Exec=GZJam
+Icon=gzjam
 Terminal=false
 Categories=AudioVideo;Audio;Player;

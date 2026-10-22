@@ -1,16 +1,14 @@
-# Quick check that GZJam builds and its tests pass: on every push to main and on pull requests.
+# Check that GZJam builds and its tests pass on each OS. Day to day, builds and tests run locally;
+# this runs at important times: by hand (Actions › CI › Run workflow) and on pull requests.
 # No packages here; those come from release.yml.
 #
-# Linux and Windows run every time. macOS minutes count ten times over against a private repo's
-# allowance, so macOS runs only when asked for: Actions › CI › Run workflow › "Include macOS".
-# (The release workflow always builds and tests on all three.)
+# macOS minutes count ten times over against a private repo's allowance, so a pull request runs
+# Linux and Windows only; a run by hand includes macOS unless unticked. (The release workflow
+# always builds and tests on all three.)
 
 name: CI
 
 on:
-  push:
-    branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
   pull_request:
     branches: [main]
     paths-ignore: ['**.md', 'docs/**']

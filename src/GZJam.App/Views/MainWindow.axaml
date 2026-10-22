@@ -8,6 +8,7 @@
         x:Class="GZJam.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="GZJam"
+        Icon="/Assets/gzjam.png"
         Width="1440" Height="900" MinWidth="1024" MinHeight="680"
         WindowStartupLocation="CenterScreen">
 

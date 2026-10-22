@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\..\tests\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 

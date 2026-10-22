@@ -71,10 +71,10 @@ UI tests run headless. `ScreenshotTests` also renders the window over a real mus
 
 GitHub Actions, in `.github/workflows`:
 
-- **CI** (`ci.yml`) builds and runs the tests on Linux and Windows for every push to `main` and
-  every pull request (not for changes to Markdown or `docs/` only). It makes no packages. macOS
-  minutes cost ten times as much in a private repo, so macOS runs only from Actions › CI ›
-  *Run workflow*.
+- **CI** (`ci.yml`) builds and runs the tests on each OS. Day to day, build and test locally; run
+  CI at important times, from Actions › CI › *Run workflow* (Linux, Windows and macOS). Pull
+  requests run it on Linux and Windows: macOS minutes cost ten times as much in a private repo.
+  It makes no packages.
 - **Release** (`release.yml`) runs the tests on each OS, then builds the packages:
 
   | | |
@@ -100,6 +100,10 @@ The packages aren't signed yet, so the first launch asks for confirmation:
 - **Windows** SmartScreen shows "Windows protected your PC": click *More info* › *Run anyway*.
 - **macOS** says it can't verify the app: open System Settings › Privacy & Security and click
   *Open Anyway*, or run `xattr -dr com.apple.quarantine /Applications/GZJam.app`.
+
+The app icon is drawn in code, so every size is sharp: after changing `tools/GZJam.DevTools/IconArt.cs`,
+run `dotnet run --project tools/GZJam.DevTools -- icon .` to redraw `src/GZJam.App/Assets/gzjam.ico`,
+`gzjam.png` and `packaging/macos/GZJam.icns` (and a preview of every size in the temp folder).
 
 Packaging files are in `packaging/` (the Inno Setup script, the macOS `Info.plist` and bundle
 script, the Linux tarball and install scripts).

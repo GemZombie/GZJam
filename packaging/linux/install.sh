@@ -9,10 +9,11 @@ prefix="${XDG_DATA_HOME:-$HOME/.local/share}"
 dest="$HOME/.local/opt/gzjam"
 bin="$HOME/.local/bin/gzjam"
 desktop="$prefix/applications/gzjam.desktop"
+icon="$prefix/icons/hicolor/256x256/apps/gzjam.png"
 
 if [[ "${1:-}" == "--uninstall" ]]; then
   rm -rf "$dest"
-  rm -f "$bin" "$desktop"
+  rm -f "$bin" "$desktop" "$icon"
   echo "GZJam removed. Settings and the library database were kept."
   exit 0
 fi
@@ -28,9 +29,10 @@ if [[ "$here" == "$dest" ]]; then
 fi
 
 rm -rf "$dest"
-mkdir -p "$dest" "$(dirname "$bin")" "$(dirname "$desktop")"
+mkdir -p "$dest" "$(dirname "$bin")" "$(dirname "$desktop")" "$(dirname "$icon")"
 cp -R "$here"/. "$dest/"
 ln -sf "$dest/GZJam" "$bin"
+cp "$here/gzjam.png" "$icon"
 sed "s|^Exec=.*|Exec=$dest/GZJam|" "$here/gzjam.desktop" > "$desktop"
 command -v update-desktop-database > /dev/null && update-desktop-database "$(dirname "$desktop")" || true
 

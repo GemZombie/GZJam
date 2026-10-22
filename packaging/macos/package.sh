@@ -19,6 +19,7 @@ app="$stage/GZJam.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$out"
 cp -R "$publish"/. "$app/Contents/MacOS/"
 sed -e "s/@SHORT_VERSION@/$short_version/" -e "s/@VERSION@/$version/" "$here/Info.plist" > "$app/Contents/Info.plist"
+cp "$here/GZJam.icns" "$app/Contents/Resources/"
 chmod +x "$app/Contents/MacOS/GZJam"
 
 # Sign every file inside, then the bundle (the way Avalonia's macOS guide does it). The main

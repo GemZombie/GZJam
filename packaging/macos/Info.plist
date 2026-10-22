@@ -8,6 +8,8 @@
   <string>GZJam</string>
   <key>CFBundleIdentifier</key>
   <string>com.gemzombie.gzjam</string>
+  <key>CFBundleIconFile</key>
+  <string>GZJam</string>
   <key>CFBundleExecutable</key>
   <string>GZJam</string>
   <key>CFBundlePackageType</key>

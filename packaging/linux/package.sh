@@ -14,6 +14,7 @@ stage="$(mktemp -d)"
 mkdir -p "$stage/$name" "$out"
 cp -R "$publish"/. "$stage/$name/"
 cp "$here/install.sh" "$here/gzjam.desktop" "$stage/$name/"
+cp "$here/../../src/GZJam.App/Assets/gzjam.png" "$stage/$name/"
 chmod +x "$stage/$name/GZJam" "$stage/$name/install.sh"
 
 tar -C "$stage" -czf "$out/$name.tar.gz" "$name"
