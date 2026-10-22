@@ -6,6 +6,9 @@ namespace GZJam.Audio;
 /// <param name="Driver">Driver identifier (endpoint ID on Windows, ALSA name on Linux).</param>
 public sealed record AudioDevice(int Index, string Name, string Driver, bool IsDefault)
 {
+    /// <summary>The name the system gave it, where GZJam shows a clearer one (Linux).</summary>
+    public string SystemName { get; init; } = Name;
+
     public AudioDevicePreference Preference => new(Name, Driver);
 
     /// <summary>

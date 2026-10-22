@@ -69,7 +69,10 @@ public sealed class AudioEngine : IDisposable
         }
     }
 
-    /// <summary>Lists enabled output devices. BASS device 0 ("No sound") is skipped.</summary>
+    /// <summary>
+    /// Lists enabled output devices. BASS device 0 ("No sound") is skipped. On Linux, outputs get
+    /// names that say what they are, and duplicates of others are left out (<see cref="LinuxOutputNames"/>).
+    /// </summary>
     public IReadOnlyList<AudioDevice> GetOutputDevices()
     {
         var devices = new List<AudioDevice>();
@@ -77,9 +80,24 @@ public sealed class AudioEngine : IDisposable
         {
             if (!info.IsEnabled || info.IsLoopback)
                 continue;
-            devices.Add(new AudioDevice(i, info.Name, info.Driver ?? "", info.IsDefault));
+            string driver = info.Driver ?? "";
+            string? name = OperatingSystem.IsLinux()
+                ? LinuxOutputNames.For(info.Name, driver, LinuxOutputNames.Describe)
+                : info.Name;
+            if (name is null)
+                continue;
+            devices.Add(new AudioDevice(i, Unique(name, devices), driver, info.IsDefault) { SystemName = info.Name });
         }
         return devices;
+    }
+
+    /// <summary>"Built-in: HDMI", then "Built-in: HDMI (2)", so two alike can be told apart.</summary>
+    private static string Unique(string name, List<AudioDevice> listed)
+    {
+        string unique = name;
+        for (int n = 2; listed.Any(d => d.Name == unique); n++)
+            unique = $"{name} ({n})";
+        return unique;
     }
 
     /// <summary>

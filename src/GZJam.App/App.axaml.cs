@@ -57,7 +57,7 @@ public partial class App : Application
             audio = new AudioEngine();
             Log.Info($"BASS {audio.BassVersion}, BASS_FX {audio.FxVersion}, BASSmix {audio.MixVersion}, formats: {string.Join(", ", AudioEngine.LoadedAddOns)}");
             foreach (AudioDevice device in audio.GetOutputDevices())
-                Log.Info($"  output {device.Index}: {device} [{device.Driver}]");
+                Log.Info($"  output {device.Index}: {device} [{device.Driver}]" + (device.SystemName != device.Name ? $", called \"{device.SystemName}\" by the system" : ""));
             return (audio, new MixEngine(audio), null);
         }
         catch (Exception ex) when (ex is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException or AudioException)
