@@ -50,11 +50,11 @@ public sealed class PlayedAppTests
         HistoryViewModel history = app.ViewModel.History;
         Assert.True(history.CanRename);
 
-        history.RenameSelected("Hot Jam, Oct 14");
+        history.RenameSelected("Friday Night, Oct 14");
 
-        Assert.StartsWith("Hot Jam, Oct 14 · ", history.SelectedSession!.Label);
+        Assert.StartsWith("Friday Night, Oct 14 · ", history.SelectedSession!.Label);
         Assert.EndsWith(" · 1 song", history.SelectedSession.Label);
-        Assert.Equal("Hot Jam, Oct 14", history.SelectedName);
+        Assert.Equal("Friday Night, Oct 14", history.SelectedName);
 
         history.RenameSelected("");
         Assert.StartsWith("This session · ", history.SelectedSession!.Label);

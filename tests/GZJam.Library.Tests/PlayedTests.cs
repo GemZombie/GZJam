@@ -63,8 +63,8 @@ public sealed class PlayedTests : IDisposable
         Play(a, DateTime.UtcNow);
         long id = db.GetSessions()[0].Id;
 
-        db.RenameSession(id, "  Hot Jam, Oct 14 ");
-        Assert.Equal("Hot Jam, Oct 14", db.GetSessions()[0].Name);
+        db.RenameSession(id, "  Friday Night, Oct 14 ");
+        Assert.Equal("Friday Night, Oct 14", db.GetSessions()[0].Name);
 
         db.RenameSession(id, "");
         Assert.Null(db.GetSessions()[0].Name);

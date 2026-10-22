@@ -519,7 +519,7 @@
               <ComboBox x:Name="SessionPicker" HorizontalAlignment="Stretch"
                         ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
                         ToolTip.Tip="Pick a session (gig) to look back on" />
-              <!-- The session's menu: name it ("Hot Jam, Oct 14"), export its set list, delete it -->
+              <!-- The session's menu: name it ("Friday Night, Oct 14"), export its set list, delete it -->
               <Button x:Name="SessionMenuButton" Grid.Column="1" Classes="hw small" Content="⋯" MinWidth="40" FontSize="15"
                       IsEnabled="{Binding History.CanRename}" ToolTip.Tip="Name, export or delete this session">
                 <Button.Flyout>
@@ -534,7 +534,7 @@
                   <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel">
                     <StackPanel Width="240" Spacing="8">
                       <TextBlock Classes="label" Text="SESSION NAME" />
-                      <TextBox x:Name="SessionNameBox" PlaceholderText="e.g. Hot Jam, Oct 14" KeyDown="OnSessionNameKeyDown" />
+                      <TextBox x:Name="SessionNameBox" PlaceholderText="e.g. Friday Night, Oct 14" KeyDown="OnSessionNameKeyDown" />
                       <Grid ColumnDefinitions="*,8,*">
                         <Button Classes="hw" Content="SAVE" HorizontalAlignment="Stretch" Click="OnSessionNameSaveClick" />
                         <Button Grid.Column="2" Classes="hw" Content="CLEAR" HorizontalAlignment="Stretch" Click="OnSessionNameClearClick"

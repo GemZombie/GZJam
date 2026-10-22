@@ -13,7 +13,7 @@ public static class SetList
     /// <summary>
     /// A plain text set list:
     /// <code>
-    /// Hot Jam, Oct 14
+    /// Friday Night, Oct 14
     /// Saturday, October 17, 2026 · 7:42 PM to 9:58 PM · 24 songs · 1:12:34
     ///
     ///  1  7:42 PM  Jumpin' at the Woodside · Count Basie · 236 BPM · 3:10
@@ -85,7 +85,7 @@ public static class SetList
         return csv.ToString();
     }
 
-    /// <summary>A file name for a session's set list, without the extension: "Set list - Hot Jam, Oct 14 - 2026-10-17".</summary>
+    /// <summary>A file name for a session's set list, without the extension: "Set list - Friday Night, Oct 14 - 2026-10-17".</summary>
     public static string FileName(PlaySession session, IReadOnlyList<PlayRecord> plays)
     {
         DateTime started = (plays.Count > 0 ? plays[0].PlayedUtc : session.StartedUtc).ToLocalTime();

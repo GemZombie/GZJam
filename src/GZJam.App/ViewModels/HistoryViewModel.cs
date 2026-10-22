@@ -72,7 +72,7 @@ public sealed partial class HistoryViewModel : ObservableObject
 
     public bool CanRename => SelectedSession?.Session is not null;
 
-    /// <summary>Names the selected session ("Hot Jam, Oct 14"); empty goes back to its date.</summary>
+    /// <summary>Names the selected session ("Friday Night, Oct 14"); empty goes back to its date.</summary>
     public void RenameSelected(string? name)
     {
         if (SelectedSession?.Session is not { } session)

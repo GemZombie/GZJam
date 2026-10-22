@@ -5,7 +5,7 @@ namespace GZJam.Library;
 /// <summary>A DJ session: one gig's worth of plays.</summary>
 public sealed record PlaySession(long Id, DateTime StartedUtc, DateTime? LastPlayUtc, int PlayCount, TimeSpan TotalDuration)
 {
-    /// <summary>What the DJ called it ("Hot Jam, Oct 14"), or null.</summary>
+    /// <summary>What the DJ called it ("Friday Night, Oct 14"), or null.</summary>
     public string? Name { get; init; }
 }
 

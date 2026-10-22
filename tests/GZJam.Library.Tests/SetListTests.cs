@@ -24,11 +24,11 @@ public sealed class SetListTests
     [Fact]
     public void The_text_set_list_has_a_heading_and_a_line_per_song_with_the_tempo_the_room_heard()
     {
-        var session = new PlaySession(7, Local(19, 40), Local(19, 48), 3, TimeSpan.Zero) { Name = "Hot Jam, Oct 14" };
+        var session = new PlaySession(7, Local(19, 40), Local(19, 48), 3, TimeSpan.Zero) { Name = "Friday Night, Oct 14" };
 
         string[] lines = SetList.Text(session, Plays, Us).Split(Environment.NewLine);
 
-        Assert.Equal("Hot Jam, Oct 14", lines[0]);
+        Assert.Equal("Friday Night, Oct 14", lines[0]);
         Assert.Equal("Saturday, October 17, 2026 · 7:42 PM to 8:50 PM · 3 songs · 1:08:20", lines[1].Replace('\u202F', ' '));
         Assert.Equal("", lines[2]);
         Assert.Equal(" 1  7:42 PM  Jumpin' at the Woodside · Count Basie · 236 BPM · 3:10", lines[3].Replace('\u202F', ' '));
@@ -59,8 +59,8 @@ public sealed class SetListTests
     [Fact]
     public void The_file_name_has_the_session_name_and_date_without_characters_files_cant_have()
     {
-        var named = new PlaySession(7, Local(19, 40), null, 0, TimeSpan.Zero) { Name = "Hot Jam: Oct/14?" };
-        Assert.Equal("Set list - Hot Jam- Oct-14- - 2026-10-17", SetList.FileName(named, Plays));
+        var named = new PlaySession(7, Local(19, 40), null, 0, TimeSpan.Zero) { Name = "Friday Night: Oct/14?" };
+        Assert.Equal("Set list - Friday Night- Oct-14- - 2026-10-17", SetList.FileName(named, Plays));
         Assert.Equal("Set list - 2026-10-17", SetList.FileName(named with { Name = null }, Plays));
     }
 }

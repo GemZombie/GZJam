@@ -49,12 +49,12 @@ public sealed class SessionMenuTests
         var (first, second) = PastGig(app);
         HistoryViewModel history = app.ViewModel.History;
         history.SelectedSession = history.Sessions.First(s => s.Session is not null);
-        history.RenameSelected("Hot Jam");
+        history.RenameSelected("Friday Night");
 
         var setList = history.SetListForSelected()!.Value;
 
-        Assert.Equal("Set list - Hot Jam - 2026-10-17", setList.FileName);
-        Assert.StartsWith("Hot Jam" + Environment.NewLine, setList.Text);
+        Assert.Equal("Set list - Friday Night - 2026-10-17", setList.FileName);
+        Assert.StartsWith("Friday Night" + Environment.NewLine, setList.Text);
         Assert.True(setList.Text.IndexOf(first.DisplayTitle, StringComparison.Ordinal) < setList.Text.IndexOf(second.DisplayTitle, StringComparison.Ordinal));
         Assert.Equal(3, setList.Csv.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length);   // heading + 2 songs
     }

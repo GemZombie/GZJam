@@ -47,7 +47,7 @@ public sealed class MixxxImportTests : IDisposable
         mixxx.Crate("Not for dances", p);
         DateTime night = new(2024, 3, 14, 20, 5, 33, DateTimeKind.Utc);
         mixxx.Night("2024-03-14", (w, night), (lost, night.AddMinutes(3)), (s, night.AddMinutes(6)));
-        mixxx.Night("Hot Jam", (s, night.AddDays(7)));
+        mixxx.Night("Friday Night", (s, night.AddDays(7)));
         mixxx.Playlist("Not history", w);
         mixxx.Close();
 
@@ -76,7 +76,7 @@ public sealed class MixxxImportTests : IDisposable
         var sessions = _lib.Database.GetSessions().OrderBy(x => x.StartedUtc).ToList();
         Assert.Equal(2, sessions.Count);
         Assert.Null(sessions[0].Name);           // Mixxx's date name: GZJam shows the date itself
-        Assert.Equal("Hot Jam", sessions[1].Name);
+        Assert.Equal("Friday Night", sessions[1].Name);
         var plays = _lib.Database.GetPlays(sessions[0].Id);
         Assert.Equal(["Jumpin' at the Woodside", "Lost Song", "Splanky"], plays.Select(x => x.DisplayTitle));
         Assert.Equal(night, plays[0].PlayedUtc);

@@ -202,7 +202,7 @@ public sealed partial class LibraryDatabase
             ALTER TABLE eq ADD COLUMN gain_db REAL NOT NULL DEFAULT 0;
             """,
 
-        // 9: A name for a session, e.g. "Hot Jam, Oct 14". Null: known by its date.
+        // 9: A name for a session, e.g. "Friday Night, Oct 14". Null: known by its date.
         """
             ALTER TABLE sessions ADD COLUMN name TEXT;
             """,
