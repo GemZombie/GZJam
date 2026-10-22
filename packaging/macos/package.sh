@@ -21,8 +21,10 @@ cp -R "$publish"/. "$app/Contents/MacOS/"
 sed -e "s/@SHORT_VERSION@/$short_version/" -e "s/@VERSION@/$version/" "$here/Info.plist" > "$app/Contents/Info.plist"
 chmod +x "$app/Contents/MacOS/GZJam"
 
-# Sign every file inside, then the bundle (the way Avalonia's macOS guide does it).
-find "$app/Contents/MacOS" -type f -print0 | while IFS= read -r -d '' f; do
+# Sign every file inside, then the bundle (the way Avalonia's macOS guide does it). The main
+# executable is left to the bundle's signing: signed alone, it's checked as the whole app, and
+# fails on any file not signed yet.
+find "$app/Contents/MacOS" -type f ! -path "$app/Contents/MacOS/GZJam" -print0 | while IFS= read -r -d '' f; do
   codesign --force --sign - "$f"
 done
 codesign --force --sign - "$app"
