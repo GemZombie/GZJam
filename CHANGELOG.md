@@ -9,9 +9,9 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
-## 0.2.0 (2026-10-22)
+## 0.2.1 (2026-10-22)
 
-The first public release.
+The first public release. (0.2.0 was never released: a test failed on the Linux build machine.)
 
 - **Your music folders as the library:** a folder tree, search that covers everything under the
   folder you pick, and filters like `bpm:130-150`, `~bpm:140`, `artist:`, `year:`, `label:`,

@@ -43,7 +43,14 @@ public sealed class OutputSwitchingTests : IDisposable
     {
         var devices = _engine.GetOutputDevices();
         Assert.SkipWhen(devices.Count < 1, "Needs an output device.");
-        _mix.SetOutputs(devices[0], null);
+        try
+        {
+            _mix.SetOutputs(devices[0], null);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs an output device that opens (a Linux CI machine lists one with no sound card behind it).");
+        }
 
         var missing = new AudioDevice(999, "Unplugged Interface", "nowhere", false);
         Assert.Throws<AudioException>(() => _mix.SetOutputs(missing, null));
