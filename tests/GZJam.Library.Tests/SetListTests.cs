@@ -7,14 +7,17 @@ public sealed class SetListTests
 {
     private static readonly CultureInfo Us = CultureInfo.GetCultureInfo("en-US");
 
+    /// <summary>A path in this computer's style (a Windows path is one long file name elsewhere).</summary>
+    private static string Song(params string[] parts) => Path.Combine([OperatingSystem.IsWindows() ? @"C:\music" : "/music", .. parts]);
+
     private static DateTime Local(int hour, int minute) => new DateTime(2026, 10, 17, hour, minute, 0, DateTimeKind.Local).ToUniversalTime();
 
     private static readonly PlayRecord[] Plays =
     [
-        new(1, 7, Local(19, 42), @"C:\music\Basie\Woodside.mp3", "Jumpin' at the Woodside", "Count Basie", "Count Basie Story",
+        new(1, 7, Local(19, 42), Song("Basie", "Woodside.mp3"), "Jumpin' at the Woodside", "Count Basie", "Count Basie Story",
             240, TimeSpan.FromSeconds(190), "1", -1.5),
-        new(2, 7, Local(19, 45), @"C:\music\Misc\03 Track.mp3", null, null, null, null, TimeSpan.FromSeconds(185), "2", 0),
-        new(3, 7, Local(19, 48), @"C:\music\Webb\Stompin.mp3", "Stompin' at the Savoy, \"live\"", "Chick Webb", null,
+        new(2, 7, Local(19, 45), Song("Misc", "03 Track.mp3"), null, null, null, null, TimeSpan.FromSeconds(185), "2", 0),
+        new(3, 7, Local(19, 48), Song("Webb", "Stompin.mp3"), "Stompin' at the Savoy, \"live\"", "Chick Webb", null,
             188, TimeSpan.FromSeconds(3725), "1", 2),
     ];
 
@@ -48,9 +51,9 @@ public sealed class SetListTests
         string[] rows = SetList.Csv(Plays).Split(Environment.NewLine);
 
         Assert.Equal("#,Date,Time,Title,Artist,Album,BPM,Tempo,Length,Deck,File", rows[0]);
-        Assert.Equal(@"1,2026-10-17,19:42:00,Jumpin' at the Woodside,Count Basie,Count Basie Story,236.4,-1.5%,3:10,1,C:\music\Basie\Woodside.mp3", rows[1]);
-        Assert.Equal(@"2,2026-10-17,19:45:00,03 Track,,,,,3:05,2,C:\music\Misc\03 Track.mp3", rows[2]);
-        Assert.Equal(@"3,2026-10-17,19:48:00,""Stompin' at the Savoy, """"live"""""",Chick Webb,,191.8,+2.0%,1:02:05,1,C:\music\Webb\Stompin.mp3", rows[3]);
+        Assert.Equal("1,2026-10-17,19:42:00,Jumpin' at the Woodside,Count Basie,Count Basie Story,236.4,-1.5%,3:10,1," + Song("Basie", "Woodside.mp3"), rows[1]);
+        Assert.Equal("2,2026-10-17,19:45:00,03 Track,,,,,3:05,2," + Song("Misc", "03 Track.mp3"), rows[2]);
+        Assert.Equal(@"3,2026-10-17,19:48:00,""Stompin' at the Savoy, """"live"""""",Chick Webb,,191.8,+2.0%,1:02:05,1," + Song("Webb", "Stompin.mp3"), rows[3]);
     }
 
     [Fact]

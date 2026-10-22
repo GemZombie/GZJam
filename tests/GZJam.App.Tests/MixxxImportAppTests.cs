@@ -44,6 +44,7 @@ public sealed class MixxxImportAppTests
         dialog.Show();
         AppHarness.Settle(100);
         var shot = dialog.CaptureRenderedFrame();   // the dialog's own window
+        Directory.CreateDirectory(AppHarness.ScreenshotDirectory);
         shot?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "mixxx-import-dialog.png"));
 
         dialog.FindControl<ToggleButton>("HistorySwitch")!.IsChecked = false;   // everything but History

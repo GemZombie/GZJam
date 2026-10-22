@@ -52,7 +52,7 @@ public sealed class FakeMixxx(string path)
     {
         string qt = path.Replace('\\', '/');
         long location = Id("INSERT INTO track_locations (location, filename, directory, filesize) VALUES ($l, $f, $d, $s);",
-            ("$l", qt), ("$f", Path.GetFileName(path)), ("$d", Path.GetDirectoryName(qt)), ("$s", size ?? new FileInfo(path).Length));
+            ("$l", qt), ("$f", Path.GetFileName(qt)), ("$d", Path.GetDirectoryName(qt)), ("$s", size ?? new FileInfo(path).Length));
         return Id("INSERT INTO library (title, artist, location, duration, samplerate, bpm, rating, bpm_lock, mixxx_deleted) " +
                   "VALUES ($t, 'Mixxx Artist', $l, 180.5, 44100, $b, $r, $k, $x);",
             ("$t", title), ("$l", location), ("$b", bpm), ("$r", stars), ("$k", locked ? 1 : 0), ("$x", deleted ? 1 : 0));
