@@ -2,6 +2,27 @@
 
 A focused DJ application for swing-dance DJing, without the clutter of club-DJ software.
 
+## Download
+
+**[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
+the file for your computer:
+
+| Computer | File | To install |
+|---|---|---|
+| Windows | `GZJam-<version>-windows-x64-setup.exe` | Run it. Installs for you alone, no administrator needed. |
+| Windows, without installing | `GZJam-<version>-windows-x64.zip` | Unzip anywhere and run `GZJam.exe`. |
+| Mac with Apple Silicon (M1 or later) | `GZJam-<version>-macos-arm64.dmg` | Open it and drag GZJam to Applications. |
+| Mac with Intel | `GZJam-<version>-macos-x64.dmg` | The same. |
+| Linux (x64) | `GZJam-<version>-linux-x64.tar.gz` | Unpack it and run `./install.sh` in the folder. |
+
+Everything GZJam needs comes with it, .NET included. Your music is only ever read, never changed.
+
+GZJam is free and isn't signed with a paid certificate, so the first time you open it:
+
+- **Windows** may say "Windows protected your PC": click **More info**, then **Run anyway**.
+- **macOS** may say it can't check GZJam for malicious software: open **System Settings ›
+  Privacy & Security**, scroll down and click **Open Anyway** beside the note about GZJam.
+
 ## Stack
 
 - .NET 10 + [Avalonia](https://avaloniaui.net/) (Windows, Linux and macOS)
@@ -11,7 +32,7 @@ A focused DJ application for swing-dance DJing, without the clutter of club-DJ s
 
 BASS is used under its free non-commercial license (personal use only).
 
-## Running
+## Running from source
 
 ```
 dotnet run --project src/GZJam.App
