@@ -2,16 +2,15 @@
 # this runs at important times: by hand (Actions › CI › Run workflow) and on pull requests.
 # No packages here; those come from release.yml.
 #
-# macOS minutes count ten times over against a private repo's allowance, so a pull request runs
-# Linux and Windows only; a run by hand includes macOS unless unticked. (The release workflow
-# always builds and tests on all three.)
+# A pull request is checked on all three systems, and must pass before it's merged (the repo's
+# rules for main); a run by hand includes macOS unless unticked. It also runs for pull requests that
+# only touch docs: a required check that never runs would leave them waiting for ever.
 
 name: CI
 
 on:
   pull_request:
     branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
   workflow_dispatch:
     inputs:
       macos:
@@ -32,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.macos && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","windows-latest"]') }}
+        os: ${{ fromJSON((github.event_name == 'pull_request' || inputs.macos) && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     env:
