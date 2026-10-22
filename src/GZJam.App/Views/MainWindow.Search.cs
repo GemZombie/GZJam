@@ -31,7 +31,7 @@ public partial class MainWindow
         items.Add(Choice("Any label", null, false, enabled: current is not null));
         items.Add(new MenuItem
         {
-            Header = "Label songs: right-click them › Labels.\nOr type label:lindy  -label:balboa",
+            Header = "Label songs: right-click them › Labels.\nOr type label:slow  -label:requests",
             IsEnabled = false,
             FontSize = 11,
         });
@@ -72,7 +72,7 @@ public partial class MainWindow
         items.Add(Choice("Any BPM", null, library.HasBpmFilter));
         items.Add(new MenuItem
         {
-            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  label:lindy  -played:7  -word to leave out",
+            Header = "Or type filters: bpm:130-150  ~bpm:140  artist:basie\nyear:1938  rating:yes  label:slow  -played:7  -word to leave out",
             IsEnabled = false,
             FontSize = 11,
         });

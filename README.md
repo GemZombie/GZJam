@@ -1,6 +1,7 @@
 # GZJam
 
-A focused DJ application for swing-dance DJing, without the clutter of club-DJ software.
+A DJ app that aims to be simple, intuitive and useful: what you need to play music for people,
+without the clutter.
 
 ## Download
 
@@ -119,7 +120,7 @@ GitHub Actions, in `.github/workflows`:
 
   **Version numbers:** every release build gets a new one; a tag is never moved or reused, even
   for a draft nobody has seen. The patch number is for fixes only (0.2.0 → 0.2.1), the minor
-  number for anything new (0.2.x → 0.3.0), and 1.0 for when GZJam is ready for any swing DJ.
+  number for anything new (0.2.x → 0.3.0), and 1.0 for when GZJam is ready for any DJ to pick up.
   After a release, `VersionPrefix` in `src/GZJam.App/GZJam.App.csproj` goes up to the next minor
   version, so builds made in between read "0.3.0-dev".
 

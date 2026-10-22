@@ -310,7 +310,7 @@
               </Button>
               <!-- Label filter by tap: writes label: into the search text -->
               <Button x:Name="LabelFilterButton" Grid.Column="2" Classes="bpm-filter" Classes.on="{Binding Library.HasLabelFilter}"
-                      VerticalAlignment="Center" ToolTip.Tip="Show songs with a label (Lindy, Balboa, …)">
+                      VerticalAlignment="Center" ToolTip.Tip="Show songs with a label (Slow, Requests, …)">
                 <TextBlock Text="{Binding Library.LabelFilterLabel}" FontSize="12" MaxWidth="120" TextTrimming="CharacterEllipsis" />
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedLeft" />

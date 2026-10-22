@@ -11,7 +11,7 @@ public partial class AboutDialog : Window
     {
         InitializeComponent();
         VersionText.Text = About.Version;
-        MakerText.Text = $"A DJ app for swing dancing, made by {About.Maker}.";
+        MakerText.Text = $"A simple, intuitive DJ app, made by {About.Maker}.";
         ProjectLink.Content = About.ProjectUrl.Replace("https://", "");
         BuiltWithText.Text = About.BuiltWith();
         NoticesButton.IsVisible = File.Exists(About.NoticesPath);
