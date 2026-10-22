@@ -13,18 +13,15 @@ namespace GZJam.App.Tests;
 /// <summary>Decks, crossfader, deck protection and headphone preview, through the real window and an offline mixer.</summary>
 public sealed class DeckTests
 {
-    private static void Drop(AppHarness app, string deckView, Track track, RawDragEventType type = RawDragEventType.Drop)
+    private static Point Centre(AppHarness app, string deckView)
     {
         var view = app.Window.FindControl<DeckView>(deckView)!;
-        Point centre = view.TranslatePoint(new Point(view.Bounds.Width / 2, view.Bounds.Height / 2), app.Window)!.Value;
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(MainWindow.TrackFormat, new MainWindow.TrackDrag([track], null)));
-        app.Window.DragDrop(centre, RawDragEventType.DragEnter, data, DragDropEffects.Copy, RawInputModifiers.None);
-        app.Window.DragDrop(centre, RawDragEventType.DragOver, data, DragDropEffects.Copy, RawInputModifiers.None);
-        if (type == RawDragEventType.Drop)
-            app.Window.DragDrop(centre, RawDragEventType.Drop, data, DragDropEffects.Copy, RawInputModifiers.None);
-        AppHarness.Settle(100);
+        return view.TranslatePoint(new Point(view.Bounds.Width / 2, view.Bounds.Height / 2), app.Window)!.Value;
     }
+
+    /// <summary>Drags a track onto a deck and lets go (or only holds it over the deck).</summary>
+    private static void Drop(AppHarness app, string deckView, Track track, bool release = true) =>
+        app.DragTracks(new MainWindow.TrackDrag([track], null), Centre(app, deckView), release);
 
     [AvaloniaFact]
     public void Dropping_a_track_on_a_deck_loads_it()
@@ -111,8 +108,9 @@ public sealed class DeckTests
         app.Play(0.2);
 
         // Dragging over shows the deck refusing; dropping doesn't replace the track.
-        Drop(app, "Deck1View", app.ToneTrack("Second"), RawDragEventType.DragOver);
+        Drop(app, "Deck1View", app.ToneTrack("Second"), release: false);
         Assert.Contains("drop-blocked", app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Border>("Frame")!.Classes);
+        app.Window.EndDrag();
         Drop(app, "Deck1View", app.ToneTrack("Second"));
 
         Assert.Equal(first, a.Track);
@@ -318,15 +316,10 @@ public sealed class DeckTests
         AppHarness.Settle(100);
         QueueItem item = queue.Items[1];
 
-        var view = app.Window.FindControl<DeckView>("Deck2View")!;
-        Point centre = view.TranslatePoint(new Point(view.Bounds.Width / 2, view.Bounds.Height / 2), app.Window)!.Value;
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(MainWindow.TrackFormat, new MainWindow.TrackDrag([second], [item])));
-        // A drag from the queue allows only Move, exactly as the queue starts it.
-        app.Window.DragDrop(centre, RawDragEventType.DragEnter, data, DragDropEffects.Move, RawInputModifiers.None);
-        app.Window.DragDrop(centre, RawDragEventType.DragOver, data, DragDropEffects.Move, RawInputModifiers.None);
-        app.Window.DragDrop(centre, RawDragEventType.Drop, data, DragDropEffects.Move, RawInputModifiers.None);
-        AppHarness.Settle(100);
+        // With the mouse, from the song's row in the queue to the deck.
+        var row = (Control)app.Window.FindControl<ListBox>("QueueList")!.ContainerFromIndex(1)!;
+        Point from = row.TranslatePoint(new Point(80, row.Bounds.Height / 2), app.Window)!.Value;
+        app.MouseDrag(from, Centre(app, "Deck2View"));
 
         Assert.Equal(second, app.ViewModel.Deck2!.Track);
         Assert.Equal([first], queue.Items.Select(i => i.Track));

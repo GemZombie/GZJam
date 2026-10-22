@@ -21,6 +21,10 @@ public partial class DeckView : UserControl
     public static readonly StyledProperty<bool> IsCompactProperty =
         AvaloniaProperty.Register<DeckView, bool>(nameof(IsCompact));
 
+    /// <summary>Touch mode: the compact deck's keys are finger-sized too (the full deck's come from the app's resources).</summary>
+    public static readonly StyledProperty<bool> IsTouchProperty =
+        AvaloniaProperty.Register<DeckView, bool>(nameof(IsTouch));
+
     /// <summary>A full deck's height; two compact decks and the gap between them fit in it.</summary>
     public const double FullHeight = 268;
     public const double CompactGap = 8;
@@ -29,6 +33,7 @@ public partial class DeckView : UserControl
     static DeckView()
     {
         IsCompactProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
+        IsTouchProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
     }
 
     /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
@@ -68,13 +73,22 @@ public partial class DeckView : UserControl
         set => SetValue(IsCompactProperty, value);
     }
 
+    public bool IsTouch
+    {
+        get => GetValue(IsTouchProperty);
+        set => SetValue(IsTouchProperty, value);
+    }
+
     private void ApplyCompact()
     {
         bool compact = IsCompact;
         Classes.Set("compact", compact);
         MinHeight = compact ? CompactHeight : FullHeight;
         // Smaller transport buttons; the full sizes come from the app's resources.
-        foreach (var (key, size) in new[] { ("DeckButtonSize", 34.0), ("DeckControlHeight", 28.0), ("DeckPlayIconSize", 12.0), ("DeckPauseIconSize", 11.0) })
+        (string, double)[] sizes = IsTouch
+            ? [("DeckButtonSize", 40.0), ("DeckControlHeight", 34.0), ("DeckPlayIconSize", 14.0), ("DeckPauseIconSize", 13.0)]
+            : [("DeckButtonSize", 34.0), ("DeckControlHeight", 28.0), ("DeckPlayIconSize", 12.0), ("DeckPauseIconSize", 11.0)];
+        foreach (var (key, size) in sizes)
         {
             if (compact)
                 Resources[key] = size;

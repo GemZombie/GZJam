@@ -12,15 +12,9 @@ namespace GZJam.App.Views;
 
 public partial class MainWindow : Window
 {
-    /// <summary>What's being dragged: tracks, plus the queue items themselves when reordering the queue.</summary>
-    internal sealed record TrackDrag(IReadOnlyList<Track> Tracks, IReadOnlyList<QueueItem>? FromQueue);
-
-    internal static readonly DataFormat<TrackDrag> TrackFormat = DataFormat.CreateInProcessFormat<TrackDrag>("GZJam.Tracks");
-    // A drag must start from the original press event, so keep it until the pointer moves far enough.
-    private PointerPressedEventArgs? _gridPress;
-    private Point _gridPressPoint;
-    private PointerPressedEventArgs? _queuePress;
-    private Point _queuePressPoint;
+    // Where a press began, until the pointer has moved far enough to start a drag (null: no press).
+    private Point? _gridPress;
+    private Point? _queuePress;
     private bool _queuePressOnHandle;
 
     private PixelPoint _normalPosition;
@@ -41,15 +35,12 @@ public partial class MainWindow : Window
         QueueList.AddHandler(PointerReleasedEvent, (_, _) => _queuePress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
         QueueList.AddHandler(KeyDownEvent, OnQueueKeyDown, RoutingStrategies.Tunnel);
 
-        QueueArea.AddHandler(DragDrop.DragOverEvent, OnQueueDragOver);
-        QueueArea.AddHandler(DragDrop.DragLeaveEvent, (_, _) => QueueDropLine.IsVisible = false);
-        QueueArea.AddHandler(DragDrop.DropEvent, OnQueueDrop);
-
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
 
         PositionChanged += (_, _) => RememberNormalBounds();
         Resized += (_, _) => RememberNormalBounds();
 
+        InitializeDrag();
         InitializeDecks();
         InitializeHistory();
         InitializeSearch();
@@ -78,14 +69,13 @@ public partial class MainWindow : Window
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _gridPress = e;
-            _gridPressPoint = point.Position;
+            _gridPress = point.Position;
         }
     }
 
-    private async void OnGridPointerMoved(object? sender, PointerEventArgs e)
+    private void OnGridPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_gridPress is not { } press)
+        if (_gridPress is not { } pressedAt || IsDragging)
             return;
         var point = e.GetCurrentPoint(TrackGrid);
         if (!point.Properties.IsLeftButtonPressed)
@@ -93,7 +83,7 @@ public partial class MainWindow : Window
             _gridPress = null;
             return;
         }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - _gridPressPoint, fromHandle: false))
+        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, fromHandle: false))
         {
             case DragIntent.Decision.Wait:
                 return;
@@ -104,11 +94,8 @@ public partial class MainWindow : Window
 
         _gridPress = null;
         var tracks = SelectedTracks();
-        if (tracks.Count == 0)
-            return;
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(TrackFormat, new TrackDrag(tracks, null)));
-        await DragDrop.DoDragDropAsync(press, data, DragDropEffects.Copy);
+        if (tracks.Count > 0)
+            StartTrackDrag(new TrackDrag(tracks, null), e.Pointer, e.GetPosition(this));
     }
 
     private void OnGridKeyDown(object? sender, KeyEventArgs e)
@@ -175,6 +162,12 @@ public partial class MainWindow : Window
     protected override void OnKeyDown(KeyEventArgs e)
     {
         // Ctrl+F on Windows and Linux, Cmd+F on macOS.
+        if (e.Key == Key.Escape && IsDragging)
+        {
+            EndDrag();
+            e.Handled = true;
+            return;
+        }
         if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier))
         {
             SearchBox.Focus();
@@ -202,15 +195,14 @@ public partial class MainWindow : Window
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _queuePress = e;
-            _queuePressPoint = point.Position;
+            _queuePress = point.Position;
             _queuePressOnHandle = (e.Source as Control)?.FindAncestorOfType<Border>(includeSelf: true) is { } border && border.Classes.Contains("grip");
         }
     }
 
-    private async void OnQueuePointerMoved(object? sender, PointerEventArgs e)
+    private void OnQueuePointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_queuePress is not { } press)
+        if (_queuePress is not { } pressedAt || IsDragging)
             return;
         var point = e.GetCurrentPoint(QueueList);
         if (!point.Properties.IsLeftButtonPressed)
@@ -218,7 +210,7 @@ public partial class MainWindow : Window
             _queuePress = null;
             return;
         }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - _queuePressPoint, _queuePressOnHandle))
+        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, _queuePressOnHandle))
         {
             case DragIntent.Decision.Wait:
                 return;
@@ -229,11 +221,8 @@ public partial class MainWindow : Window
 
         _queuePress = null;
         var items = SelectedQueueItems();
-        if (items.Count == 0)
-            return;
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(TrackFormat, new TrackDrag(items.Select(i => i.Track).ToList(), items)));
-        await DragDrop.DoDragDropAsync(press, data, DragDropEffects.Move);
+        if (items.Count > 0)
+            StartTrackDrag(new TrackDrag(items.Select(i => i.Track).ToList(), items), e.Pointer, e.GetPosition(this));
     }
 
     private void OnQueueKeyDown(object? sender, KeyEventArgs e)
@@ -243,33 +232,6 @@ public partial class MainWindow : Window
             Vm.Queue.Remove(SelectedQueueItems());
             e.Handled = true;
         }
-    }
-
-    private void OnQueueDragOver(object? sender, DragEventArgs e)
-    {
-        if (e.DataTransfer.TryGetValue(TrackFormat) is not { } drag)
-        {
-            e.DragEffects = DragDropEffects.None;
-            return;
-        }
-        e.DragEffects = drag.FromQueue is null ? DragDropEffects.Copy : DragDropEffects.Move;
-        DropIndex(e.GetPosition(QueueArea), out double lineY);
-        QueueDropLine.Margin = new Thickness(10, lineY, 10, 0);
-        QueueDropLine.IsVisible = true;
-    }
-
-    private void OnQueueDrop(object? sender, DragEventArgs e)
-    {
-        QueueDropLine.IsVisible = false;
-        if (e.DataTransfer.TryGetValue(TrackFormat) is not { } drag)
-            return;
-
-        int index = DropIndex(e.GetPosition(QueueArea), out _);
-        if (drag.FromQueue is { } items)
-            Vm.Queue.Move(items, index);
-        else
-            Vm.Queue.Add(drag.Tracks, index);
-        e.Handled = true;
     }
 
     /// <summary>Where a drop at <paramref name="position"/> would insert, and where to draw the insertion line.</summary>

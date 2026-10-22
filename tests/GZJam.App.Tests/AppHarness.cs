@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Threading;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
@@ -93,6 +94,37 @@ public sealed class AppHarness : IDisposable
         WaitFor(() => Library.HasLoaded && Library.ScanStatus is null && Library.Roots.Count > 0 && Library.Results.Count > 0,
             TimeSpan.FromSeconds(60));
         Settle();
+    }
+
+    /// <summary>
+    /// Drags with the mouse from <paramref name="from"/> to <paramref name="to"/> (window
+    /// coordinates), as a DJ would: press, move in steps, let go. <paramref name="over"/> runs
+    /// while the pointer is over the target, before letting go.
+    /// </summary>
+    public void MouseDrag(Point from, Point to, Action? over = null)
+    {
+        Window.MouseDown(from, MouseButton.Left, RawInputModifiers.None);
+        for (int i = 1; i <= 8; i++)
+        {
+            Window.MouseMove(from + (to - from) * (i / 8.0), RawInputModifiers.LeftMouseButton);
+            Dispatcher.UIThread.RunJobs();
+        }
+        over?.Invoke();
+        Window.MouseUp(to, MouseButton.Left, RawInputModifiers.None);
+        Settle(100);
+    }
+
+    /// <summary>
+    /// Drags <paramref name="drag"/> (any tracks, not only ones on screen) to <paramref name="at"/>
+    /// and lets go there, or only holds it there when <paramref name="release"/> is false.
+    /// </summary>
+    internal void DragTracks(MainWindow.TrackDrag drag, Point at, bool release = true)
+    {
+        Window.StartTrackDrag(drag, null, at);
+        Window.MouseMove(at, RawInputModifiers.LeftMouseButton);
+        if (release)
+            Window.MouseUp(at, MouseButton.Left, RawInputModifiers.None);
+        Settle(100);
     }
 
     /// <summary>Runs the UI dispatcher until <paramref name="condition"/> holds.</summary>

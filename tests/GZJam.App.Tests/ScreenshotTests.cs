@@ -151,5 +151,39 @@ public sealed class ScreenshotTests
         app.Screenshot("15-eq");
         eq.Flyout.Hide();
         vm.Deck3.FlatEqCommand.Execute(null);
+
+        // Touch mode: four decks, then two, then the track menu with finger-sized items.
+        vm.Settings.TouchMode = true;
+        app.Play(0.2);
+        app.Screenshot("16-touch-four-decks");
+        vm.SetDeckCount(2);
+        app.Play(0.2);
+        app.Screenshot("17-touch-two-decks");
+        grid.SelectedIndex = 2;
+        grid.ScrollIntoView(grid.SelectedItem, null);
+        AppHarness.Settle(200);
+        var touchRow = grid.GetVisualDescendants().OfType<DataGridRow>().First(r => r.DataContext == grid.SelectedItem);
+        var touchAt = touchRow.TranslatePoint(new Avalonia.Point(200, 20), app.Window)!.Value;
+        app.Window.MouseDown(touchAt, MouseButton.Right, RawInputModifiers.None);
+        app.Window.MouseUp(touchAt, MouseButton.Right, RawInputModifiers.None);
+        AppHarness.Settle(300);
+        app.Screenshot("18-touch-menu");
+        app.Window.FindControl<ContextMenu>("TrackMenu")!.Close();
+
+        // Dragging a song by finger: the tag above the finger, the queue showing where it goes.
+        vm.ShowHistory = false;
+        AppHarness.Settle(100);
+        var queueArea = app.Window.FindControl<Panel>("QueueArea")!;
+        var over = queueArea.TranslatePoint(new Avalonia.Point(queueArea.Bounds.Width / 2, 70), app.Window)!.Value;
+        var finger = app.Window.TouchBegin(touchAt, RawInputModifiers.None);
+        for (int i = 1; i <= 10; i++)
+        {
+            app.Window.TouchMove(finger, touchAt + (over - touchAt) * (i / 10.0), RawInputModifiers.None);
+            AppHarness.Settle(10);
+        }
+        app.Screenshot("19-touch-drag");
+        app.Window.TouchEnd(finger, over, RawInputModifiers.None);
+        AppHarness.Settle(100);
+        vm.Settings.TouchMode = false;
     }
 }

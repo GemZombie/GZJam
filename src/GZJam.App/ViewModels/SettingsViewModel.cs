@@ -103,6 +103,20 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Touch mode (see <see cref="AppSettings.TouchMode"/>).</summary>
+    public bool TouchMode
+    {
+        get => _settings.TouchMode;
+        set
+        {
+            if (value == _settings.TouchMode)
+                return;
+            _settings.TouchMode = value;
+            Log.Info($"Touch mode {(value ? "on" : "off")}");
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Four decks on screen rather than two.</summary>
     public bool FourDecks
     {

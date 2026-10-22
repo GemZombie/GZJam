@@ -223,8 +223,10 @@ public sealed class Fader : Control
             return;
         Point p = e.GetPosition(this);
         double capY = CapCentre.Y;
-        bool onCap = Math.Abs(p.Y - capY) <= CapHeight / 2 + 6;
-        // Grabbing the cap keeps it under the finger; pressing elsewhere jumps it there.
+        // Grabbing the cap keeps it under the pointer; a mouse click elsewhere jumps it there. A
+        // finger or pen never jumps it (a slightly missed cap mustn't swing the level): it moves
+        // the cap from where it is, by as much as the finger moves.
+        bool onCap = e.Pointer.Type != PointerType.Mouse || Math.Abs(p.Y - capY) <= CapHeight / 2 + 6;
         _grabOffset = onCap ? p.Y - capY : 0;
         if (e.ClickCount == 2 && ResetValue is { } reset)
             Value = reset;

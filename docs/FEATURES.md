@@ -262,6 +262,24 @@ is out of scope until it earns a place.
 - **Accidental touches on the live deck are guarded.** Deck protection already blocks loads;
   pausing or stopping the live deck should also need a deliberate action (setting).
 
+### Status: touch mode and touch dragging built (2026-10-22)
+
+- **Dragging works by touch.** The DJ found tapping worked but dragging didn't: drags used the
+  operating system's drag and drop, which on Windows follows the mouse only. GZJam now moves the
+  drag itself (`MainWindow.Drag.cs`), the same for finger, pen, trackpad and mouse: a tag with the
+  song follows the pointer (above a finger, so it isn't hidden), the deck under it lights up or
+  shows it won't take the song, the queue shows a line where it would go and scrolls when held
+  near its top or bottom edge, and holding it over the Queue tab opens the queue. Escape cancels.
+- **Faders and crossfader:** a finger or pen never makes the cap jump. Pressing anywhere on the
+  track and sliding moves the cap from where it is by as much as the finger moves, so a slightly
+  missed cap can't cut the room or swing the volume. A mouse click on the track still jumps there.
+- **Touch mode** (Settings › Touch mode, off by default): library rows 44 px, folder rows 40,
+  queue and history rows 52 with a wider grip, deck keys 42 (play 62; compact decks 34 and 40),
+  a taller crossfader, bigger search box, filter buttons, steppers, switches and settings key, and
+  44 px menu items. It's a stylesheet (`Styles/TouchStyles.axaml`) added to the app while on, plus
+  the shared size resources swapped; menus and flyouts follow because they're app-wide. Two and
+  four decks still fit in the same space.
+
 ### Future tablet version (not planned yet, but don't paint ourselves into a corner)
 
 - **iPad first**, then probably Android too.

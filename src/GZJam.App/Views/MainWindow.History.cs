@@ -11,8 +11,7 @@ namespace GZJam.App.Views;
 /// <summary>The Queue / History tabs and the History list: preview, re-queue, load to a deck, drag out.</summary>
 public partial class MainWindow
 {
-    private PointerPressedEventArgs? _historyPress;
-    private Point _historyPressPoint;
+    private Point? _historyPress;
 
     private void InitializeHistory()
     {
@@ -68,14 +67,13 @@ public partial class MainWindow
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _historyPress = e;
-            _historyPressPoint = point.Position;
+            _historyPress = point.Position;
         }
     }
 
-    private async void OnHistoryPointerMoved(object? sender, PointerEventArgs e)
+    private void OnHistoryPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_historyPress is not { } press)
+        if (_historyPress is not { } pressedAt || IsDragging)
             return;
         var point = e.GetCurrentPoint(HistoryList);
         if (!point.Properties.IsLeftButtonPressed)
@@ -83,7 +81,7 @@ public partial class MainWindow
             _historyPress = null;
             return;
         }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - _historyPressPoint, fromHandle: false))
+        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, fromHandle: false))
         {
             case DragIntent.Decision.Wait:
                 return;
@@ -93,11 +91,8 @@ public partial class MainWindow
         }
         _historyPress = null;
         var tracks = SelectedPlays().Select(p => p.Track).ToList();
-        if (tracks.Count == 0)
-            return;
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(TrackFormat, new TrackDrag(tracks, null)));
-        await DragDrop.DoDragDropAsync(press, data, DragDropEffects.Copy);
+        if (tracks.Count > 0)
+            StartTrackDrag(new TrackDrag(tracks, null), e.Pointer, e.GetPosition(this));
     }
 
     private void OnPreviewHistoryItemClick(object? sender, RoutedEventArgs e)

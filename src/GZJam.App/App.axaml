@@ -59,13 +59,16 @@
       <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, SF Mono, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 
       <!--
-        Sizes for controls used during a set. Touch mode (later) swaps these for finger-sized
-        values, so new controls should take their sizes from here via DynamicResource.
+        Sizes for controls used during a set. Touch mode (Styles/TouchStyles.axaml) swaps these for
+        finger-sized values, so new controls should take their sizes from here via DynamicResource.
       -->
       <x:Double x:Key="DeckButtonSize">54</x:Double>
       <x:Double x:Key="DeckControlHeight">36</x:Double>
       <x:Double x:Key="DeckPlayIconSize">18</x:Double>
       <x:Double x:Key="DeckPauseIconSize">16</x:Double>
+      <x:Double x:Key="CrossfaderHeight">44</x:Double>
+      <!-- Keys in tight spots: STOP, auto-play, NAME -->
+      <x:Double x:Key="SmallKeyHeight">30</x:Double>
 
       <!-- Fluent theme overrides: small corners; menus, drop-downs and flyouts in the panel colours -->
       <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>

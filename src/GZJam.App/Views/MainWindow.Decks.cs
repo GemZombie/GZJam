@@ -11,13 +11,6 @@ public partial class MainWindow
 {
     private void InitializeDecks()
     {
-        foreach (DeckView deckView in DeckViews)
-        {
-            deckView.AddHandler(DragDrop.DragOverEvent, OnDeckDragOver);
-            deckView.AddHandler(DragDrop.DragLeaveEvent, (_, _) => deckView.SetDropState(null));
-            deckView.AddHandler(DragDrop.DropEvent, OnDeckDrop);
-        }
-
         PreviewSeek.SeekRequested += (_, fraction) => Vm.Preview?.SeekTo(fraction);
         // Opening covers right-click and long-press; Opened also covers menus opened from code.
         TrackMenu.Opening += (_, _) => OnTrackMenuOpening();
@@ -25,6 +18,8 @@ public partial class MainWindow
         QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
         QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
         SettingsButton.Flyout!.Opened += (_, _) => Vm.Settings.RefreshDevices();
+        // Touch mode's sizes are app-wide; take them away with the window (tests open many windows).
+        Closed += (_, _) => GZJam.App.Styles.TouchStyles.Apply(false);
 
         DataContextChanged += (_, _) =>
         {
@@ -37,11 +32,26 @@ public partial class MainWindow
                 if (e.PropertyName == nameof(MainWindowViewModel.FourDecks))
                     ApplyDeckLayout();
             };
+            vm.Settings.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(SettingsViewModel.TouchMode))
+                    ApplyTouchMode();
+            };
             ApplyDeckLayout();
+            ApplyTouchMode();
         };
     }
 
     private DeckView[] DeckViews => [Deck1View, Deck2View, Deck3View, Deck4View];
+
+    /// <summary>Finger-sized controls everywhere, or the usual sizes (Settings › Touch mode).</summary>
+    private void ApplyTouchMode()
+    {
+        bool on = Vm.Settings.TouchMode;
+        GZJam.App.Styles.TouchStyles.Apply(on);
+        foreach (DeckView view in DeckViews)
+            view.IsTouch = on;
+    }
 
     /// <summary>Two full-height decks, or four at half height in the same space.</summary>
     private void ApplyDeckLayout()
@@ -52,36 +62,6 @@ public partial class MainWindow
     }
 
     private DeckViewModel? DeckAt(int index) => Vm.Decks.ElementAtOrDefault(index);
-
-    // ───────────── Dragging onto a deck ─────────────
-
-    private void OnDeckDragOver(object? sender, DragEventArgs e)
-    {
-        var view = (DeckView)sender!;
-        if (e.DataTransfer.TryGetValue(TrackFormat) is not { Tracks.Count: 1 } drag || view.DataContext is not DeckViewModel deck)
-        {
-            // A deck takes exactly one track.
-            e.DragEffects = DragDropEffects.None;
-            view.SetDropState(null);
-            return;
-        }
-        bool allowed = Vm.CanLoad(deck);
-        // Match the drag's own effect: tracks from the queue move (they leave it), library tracks copy.
-        e.DragEffects = !allowed ? DragDropEffects.None : drag.FromQueue is null ? DragDropEffects.Copy : DragDropEffects.Move;
-        view.SetDropState(allowed);
-    }
-
-    private async void OnDeckDrop(object? sender, DragEventArgs e)
-    {
-        var view = (DeckView)sender!;
-        view.SetDropState(null);
-        if (e.DataTransfer.TryGetValue(TrackFormat) is { Tracks: [var track] } drag && view.DataContext is DeckViewModel deck)
-        {
-            e.Handled = true;
-            if (await Vm.LoadToDeckAsync(deck, track) && drag.FromQueue is { } fromQueue)
-                Vm.Queue.Remove(fromQueue);
-        }
-    }
 
     // ───────────── Menus ─────────────
 

@@ -109,16 +109,19 @@ public sealed class MainWindowTests
         // Just above the middle of the second item = insert before it.
         Point target = second.TranslatePoint(new Point(40, 4), app.Window)!.Value;
 
-        var data = new DataTransfer();
-        data.Add(DataTransferItem.Create(MainWindow.TrackFormat, new MainWindow.TrackDrag([tracks[5]], null)));
-        app.Window.DragDrop(target, RawDragEventType.DragEnter, data, DragDropEffects.Copy, RawInputModifiers.None);
-        app.Window.DragDrop(target, RawDragEventType.DragOver, data, DragDropEffects.Copy, RawInputModifiers.None);
-        Assert.True(app.Window.FindControl<Border>("QueueDropLine")!.IsVisible);
-        app.Window.DragDrop(target, RawDragEventType.Drop, data, DragDropEffects.Copy, RawInputModifiers.None);
-        AppHarness.Settle(100);
+        // With the mouse, from the song's row in the library.
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        var row = grid.GetVisualDescendants().OfType<DataGridRow>().First(r => r.DataContext == tracks[5]);
+        Point from = row.TranslatePoint(new Point(200, row.Bounds.Height / 2), app.Window)!.Value;
+        app.MouseDrag(from, target, over: () =>
+        {
+            Assert.True(app.Window.FindControl<Border>("QueueDropLine")!.IsVisible);
+            Assert.Single(app.Window.FindControl<Canvas>("DragLayer")!.Children);   // the song's tag follows the pointer
+        });
 
         Assert.Equal([tracks[0], tracks[5], tracks[1], tracks[2]], queue.Items.Select(i => i.Track));
         Assert.False(app.Window.FindControl<Border>("QueueDropLine")!.IsVisible);
+        Assert.Empty(app.Window.FindControl<Canvas>("DragLayer")!.Children);
     }
 
     [AvaloniaFact]
@@ -132,14 +135,11 @@ public sealed class MainWindowTests
 
         var list = app.Window.FindControl<ListBox>("QueueList")!;
         var first = (Control)list.ContainerFromIndex(0)!;
+        var third = (Control)list.ContainerFromIndex(2)!;
         Point top = first.TranslatePoint(new Point(40, 4), app.Window)!.Value;
+        Point from = third.TranslatePoint(new Point(80, third.Bounds.Height / 2), app.Window)!.Value;
 
-        var data = new DataTransfer();
-        var moving = queue.Items[2];
-        data.Add(DataTransferItem.Create(MainWindow.TrackFormat, new MainWindow.TrackDrag([moving.Track], [moving])));
-        app.Window.DragDrop(top, RawDragEventType.DragOver, data, DragDropEffects.Move, RawInputModifiers.None);
-        app.Window.DragDrop(top, RawDragEventType.Drop, data, DragDropEffects.Move, RawInputModifiers.None);
-        AppHarness.Settle(100);
+        app.MouseDrag(from, top);
 
         Assert.Equal([tracks[2], tracks[0], tracks[1]], queue.Items.Select(i => i.Track));
     }

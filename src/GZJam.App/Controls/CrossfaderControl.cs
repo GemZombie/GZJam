@@ -124,8 +124,10 @@ public sealed class CrossfaderControl : Control
 
         Point p = e.GetPosition(this);
         Point centre = CapCentre;
-        bool onCap = Math.Abs(p.X - centre.X) <= CapWidth / 2 + 6;
-        // Grabbing the cap keeps it under the finger; pressing the track jumps the cap there.
+        // Grabbing the cap keeps it under the pointer; a mouse click on the track jumps the cap
+        // there. A finger or pen never jumps it (a slightly missed cap mustn't cut the room): it
+        // moves the cap from where it is, by as much as the finger moves.
+        bool onCap = e.Pointer.Type != PointerType.Mouse || Math.Abs(p.X - centre.X) <= CapWidth / 2 + 6;
         _grabOffset = onCap ? p.X - centre.X : 0;
         if (!onCap)
             Value = ValueAt(p.X);

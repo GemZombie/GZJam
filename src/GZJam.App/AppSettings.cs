@@ -63,6 +63,12 @@ public sealed class AppSettings
     public int DeckCount { get; set; } = 2;
 
     /// <summary>
+    /// Finger-sized keys, rows, menus and crossfader, for a touchscreen. Off by default; touch
+    /// gestures (dragging, long-press for the menu) work either way.
+    /// </summary>
+    public bool TouchMode { get; set; }
+
+    /// <summary>
     /// Turn each track up or down towards the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
     /// </summary>

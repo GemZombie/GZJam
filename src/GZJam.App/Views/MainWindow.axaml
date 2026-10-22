@@ -12,6 +12,7 @@
         Width="1440" Height="900" MinWidth="1024" MinHeight="680"
         WindowStartupLocation="CenterScreen">
 
+  <Panel>
   <Grid RowDefinitions="40,Auto,Auto,*" Margin="16" RowSpacing="12">
 
     <!-- ───────────── Top bar ───────────── -->
@@ -106,6 +107,14 @@
                 <ToggleButton x:Name="FourDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
                               IsChecked="{Binding FourDecks}" />
               </Grid>
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                <StackPanel Spacing="1">
+                  <TextBlock Classes="setting" Text="Touch mode" />
+                  <TextBlock Classes="setting-help" Text="Bigger keys, rows, menus and crossfader for fingers. Dragging works by touch either way." />
+                </StackPanel>
+                <ToggleButton x:Name="TouchModeSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                              IsChecked="{Binding TouchMode}" />
+              </Grid>
               <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="5">
                 <TextBlock Classes="setting" Text="Fade-out length" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="hw step" Content="−" Command="{Binding FadeOutShorterCommand}" />
@@ -144,9 +153,9 @@
            decks, 3 sits under 1 and 4 under 2, each half height, so the row stays the same. -->
       <Grid RowDefinitions="*,Auto">
         <v:DeckView x:Name="Deck1View" Label="1" Accent="{StaticResource Deck1Brush}"
-                    DataContext="{Binding Deck1}" DragDrop.AllowDrop="True" />
+                    DataContext="{Binding Deck1}" />
         <v:DeckView x:Name="Deck3View" Grid.Row="1" Label="3" Accent="{StaticResource Deck3Brush}" Margin="0,8,0,0"
-                    IsVisible="False" DataContext="{Binding Deck3}" DragDrop.AllowDrop="True" />
+                    IsVisible="False" DataContext="{Binding Deck3}" />
       </Grid>
 
       <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the crossfader -->
@@ -170,7 +179,7 @@
             <TextBlock Grid.Row="1" Grid.Column="2" Classes="fader-label" Text="PHONES" HorizontalAlignment="Center" />
           </Grid>
 
-          <c:CrossfaderControl x:Name="Crossfader" Grid.Row="2" Height="44" Value="{Binding Crossfader}"
+          <c:CrossfaderControl x:Name="Crossfader" Grid.Row="2" Height="{DynamicResource CrossfaderHeight}" Value="{Binding Crossfader}"
                                ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
           <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto">
             <!-- The side the room hears has its light on. With four decks each carries both of that side's numbers. -->
@@ -196,9 +205,9 @@
 
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
         <v:DeckView x:Name="Deck2View" Label="2" Accent="{StaticResource Deck2Brush}"
-                    DataContext="{Binding Deck2}" DragDrop.AllowDrop="True" />
+                    DataContext="{Binding Deck2}" />
         <v:DeckView x:Name="Deck4View" Grid.Row="1" Label="4" Accent="{StaticResource Deck4Brush}" Margin="0,8,0,0"
-                    IsVisible="False" DataContext="{Binding Deck4}" DragDrop.AllowDrop="True" />
+                    IsVisible="False" DataContext="{Binding Deck4}" />
       </Grid>
     </Grid>
 
@@ -432,7 +441,7 @@
               <c:SeekBar x:Name="PreviewSeek" Grid.Column="2" Height="28" Progress="{Binding Progress}"
                          Fill="{StaticResource Deck2Brush}" CornerRadius="3" />
               <TextBlock Grid.Column="3" Classes="muted mono" FontSize="12" Text="{Binding TimeText}" VerticalAlignment="Center" />
-              <Button Grid.Column="4" Classes="hw" MinHeight="30" Content="STOP" Command="{Binding StopCommand}" />
+              <Button Grid.Column="4" Classes="hw small" Content="STOP" Command="{Binding StopCommand}" />
             </Grid>
           </Border>
         </Grid>
@@ -448,7 +457,7 @@
           <Border Classes="autoplay" DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
             <StackPanel Spacing="6">
               <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="5">
-                <ToggleButton x:Name="AutoPlaySwitch" Classes="hw" MinHeight="30" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
+                <ToggleButton x:Name="AutoPlaySwitch" Classes="hw small" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
                               ToolTip.Tip="Play through the queue automatically, alternating decks">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <Border Classes="led green" Classes.on="{Binding IsOn}" />
@@ -471,7 +480,7 @@
 
           <Border Grid.Row="1" Classes="panel-header" Padding="8,0,14,0">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-              <ToggleButton Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
+              <ToggleButton x:Name="QueueTab" Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
               <ToggleButton Grid.Column="1" Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
                             Click="OnHistoryTabClick" />
@@ -489,7 +498,7 @@
                         ItemsSource="{Binding History.Sessions}" SelectedItem="{Binding History.SelectedSession}"
                         ToolTip.Tip="Pick a session (gig) to look back on" />
               <!-- Name the session: "Hot Jam, Oct 14" -->
-              <Button x:Name="RenameSessionButton" Grid.Column="1" Classes="hw" MinHeight="30" Content="NAME"
+              <Button x:Name="RenameSessionButton" Grid.Column="1" Classes="hw small" Content="NAME"
                       IsEnabled="{Binding History.CanRename}" ToolTip.Tip="Name this session, e.g. the dance it was for">
                 <Button.Flyout>
                   <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel">
@@ -547,7 +556,7 @@
                        Text="Songs appear here once the room has heard them for 30 seconds." />
           </Grid>
 
-          <Panel Grid.Row="2" x:Name="QueueArea" Background="Transparent" DragDrop.AllowDrop="True"
+          <Panel Grid.Row="2" x:Name="QueueArea" Background="Transparent"
                  IsVisible="{Binding ShowQueue}">
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
@@ -612,4 +621,8 @@
       </Border>
     </Grid>
   </Grid>
+
+  <!-- A track being dragged follows the pointer here (see MainWindow.Drag.cs). -->
+  <Canvas x:Name="DragLayer" IsHitTestVisible="False" />
+  </Panel>
 </Window>
