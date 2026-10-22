@@ -220,12 +220,12 @@ is out of scope until it earns a place.
 - Stored in the library database (schema upgrade 2) with its own copy of title/artist/album, so
   old sessions stay readable after files move or leave the library.
 - **Session menu** (the ⋯ key beside the session picker, built 2026-10-22):
-  - *Name this session…*: "Hot Jam, Oct 14" (was the NAME key).
+  - *Name this session…*: "Friday Night, Oct 14" (was the NAME key).
   - *Export set list…*: saves where the DJ picks, as readable text (a heading with the name, date,
     times, song count and length, then a numbered line per song: time, title, artist, BPM as
     the room heard it, length) or CSV for a spreadsheet (date, time, title, artist, album, BPM,
     tempo change, length, deck, file; UTF-8 with a byte-order mark for Excel). Suggested name:
-    "Set list - Hot Jam, Oct 14 - 2026-10-17".
+    "Set list - Friday Night, Oct 14 - 2026-10-17".
   - *Delete this session…*: asks first; the session and its songs leave History and the Played
     column forgets them. Deleting tonight's session starts a fresh one with the next song.
 
@@ -342,16 +342,16 @@ is out of scope until it earns a place.
 
 ## Roadmap: getting ready for other DJs (2026-10-21)
 
-The plan is to give GZJam away, free, to DJs in the social/partner dance community. A fellow DJ
-(Lindy and contra; uses Mixxx with 4 decks at a weekly dance, on Linux) reviewed what he relies
-on and what he misses. Already covered by what's built: seeing the queue and next track at a
+The plan is to give GZJam away, free, to any DJ who wants it. A fellow DJ (who uses Mixxx with
+4 decks at a weekly dance, on Linux) reviewed what he relies on and what he misses. Already covered by what's built: seeing the queue and next track at a
 glance (his reason for 4 decks), per-deck headphone cue and library preview, tempo with key
 lock, and automatic history.
 
 ### Now: before handing it to other DJs
 
 1. **Mono output** for the speakers: a setting, on by default. Early stereo jazz often puts the
-   drums hard on one side, so half the floor loses the beat. Headphones stay stereo.
+   drums hard on one side, so half the floor loses the beat. (Since 2026-10-22 the headphones
+   are mono too: see the settings redesign.)
 2. **Master volume, level meter and clip light** for the speakers, with a safety limiter so
    nothing that's turned up can distort. Matters most when a laptop feeds a PA directly.
 3. **Headphone volume.** (Hearing the room while previewing already works: cue the live deck.)
@@ -366,10 +366,11 @@ lock, and automatic history.
 
 ### Status: items 1-3 built (2026-10-21)
 
-- Every output goes through volume → mono fold-down (speakers only) → a safety limiter → meter,
+- Every output goes through volume → mono fold-down → a safety limiter → meter,
   in one BASS DSP on the output mixer (`OutputBus`). Settings carry over when outputs change.
-- **Mono:** Settings › *Speakers in mono*, on by default. The meter shows one bar in mono, two in
-  stereo.
+- **Mono:** Settings › Sound › *Mono*, on by default, for the speakers and the headphones alike:
+  the DJ hears what the room hears (including recordings that lose something when folded to
+  mono), with either ear. The meter shows one bar in mono, two in stereo.
 - **Limiter:** ceiling just under full scale; instant attack, 300 ms release. Loud MP3s often
   decode a little over full scale (one in the library peaks at +1.3 dB), which it absorbs quietly;
   the **LIMIT** light only comes on when it has to turn things down by more than 2 dB (two loud
@@ -422,7 +423,7 @@ lock, and automatic history.
 
 ### Status: four decks built (2026-10-21)
 
-Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses nothing:
+The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the library loses nothing:
 
 - Settings › *Four decks* (off by default; remembered). Deck 3 sits under Deck 1 and Deck 4 under
   Deck 2, each half height (two compact decks plus the gap are exactly one full deck, 268 px).
@@ -459,7 +460,7 @@ Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses no
 - It's the recording that's being fixed, so the EQ is heard in the room and the headphones alike
   (BASS_FX biquad filters on the deck's decoded stream, before the speaker/headphone split). It
   can be changed while the room is listening.
-- Not a performance EQ: no permanent knobs, since social dance DJs set it once per recording.
+- Not a performance EQ: no permanent knobs, since it's set once per recording.
 
 ### Look: controls drawn like hardware, pass 1 of 3 (2026-10-21)
 
@@ -551,8 +552,8 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   the session, so the dimming survives.
 - **`played:` filter:** `played:7` (heard in the last 7 days), `-played:7` (leave out last week's
   set; never-played songs stay), `played:never`, `played:yes`. Listed in the BPM button's hint.
-- **Naming a session:** History tab › NAME next to the session picker: "Hot Jam, Oct 14". The
-  picker then shows "Hot Jam, Oct 14 · Oct 14 · 23 songs". Clear goes back to the date. Stored in
+- **Naming a session:** History tab › NAME next to the session picker: "Friday Night, Oct 14". The
+  picker then shows "Friday Night, Oct 14 · Oct 14 · 23 songs". Clear goes back to the date. Stored in
   `sessions.name` (schema upgrade 9).
 - **Choosing columns:** right-click (or long-press) a column header to show or hide ♥ Rating,
   Album, Genre, Year, BPM, Energy and Played; remembered. A laptop can't fit them all. Genre starts
@@ -581,7 +582,7 @@ rather than being a second one.
 
 - **A jump** leaves at the end of one phrase and lands at another, seamlessly: forward skips a
   part (a 5-minute track's third chorus), backward plays one again (stretching a tune to fit a
-  contra dance). Up to two per song, saved by path (`jumps`, schema upgrade 11).
+  dance). Up to two per song, saved by path (`jumps`, schema upgrade 11).
 - **Setting one:** right-click the waveform › *Jump from here* (or *from the playhead*, after
   finding the spot in the headphones), then right-click where it lands › *Land the jump here*.
   *Remove jump 1 (1:42.0 → 3:05.0)* in the same menu. Refused with a reason: too near the start or
@@ -638,6 +639,25 @@ rather than being a second one.
 - `THIRD-PARTY-NOTICES.txt` (repo root) ships beside the program in every package: the list, then
   each licence in full, including the notices of what SkiaSharp and .NET carry inside them. A test
   fails if a library is added without being named in its list.
+
+### Status: settings redesigned (2026-10-22)
+
+- **Settings opens over the main screen**, which dims behind it, in a lighter, bluer grey than
+  the decks with its own title bar, so it can't be mistaken for part of the set. It's inside the
+  main window rather than a window of its own, so it looks the same everywhere (a tiling desktop
+  like Hyprland would place a separate window beside GZJam). Music keeps playing. DONE, Escape
+  or a tap on the dimmed screen closes it.
+- **Sections down the side:** Sound (speaker and headphone outputs, mono, match loudness), Decks
+  (four decks, fade-out length, and the two safety choices), Screen (touch mode), Library
+  (import from Mixxx) and About (which used to be a window of its own). It reopens where it was
+  left; MAIN and CUE at the top open it on Sound.
+- **Mono covers the headphones too** (one switch): the DJ hears what the room hears, and a
+  headphone worn on one ear misses nothing.
+- **Linux output names** say what they are: "Built-in: Headphones / Speakers", "Built-in: HDMI 1",
+  "Cable Creation (USB)", from what the kernel reports for any card (USB or not; HDMI, digital or
+  analog), never one driver's naming. The sound server's own entry (the same as Default) and
+  Intel SOF's second copy of the headphone jack are left out; anything unrecognised keeps ALSA's
+  name. The log keeps both names.
 
 ## Decided against
 

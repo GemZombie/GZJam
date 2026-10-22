@@ -34,7 +34,12 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 - TagLib# — tag reading (GZJam never writes to music files)
 - SQLite — library, play history, notes
 
-BASS is used under its free non-commercial license (personal use only).
+## Licence
+
+GZJam's own code is under the [MIT licence](LICENSE). It's built with other people's software,
+each under its own licence, listed in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). BASS
+(in `lib/bass/`) isn't open source: it's free for software that makes no money, which is how
+GZJam uses it, and anything sold would need a licence from [un4seen](https://www.un4seen.com/).
 
 ## Running from source
 
@@ -65,14 +70,14 @@ installed there, `dotnet run --project src/GZJam.App` from a clone. Settings go 
 
 Things that differ from Windows and need checking on real hardware (PipeWire, e.g. Omarchy):
 
-1. **Outputs.** Settings › Audio outputs: which devices are listed? Typically "Default" (through
-   PipeWire) and each card by name. Pick the USB interface's own entry as Main rather than
+1. **Outputs.** Settings › Sound: which devices are listed? Typically "Default" (through
+   PipeWire), "Built-in: …" for the computer's own outputs, and USB interfaces by name. Pick the USB interface's own entry as Main rather than
    Default: does audio play, and do desktop sounds (a notification, a browser) stay *out* of it?
    That would mean the card is used directly, bypassing PipeWire, which is what we want for the PA.
 2. **Headphones on a second device** (the laptop's own output as Cue): both play at once, the cue
    button and the headphone preview reach only the headphones.
 3. **Unplug and replug** the USB interface: the speakers fall back to the default, the notice
-   says so, and the interface is picked up again from Settings › Refresh device list.
+   says so, and the interface is picked up again from Settings › Sound › Refresh the list.
 4. **Latency and dropouts:** move the crossfader and the tempo while playing; any crackles?
 5. **The library:** add a music folder; scanning, search, and the folder watcher (add or rename a
    file while GZJam runs). Large libraries may need a higher inotify watch limit.
