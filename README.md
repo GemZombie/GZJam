@@ -6,7 +6,7 @@ without the clutter.
 ## Download
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
-the file for your computer:
+the file for your computer. What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
 
 | Computer | File | To install |
 |---|---|---|
@@ -113,7 +113,10 @@ GitHub Actions, in `.github/workflows`:
   | macOS | `GZJam-<version>-macos-arm64.dmg` (Apple Silicon) and `-macos-x64.dmg` (Intel) |
   | Linux | `GZJam-<version>-linux-x64.tar.gz`: run `./install.sh` from it for a launcher entry and a `gzjam` command (`./install.sh --uninstall` removes it) |
 
-  Push a version tag to draft a GitHub release with them attached, then publish the draft by hand:
+  First add the version's section to [CHANGELOG.md](CHANGELOG.md): what a DJ would notice since the
+  last release. It becomes the release's notes (with download instructions added by
+  `tools/release-notes.sh`), and a tag without one fails straight away. Then push a version tag to
+  draft a GitHub release with the packages attached, and publish the draft by hand:
 
   ```
   git tag v0.2.0

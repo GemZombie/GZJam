@@ -4,7 +4,8 @@
 #   Linux    GZJam-<version>-linux-x64.tar.gz (with install.sh)
 #
 # Pushing a version tag (git tag v0.2.0 && git push origin v0.2.0) builds them and drafts a GitHub
-# release with them attached; publish the draft by hand once it looks right. Running the workflow
+# release with them attached, its notes taken from the version's section of CHANGELOG.md (a tag
+# without one fails straight away); publish the draft by hand once it looks right. Running the workflow
 # by hand (Actions › Release › Run workflow) builds test packages only, kept as run artifacts.
 
 name: Release
@@ -75,6 +76,10 @@ jobs:
             echo "::error::'$version' isn't a version like 1.2.0 or 1.2.0-beta.1"
             exit 1
           fi
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]] && ! bash tools/release-notes.sh "$version" > /dev/null; then
+            echo "::error::CHANGELOG.md has no section for $version"
+            exit 1
+          fi
           prefix="${version%%-*}"
           suffix=""
           [[ "$version" == *-* ]] && suffix="${version#*-}"
@@ -131,6 +136,8 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
+
       - uses: actions/download-artifact@v8
         with:
           pattern: packages-*
@@ -145,5 +152,6 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           prerelease=""
           [[ "$version" == *-* ]] && prerelease="--prerelease"
+          bash tools/release-notes.sh "$version" > "$RUNNER_TEMP/notes.md"
           gh release create "$GITHUB_REF_NAME" dist/* --draft $prerelease --verify-tag \
-            --title "GZJam $version" --generate-notes
+            --title "GZJam $version" --notes-file "$RUNNER_TEMP/notes.md"
