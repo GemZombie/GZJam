@@ -1,36 +1,84 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
+using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
+using GZJam.App.Views;
+
 namespace GZJam.App.Tests;
 
+/// <summary>Settings: over the dimmed main screen, sections down the side.</summary>
 public sealed class SettingsTests
 {
-    [Fact]
-    public void Readout_choices_saved_under_the_old_deck_letters_carry_over()
+    private static SettingsPanel Panel(AppHarness app) => app.Window.FindControl<SettingsPanel>("SettingsPanel")!;
+
+    private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+    [AvaloniaFact]
+    public void The_gear_opens_settings_over_the_screen_and_DONE_closes_it()
     {
-        string path = Path.Combine(Directory.CreateTempSubdirectory("gzjam-settings-").FullName, "settings.json");
-        File.WriteAllText(path, """
-            { "DeckReadouts": { "A": "Bpm", "B": "Elapsed" }, "LiveDeckPause": "Hold" }
-            """);
+        using var app = new AppHarness();
+        Assert.False(app.Window.IsSettingsOpen);
 
-        AppSettings settings = AppSettings.Load(path);
+        Click(app.Window.FindControl<Button>("SettingsButton")!);
+        AppHarness.Settle(100);
+        Assert.True(app.Window.IsSettingsOpen);
+        Assert.Equal(SettingsSection.Sound, Panel(app).Section);
+        Assert.True(Panel(app).FindControl<Button>("DoneButton")!.IsFocused);   // keys stay out of the decks
 
-        Assert.Equal(DeckReadout.Bpm, settings.DeckReadouts["1"]);
-        Assert.Equal(DeckReadout.Elapsed, settings.DeckReadouts["2"]);
-        Assert.False(settings.DeckReadouts.ContainsKey("A"));
-        Assert.Equal(OnAirPause.Tap, settings.OnAirPause);   // the old hold setting no longer applies
+        Click(Panel(app).FindControl<Button>("DoneButton")!);
+        Assert.False(app.Window.IsSettingsOpen);
     }
 
-    [Fact]
-    public void Settings_round_trip()
+    [AvaloniaFact]
+    public void Escape_or_a_tap_on_the_dimmed_screen_closes_it()
     {
-        string path = Path.Combine(Directory.CreateTempSubdirectory("gzjam-settings-").FullName, "settings.json");
-        var settings = new AppSettings { LoadOntoPlayingDeck = PlayingDeckLoad.Ask, OnAirPause = OnAirPause.TapTwice, FadeOutSeconds = 8 };
-        settings.DeckReadouts["2"] = DeckReadout.Bpm;
+        using var app = new AppHarness();
+        app.Window.OpenSettings();
+        app.Window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        Assert.False(app.Window.IsSettingsOpen);
 
-        settings.Save(path);
-        AppSettings loaded = AppSettings.Load(path);
+        app.Window.OpenSettings();
+        AppHarness.Settle(100);
+        app.Window.MouseDown(new Point(6, 6), MouseButton.Left, RawInputModifiers.None);   // a corner, outside the panel
+        app.Window.MouseUp(new Point(6, 6), MouseButton.Left, RawInputModifiers.None);
+        Assert.False(app.Window.IsSettingsOpen);
+    }
 
-        Assert.Equal(PlayingDeckLoad.Ask, loaded.LoadOntoPlayingDeck);
-        Assert.Equal(OnAirPause.TapTwice, loaded.OnAirPause);
-        Assert.Equal(8, loaded.FadeOutSeconds);
-        Assert.Equal(DeckReadout.Bpm, loaded.DeckReadouts["2"]);
+    [AvaloniaFact]
+    public void It_reopens_where_it_was_left_and_the_output_chips_open_it_on_Sound()
+    {
+        using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Decks);
+        Assert.True(Panel(app).FindControl<Control>("DecksPage")!.IsVisible);
+        Assert.False(Panel(app).FindControl<Control>("SoundPage")!.IsVisible);
+        app.Window.CloseSettings();
+
+        app.Window.OpenSettings();
+        Assert.Equal(SettingsSection.Decks, Panel(app).Section);
+        app.Window.CloseSettings();
+
+        var chip = app.Window.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("output-chip"));
+        Click(chip);
+        Assert.True(app.Window.IsSettingsOpen);
+        Assert.Equal(SettingsSection.Sound, Panel(app).Section);
+    }
+
+    [AvaloniaFact]
+    public void Each_section_in_pictures()
+    {
+        using var app = new AppHarness();
+        foreach (SettingsSection section in Enum.GetValues<SettingsSection>())
+        {
+            app.Window.OpenSettings(section);
+            app.Screenshot($"settings-{section.ToString().ToLowerInvariant()}");
+        }
+
+        app.ViewModel.Settings.TouchMode = true;
+        app.Window.OpenSettings(SettingsSection.Sound);
+        app.Screenshot("settings-sound-touch");
+        app.ViewModel.Settings.TouchMode = false;
     }
 }

@@ -8,19 +8,20 @@ namespace GZJam.App.Tests;
 public sealed class MixerTests
 {
     [AvaloniaFact]
-    public void The_speakers_start_in_mono_and_the_setting_is_remembered()
+    public void Speakers_and_headphones_start_in_mono_and_the_setting_is_remembered()
     {
         using var app = new AppHarness();
         var mixer = app.ViewModel.Mixer!;
 
         Assert.True(app.Mix.Main.Mono);
-        Assert.False(app.Mix.Cue.Mono);   // headphones stay stereo
+        Assert.True(app.Mix.Cue.Mono);   // what the room hears, in either ear
         Assert.True(app.Window.FindControl<LevelMeter>("MainMeter")!.IsMono);   // one bar
 
-        app.ViewModel.Settings.MonoSpeakers = false;
+        app.ViewModel.Settings.Mono = false;
 
         Assert.False(app.Mix.Main.Mono);
-        Assert.False(app.Settings.MonoSpeakers);
+        Assert.False(app.Mix.Cue.Mono);
+        Assert.False(app.Settings.Mono);
         Assert.False(mixer.IsMono);
         Assert.False(app.Window.FindControl<LevelMeter>("MainMeter")!.IsMono);
     }

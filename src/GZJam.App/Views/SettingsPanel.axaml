@@ -1,0 +1,203 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             x:Class="GZJam.App.Views.SettingsPanel"
+             x:DataType="vm:SettingsViewModel">
+  <!-- Settings, over the dimmed main screen: sections down the side, one shown at a time -->
+  <Border Classes="settings">
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Classes="settings-head">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Classes="settings-title" Text="SETTINGS" />
+          <Button x:Name="DoneButton" Grid.Column="1" Classes="hw" Content="DONE" MinWidth="76" Click="OnDoneClick" />
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Left" Width="170" Background="{StaticResource SettingsNavBrush}"
+              BorderBrush="{StaticResource SettingsLineBrush}" BorderThickness="0,0,1,0">
+        <DockPanel Margin="0,10">
+          <TextBlock x:Name="NavVersionText" DockPanel.Dock="Bottom" Classes="dim" FontSize="11" Margin="18,0" />
+          <StackPanel>
+            <RadioButton x:Name="NavSound" Classes="settings-nav" GroupName="SettingsSections" Content="Sound" IsChecked="True" />
+            <RadioButton x:Name="NavDecks" Classes="settings-nav" GroupName="SettingsSections" Content="Decks" />
+            <RadioButton x:Name="NavScreen" Classes="settings-nav" GroupName="SettingsSections" Content="Screen" />
+            <RadioButton x:Name="NavLibrary" Classes="settings-nav" GroupName="SettingsSections" Content="Library" />
+            <RadioButton x:Name="NavAbout" Classes="settings-nav" GroupName="SettingsSections" Content="About" />
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <Panel>
+        <!-- ───────────── Sound ───────────── -->
+        <ScrollViewer x:Name="SoundPage" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20,16">
+            <TextBlock Classes="settings-group" Text="OUTPUTS" />
+            <Border Classes="settings-card">
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Border Classes="led on red" VerticalAlignment="Center" />
+                      <TextBlock Classes="setting" Text="Speakers" />
+                    </StackPanel>
+                    <TextBlock Classes="setting-help" Text="What the room hears." />
+                  </StackPanel>
+                  <ComboBox x:Name="MainDeviceBox" Grid.Column="1" ItemsSource="{Binding MainDevices}" SelectedItem="{Binding MainDevice}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Border Classes="led on amber" VerticalAlignment="Center" />
+                      <TextBlock Classes="setting" Text="Headphones" />
+                    </StackPanel>
+                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room." />
+                  </StackPanel>
+                  <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
+                </Grid>
+                <Button Classes="link" Content="Plugged something in? Refresh the list" Command="{Binding RefreshDevicesCommand}"
+                        HorizontalAlignment="Left" Margin="8,-6,0,6" />
+              </StackPanel>
+            </Border>
+
+            <TextBlock Classes="settings-group" Text="PLAYBACK" />
+            <Border Classes="settings-card">
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Mono" />
+                    <TextBlock Classes="setting-help"
+                               Text="Both sides play the same, in the speakers and the headphones: the whole floor hears instruments recorded on one side, and you hear what the room hears, with either ear." />
+                  </StackPanel>
+                  <ToggleButton x:Name="MonoSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Mono}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Match loudness" />
+                    <TextBlock Classes="setting-help"
+                               Text="Quiet old transfers and loud remasters play at about the same level. Adjust a song in its EQ panel (GAIN)." />
+                  </StackPanel>
+                  <ToggleButton x:Name="MatchLoudnessSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding MatchLoudness}" />
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ───────────── Decks ───────────── -->
+        <ScrollViewer x:Name="DecksPage" HorizontalScrollBarVisibility="Disabled" IsVisible="False">
+          <StackPanel Margin="20,16">
+            <TextBlock Classes="settings-group" Text="DECKS" />
+            <Border Classes="settings-card">
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Four decks" />
+                    <TextBlock Classes="setting-help" Text="Decks 3 and 4 sit under 1 and 2, each half height. The crossfader fades 1 and 3 against 2 and 4." />
+                  </StackPanel>
+                  <ToggleButton x:Name="FourDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding FourDecks}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Fade-out length" />
+                    <TextBlock Classes="setting-help" Text="How long a deck's FADE OUT key takes to bring it down to silence." />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                    <Button Classes="hw step" Content="−" Command="{Binding FadeOutShorterCommand}" />
+                    <Border Classes="readout-window" MinWidth="52">
+                      <TextBlock Classes="mono" Text="{Binding FadeOutText}" FontWeight="SemiBold" FontSize="12.5"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Button Classes="hw step" Content="+" Command="{Binding FadeOutLongerCommand}" />
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <TextBlock Classes="settings-group" Text="SAFETY" />
+            <Border Classes="settings-card">
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Classes="setting" Text="Loading a playing deck" />
+                    <TextBlock Classes="setting-help" Text="When a song is dropped on a deck that's playing." />
+                  </StackPanel>
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding LoadChoices}" SelectedItem="{Binding LoadChoice}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Classes="setting" Text="Pausing the live deck" />
+                    <TextBlock Classes="setting-help" Text="The deck the room is hearing." />
+                  </StackPanel>
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding PauseChoices}" SelectedItem="{Binding PauseChoice}" />
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ───────────── Screen ───────────── -->
+        <ScrollViewer x:Name="ScreenPage" HorizontalScrollBarVisibility="Disabled" IsVisible="False">
+          <StackPanel Margin="20,16">
+            <TextBlock Classes="settings-group" Text="SCREEN" />
+            <Border Classes="settings-card">
+              <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="setting" Text="Touch mode" />
+                  <TextBlock Classes="setting-help" Text="Bigger keys, rows, menus and crossfader for fingers. Dragging works by touch either way." />
+                </StackPanel>
+                <ToggleButton x:Name="TouchModeSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding TouchMode}" />
+              </Grid>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ───────────── Library ───────────── -->
+        <ScrollViewer x:Name="LibraryPage" HorizontalScrollBarVisibility="Disabled" IsVisible="False">
+          <StackPanel Margin="20,16">
+            <TextBlock Classes="settings-group" Text="LIBRARY" />
+            <Border Classes="settings-card">
+              <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="setting" Text="Import from Mixxx" />
+                  <TextBlock Classes="setting-help" Text="Ratings, crates (as labels), History and the BPMs you locked. Mixxx itself isn't changed." />
+                </StackPanel>
+                <Button x:Name="MixxxImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
+                        Click="OnMixxxImportClick" />
+              </Grid>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ───────────── About ───────────── -->
+        <DockPanel x:Name="AboutPage" Margin="20,16" IsVisible="False">
+          <StackPanel DockPanel.Dock="Top" Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Border Width="30" Height="30" CornerRadius="4" Background="{StaticResource TextBrush}">
+                <TextBlock Text="GZ" FontSize="13" FontWeight="Black" Foreground="{StaticResource BgBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="GZJam" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+              <TextBlock x:Name="VersionText" Classes="muted mono" FontSize="13" VerticalAlignment="Center" Margin="2,4,0,0" />
+            </StackPanel>
+            <TextBlock x:Name="MakerText" TextWrapping="Wrap" Margin="0,6,0,0" />
+            <Button x:Name="ProjectLink" Classes="link" Click="OnProjectClick" Margin="-6,-2,0,0" />
+          </StackPanel>
+
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,12,0,8">
+            <TextBlock Classes="settings-group" Text="BUILT WITH" Margin="2,0,0,0" VerticalAlignment="Center" />
+            <Button x:Name="NoticesButton" Grid.Column="1" Classes="hw" Content="FULL LICENCE TEXTS" Click="OnNoticesClick" />
+          </Grid>
+          <Border Classes="readout-window" Padding="12,10">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <SelectableTextBlock x:Name="BuiltWithText" Classes="mono" FontSize="11.5" TextWrapping="Wrap" />
+            </ScrollViewer>
+          </Border>
+        </DockPanel>
+      </Panel>
+    </DockPanel>
+  </Border>
+</UserControl>

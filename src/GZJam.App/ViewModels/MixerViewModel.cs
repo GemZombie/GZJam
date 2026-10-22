@@ -33,7 +33,7 @@ public sealed partial class MixerViewModel : ObservableObject
         this.owner = owner;
         this.mix = mix;
         _settings = settings;
-        mix.Main.Mono = settings.MonoSpeakers;
+        mix.Main.Mono = mix.Cue.Mono = settings.Mono;
         mix.Main.Volume = Gain(settings.MainVolume);
         mix.Cue.Volume = Gain(settings.CueVolume);
     }
@@ -89,7 +89,7 @@ public sealed partial class MixerViewModel : ObservableObject
         return Math.Abs(db) < 0.05 ? "0 dB" : $"−{-db:0.#} dB";
     }
 
-    /// <summary>The speakers play mono (a setting, on by default).</summary>
+    /// <summary>Speakers and headphones play mono (a setting, on by default).</summary>
     public bool IsMono
     {
         get => mix.Main.Mono;
@@ -97,9 +97,9 @@ public sealed partial class MixerViewModel : ObservableObject
         {
             if (value == mix.Main.Mono)
                 return;
-            mix.Main.Mono = value;
-            _settings.MonoSpeakers = value;
-            Log.Info($"Speakers: {(value ? "mono" : "stereo")}");
+            mix.Main.Mono = mix.Cue.Mono = value;
+            _settings.Mono = value;
+            Log.Info($"Speakers and headphones: {(value ? "mono" : "stereo")}");
             OnPropertyChanged();
         }
     }

@@ -599,6 +599,81 @@
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
+  <!-- Settings: a panel over the dimmed screen, with sections down the side (Views/SettingsPanel) -->
+  <Style Selector="Border.settings">
+    <Setter Property="Background" Value="{StaticResource SettingsBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SettingsEdgeBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="BoxShadow" Value="0 16 48 0 #99000000" />
+  </Style>
+  <Style Selector="Border.settings-head">
+    <Setter Property="Background" Value="{StaticResource SettingsHeadBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SettingsLineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="16,8,10,8" />
+  </Style>
+  <Style Selector="TextBlock.settings-title">
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.8" />
+    <Setter Property="Foreground" Value="#C9D0DC" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="RadioButton.settings-nav">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_Item" Background="Transparent" BorderBrush="Transparent" BorderThickness="3,0,0,0"
+                Padding="15,0" MinHeight="{DynamicResource DeckControlHeight}">
+          <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="RadioButton.settings-nav:pointerover /template/ Border#PART_Item">
+    <Setter Property="Background" Value="#0AFFFFFF" />
+  </Style>
+  <Style Selector="RadioButton.settings-nav:checked /template/ Border#PART_Item">
+    <Setter Property="Background" Value="#262C37" />
+    <Setter Property="BorderBrush" Value="#C9D0DC" />
+  </Style>
+  <Style Selector="RadioButton.settings-nav:checked">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.settings-group">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.6" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="Margin" Value="2,0,0,7" />
+  </Style>
+  <Style Selector="Border.settings-card">
+    <Setter Property="Background" Value="{StaticResource SettingsCardBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SettingsLineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Margin" Value="0,0,0,16" />
+  </Style>
+  <!-- One setting: its name and explanation on the left, the control on the right -->
+  <Style Selector="Grid.settings-row">
+    <Setter Property="ColumnSpacing" Value="16" />
+    <Setter Property="Margin" Value="14,11" />
+  </Style>
+  <Style Selector="Border.settings-rule">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Background" Value="{StaticResource SettingsLineBrush}" />
+  </Style>
+  <Style Selector="Border.settings-card ComboBox">
+    <Setter Property="Width" Value="270" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
   <!-- Small icon buttons in list rows (preview) -->
   <Style Selector="Button.row-icon">
     <Setter Property="Background" Value="Transparent" />

@@ -319,7 +319,7 @@ public sealed class MixEngineTests : IDisposable
         Assert.Equal(Full / 2, mono.Left, 0.02f);
         Assert.Equal(mono.Left, mono.Right, 0.001f);
 
-        // Only the speakers: the headphones stay stereo.
+        // Each output has its own switch (the app turns both on together).
         A.Cue = true;
         Render(0.1);
         _mix.Cue.TakeLevels();

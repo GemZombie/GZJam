@@ -65,101 +65,8 @@
         </StackPanel>
       </Button>
 
-      <Button x:Name="SettingsButton" Grid.Column="6" Classes="icon-button" ToolTip.Tip="Settings">
+      <Button x:Name="SettingsButton" Grid.Column="6" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
         <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel">
-            <StackPanel Width="352" Spacing="12" DataContext="{Binding Settings}" x:DataType="vm:SettingsViewModel">
-              <TextBlock Classes="label" Text="AUDIO OUTPUTS" />
-              <StackPanel Spacing="4">
-                <TextBlock Classes="setting" Text="Main (speakers)" />
-                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding MainDevices}" SelectedItem="{Binding MainDevice}" />
-              </StackPanel>
-              <StackPanel Spacing="4">
-                <TextBlock Classes="setting" Text="Cue (headphones)" />
-                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
-              </StackPanel>
-              <Button Classes="link" Content="Refresh device list" Command="{Binding RefreshDevicesCommand}" Margin="-6,-4,0,0" />
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock Classes="setting" Text="Speakers in mono" />
-                  <TextBlock Classes="setting-help" Text="The whole floor hears instruments recorded on one side. Headphones stay stereo." />
-                </StackPanel>
-                <ToggleButton x:Name="MonoSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
-                              IsChecked="{Binding MonoSpeakers}" />
-              </Grid>
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock Classes="setting" Text="Match loudness" />
-                  <TextBlock Classes="setting-help" Text="Quiet old transfers and loud remasters play at about the same level. Adjust a song in its EQ panel (GAIN)." />
-                </StackPanel>
-                <ToggleButton x:Name="MatchLoudnessSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
-                              IsChecked="{Binding MatchLoudness}" />
-              </Grid>
-
-              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
-              <TextBlock Classes="label" Text="DECKS" />
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock Classes="setting" Text="Four decks" />
-                  <TextBlock Classes="setting-help" Text="Decks 3 and 4 sit under 1 and 2, each half height. The crossfader fades 1 and 3 against 2 and 4." />
-                </StackPanel>
-                <ToggleButton x:Name="FourDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
-                              IsChecked="{Binding FourDecks}" />
-              </Grid>
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock Classes="setting" Text="Touch mode" />
-                  <TextBlock Classes="setting-help" Text="Bigger keys, rows, menus and crossfader for fingers. Dragging works by touch either way." />
-                </StackPanel>
-                <ToggleButton x:Name="TouchModeSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
-                              IsChecked="{Binding TouchMode}" />
-              </Grid>
-              <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="5">
-                <TextBlock Classes="setting" Text="Fade-out length" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Classes="hw step" Content="−" Command="{Binding FadeOutShorterCommand}" />
-                <Border Grid.Column="2" Classes="readout-window" MinWidth="52">
-                  <TextBlock Classes="mono" Text="{Binding FadeOutText}" FontWeight="SemiBold" FontSize="12.5"
-                             HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <Button Grid.Column="3" Classes="hw step" Content="+" Command="{Binding FadeOutLongerCommand}" />
-              </Grid>
-
-              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
-              <TextBlock Classes="label" Text="LIBRARY" />
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock Classes="setting" Text="Import from Mixxx" />
-                  <TextBlock Classes="setting-help" Text="Ratings, crates (as labels), History and the BPMs you locked. Mixxx itself isn't changed." />
-                </StackPanel>
-                <Button x:Name="MixxxImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
-                        Click="OnMixxxImportClick" />
-              </Grid>
-
-              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
-              <TextBlock Classes="label" Text="DECK SAFETY" />
-              <StackPanel Spacing="4">
-                <TextBlock Classes="setting" Text="Loading a track onto a playing deck" />
-                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding LoadChoices}" SelectedItem="{Binding LoadChoice}" />
-              </StackPanel>
-              <StackPanel Spacing="4">
-                <TextBlock Classes="setting" Text="Pausing a deck the room is hearing" />
-                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding PauseChoices}" SelectedItem="{Binding PauseChoice}" />
-              </StackPanel>
-
-              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
-              <TextBlock Classes="label" Text="ABOUT" />
-              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-                <StackPanel Spacing="1">
-                  <TextBlock x:Name="AboutVersionText" Classes="setting" />
-                  <TextBlock x:Name="AboutMakerText" Classes="setting-help" />
-                </StackPanel>
-                <Button x:Name="AboutButton" Grid.Column="1" Classes="hw" Content="ABOUT…" VerticalAlignment="Center"
-                        Click="OnAboutClick" />
-              </Grid>
-            </StackPanel>
-          </Flyout>
-        </Button.Flyout>
       </Button>
     </Grid>
 
@@ -651,6 +558,12 @@
       </Border>
     </Grid>
   </Grid>
+
+  <!-- Settings, over the dimmed screen; tapping the dimmed part closes it (see MainWindow.Decks.cs). -->
+  <Panel x:Name="SettingsOverlay" IsVisible="False">
+    <Border x:Name="SettingsDimmer" Background="#A6000000" PointerPressed="OnSettingsDimmerPressed" />
+    <v:SettingsPanel x:Name="SettingsPanel" DataContext="{Binding Settings}" MaxWidth="780" MaxHeight="560" Margin="24" />
+  </Panel>
 
   <!-- A track being dragged follows the pointer here (see MainWindow.Drag.cs). -->
   <Canvas x:Name="DragLayer" IsHitTestVisible="False" />

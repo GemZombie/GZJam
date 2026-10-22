@@ -51,10 +51,10 @@ public sealed class AppSettings
     public AudioDevicePreference? CueDevice { get; set; }
 
     /// <summary>
-    /// The speakers play mono, so the whole floor hears instruments recorded on one side.
-    /// On by default: right for dance floors. The headphones stay stereo.
+    /// Speakers and headphones play mono, so the whole floor hears instruments recorded on one
+    /// side, and the DJ hears what the room hears, with either ear. On by default.
     /// </summary>
-    public bool MonoSpeakers { get; set; } = true;
+    public bool Mono { get; set; } = true;
 
     /// <summary>
     /// How many decks are on screen: 2, or 4 (half height, 1 and 3 on the left of the mixer, 2 and

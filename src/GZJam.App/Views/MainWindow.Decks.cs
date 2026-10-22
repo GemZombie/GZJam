@@ -17,7 +17,8 @@ public partial class MainWindow
         TrackMenu.Opened += (_, _) => OnTrackMenuOpening();
         QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
         QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
-        SettingsButton.Flyout!.Opened += (_, _) => Vm.Settings.RefreshDevices();
+        SettingsPanel.CloseRequested += (_, _) => CloseSettings();
+        SettingsPanel.MixxxImportRequested += (_, _) => ImportFromMixxx();
         // Touch mode's sizes are app-wide; take them away with the window (tests open many windows).
         Closed += (_, _) => GZJam.App.Styles.TouchStyles.Apply(false);
 
@@ -65,18 +66,11 @@ public partial class MainWindow
 
     // ───────────── Import from Mixxx ─────────────
 
-    private async void OnMixxxImportClick(object? sender, RoutedEventArgs e)
+    private async void ImportFromMixxx()
     {
-        SettingsButton.Flyout!.Hide();
         var result = await new MixxxImportDialog(Vm.CreateMixxxImport()).ShowDialog<GZJam.Library.MixxxImportResult?>(this);
         if (result is not null)
             Vm.ShowNotice(MixxxImportViewModel.Summary(result));
-    }
-
-    private async void OnAboutClick(object? sender, RoutedEventArgs e)
-    {
-        SettingsButton.Flyout!.Hide();
-        await new AboutDialog().ShowDialog(this);
     }
 
     // ───────────── Menus ─────────────
@@ -172,5 +166,36 @@ public partial class MainWindow
 
     // ───────────── Settings ─────────────
 
-    private void OnOutputChipClick(object? sender, RoutedEventArgs e) => SettingsButton.Flyout?.ShowAt(SettingsButton);
+    /// <summary>Settings is open over the main screen.</summary>
+    public bool IsSettingsOpen => SettingsOverlay.IsVisible;
+
+    /// <summary>
+    /// Opens Settings over the dimmed main screen, on <paramref name="section"/> or where it was
+    /// last. The device list is read again, in case something was plugged in.
+    /// </summary>
+    public void OpenSettings(SettingsSection? section = null)
+    {
+        Vm.Settings.RefreshDevices();
+        if (section is { } wanted)
+            SettingsPanel.Section = wanted;
+        SettingsOverlay.IsVisible = true;
+        Avalonia.Threading.Dispatcher.UIThread.Post(SettingsPanel.FocusDone, Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+
+    public void CloseSettings()
+    {
+        SettingsOverlay.IsVisible = false;
+        SettingsButton.Focus();
+    }
+
+    private void OnSettingsClick(object? sender, RoutedEventArgs e) => OpenSettings();
+
+    /// <summary>MAIN and CUE at the top open Settings on the outputs.</summary>
+    private void OnOutputChipClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Sound);
+
+    private void OnSettingsDimmerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        CloseSettings();
+        e.Handled = true;
+    }
 }

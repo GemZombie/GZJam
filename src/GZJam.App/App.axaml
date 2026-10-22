@@ -43,6 +43,14 @@
       <SolidColorBrush x:Key="AccentFaintBrush" Color="#1F7FA3CF" />
       <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24EEA23A" />
 
+      <!-- Settings: a lighter, bluer grey than the decks, so it never passes for part of the set -->
+      <SolidColorBrush x:Key="SettingsBrush" Color="#1C2028" />
+      <SolidColorBrush x:Key="SettingsHeadBrush" Color="#242A34" />
+      <SolidColorBrush x:Key="SettingsNavBrush" Color="#191D24" />
+      <SolidColorBrush x:Key="SettingsCardBrush" Color="#21262F" />
+      <SolidColorBrush x:Key="SettingsLineBrush" Color="#343B48" />
+      <SolidColorBrush x:Key="SettingsEdgeBrush" Color="#3E4654" />
+
       <!-- Hardware-style keys (Button.hw): moulded dark plastic, a touch lighter under the pointer -->
       <LinearGradientBrush x:Key="KeyBrush" StartPoint="0%,0%" EndPoint="0%,100%">
         <GradientStop Color="#2A2F39" Offset="0" />

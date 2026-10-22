@@ -57,8 +57,9 @@ public sealed class OutputBus : IDisposable
     }
 
     /// <summary>
-    /// Both speakers play the same thing: left and right are averaged. For dance floors, where
-    /// half the room would otherwise miss an instrument recorded on one side.
+    /// Both sides play the same thing: left and right are averaged. For dance floors, where half
+    /// the room would otherwise miss an instrument recorded on one side, and for headphones worn
+    /// on one ear.
     /// </summary>
     public bool Mono
     {

@@ -14,7 +14,7 @@ public sealed record Choice<T>(T Value, string Label)
 public sealed partial class SettingsViewModel : ObservableObject
 {
     /// <summary>Represents "no headphone output".</summary>
-    public static readonly AudioDevice NoDevice = new(-1, "None", "", false);
+    public static readonly AudioDevice NoDevice = new(-1, "None", "none", false);   // a driver, so it isn't taken for "Default"
 
     private readonly MainWindowViewModel _owner;
     private readonly AppSettings _settings;
@@ -73,16 +73,16 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    /// <summary>The speakers play mono (the headphones stay stereo).</summary>
-    public bool MonoSpeakers
+    /// <summary>Speakers and headphones play mono.</summary>
+    public bool Mono
     {
-        get => _owner.Mixer?.IsMono ?? _settings.MonoSpeakers;
+        get => _owner.Mixer?.IsMono ?? _settings.Mono;
         set
         {
             if (_owner.Mixer is { } mixer)
                 mixer.IsMono = value;
             else
-                _settings.MonoSpeakers = value;
+                _settings.Mono = value;
             OnPropertyChanged();
         }
     }
@@ -155,7 +155,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         _loading = true;
         var devices = audio.GetOutputDevices();
-        Log.Info("Output devices: " + string.Join("; ", devices.Select(d => $"{d.Index} \"{d.Name}\" [{d.Driver}]")));
+        Log.Info("Output devices: " + string.Join("; ", devices.Select(d => $"{d.Index} \"{d.Name}\"" + (d.SystemName != d.Name ? $" (\"{d.SystemName}\")" : "") + $" [{d.Driver}]")));
         MainDevices = devices;
         CueDevices = devices.Prepend(NoDevice).ToList();
         MainDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Main.Device?.Index);

@@ -22,8 +22,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         RevealMenuItem.Header = FileManager.RevealLabel;
-        AboutVersionText.Text = $"GZJam {About.Version}";
-        AboutMakerText.Text = $"Made by {About.Maker}. Credits and licences.";
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         TrackGrid.AddHandler(KeyDownEvent, OnGridKeyDown, RoutingStrategies.Tunnel);
@@ -150,6 +148,12 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && IsDragging)
         {
             EndDrag();
+            e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.Escape && IsSettingsOpen)
+        {
+            CloseSettings();
             e.Handled = true;
             return;
         }

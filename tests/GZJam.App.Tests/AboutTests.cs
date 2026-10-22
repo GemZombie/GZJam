@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using GZJam.App.Views;
 
@@ -11,16 +10,14 @@ namespace GZJam.App.Tests;
 public sealed class AboutTests
 {
     [AvaloniaFact]
-    public void Settings_and_the_about_window_show_the_version_the_maker_and_what_gzjam_is_built_with()
+    public void Settings_About_shows_the_version_the_maker_and_what_gzjam_is_built_with()
     {
         using var app = new AppHarness();
-        Assert.Matches(@"^GZJam \d+\.\d+\.\d+", app.Window.FindControl<TextBlock>("AboutVersionText")!.Text);
+        var about = app.Window.FindControl<SettingsPanel>("SettingsPanel")!;
+        Assert.Matches(@"^GZJam \d+\.\d+\.\d+", about.FindControl<TextBlock>("NavVersionText")!.Text);
 
-        var about = new AboutDialog();
-        about.Show();
-        AppHarness.Settle(100);
-        Directory.CreateDirectory(AppHarness.ScreenshotDirectory);
-        about.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "about.png"));
+        app.Window.OpenSettings(SettingsSection.About);
+        app.Screenshot("about");
 
         Assert.Equal(About.Version, about.FindControl<TextBlock>("VersionText")!.Text);
         Assert.Contains("Jesse Gearhart", about.FindControl<TextBlock>("MakerText")!.Text);
@@ -29,7 +26,6 @@ public sealed class AboutTests
         Assert.Contains("BASS", builtWith);
         Assert.DoesNotContain("GNU LESSER GENERAL PUBLIC LICENSE", builtWith);   // the full texts open separately
         Assert.True(about.FindControl<Button>("NoticesButton")!.IsVisible);
-        about.Close();
     }
 
     /// <summary>

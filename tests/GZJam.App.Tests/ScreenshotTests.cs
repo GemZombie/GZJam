@@ -99,10 +99,9 @@ public sealed class ScreenshotTests
         app.Screenshot("08b-session-menu");
         sessionMenu.Flyout.Hide();
 
-        var settings = app.Window.FindControl<Button>("SettingsButton")!;
-        settings.Flyout!.ShowAt(settings);
+        app.Window.OpenSettings(GZJam.App.Views.SettingsSection.Sound);
         app.Screenshot("09-settings");
-        settings.Flyout.Hide();
+        app.Window.CloseSettings();
 
         // Right-click Deck 2's BPM: detect it again in a range.
         var bpm = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<StackPanel>("BpmPanel")!;
