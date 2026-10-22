@@ -34,6 +34,9 @@ public partial class MainWindow
     private int _queueScrollDirection;
     private readonly DispatcherTimer _queueScroll = new() { Interval = TimeSpan.FromMilliseconds(40) };
     private Point _dragAt;
+    private Point _dragStart;
+    // A song picked up by a held finger: let go without moving, it opens this menu instead.
+    private (ContextMenu Menu, Control Target)? _dragMenu;
 
     private void InitializeDrag()
     {
@@ -51,9 +54,11 @@ public partial class MainWindow
 
     /// <summary>
     /// Starts dragging <paramref name="drag"/> from <paramref name="at"/> (window coordinates).
-    /// The pointer is captured so nothing under it reacts until it's let go.
+    /// The pointer is captured so nothing under it reacts until it's let go. With
+    /// <paramref name="menuIfStill"/>, letting go without moving opens that menu instead (a held
+    /// finger: long-press still means right-click).
     /// </summary>
-    internal void StartTrackDrag(TrackDrag drag, IPointer? pointer, Point at)
+    internal void StartTrackDrag(TrackDrag drag, IPointer? pointer, Point at, (ContextMenu Menu, Control Target)? menuIfStill = null)
     {
         if (drag.Tracks.Count == 0)
             return;
@@ -61,6 +66,8 @@ public partial class MainWindow
         _drag = drag;
         _dragPointer = pointer;
         _dragPointerType = pointer?.Type ?? PointerType.Mouse;
+        _dragStart = at;
+        _dragMenu = menuIfStill;
         pointer?.Capture(this);
         _dragTag = MakeDragTag(drag);
         DragLayer.Children.Add(_dragTag);
@@ -101,7 +108,24 @@ public partial class MainWindow
         Point at = e.GetPosition(this);
         object? target = DropTargetAt(at);
         Point queuePoint = this.TranslatePoint(at, QueueArea) ?? default;
+        var menu = _dragMenu;
+        bool still = ((Vector)(at - _dragStart)).Length <= DragStarter.HoldTolerance;
+        PointerType pointerType = _dragPointerType;
         EndDrag();
+        if (menu is { } m && still)
+        {
+            m.Menu.Open(m.Target);
+            return;
+        }
+        // One line per drag, to see what a touchscreen did if a drag goes astray.
+        string what = drag.Tracks.Count == 1 ? $"\"{drag.Tracks[0].DisplayTitle}\"" : $"{drag.Tracks.Count} songs";
+        string where = target switch
+        {
+            DeckView { DataContext: DeckViewModel d } => $"Deck {d.Label}",
+            Panel when target == QueueArea => "the queue",
+            _ => "nowhere (dropped outside the decks and queue)",
+        };
+        Log.Info($"Dragged {what} by {pointerType.ToString().ToLowerInvariant()} to {where}");
 
         switch (target)
         {
@@ -125,6 +149,7 @@ public partial class MainWindow
         if (_drag is null)
             return;
         _drag = null;
+        _dragMenu = null;
         IPointer? pointer = _dragPointer;
         _dragPointer = null;
         if (pointer?.Captured == this)

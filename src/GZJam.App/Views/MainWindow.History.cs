@@ -11,13 +11,12 @@ namespace GZJam.App.Views;
 /// <summary>The Queue / History tabs and the History list: preview, re-queue, load to a deck, drag out.</summary>
 public partial class MainWindow
 {
-    private Point? _historyPress;
+    private DragStarter? _historyDrag;
 
     private void InitializeHistory()
     {
         HistoryList.AddHandler(PointerPressedEvent, OnHistoryPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
-        HistoryList.AddHandler(PointerMovedEvent, OnHistoryPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
-        HistoryList.AddHandler(PointerReleasedEvent, (_, _) => _historyPress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
+        _historyDrag = new DragStarter(this, HistoryList, item => DragFromHistory((PlayItem)item), HistoryMenu);
         HistoryMenu.Opening += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
         HistoryMenu.Opened += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
         RenameSessionButton.Flyout!.Opened += (_, _) =>
@@ -67,32 +66,21 @@ public partial class MainWindow
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _historyPress = point.Position;
+            _historyDrag?.Pressed(e, item);
         }
     }
 
-    private void OnHistoryPointerMoved(object? sender, PointerEventArgs e)
+    /// <summary>Dragging a history row drags the selection if the row is in it, else that row alone.</summary>
+    private TrackDrag DragFromHistory(PlayItem pressed)
     {
-        if (_historyPress is not { } pressedAt || IsDragging)
-            return;
-        var point = e.GetCurrentPoint(HistoryList);
-        if (!point.Properties.IsLeftButtonPressed)
+        var plays = SelectedPlays();
+        if (!plays.Contains(pressed))
         {
-            _historyPress = null;
-            return;
+            HistoryList.SelectedItems?.Clear();
+            HistoryList.SelectedItem = pressed;
+            plays = [pressed];
         }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, fromHandle: false))
-        {
-            case DragIntent.Decision.Wait:
-                return;
-            case DragIntent.Decision.Cancel:
-                _historyPress = null;
-                return;
-        }
-        _historyPress = null;
-        var tracks = SelectedPlays().Select(p => p.Track).ToList();
-        if (tracks.Count > 0)
-            StartTrackDrag(new TrackDrag(tracks, null), e.Pointer, e.GetPosition(this));
+        return new TrackDrag(plays.Select(p => p.Track).ToList(), null);
     }
 
     private void OnPreviewHistoryItemClick(object? sender, RoutedEventArgs e)

@@ -12,10 +12,8 @@ namespace GZJam.App.Views;
 
 public partial class MainWindow : Window
 {
-    // Where a press began, until the pointer has moved far enough to start a drag (null: no press).
-    private Point? _gridPress;
-    private Point? _queuePress;
-    private bool _queuePressOnHandle;
+    private readonly DragStarter _gridDrag;
+    private readonly DragStarter _queueDrag;
 
     private PixelPoint _normalPosition;
     private Size _normalSize;
@@ -26,14 +24,12 @@ public partial class MainWindow : Window
         RevealMenuItem.Header = FileManager.RevealLabel;
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
-        TrackGrid.AddHandler(PointerMovedEvent, OnGridPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
-        TrackGrid.AddHandler(PointerReleasedEvent, (_, _) => _gridPress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
         TrackGrid.AddHandler(KeyDownEvent, OnGridKeyDown, RoutingStrategies.Tunnel);
+        _gridDrag = new DragStarter(this, TrackGrid, item => DragFromLibrary((Track)item), TrackMenu);
 
         QueueList.AddHandler(PointerPressedEvent, OnQueuePointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
-        QueueList.AddHandler(PointerMovedEvent, OnQueuePointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
-        QueueList.AddHandler(PointerReleasedEvent, (_, _) => _queuePress = null, RoutingStrategies.Tunnel, handledEventsToo: true);
         QueueList.AddHandler(KeyDownEvent, OnQueueKeyDown, RoutingStrategies.Tunnel);
+        _queueDrag = new DragStarter(this, QueueList, item => DragFromQueue((QueueItem)item), QueueMenu);
 
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
 
@@ -69,33 +65,20 @@ public partial class MainWindow : Window
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _gridPress = point.Position;
+            _gridDrag.Pressed(e, track);
         }
     }
 
-    private void OnGridPointerMoved(object? sender, PointerEventArgs e)
+    /// <summary>Dragging a library row drags the selection if the row is in it, else that row alone.</summary>
+    private TrackDrag DragFromLibrary(Track pressed)
     {
-        if (_gridPress is not { } pressedAt || IsDragging)
-            return;
-        var point = e.GetCurrentPoint(TrackGrid);
-        if (!point.Properties.IsLeftButtonPressed)
-        {
-            _gridPress = null;
-            return;
-        }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, fromHandle: false))
-        {
-            case DragIntent.Decision.Wait:
-                return;
-            case DragIntent.Decision.Cancel:
-                _gridPress = null;   // a touch scroll, not a drag
-                return;
-        }
-
-        _gridPress = null;
         var tracks = SelectedTracks();
-        if (tracks.Count > 0)
-            StartTrackDrag(new TrackDrag(tracks, null), e.Pointer, e.GetPosition(this));
+        if (!tracks.Contains(pressed))
+        {
+            TrackGrid.SelectedItem = pressed;
+            tracks = [pressed];
+        }
+        return new TrackDrag(tracks, null);
     }
 
     private void OnGridKeyDown(object? sender, KeyEventArgs e)
@@ -195,34 +178,22 @@ public partial class MainWindow : Window
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            _queuePress = point.Position;
-            _queuePressOnHandle = (e.Source as Control)?.FindAncestorOfType<Border>(includeSelf: true) is { } border && border.Classes.Contains("grip");
+            bool onHandle = (e.Source as Control)?.FindAncestorOfType<Border>(includeSelf: true) is { } border && border.Classes.Contains("grip");
+            _queueDrag.Pressed(e, item, onHandle);
         }
     }
 
-    private void OnQueuePointerMoved(object? sender, PointerEventArgs e)
+    /// <summary>Dragging a queue row drags the selection if the row is in it, else that row alone.</summary>
+    private TrackDrag DragFromQueue(QueueItem pressed)
     {
-        if (_queuePress is not { } pressedAt || IsDragging)
-            return;
-        var point = e.GetCurrentPoint(QueueList);
-        if (!point.Properties.IsLeftButtonPressed)
-        {
-            _queuePress = null;
-            return;
-        }
-        switch (DragIntent.Evaluate(e.Pointer.Type, point.Position - pressedAt, _queuePressOnHandle))
-        {
-            case DragIntent.Decision.Wait:
-                return;
-            case DragIntent.Decision.Cancel:
-                _queuePress = null;
-                return;
-        }
-
-        _queuePress = null;
         var items = SelectedQueueItems();
-        if (items.Count > 0)
-            StartTrackDrag(new TrackDrag(items.Select(i => i.Track).ToList(), items), e.Pointer, e.GetPosition(this));
+        if (!items.Contains(pressed))
+        {
+            QueueList.SelectedItems?.Clear();
+            QueueList.SelectedItem = pressed;
+            items = [pressed];
+        }
+        return new TrackDrag(items.Select(i => i.Track).ToList(), items);
     }
 
     private void OnQueueKeyDown(object? sender, KeyEventArgs e)
