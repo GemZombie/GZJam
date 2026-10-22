@@ -29,7 +29,7 @@ public sealed class PreviewPlayer : IDisposable
         _mix.Engine.UseNoSoundDevice();
         int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
         if (stream == 0)
-            throw new AudioException($"Could not open '{path}'", Bass.LastError);
+            throw AudioException.CouldNotOpen(path);
 
         _stream = stream;
         TrackPath = path;

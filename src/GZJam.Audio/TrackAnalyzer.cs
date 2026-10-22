@@ -70,7 +70,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         engine.UseNoSoundDevice();
         int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
         if (stream == 0)
-            throw new AudioException($"Could not open '{path}'", Bass.LastError);
+            throw AudioException.CouldNotOpen(path);
 
         try
         {

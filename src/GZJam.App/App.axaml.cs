@@ -55,7 +55,7 @@ public partial class App : Application
         try
         {
             audio = new AudioEngine();
-            Log.Info($"BASS {audio.BassVersion}, BASS_FX {audio.FxVersion}, BASSmix {audio.MixVersion}");
+            Log.Info($"BASS {audio.BassVersion}, BASS_FX {audio.FxVersion}, BASSmix {audio.MixVersion}, formats: {string.Join(", ", AudioEngine.LoadedAddOns)}");
             foreach (AudioDevice device in audio.GetOutputDevices())
                 Log.Info($"  output {device.Index}: {device} [{device.Driver}]");
             return (audio, new MixEngine(audio), null);

@@ -16,9 +16,13 @@ public sealed record ScanResult(int Added, int Updated, int Removed, int Unchang
 /// </summary>
 public sealed class LibraryScanner(LibraryDatabase database)
 {
-    /// <summary>Formats BASS plays without add-ons.</summary>
+    /// <summary>
+    /// What GZJam plays: BASS's own formats (MP3, MP2, OGG Vorbis, WAV, AIFF), then FLAC, Opus and
+    /// .m4a/.aac (AAC or Apple Lossless) from add-ons and the computer's decoders. Linux can't play
+    /// AAC; those songs are listed anyway, and say why when loaded.
+    /// </summary>
     public static readonly IReadOnlySet<string> AudioExtensions =
-        new HashSet<string>([".mp3", ".mp2", ".ogg", ".wav", ".aif", ".aiff"], StringComparer.OrdinalIgnoreCase);
+        new HashSet<string>([".mp3", ".mp2", ".ogg", ".wav", ".aif", ".aiff", ".flac", ".opus", ".m4a", ".aac"], StringComparer.OrdinalIgnoreCase);
 
     private const int BatchSize = 250;
 

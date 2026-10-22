@@ -21,6 +21,11 @@
     <ProjectReference Include="..\..\src\GZJam.Audio\GZJam.Audio.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Two-second tagged tones in each format beyond MP3 (made with ffmpeg) -->
+    <None Include="..\Shared\Formats\*" Link="Formats\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <Import Project="..\..\lib\bass\Bass.targets" />
 
 </Project>

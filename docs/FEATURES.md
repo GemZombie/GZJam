@@ -46,7 +46,13 @@ is out of scope until it earns a place.
 - One click or tap on a folder opens it as well as choosing it; a click on the chosen folder
   closes it. The arrow's target is the whole space before the name, and opens or closes a folder
   without choosing it.
-- Indexes MP3, MP2, OGG, WAV and AIFF (what BASS plays without add-ons). FLAC/M4A later if needed.
+- Plays MP3, MP2, OGG Vorbis, WAV and AIFF (BASS itself), FLAC, Opus and Apple Lossless (un4seen's
+  BASSFLAC, BASSOPUS and BASSALAC add-ons, beside bass), and AAC in `.m4a`/`.aac` through the
+  computer's own decoder: Media Foundation on Windows (missing from "N" editions), Core Audio on a
+  Mac (which also plays ALAC, so there's no Mac bassalac). **Linux has no AAC:** the add-on for it,
+  BASS_AAC, is GPL and third-party, so it isn't included. AAC songs are still listed there, and
+  say why when loaded ("it's AAC, which GZJam can't play on Linux"). Tests decode a two-second tone
+  in each format on all three systems (`tests/Shared/Formats`, made with ffmpeg).
 - Skips macOS `._name.mp3` metadata files (24 of them in the real library).
 
 ### What the real library looks like (12,686 tracks in `C:\music`)

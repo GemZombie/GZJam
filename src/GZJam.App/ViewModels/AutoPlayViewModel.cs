@@ -197,7 +197,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             catch (AudioException ex)
             {
                 Log.Error($"Auto-play couldn't load {track.Path}", ex);
-                _owner.ShowNotice($"Skipped {track.DisplayTitle}: it couldn't be opened.");
+                _owner.ShowNotice($"Skipped {track.DisplayTitle}: {ex.Message}");
             }
         }
     }

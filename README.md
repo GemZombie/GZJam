@@ -17,6 +17,9 @@ the file for your computer:
 
 Everything GZJam needs comes with it, .NET included. Your music is only ever read, never changed.
 
+GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless (`.m4a`) everywhere, and
+AAC (`.m4a`, `.aac`) on Windows and Mac. Linux can't play AAC yet.
+
 GZJam is free and isn't signed with a paid certificate, so the first time you open it:
 
 - **Windows** may say "Windows protected your PC": click **More info**, then **Run anyway**.
@@ -26,8 +29,8 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 ## Stack
 
 - .NET 10 + [Avalonia](https://avaloniaui.net/) (Windows, Linux and macOS)
-- [BASS](https://www.un4seen.com/) via ManagedBass — playback, multi-output headphone cue, BASS_FX tempo/key-lock and BPM detection
-- TagLib# — tag reading/writing
+- [BASS](https://www.un4seen.com/) via ManagedBass — playback, multi-output headphone cue, BASS_FX tempo/key-lock and BPM detection, BASSFLAC/BASSOPUS/BASSALAC for FLAC, Opus and Apple Lossless
+- TagLib# — tag reading (GZJam never writes to music files)
 - SQLite — library, play history, notes
 
 BASS is used under its free non-commercial license (personal use only).

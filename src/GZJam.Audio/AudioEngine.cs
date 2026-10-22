@@ -23,6 +23,7 @@ public sealed class AudioEngine : IDisposable
         FxVersion = BassFx.Version;
         MixVersion = BassMix.Version;
         BassVersion = Bass.Version;
+        LoadFormatAddOns();
 
         // Shorter buffers than BASS's defaults (500 ms / 100 ms) keep the crossfader, seeking
         // and the cue preview responsive. Still comfortably safe against dropouts.
@@ -33,6 +34,40 @@ public sealed class AudioEngine : IDisposable
     public Version BassVersion { get; }
     public Version FxVersion { get; }
     public Version MixVersion { get; }
+
+    /// <summary>
+    /// un4seen's add-ons for the formats BASS doesn't play by itself (it plays MP3, MP2, OGG, WAV
+    /// and AIFF), beside bass in the program's folder. AAC comes from the computer instead: Media
+    /// Foundation on Windows, Core Audio on a Mac, which also plays ALAC, so there's no Mac build
+    /// of bassalac. Linux has no AAC: the free add-on for it is GPL, which GZJam can't include.
+    /// </summary>
+    private static readonly string[] FormatAddOns = ["bassflac", "bassopus", "bassalac"];
+
+    private static readonly Lock s_addOnsLock = new();
+    private static List<string>? s_loadedAddOns;
+
+    /// <summary>The format add-ons that loaded, e.g. "bassflac".</summary>
+    public static IReadOnlyList<string> LoadedAddOns => s_loadedAddOns ?? [];
+
+    /// <summary>Loads the add-ons once per process (BASS's plugins are process-wide).</summary>
+    private static void LoadFormatAddOns()
+    {
+        lock (s_addOnsLock)
+        {
+            if (s_loadedAddOns is not null)
+                return;
+            s_loadedAddOns = [];
+            foreach (string name in FormatAddOns)
+            {
+                string file = OperatingSystem.IsWindows() ? $"{name}.dll"
+                    : OperatingSystem.IsMacOS() ? $"lib{name}.dylib"
+                    : $"lib{name}.so";
+                string path = Path.Combine(AppContext.BaseDirectory, file);
+                if (File.Exists(path) && (Bass.PluginLoad(path) != 0 || Bass.LastError == Errors.Already))
+                    s_loadedAddOns.Add(name);
+            }
+        }
+    }
 
     /// <summary>Lists enabled output devices. BASS device 0 ("No sound") is skipped.</summary>
     public IReadOnlyList<AudioDevice> GetOutputDevices()
@@ -123,8 +158,41 @@ public sealed class AudioEngine : IDisposable
     }
 }
 
-public sealed class AudioException(string message, Errors error)
-    : Exception($"{message} (BASS error: {error})")
+public sealed class AudioException : Exception
 {
-    public Errors Error { get; } = error;
+    public AudioException(string message, Errors error) : this(error, $"{message} (BASS error: {error})")
+    {
+    }
+
+    private AudioException(Errors error, string message) : base(message) => Error = error;
+
+    public Errors Error { get; }
+
+    /// <summary>Kinds of file that hold AAC, which needs the computer's own decoder.</summary>
+    private static readonly HashSet<string> AacExtensions = new([".m4a", ".aac", ".mp4"], StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// A song BASS couldn't open (just after it failed), with a reason a DJ can act on: shown as
+    /// "Couldn't load {song}: {reason}".
+    /// </summary>
+    internal static AudioException CouldNotOpen(string path)
+    {
+        Errors error = Bass.LastError;
+        bool aac = AacExtensions.Contains(Path.GetExtension(path));
+        string reason = error switch
+        {
+            Errors.FileOpen => "the file couldn't be read. Has it been moved or deleted?",
+            Errors.FileFormat or Errors.Codec or Errors.NotAvailable when aac && OperatingSystem.IsLinux() =>
+                "it's AAC, which GZJam can't play on Linux (Apple Lossless .m4a files play).",
+            Errors.FileFormat or Errors.Codec or Errors.NotAvailable when aac && OperatingSystem.IsWindows() && !HasMediaFoundation =>
+                "it's AAC, which needs Windows' Media Feature Pack (missing from Windows \"N\" editions).",
+            Errors.FileFormat or Errors.Codec or Errors.NotAvailable => "it's a kind of file GZJam can't play.",
+            _ => $"BASS error {error}.",
+        };
+        return new AudioException(error, reason);
+    }
+
+    /// <summary>Windows' own decoders (AAC among them), absent from "N" editions and servers.</summary>
+    internal static bool HasMediaFoundation =>
+        OperatingSystem.IsWindows() && File.Exists(Path.Combine(Environment.SystemDirectory, "mfplat.dll"));
 }
