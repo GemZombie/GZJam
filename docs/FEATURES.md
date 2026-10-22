@@ -97,7 +97,7 @@ is out of scope until it earns a place.
   with no half/double errors, and the rest mostly 5-7% off (the same recording measures
   steadily, so likely tag inaccuracy). Detected BPMs are shown as whole numbers.
 - **Fixing a wrong BPM, per track (the DJ's request, from another app they used):** right-click
-  the BPM on a deck, or a track in the library or queue › *Detect BPM in range*: Automatic,
+  the BPM on a deck, or a track in the library or queue › *BPM*: Automatic,
   Slow (60-110), Medium (100-160), Up-tempo (140-220), Fast (200-320). The track is analyzed
   again and the strongest tempo inside the range is chosen (if none is, the detector's choice is
   doubled or halved into it), which fixes 3:2 mistakes as well as half/double time. Each range
@@ -420,7 +420,7 @@ Sam runs 4 decks in Mixxx. They fit in the space of two, so the library loses no
   New colours: Deck 3 pink, Deck 4 lime.
 - **Compact deck:** number, ON AIR, title and artist on one line, with time left beside them; a
   shorter waveform (trim menu still on right-click); play, cue, fade out, tempo (tap the % to
-  reset) and BPM. Eject, rating, energy and *Detect BPM in range* move to a ⋯ menu.
+  reset) and BPM. Eject, rating, energy and *BPM* move to a ⋯ menu.
 - **Crossfader:** left side is Decks 1 and 3, right side 2 and 4 (DJay, Mixxx and Serato all do
   this). The side buttons show both numbers; the live label names the deck playing on the live
   side ("3 · LIVE"), or both ("1 / 3 · LIVE") when neither is.
