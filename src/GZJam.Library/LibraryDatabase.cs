@@ -232,6 +232,14 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (path, slot)
             );
             """,
+
+        // 12: A BPM the DJ typed (or locked in Mixxx and imported), by path: it wins over the tag and detection.
+        """
+            CREATE TABLE manual_bpm (
+                path TEXT PRIMARY KEY,
+                bpm  REAL NOT NULL
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -330,7 +338,7 @@ public sealed partial class LibraryDatabase
             p["$comment"].Value = Db(t.Comment);
             p["$year"].Value = (object?)t.Year ?? DBNull.Value;
             p["$track"].Value = (object?)t.TrackNumber ?? DBNull.Value;
-            p["$bpm"].Value = (object?)t.Bpm ?? DBNull.Value;
+            p["$bpm"].Value = (object?)t.TagBpm ?? DBNull.Value;
             p["$duration"].Value = (long)t.Duration.TotalMilliseconds;
             cmd.ExecuteNonQuery();
         }
@@ -465,6 +473,7 @@ public sealed partial class LibraryDatabase
         TagBpm = r.IsDBNull(r.GetOrdinal("bpm")) ? null : r.GetDouble(r.GetOrdinal("bpm")),
         DetectedBpm = r.IsDBNull(r.GetOrdinal("detected_bpm")) ? null : r.GetDouble(r.GetOrdinal("detected_bpm")),
         BpmRange = r.IsDBNull(r.GetOrdinal("range_min")) ? null : new BpmRange(r.GetInt32(r.GetOrdinal("range_min")), r.GetInt32(r.GetOrdinal("range_max"))),
+        ManualBpm = r.IsDBNull(r.GetOrdinal("manual_bpm")) ? null : r.GetDouble(r.GetOrdinal("manual_bpm")),
         Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
         Rating = (Rating)(GetInt(r, "rating") ?? 0),
         Energy = (Energy)(GetInt(r, "energy") ?? 0),
@@ -475,10 +484,10 @@ public sealed partial class LibraryDatabase
 
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
     private const string TrackColumns =
-        "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, m.rating AS rating, m.energy AS energy, " +
+        "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, mb.bpm AS manual_bpm, m.rating AS rating, m.energy AS energy, " +
         "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels";
     private const string TrackJoins =
-        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN marks m ON m.path = t.path " +
+        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN manual_bpm mb ON mb.path = t.path LEFT JOIN marks m ON m.path = t.path " +
         "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path " +
         "LEFT JOIN (SELECT tl.path, group_concat(l.name, char(31)) AS labels FROM track_labels tl JOIN labels l ON l.id = tl.label_id " +
         "GROUP BY tl.path) lb ON lb.path = t.path";

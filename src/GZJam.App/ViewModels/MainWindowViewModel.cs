@@ -163,6 +163,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (Analysis is null || tracks.Count == 0)
             return;
+        if (tracks.Any(t => t.ManualBpm is not null))
+            SetManualBpm(tracks, null);   // detection again: forget a typed BPM
         var paths = tracks.Select(t => t.Path).Distinct().ToList();
         foreach (string path in paths)
         {
@@ -181,6 +183,35 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         else if (paths.Count > 1)
             ShowNotice($"BPM detected again for {what}.");
     }
+
+    /// <summary>
+    /// Sets tracks' BPM by hand (when detection and the tag are both wrong), or with null goes
+    /// back to the tag and detection. Saved in GZJam's database, never in the files.
+    /// </summary>
+    public void SetManualBpm(IReadOnlyList<Track> tracks, double? bpm)
+    {
+        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        if (paths.Count == 0)
+            return;
+        _database.SetManualBpm(paths, bpm);
+        foreach (string path in paths)
+        {
+            foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
+                track.ManualBpm = bpm;
+            foreach (DeckViewModel deck in Decks.Where(d => d.Track?.Path == path))
+                deck.TrackBpmChanged();
+        }
+        string what = paths.Count == 1 ? $"\"{tracks[0].DisplayTitle}\"" : $"{paths.Count} tracks";
+        Log.Info($"BPM for {what}: {(bpm is { } b ? Format.Bpm(b) + " (typed)" : "automatic")}");
+    }
+
+    /// <summary>Settings › Import from Mixxx; afterwards, the library, labels and History show what came over.</summary>
+    public MixxxImportViewModel CreateMixxxImport() => new(_database, _ =>
+    {
+        Library.LabelsChanged();
+        Library.RefreshResults();
+        History.Reload();
+    });
 
     /// <summary>Where the DJ set a file to start and end.</summary>
     internal ManualTrim GetTrim(string path) => _database.GetTrim(path);
@@ -247,7 +278,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Asks the DJ for a short piece of text (heading, message, button); the window supplies the dialog.</summary>
-    public Func<string, string, string, Task<string?>>? PromptAsync { get; set; }
+    /// <summary>Asks for a short text (heading, message, OK button, starting text); the window supplies the dialog.</summary>
+    public Func<string, string, string, string, Task<string?>>? PromptAsync { get; set; }
 
     /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
     public void CycleRating(Track track) => SetRating([track], track.Rating switch

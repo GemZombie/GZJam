@@ -127,6 +127,23 @@ public sealed class AppHarness : IDisposable
         Settle(100);
     }
 
+    /// <summary>
+    /// Waits for <paramref name="task"/> while running the UI, which it may need to finish (blocking
+    /// on it instead would wait forever for itself).
+    /// </summary>
+    public static T Await<T>(Task<T> task)
+    {
+        WaitFor(() => task.IsCompleted, TimeSpan.FromSeconds(30));
+        return task.GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc cref="Await{T}(Task{T})"/>
+    public static void Await(Task task)
+    {
+        WaitFor(() => task.IsCompleted, TimeSpan.FromSeconds(30));
+        task.GetAwaiter().GetResult();
+    }
+
     /// <summary>Runs the UI dispatcher until <paramref name="condition"/> holds.</summary>
     public static void WaitFor(Func<bool> condition, TimeSpan? timeout = null)
     {

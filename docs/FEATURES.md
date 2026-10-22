@@ -598,7 +598,28 @@ rather than being a second one.
 - Booth (monitor) output: a third bus; syncing separate sound cards is the hard part.
 - Grouping versions of the same song (live / studio), perhaps by matching titles.
 - Ordered saved playlists, a sweepable mid EQ.
-- Importing a Mixxx library (ratings, crates, cue points) to make switching easy.
+
+
+### Status: import from Mixxx built (2026-10-22)
+
+- **Settings › Library › Import from Mixxx.** Finds Mixxx's library where Mixxx keeps it
+  (`%LOCALAPPDATA%\Mixxx` on Windows, `~/.mixxx` or the Flatpak's on Linux, Application Support on
+  a Mac), or the DJ chooses `mixxxdb.sqlite`. The window shows what would come over, by kind, and
+  how many Mixxx songs aren't in GZJam's music folders (and where). Mixxx's database is copied and
+  only the copy read: Mixxx is never touched, running or not.
+- **Matching:** by path (Mixxx writes forward slashes, also on Windows), else by file name and size
+  if one song has them (music that moved since).
+- **Ratings:** 4-5 stars become ♥, 1-2 a broken heart, 3 stays unrated. **Crates** become labels.
+  **History:** each Mixxx night (its set logs) becomes a session with its songs and times, songs
+  GZJam doesn't have included; dated names ("2024-03-14") are dropped, as GZJam shows dates.
+  **Locked BPMs** (the DJ confirmed them in Mixxx) become typed BPMs.
+- **Only fills gaps:** GZJam's own ratings and typed BPMs stand, labels are added to, and a night
+  already imported is skipped, so importing again is safe.
+- **Not brought over: cue points.** Mixxx places intro and outro markers automatically when it
+  analyses a song; GZJam finds where songs start and end itself (and the DJ's own trims stay).
+- **Typing a BPM** came with it: the BPM menu (library, queue and deck) has *Type the BPM…*; a typed
+  BPM wins over the tag and detection, in the BPM column, on the deck and in `bpm:` searches
+  (`manual_bpm`, schema upgrade 12). *Automatic* or a range forgets it.
 
 ## Decided against
 

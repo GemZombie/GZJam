@@ -34,7 +34,7 @@ internal static class LabelsMenu
         create.Click += async (_, _) =>
         {
             if (vm.PromptAsync is { } prompt &&
-                await prompt("New label", tracks.Count == 1 ? $"For \"{tracks[0].DisplayTitle}\"" : $"For {tracks.Count} songs", "Add") is { } name)
+                await prompt("New label", tracks.Count == 1 ? $"For \"{tracks[0].DisplayTitle}\"" : $"For {tracks.Count} songs", "Add", "") is { } name)
                 vm.SetLabel(tracks, name, on: true);
         };
         menu.Items.Add(create);

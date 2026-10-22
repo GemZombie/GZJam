@@ -93,7 +93,7 @@ public sealed class AnalysisAppTests
         AppHarness.Settle(200);
         Assert.True(menu.IsOpen);
         var items = menu.Items.OfType<MenuItem>().ToList();
-        Assert.Equal(["Detect BPM in range", "Automatic", "Slow (60–110)", "Medium (100–160)", "Up-tempo (140–220)", "Fast (200–320)"],
+        Assert.Equal(["BPM", "Automatic", "Detect in a range", "Slow (60–110)", "Medium (100–160)", "Up-tempo (140–220)", "Fast (200–320)", "Type the BPM…"],
             items.Select(i => (string)i.Header!));
         Assert.True(items[1].IsChecked);   // automatic so far
 

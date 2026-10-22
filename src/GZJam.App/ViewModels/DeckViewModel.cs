@@ -821,6 +821,13 @@ public sealed partial class DeckViewModel : ObservableObject
         RefreshReadout();
     }
 
+    /// <summary>The track's BPM changed (typed by the DJ, say): show it.</summary>
+    internal void TrackBpmChanged()
+    {
+        OnPropertyChanged(nameof(TrackBpm));
+        RefreshReadout();
+    }
+
     private void RefreshReadout()
     {
         OnPropertyChanged(nameof(CurrentBpm));

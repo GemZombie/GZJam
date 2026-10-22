@@ -26,7 +26,7 @@ public partial class MainWindow
             if (DataContext is not MainWindowViewModel vm)
                 return;
             vm.ConfirmAsync = (heading, message, confirm) => new ConfirmDialog(heading, message, confirm).ShowDialog<bool>(this);
-            vm.PromptAsync = (heading, message, ok) => new PromptDialog(heading, message, ok).ShowDialog<string?>(this);
+            vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(MainWindowViewModel.FourDecks))
@@ -62,6 +62,16 @@ public partial class MainWindow
     }
 
     private DeckViewModel? DeckAt(int index) => Vm.Decks.ElementAtOrDefault(index);
+
+    // ───────────── Import from Mixxx ─────────────
+
+    private async void OnMixxxImportClick(object? sender, RoutedEventArgs e)
+    {
+        SettingsButton.Flyout!.Hide();
+        var result = await new MixxxImportDialog(Vm.CreateMixxxImport()).ShowDialog<GZJam.Library.MixxxImportResult?>(this);
+        if (result is not null)
+            Vm.ShowNotice(MixxxImportViewModel.Summary(result));
+    }
 
     // ───────────── Menus ─────────────
 

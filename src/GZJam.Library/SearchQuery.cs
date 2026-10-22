@@ -27,7 +27,7 @@ internal sealed class SearchQuery
     public const double NearBpm = 0.08;
 
     /// <summary>The BPM the app shows: the tag's, unless the DJ chose a range for detection.</summary>
-    private const string BpmSql = "(CASE WHEN r.min IS NOT NULL THEN COALESCE(a.bpm, t.bpm) ELSE COALESCE(t.bpm, a.bpm) END)";
+    private const string BpmSql = "COALESCE(mb.bpm, CASE WHEN r.min IS NOT NULL THEN COALESCE(a.bpm, t.bpm) ELSE COALESCE(t.bpm, a.bpm) END)";
 
     private static readonly Dictionary<string, string> TextColumns = new(StringComparer.OrdinalIgnoreCase)
     {

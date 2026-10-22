@@ -64,8 +64,22 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
-    /// <summary>The BPM to show: the tag's, unless the DJ asked for detection in a range.</summary>
-    public double? Bpm => BpmRange is not null ? DetectedBpm ?? TagBpm : TagBpm ?? DetectedBpm;
+    /// <summary>A BPM the DJ typed (or locked in Mixxx); it wins over the tag and detection.</summary>
+    public double? ManualBpm
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ManualBpm)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bpm)));
+        }
+    }
+
+    /// <summary>The BPM to show: one typed by the DJ, else the tag's, unless the DJ asked for detection in a range.</summary>
+    public double? Bpm => ManualBpm ?? (BpmRange is not null ? DetectedBpm ?? TagBpm : TagBpm ?? DetectedBpm);
 
     public TimeSpan Duration { get; init; }
 

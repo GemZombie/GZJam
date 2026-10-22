@@ -156,6 +156,62 @@ public sealed partial class LibraryDatabase
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>Whether History has <paramref name="path"/> played within a couple of seconds of <paramref name="playedUtc"/>.</summary>
+    public bool HasPlay(string path, DateTime playedUtc)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT EXISTS (SELECT 1 FROM plays WHERE path = $path AND played_utc BETWEEN $from AND $to);";
+        cmd.Parameters.AddWithValue("$path", path);
+        cmd.Parameters.AddWithValue("$from", (playedUtc - TimeSpan.FromSeconds(2)).Ticks);
+        cmd.Parameters.AddWithValue("$to", (playedUtc + TimeSpan.FromSeconds(2)).Ticks);
+        return Convert.ToInt64(cmd.ExecuteScalar()) == 1;
+    }
+
+    /// <summary>Adds a past night to History (from another DJ app): a session starting with its first song.</summary>
+    public PlaySession ImportSession(string? name, IReadOnlyList<(Track Track, DateTime PlayedUtc)> plays)
+    {
+        if (plays.Count == 0)
+            throw new ArgumentException("A session needs songs.", nameof(plays));
+        using var c = Open();
+        using var transaction = c.BeginTransaction();
+        long id;
+        using (var session = c.CreateCommand())
+        {
+            session.CommandText = "INSERT INTO sessions (started_utc, name) VALUES ($started, $name); SELECT last_insert_rowid();";
+            session.Parameters.AddWithValue("$started", plays[0].PlayedUtc.Ticks);
+            session.Parameters.AddWithValue("$name", string.IsNullOrWhiteSpace(name) ? DBNull.Value : name.Trim());
+            id = (long)session.ExecuteScalar()!;
+        }
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO plays (session_id, played_utc, path, title, artist, album, bpm, duration_ms, deck, tempo)
+            VALUES ($session, $played, $path, $title, $artist, $album, $bpm, $duration, NULL, 0);
+            """;
+        cmd.Parameters.AddWithValue("$session", id);
+        var played = cmd.Parameters.Add("$played", SqliteType.Integer);
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        var title = cmd.Parameters.Add("$title", SqliteType.Text);
+        var artist = cmd.Parameters.Add("$artist", SqliteType.Text);
+        var album = cmd.Parameters.Add("$album", SqliteType.Text);
+        var bpm = cmd.Parameters.Add("$bpm", SqliteType.Real);
+        var duration = cmd.Parameters.Add("$duration", SqliteType.Integer);
+        foreach (var (track, playedUtc) in plays)
+        {
+            played.Value = playedUtc.Ticks;
+            path.Value = track.Path;
+            title.Value = Db(track.Title);
+            artist.Value = Db(track.Artist);
+            album.Value = Db(track.Album);
+            bpm.Value = (object?)track.Bpm ?? DBNull.Value;
+            duration.Value = (long)track.Duration.TotalMilliseconds;
+            cmd.ExecuteNonQuery();
+        }
+        transaction.Commit();
+        return new PlaySession(id, plays[0].PlayedUtc, plays[^1].PlayedUtc, plays.Count,
+            TimeSpan.FromTicks(plays.Sum(p => p.Track.Duration.Ticks))) { Name = name };
+    }
+
     public void DeleteSession(long sessionId)
     {
         using var c = Open();

@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        x:Class="GZJam.App.Views.MixxxImportDialog"
+        x:DataType="vm:MixxxImportViewModel"
+        Width="560" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        Title="Import from Mixxx">
+  <!-- Settings › Import from Mixxx: what would come over, ticked by kind -->
+  <StackPanel Margin="20" Spacing="12">
+    <TextBlock Classes="label" Text="IMPORT FROM MIXXX" />
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+      <TextBlock Classes="muted mono" FontSize="11.5" Text="{Binding Source}" TextTrimming="CharacterEllipsis"
+                 VerticalAlignment="Center" ToolTip.Tip="{Binding Source}" />
+      <Button x:Name="ChooseButton" Grid.Column="1" Classes="hw small" Content="CHOOSE FILE…" Click="OnChooseClick"
+              IsEnabled="{Binding !IsBusy}" />
+    </Grid>
+    <TextBlock x:Name="StatusText" Text="{Binding Status}" TextWrapping="Wrap" />
+
+    <StackPanel Spacing="10" IsVisible="{Binding HasPlan}">
+      <Border Height="1" Background="{StaticResource LineBrush}" />
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="Ratings" />
+          <TextBlock Classes="setting-help" Text="{Binding RatingsText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="RatingsSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Ratings}" />
+      </Grid>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="Crates as labels" />
+          <TextBlock Classes="setting-help" Text="{Binding CratesText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="CratesSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Crates}" />
+      </Grid>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="History" />
+          <TextBlock Classes="setting-help" Text="{Binding HistoryText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="HistorySwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding History}" />
+      </Grid>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="Locked BPMs" />
+          <TextBlock Classes="setting-help" Text="{Binding BpmsText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="BpmsSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Bpms}" />
+      </Grid>
+      <Border Height="1" Background="{StaticResource LineBrush}" />
+      <TextBlock Classes="setting-help" Text="{Binding MissingText}" TextWrapping="Wrap"
+                 IsVisible="{Binding MissingText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    </StackPanel>
+
+    <TextBlock Classes="setting-help" TextWrapping="Wrap"
+               Text="Mixxx's library is only read: nothing in Mixxx or in your music files changes, and what's already in GZJam stays as it is. Cue points don't come over: GZJam finds where each song starts and ends itself." />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
+      <Button x:Name="CancelButton" Classes="hw" Content="CANCEL" IsCancel="True" MinWidth="88" Click="OnCancelClick" />
+      <Button x:Name="ImportButton" Classes="hw" Content="IMPORT" IsDefault="True" MinWidth="88"
+              IsEnabled="{Binding CanImport}" Click="OnImportClick" />
+    </StackPanel>
+  </StackPanel>
+</Window>

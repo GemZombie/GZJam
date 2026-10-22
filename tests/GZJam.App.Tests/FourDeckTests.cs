@@ -160,7 +160,7 @@ public sealed class FourDeckTests
         more.Flyout!.ShowAt(more);
         AppHarness.Settle(200);
         var items = view.MoreMenu.Items.OfType<MenuItem>().ToList();
-        Assert.Equal(["Rating", "Energy", "Detect BPM in range", "Eject"], items.Select(i => (string)i.Header!));
+        Assert.Equal(["Rating", "Energy", "BPM", "Eject"], items.Select(i => (string)i.Header!));
 
         items[^1].Command!.Execute(null);
         more.Flyout.Hide();

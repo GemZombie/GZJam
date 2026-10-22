@@ -116,6 +116,36 @@ public sealed partial class LibraryDatabase
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>The BPM the DJ typed for a file, if any.</summary>
+    public double? GetManualBpm(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT bpm FROM manual_bpm WHERE path = $path;";
+        cmd.Parameters.AddWithValue("$path", path);
+        return cmd.ExecuteScalar() is double bpm ? bpm : null;
+    }
+
+    /// <summary>Sets the BPM for files by hand, or (null) goes back to the tag and detection.</summary>
+    public void SetManualBpm(IEnumerable<string> paths, double? bpm)
+    {
+        using var c = Open();
+        using var transaction = c.BeginTransaction();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = bpm is null
+            ? "DELETE FROM manual_bpm WHERE path = $path;"
+            : "INSERT INTO manual_bpm (path, bpm) VALUES ($path, $bpm) ON CONFLICT(path) DO UPDATE SET bpm = excluded.bpm;";
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        if (bpm is { } value)
+            cmd.Parameters.AddWithValue("$bpm", value);
+        foreach (string p in paths)
+        {
+            path.Value = p;
+            cmd.ExecuteNonQuery();
+        }
+        transaction.Commit();
+    }
+
     /// <summary>Where the DJ set a file to start and end, if they did.</summary>
     public ManualTrim GetTrim(string path)
     {

@@ -61,7 +61,7 @@ public sealed class LabelsAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.PromptAsync = (_, _, _) => Task.FromResult<string?>("Female vocals");
+        vm.PromptAsync = (_, _, _, _) => Task.FromResult<string?>("Female vocals");
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         grid.SelectedItems.Add(app.Library.Results[0]);
         grid.SelectedItems.Add(app.Library.Results[1]);

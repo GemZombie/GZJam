@@ -126,6 +126,17 @@
               </Grid>
 
               <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
+              <TextBlock Classes="label" Text="LIBRARY" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                <StackPanel Spacing="1">
+                  <TextBlock Classes="setting" Text="Import from Mixxx" />
+                  <TextBlock Classes="setting-help" Text="Ratings, crates (as labels), History and the BPMs you locked. Mixxx itself isn't changed." />
+                </StackPanel>
+                <Button x:Name="MixxxImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
+                        Click="OnMixxxImportClick" />
+              </Grid>
+
+              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
               <TextBlock Classes="label" Text="DECK SAFETY" />
               <StackPanel Spacing="4">
                 <TextBlock Classes="setting" Text="Loading a track onto a playing deck" />
@@ -409,7 +420,7 @@
                 <MenuItem x:Name="TrackRatingMenu" Header="Rating" />
                 <MenuItem x:Name="TrackLabelsMenu" Header="Labels" />
                 <MenuItem x:Name="TrackEnergyMenu" Header="Energy" />
-                <MenuItem x:Name="TrackBpmMenu" Header="Detect BPM in range" />
+                <MenuItem x:Name="TrackBpmMenu" Header="BPM" />
               </ContextMenu>
             </DataGrid.ContextMenu>
           </DataGrid>
@@ -611,7 +622,7 @@
                   <MenuItem x:Name="QueueRatingMenu" Header="Rating" />
                   <MenuItem x:Name="QueueLabelsMenu" Header="Labels" />
                   <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
-                  <MenuItem x:Name="QueueBpmMenu" Header="Detect BPM in range" />
+                  <MenuItem x:Name="QueueBpmMenu" Header="BPM" />
                   <Separator />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>
