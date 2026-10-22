@@ -110,6 +110,29 @@
     <Setter Property="Padding" Value="0" />
     <Setter Property="FontSize" Value="13" />
   </Style>
+  <!-- A folder's arrow takes the whole space before its name, the row's full height (the
+       standard arrow is a 12 px target) -->
+  <Style Selector="TreeView.folders TreeViewItem /template/ Panel#PART_ExpandCollapseChevronContainer">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Width" Value="32" />
+  </Style>
+  <Style Selector="TreeView.folders TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent">
+          <Path x:Name="ChevronPath" Width="12" Height="12" Stretch="Uniform"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Fill="{DynamicResource TreeViewItemForeground}"
+                Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="TreeView.folders TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron:checked /template/ Path#ChevronPath">
+    <Setter Property="Data" Value="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
+  </Style>
 
   <!-- Track list -->
   <Style Selector="DataGrid.tracks">

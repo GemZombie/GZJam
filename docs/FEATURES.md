@@ -43,6 +43,9 @@ is out of scope until it earns a place.
 
 - Folder tree, recursive scoped search, drag / right-click / Enter to queue, queue reordering,
   "Show in folder tree", folder watching, remembered window and selected folder.
+- One click or tap on a folder opens it as well as choosing it; a click on the chosen folder
+  closes it. The arrow's target is the whole space before the name, and opens or closes a folder
+  without choosing it.
 - Indexes MP3, MP2, OGG, WAV and AIFF (what BASS plays without add-ons). FLAC/M4A later if needed.
 - Skips macOS `._name.mp3` metadata files (24 of them in the real library).
 

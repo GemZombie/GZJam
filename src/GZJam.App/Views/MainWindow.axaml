@@ -235,16 +235,16 @@
                       ToolTip.Tip="Add a music folder to the library" />
             </Grid>
           </Border>
-          <TreeView x:Name="FolderTree" Classes="folders" Margin="4,6"
+          <c:FolderTreeView x:Name="FolderTree" Classes="folders" Margin="4,6"
                     ItemsSource="{Binding Library.Roots}"
                     SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <TreeView.Styles>
+            <c:FolderTreeView.Styles>
               <Style Selector="TreeViewItem" x:DataType="vm:FolderNodeViewModel">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
               </Style>
-            </TreeView.Styles>
-            <TreeView.ItemTemplate>
+            </c:FolderTreeView.Styles>
+            <c:FolderTreeView.ItemTemplate>
               <TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                   <Grid.ContextMenu>
@@ -264,8 +264,8 @@
                              VerticalAlignment="Center" Margin="0,0,8,0" />
                 </Grid>
               </TreeDataTemplate>
-            </TreeView.ItemTemplate>
-          </TreeView>
+            </c:FolderTreeView.ItemTemplate>
+          </c:FolderTreeView>
         </DockPanel>
       </Border>
 
