@@ -146,6 +146,17 @@
                 <TextBlock Classes="setting" Text="Pausing a deck the room is hearing" />
                 <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding PauseChoices}" SelectedItem="{Binding PauseChoice}" />
               </StackPanel>
+
+              <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,2" />
+              <TextBlock Classes="label" Text="ABOUT" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                <StackPanel Spacing="1">
+                  <TextBlock x:Name="AboutVersionText" Classes="setting" />
+                  <TextBlock x:Name="AboutMakerText" Classes="setting-help" />
+                </StackPanel>
+                <Button x:Name="AboutButton" Grid.Column="1" Classes="hw" Content="ABOUT…" VerticalAlignment="Center"
+                        Click="OnAboutClick" />
+              </Grid>
             </StackPanel>
           </Flyout>
         </Button.Flyout>

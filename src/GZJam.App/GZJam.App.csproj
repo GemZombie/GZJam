@@ -10,7 +10,17 @@
     <ApplicationIcon>Assets\gzjam.ico</ApplicationIcon>
     <AssemblyName>GZJam</AssemblyName>
     <RootNamespace>GZJam.App</RootNamespace>
+    <!-- Shown in Settings › About. Release builds set both from the tag (v0.2.0 → 0.2.0); a build
+         made here says "-dev". -->
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>dev</VersionSuffix>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The licences of everything GZJam ships with; About shows its opening list. -->
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="THIRD-PARTY-NOTICES.txt"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />

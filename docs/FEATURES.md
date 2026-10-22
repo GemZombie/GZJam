@@ -624,6 +624,15 @@ rather than being a second one.
   BPM wins over the tag and detection, in the BPM column, on the deck and in `bpm:` searches
   (`manual_bpm`, schema upgrade 12). *Automatic* or a range forgets it.
 
+### Status: About built (2026-10-22)
+
+- **Settings › About:** the version (from the release tag; "-dev" when built locally), who made
+  GZJam, the GitHub page, and the list of the software it's built with and their licences.
+  *Full licence texts* opens `THIRD-PARTY-NOTICES.txt` in the computer's text viewer.
+- `THIRD-PARTY-NOTICES.txt` (repo root) ships beside the program in every package: the list, then
+  each licence in full, including the notices of what SkiaSharp and .NET carry inside them. A test
+  fails if a library is added without being named in its list.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

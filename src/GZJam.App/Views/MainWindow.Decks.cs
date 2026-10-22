@@ -73,6 +73,12 @@ public partial class MainWindow
             Vm.ShowNotice(MixxxImportViewModel.Summary(result));
     }
 
+    private async void OnAboutClick(object? sender, RoutedEventArgs e)
+    {
+        SettingsButton.Flyout!.Hide();
+        await new AboutDialog().ShowDialog(this);
+    }
+
     // ───────────── Menus ─────────────
 
     /// <summary>Greys out "Load to Deck X" when protection would refuse it, and says why.</summary>
