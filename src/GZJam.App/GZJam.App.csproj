@@ -36,4 +36,14 @@
 
   <Import Project="..\..\lib\bass\Bass.targets" />
 
+  <!-- Packages leave out the debug symbols that come with other people's libraries: SkiaSharp's
+       and HarfBuzzSharp's for Windows are 100 MB, more than the rest of the app. GZJam's own
+       (a few KB) stay, so a crash report names the line. -->
+  <Target Name="LeaveOutLibraryDebugSymbols" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(Extension)' == '.pdb' and '%(ResolvedFileToPublish.NuGetPackageId)' != ''" />
+    </ItemGroup>
+  </Target>
+
 </Project>
