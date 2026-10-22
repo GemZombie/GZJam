@@ -124,10 +124,37 @@ public sealed class AudioEngine : IDisposable
             if (_initializedDevices.Contains(deviceIndex))
                 return;
 
-            if (!Bass.Init(deviceIndex) && Bass.LastError != Errors.Already)
-                throw new AudioException($"Could not open output device {deviceIndex}", Bass.LastError);
+            // Linux: the desktop's sound server (PipeWire) holds a card for a few seconds after the
+            // last sound through it, even GZJam's own through "Default", so a busy card is retried.
+            var giveUp = DateTime.UtcNow + (OperatingSystem.IsLinux() ? BusyWait : TimeSpan.Zero);
+            while (!Bass.Init(deviceIndex) && Bass.LastError != Errors.Already)
+            {
+                if (Bass.LastError != Errors.Busy || DateTime.UtcNow >= giveUp)
+                    throw new AudioException($"Could not open output device {deviceIndex}", Bass.LastError);
+                Thread.Sleep(250);
+            }
 
             _initializedDevices.Add(deviceIndex);
+        }
+    }
+
+    /// <summary>How long a busy output is retried on Linux: PipeWire lets an idle card go after 5 s.</summary>
+    internal static TimeSpan BusyWait { get; set; } = TimeSpan.FromSeconds(7);
+
+    /// <summary>
+    /// Closes the output devices that aren't in <paramref name="keep"/>, so another program (or
+    /// GZJam itself, through a different device) can open them. Decoding's "no sound" device stays.
+    /// </summary>
+    internal void ReleaseDevicesExcept(params int?[] keep)
+    {
+        lock (_lock)
+        {
+            foreach (int device in _initializedDevices.Where(d => d != NoSoundDevice && !keep.Contains(d)).ToList())
+            {
+                Bass.CurrentDevice = device;
+                Bass.Free();
+                _initializedDevices.Remove(device);
+            }
         }
     }
 
@@ -191,6 +218,12 @@ public sealed class AudioException : Exception
         };
         return new AudioException(error, reason);
     }
+
+    /// <summary>An output another program has, said so a DJ can free it.</summary>
+    internal static AudioException Busy(string device) => new(Errors.Busy, OperatingSystem.IsLinux()
+        ? $"{device} is in use. The desktop's sound system keeps a card while other sound plays through it: " +
+          "make another output the computer's default (or choose Default here), then try again."
+        : $"{device} is in use by another program.");
 
     /// <summary>Windows' own decoders (AAC among them), absent from "N" editions and servers.</summary>
     internal static bool HasMediaFoundation =>

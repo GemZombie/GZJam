@@ -155,6 +155,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         _loading = true;
         var devices = audio.GetOutputDevices();
+        Log.Info("Output devices: " + string.Join("; ", devices.Select(d => $"{d.Index} \"{d.Name}\" [{d.Driver}]")));
         MainDevices = devices;
         CueDevices = devices.Prepend(NoDevice).ToList();
         MainDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Main.Device?.Index);

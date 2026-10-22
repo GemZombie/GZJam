@@ -84,16 +84,52 @@ public sealed class MixEngine : IDisposable
             deck.Detach();
         Preview.Detach();
 
-        Main = CreateBus(main);
-        Cue = CreateBus(cue);
-        Main.CopySettingsFrom(oldMain);
-        Cue.CopySettingsFrom(oldCue);
+        // Let go of the old outputs before opening the new ones. A Linux sound card opens only
+        // once, and GZJam's own "Default" (through PipeWire) may be playing on the very card chosen.
+        oldMain.Dispose();
+        oldCue.Dispose();
+        Engine.ReleaseDevicesExcept(main?.Index, cue?.Index);
+        try
+        {
+            Open(main, cue, oldMain, oldCue);
+        }
+        catch (AudioException)
+        {
+            // Back to what was playing, so a refused output doesn't silence the room.
+            Engine.ReleaseDevicesExcept(oldMain.Device?.Index, oldCue.Device?.Index);
+            try
+            {
+                Open(oldMain.Device, oldCue.Device, oldMain, oldCue);
+            }
+            catch (AudioException)
+            {
+                Open(null, null, oldMain, oldCue);
+            }
+            throw;
+        }
+    }
+
+    private void Open(AudioDevice? main, AudioDevice? cue, OutputBus settingsMain, OutputBus settingsCue)
+    {
+        OutputBus newMain = CreateBus(main);
+        OutputBus newCue;
+        try
+        {
+            newCue = CreateBus(cue);
+        }
+        catch (AudioException)
+        {
+            newMain.Dispose();
+            throw;
+        }
+        newMain.CopySettingsFrom(settingsMain);
+        newCue.CopySettingsFrom(settingsCue);
+        Main = newMain;
+        Cue = newCue;
 
         foreach (Deck deck in Decks)
             deck.Attach();
         Preview.Attach();
-        oldMain.Dispose();
-        oldCue.Dispose();
         ApplyRouting();
     }
 
@@ -140,7 +176,14 @@ public sealed class MixEngine : IDisposable
             return new OutputBus(offline, null);
         }
 
-        Engine.EnsureInitialized(device.Index);
+        try
+        {
+            Engine.EnsureInitialized(device.Index);
+        }
+        catch (AudioException ex) when (ex.Error == Errors.Busy)
+        {
+            throw AudioException.Busy(device.Name);
+        }
         Bass.CurrentDevice = device.Index;
         int mixer = BassMix.CreateMixerStream(SampleRate, Channels, flags);
         if (mixer == 0)

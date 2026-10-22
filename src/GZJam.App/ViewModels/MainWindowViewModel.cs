@@ -434,6 +434,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             Log.Error("Couldn't open output", ex);
             ShowNotice($"Couldn't open that output: {ex.Message}");
+            Settings.RefreshDevices();   // show the outputs still in use
         }
         OnPropertyChanged(nameof(MainOutputName));
         OnPropertyChanged(nameof(CueOutputName));
