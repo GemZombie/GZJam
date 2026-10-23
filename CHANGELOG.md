@@ -9,6 +9,15 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
+## 0.4.0 (unreleased)
+
+Changed:
+
+- **One bar at the top on Windows and Mac:** GZJam's top bar is now also the window's title bar,
+  giving the decks and library about 50 more pixels. Drag its empty space to move the window, and
+  double-click it to maximise; minimise, maximise and close sit at its end. Linux keeps its own
+  title bar where it has one.
+
 ## 0.3.0 (2026-10-22)
 
 New:

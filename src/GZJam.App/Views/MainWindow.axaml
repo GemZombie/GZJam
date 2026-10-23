@@ -13,71 +13,86 @@
         WindowStartupLocation="CenterScreen">
 
   <Panel>
-  <Grid RowDefinitions="40,Auto,Auto,*" Margin="16" RowSpacing="12">
+  <DockPanel x:Name="WindowRoot">
 
-    <!-- ───────────── Top bar ───────────── -->
-    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="4,0">
-      <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-        <!-- A plain mark, like a maker's badge on a mixer -->
-        <Border Width="24" Height="24" CornerRadius="3" Background="{StaticResource TextBrush}">
-          <TextBlock Text="GZ" FontSize="11" FontWeight="Black" Foreground="{StaticResource BgBrush}"
-                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Border>
-        <TextBlock Text="GZJam" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
+    <!-- ───────────── Top bar ─────────────
+         On Windows and macOS it is also the window's title bar: its empty space moves the window,
+         and the system's own buttons sit at its end (see MainWindow.UseTopBarAsTitleBar). -->
+    <Border x:Name="TopBar" DockPanel.Dock="Top" Height="{DynamicResource TopBarHeight}"
+            Background="{StaticResource BgBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+      <DockPanel>
+      <!-- Windows: minimise, maximise (or restore) and close, drawn and handled by GZJam -->
+      <StackPanel x:Name="CaptionButtons" DockPanel.Dock="Right" Orientation="Horizontal" IsVisible="False">
+        <Button x:Name="MinimizeButton" Focusable="False" Classes="caption" Content="&#xE921;" AutomationProperties.Name="Minimise" />
+        <Button x:Name="MaximizeButton" Focusable="False" Classes="caption" Content="&#xE922;" AutomationProperties.Name="Maximise" />
+        <Button x:Name="CloseButton" Focusable="False" Classes="caption close" Content="&#xE8BB;" AutomationProperties.Name="Close" />
       </StackPanel>
-
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="8,0,0,0">
-        <TextBlock Classes="fader-label" Text="CLOCK" VerticalAlignment="Center" />
-        <Border Classes="readout-window" MinHeight="28">
-          <TextBlock Classes="mono" Text="{Binding Clock}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
-        </Border>
-      </StackPanel>
-
-      <!-- Short-lived messages, e.g. why a load was refused -->
-      <Border Grid.Column="2" Classes="hint" HorizontalAlignment="Center" VerticalAlignment="Center"
-              BorderBrush="#66F5A524" IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" />
-      </Border>
-
-      <!-- Scanning, then analyzing (waveforms, silence, BPM) -->
-      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
-                  IsVisible="{Binding BackgroundStatus, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <TextBlock Classes="muted" FontSize="12" Text="{Binding BackgroundStatus}" VerticalAlignment="Center" />
-        <ProgressBar Width="120" MinWidth="120" Height="4" Minimum="0" Maximum="100"
-                     Value="{Binding BackgroundPercent}" Foreground="{StaticResource AccentBrush}" />
-      </StackPanel>
-
-      <!-- Outputs; click either to change them -->
-      <Button Grid.Column="4" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Speaker output (click to change)">
-        <StackPanel Orientation="Horizontal" Spacing="7">
-          <Border Classes="led green on" IsVisible="{Binding HasMainOutput}" />
-          <Border Classes="led red on" IsVisible="{Binding !HasMainOutput}" />
-          <TextBlock Classes="fader-label" Text="MAIN" VerticalAlignment="Center" />
-          <TextBlock Text="{Binding MainOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
+      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
+        <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+          <!-- A plain mark, like a maker's badge on a mixer -->
+          <Border Width="24" Height="24" CornerRadius="3" Background="{StaticResource TextBrush}">
+            <TextBlock Text="GZ" FontSize="11" FontWeight="Black" Foreground="{StaticResource BgBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <TextBlock Text="GZJam" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
         </StackPanel>
-      </Button>
-      <Button Grid.Column="5" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Headphone output (click to change)">
-        <StackPanel Orientation="Horizontal" Spacing="7">
-          <Border Classes="led green on" IsVisible="{Binding HasCueOutput}" />
-          <Border Classes="led amber on" IsVisible="{Binding !HasCueOutput}" />
-          <TextBlock Classes="fader-label" Text="CUE" VerticalAlignment="Center" />
-          <TextBlock Text="{Binding CueOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
-        </StackPanel>
-      </Button>
 
-      <Button x:Name="SettingsButton" Grid.Column="6" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
-        <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
-      </Button>
-    </Grid>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="8,0,0,0">
+          <TextBlock Classes="fader-label" Text="CLOCK" VerticalAlignment="Center" />
+          <Border Classes="readout-window" MinHeight="28">
+            <TextBlock Classes="mono" Text="{Binding Clock}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Border>
+        </StackPanel>
+
+        <!-- Short-lived messages, e.g. why a load was refused -->
+        <Border Grid.Column="2" Classes="hint" HorizontalAlignment="Center" VerticalAlignment="Center"
+                BorderBrush="#66F5A524" IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" />
+        </Border>
+
+        <!-- Scanning, then analyzing (waveforms, silence, BPM) -->
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
+                    IsVisible="{Binding BackgroundStatus, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Classes="muted" FontSize="12" Text="{Binding BackgroundStatus}" VerticalAlignment="Center" />
+          <ProgressBar Width="120" MinWidth="120" Height="4" Minimum="0" Maximum="100"
+                       Value="{Binding BackgroundPercent}" Foreground="{StaticResource AccentBrush}" />
+        </StackPanel>
+
+        <!-- Outputs; click either to change them -->
+        <Button Grid.Column="4" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Speaker output (click to change)">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Border Classes="led green on" IsVisible="{Binding HasMainOutput}" />
+            <Border Classes="led red on" IsVisible="{Binding !HasMainOutput}" />
+            <TextBlock Classes="fader-label" Text="MAIN" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding MainOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="5" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Headphone output (click to change)">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Border Classes="led green on" IsVisible="{Binding HasCueOutput}" />
+            <Border Classes="led amber on" IsVisible="{Binding !HasCueOutput}" />
+            <TextBlock Classes="fader-label" Text="CUE" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding CueOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Button>
+
+        <Button x:Name="SettingsButton" Grid.Column="6" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
+          <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
+        </Button>
+      </Grid>
+      </DockPanel>
+    </Border>
+
+  <Grid RowDefinitions="Auto,Auto,*" Margin="16,4,16,16" RowSpacing="12">
 
     <!-- Audio failed to load: say so plainly; the library still works -->
-    <Border Grid.Row="1" Classes="hint" BorderBrush="{StaticResource OnAirBrush}"
+    <Border Grid.Row="0" Classes="hint" BorderBrush="{StaticResource OnAirBrush}"
             IsVisible="{Binding AudioError, Converter={x:Static ObjectConverters.IsNotNull}}">
       <TextBlock Text="{Binding AudioError}" Foreground="{StaticResource OnAirBrush}" TextWrapping="Wrap" />
     </Border>
 
     <!-- ───────────── Decks + mixer ───────────── -->
-    <Grid Grid.Row="2" ColumnDefinitions="*,212,*" ColumnSpacing="12">
+    <Grid Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
       <!-- The row is as tall as the decks or the mixer column need, whichever is more. With four
            decks, 3 sits under 1 and 4 under 2, each half height, so the row stays the same. -->
       <Grid RowDefinitions="*,Auto">
@@ -141,7 +156,7 @@
     </Grid>
 
     <!-- ───────────── Library ───────────── -->
-    <Grid Grid.Row="3" ColumnDefinitions="260,12,*,12,320">
+    <Grid Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
 
       <!-- Folder tree -->
       <Border Classes="panel">
@@ -559,6 +574,7 @@
       </Border>
     </Grid>
   </Grid>
+  </DockPanel>
 
   <!-- Settings, over the dimmed screen; tapping the dimmed part closes it (see MainWindow.Decks.cs). -->
   <Panel x:Name="SettingsOverlay" IsVisible="False">

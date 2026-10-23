@@ -10,6 +10,7 @@
   <Styles.Resources>
     <x:Double x:Key="DeckButtonSize">62</x:Double>
     <x:Double x:Key="DeckControlHeight">42</x:Double>
+    <x:Double x:Key="TopBarHeight">54</x:Double>
     <x:Double x:Key="DeckPlayIconSize">20</x:Double>
     <x:Double x:Key="DeckPauseIconSize">18</x:Double>
     <x:Double x:Key="CrossfaderHeight">56</x:Double>
