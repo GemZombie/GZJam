@@ -92,7 +92,7 @@ public sealed class LoudnessTests : IDisposable
         string tone = TestWav.WriteTone(Path.Combine(_dir, "tone.wav"), TimeSpan.FromSeconds(8), amplitude: 0.25, frequency: 997);
         using var engine = new AudioEngine();
 
-        TrackAnalysis analysis = new TrackAnalyzer(engine).Analyze(tone, detectBpm: false);
+        TrackAnalysis analysis = new TrackAnalyzer(engine).Analyze(tone, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(-12.0, analysis.Lufs!.Value, 0.2);
         Assert.Equal(-12.0, analysis.PeakDb!.Value, 0.1);

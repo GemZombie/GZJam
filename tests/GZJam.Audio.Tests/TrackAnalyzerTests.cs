@@ -26,7 +26,7 @@ public sealed class TrackAnalyzerTests : IDisposable
         string path = TestWav.WriteTone(File("padded.wav"), TimeSpan.FromSeconds(5),
             silenceBefore: TimeSpan.FromSeconds(2), silenceAfter: TimeSpan.FromSeconds(3));
 
-        TrackAnalysis result = _analyzer.Analyze(path, detectBpm: false);
+        TrackAnalysis result = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(10, result.Length.TotalSeconds, 0.01);
         // A little is kept either side, so the attack and the last ring-out aren't shaved.
@@ -42,7 +42,7 @@ public sealed class TrackAnalyzerTests : IDisposable
         string path = File("quiet-ending.wav");
         Concatenate(path, loud, TestWav.WriteTone(File("soft.wav"), TimeSpan.FromSeconds(2), amplitude: 0.5 / 31.6));
 
-        TrackAnalysis result = _analyzer.Analyze(path, detectBpm: false);
+        TrackAnalysis result = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(result.Length, result.AudibleEnd);
     }
@@ -52,7 +52,7 @@ public sealed class TrackAnalyzerTests : IDisposable
     {
         string path = TestWav.WriteTone(File("silent.wav"), TimeSpan.FromSeconds(3), amplitude: 0);
 
-        TrackAnalysis result = _analyzer.Analyze(path);
+        TrackAnalysis result = _analyzer.Analyze(path, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(TimeSpan.Zero, result.AudibleStart);
         Assert.Equal(result.Length, result.AudibleEnd);
@@ -67,7 +67,7 @@ public sealed class TrackAnalyzerTests : IDisposable
     {
         string path = TestWav.WriteTone(File($"{frequency}.wav"), TimeSpan.FromSeconds(3), frequency: frequency);
 
-        Waveform w = _analyzer.Analyze(path, detectBpm: false).Waveform;
+        Waveform w = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken).Waveform;
 
         double Average(byte[] values) => values.Average(v => (double)v);
         var levels = new Dictionary<string, double>
@@ -83,7 +83,7 @@ public sealed class TrackAnalyzerTests : IDisposable
     public void Waveforms_survive_saving()
     {
         string path = TestWav.WriteTone(File("tone.wav"), TimeSpan.FromSeconds(2));
-        Waveform w = _analyzer.Analyze(path, detectBpm: false).Waveform;
+        Waveform w = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken).Waveform;
 
         Waveform copy = Waveform.FromBytes(w.ToBytes())!;
 
@@ -104,7 +104,7 @@ public sealed class TrackAnalyzerTests : IDisposable
         // A loud snare on 2 and 4 makes half the tempo look strong; dancers count the beat.
         string path = TestWav.WriteSwingBeat(File($"swing-{bpm}.wav"), bpm, TimeSpan.FromSeconds(40));
 
-        double? found = _analyzer.Analyze(path).Bpm;
+        double? found = _analyzer.Analyze(path, cancellationToken: TestContext.Current.CancellationToken).Bpm;
 
         Assert.NotNull(found);
         Assert.InRange(found.Value, bpm * 0.98, bpm * 1.02);
@@ -116,7 +116,7 @@ public sealed class TrackAnalyzerTests : IDisposable
         // Swung eighths fall two thirds through the beat, not halfway: still one beat.
         string path = TestWav.WriteSwingBeat(File("slow.wav"), 72, TimeSpan.FromSeconds(40), backbeat: 0.3);
 
-        double? found = _analyzer.Analyze(path).Bpm;
+        double? found = _analyzer.Analyze(path, cancellationToken: TestContext.Current.CancellationToken).Bpm;
 
         Assert.NotNull(found);
         Assert.InRange(found.Value, 70, 74);
@@ -146,7 +146,7 @@ public sealed class TrackAnalyzerTests : IDisposable
         // A heavy backbeat on a very fast tune: automatic detection may say half time.
         string path = TestWav.WriteSwingBeat(File("fast.wav"), 240, TimeSpan.FromSeconds(40));
 
-        double? found = _analyzer.Analyze(path, bpmRange: (200, 320)).Bpm;
+        double? found = _analyzer.Analyze(path, bpmRange: (200, 320), cancellationToken: TestContext.Current.CancellationToken).Bpm;
 
         Assert.NotNull(found);
         Assert.InRange(found.Value, 235, 245);

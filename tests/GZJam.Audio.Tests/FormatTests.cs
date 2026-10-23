@@ -19,7 +19,7 @@ public sealed class FormatTests : IDisposable
     [InlineData("tone-alac.m4a")]
     public void Plays_flac_opus_and_apple_lossless_everywhere(string file)
     {
-        TrackAnalysis result = new TrackAnalyzer(_engine).Analyze(Sample(file), detectBpm: false);
+        TrackAnalysis result = new TrackAnalyzer(_engine).Analyze(Sample(file), detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.InRange(result.Length.TotalSeconds, 1.95, 2.1);
         Assert.InRange(result.AudibleEnd.TotalSeconds, 1.8, 2.1);   // heard, not silence
@@ -33,14 +33,14 @@ public sealed class FormatTests : IDisposable
         var analyzer = new TrackAnalyzer(_engine);
         if (OperatingSystem.IsLinux())
         {
-            var error = Assert.Throws<AudioException>(() => analyzer.Analyze(Sample(file), detectBpm: false));
+            var error = Assert.Throws<AudioException>(() => analyzer.Analyze(Sample(file), detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
             Assert.Equal("it's AAC, which GZJam can't play on Linux (Apple Lossless .m4a files play).", error.Message);
             return;
         }
         Assert.SkipWhen(OperatingSystem.IsWindows() && !AudioException.HasMediaFoundation,
             "This copy of Windows has no Media Foundation (a server or an \"N\" edition).");
 
-        TrackAnalysis result = analyzer.Analyze(Sample(file), detectBpm: false);
+        TrackAnalysis result = analyzer.Analyze(Sample(file), detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
 
         // Raw AAC doesn't say how long it is, so its length is an estimate (Windows: 2.25 s).
         double longest = file.EndsWith(".aac", StringComparison.Ordinal) ? 2.4 : 2.15;
@@ -62,7 +62,7 @@ public sealed class FormatTests : IDisposable
         File.WriteAllText(path, "not audio");
         try
         {
-            var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false));
+            var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
             Assert.Equal("it's a kind of file GZJam can't play.", error.Message);
         }
         finally

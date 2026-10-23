@@ -3,6 +3,7 @@ using ToggleButton = Avalonia.Controls.Primitives.ToggleButton;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
 using GZJam.Library;
@@ -45,7 +46,7 @@ public sealed class MixxxImportAppTests
         AppHarness.Settle(100);
         var shot = dialog.CaptureRenderedFrame();   // the dialog's own window
         Directory.CreateDirectory(AppHarness.ScreenshotDirectory);
-        shot?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "mixxx-import-dialog.png"));
+        shot?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "mixxx-import-dialog.png"), new PngBitmapEncoderOptions());
 
         dialog.FindControl<ToggleButton>("HistorySwitch")!.IsChecked = false;   // everything but History
         MixxxImportResult? result = AppHarness.Await(import.ImportAsync());

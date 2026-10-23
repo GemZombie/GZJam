@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
@@ -180,9 +181,7 @@ public sealed class AppHarness : IDisposable
         Directory.CreateDirectory(ScreenshotDirectory);
         string path = Path.Combine(ScreenshotDirectory, name + ".png");
         using var frame = Window.CaptureRenderedFrame();
-#pragma warning disable CS0618 // the replacement overload needs encoder options we don't care about
-        frame?.Save(path);
-#pragma warning restore CS0618
+        frame?.Save(path, new PngBitmapEncoderOptions());
         return path;
     }
 

@@ -91,7 +91,7 @@ public sealed class SessionMenuTests
         AppHarness.Settle();
         Assert.DoesNotContain(history.Sessions, s => s.Session is not null);
         Assert.Empty(history.Plays);
-        Assert.Empty(app.Database.GetSessions().Where(s => s.PlayCount > 0));
+        Assert.DoesNotContain(app.Database.GetSessions(), s => s.PlayCount > 0);
         Assert.Null(app.Library.ResultFor(first.Path)!.LastPlayedUtc);   // the Played column forgets it
     }
 

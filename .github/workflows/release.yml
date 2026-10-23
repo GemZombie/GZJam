@@ -88,7 +88,7 @@ jobs:
           echo "Packaging GZJam $version"
 
       - name: Test
-        run: dotnet test GZJam.slnx -c Release
+        run: dotnet test GZJam.slnx -c Release -p:TreatWarningsAsErrors=true
 
       - name: Package for Windows
         if: matrix.name == 'windows'
