@@ -219,7 +219,7 @@ public sealed class AppHarness : IDisposable
     {
         if (_current == this)
             _current = null;
-        Window.Close();
+        Window.CloseWithoutAsking();   // decks may still be playing
         ViewModel.Dispose();   // also disposes the mix
         Audio.Dispose();
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();

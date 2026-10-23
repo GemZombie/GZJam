@@ -557,6 +557,28 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Asks the user to confirm something (heading, message, the confirm button's text); the window supplies the dialog.</summary>
     public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }
 
+    /// <summary>
+    /// Asks whether to close GZJam while the room is hearing music (the message says what's
+    /// playing); true to close. The window supplies the dialog, with "Keep playing" as its default.
+    /// </summary>
+    public Func<string, Task<bool>>? ConfirmCloseAsync { get; set; }
+
+    /// <summary>
+    /// What the room is hearing, for the question before closing: "Deck 1 is playing "Jump
+    /// Steady" to the room." Null when no deck is on air; music only in the headphones (the
+    /// preview, or a cued deck) doesn't count.
+    /// </summary>
+    public string? WhatTheRoomIsHearing()
+    {
+        var onAir = Decks.Where(d => d.IsOnAir).ToList();
+        return onAir.Count switch
+        {
+            0 => null,
+            1 => $"Deck {onAir[0].Label} is playing \u201c{onAir[0].Title}\u201d to the room.",
+            _ => $"Decks {string.Join(" and ", onAir.Select(d => d.Label))} are playing to the room.",
+        };
+    }
+
     /// <summary>Whether a load onto this deck would go ahead without being refused outright.</summary>
     public bool CanLoad(DeckViewModel deck) => !deck.IsPlaying || _settings.LoadOntoPlayingDeck != PlayingDeckLoad.Block;
 

@@ -45,6 +45,50 @@ public partial class MainWindow : Window
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
 
+    private bool _closeConfirmed;
+    private bool _askingToClose;
+
+    /// <summary>
+    /// While the room is hearing a deck, closing (the close button, Alt+F4, Cmd+Q) asks first, so
+    /// a stray click or tap can't stop the music. Not when the computer is shutting down: GZJam
+    /// mustn't hold that up.
+    /// </summary>
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (!_closeConfirmed && e.CloseReason != WindowCloseReason.OSShutdown
+            && DataContext is MainWindowViewModel vm && vm.WhatTheRoomIsHearing() is { } playing)
+        {
+            e.Cancel = true;
+            if (!_askingToClose)
+                _ = AskBeforeClosingAsync(vm, playing);
+            return;
+        }
+        base.OnClosing(e);
+    }
+
+    private async Task AskBeforeClosingAsync(MainWindowViewModel vm, string playing)
+    {
+        _askingToClose = true;
+        try
+        {
+            bool close = vm.ConfirmCloseAsync is not { } ask || await ask(playing);
+            Log.Info($"Asked before closing ({playing}): {(close ? "closed" : "kept playing")}");
+            if (close)
+                CloseWithoutAsking();
+        }
+        finally
+        {
+            _askingToClose = false;
+        }
+    }
+
+    /// <summary>Closes even while music is playing (after the DJ has said so, and in tests).</summary>
+    public void CloseWithoutAsking()
+    {
+        _closeConfirmed = true;
+        Close();
+    }
+
     private static KeyModifiers CommandModifier => OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
 
     // ───────────── Track list ─────────────

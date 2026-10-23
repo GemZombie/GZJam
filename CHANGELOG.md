@@ -19,6 +19,9 @@ New:
   headphones stay shared. If the card is unplugged mid-set, the music moves to the computer's
   default output and GZJam says so. When those speakers are also Windows' default output, Settings
   says other programs may refuse to play, and how to avoid it.
+- **GZJam asks before closing while the room is hearing music**, so a stray click on the close
+  button can't stop the set. *Keep playing* is the default (Enter and Escape choose it). Music only
+  in the headphones doesn't count, and GZJam never holds up the computer shutting down.
 - **Extra protection against crackles** (Settings › Sound): for a computer where the sound crackles
   or drops out. Play and the crossfader respond a little later. The activity log notes when the
   speakers' sound runs dry, and the README has a short troubleshooting list.
