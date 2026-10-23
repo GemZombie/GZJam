@@ -11,6 +11,12 @@ has no section, and uses the section as the release's notes (tools/release-notes
 
 ## 0.3.0 (unreleased)
 
+New:
+
+- **Read all tags again** (right-click a music folder in the library): for tags edited with a
+  program set to keep the file's date, which GZJam wouldn't otherwise notice. GZJam also rereads
+  every song by itself whenever it gets better at reading tags.
+
 Fixed:
 
 - **BPMs over 1000** (Pink Panther Theme showed 1180) for songs whose tags store the BPM ten times

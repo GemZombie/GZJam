@@ -13,6 +13,8 @@ public sealed record ScanResult(int Added, int Updated, int Removed, int Unchang
 /// <summary>
 /// Brings the index in line with the folders on disk. Incremental: only new or changed files
 /// (by size and modified time) have their tags read, so rescans of a large library are quick.
+/// Songs read before GZJam got better at reading tags (<see cref="TagReader.Version"/>) are read
+/// again too.
 /// </summary>
 public sealed class LibraryScanner(LibraryDatabase database)
 {
@@ -33,12 +35,19 @@ public sealed class LibraryScanner(LibraryDatabase database)
     public static bool IsAudioFile(string path) =>
         AudioExtensions.Contains(Path.GetExtension(path)) && !Path.GetFileName(path).StartsWith("._", StringComparison.Ordinal);
 
-    public async Task<ScanResult> ScanAsync(LibraryRoot root, IProgress<ScanProgress>? progress = null, CancellationToken cancellationToken = default)
+    /// <param name="readAllTags">
+    /// Read every song's tags again, changed or not: for tags edited by a program that keeps the
+    /// file's date (Mp3tag can), which a normal scan wouldn't notice.
+    /// </param>
+    public async Task<ScanResult> ScanAsync(LibraryRoot root, IProgress<ScanProgress>? progress = null, bool readAllTags = false,
+        CancellationToken cancellationToken = default)
     {
-        return await Task.Run(() => Scan(root, progress, cancellationToken), cancellationToken).ConfigureAwait(false);
+        return await Task.Run(() => Scan(root, progress, readAllTags, cancellationToken), cancellationToken).ConfigureAwait(false);
     }
 
-    public ScanResult Scan(LibraryRoot root, IProgress<ScanProgress>? progress = null, CancellationToken cancellationToken = default)
+    /// <inheritdoc cref="ScanAsync"/>
+    public ScanResult Scan(LibraryRoot root, IProgress<ScanProgress>? progress = null, bool readAllTags = false,
+        CancellationToken cancellationToken = default)
     {
         var started = System.Diagnostics.Stopwatch.StartNew();
         var known = database.GetFileStamps(root.Id);
@@ -64,7 +73,8 @@ public sealed class LibraryScanner(LibraryDatabase database)
                 var file = new FileInfo(path);
                 if (known.TryGetValue(path, out var stamp))
                 {
-                    if (stamp.Size == file.Length && stamp.ModifiedTicks == file.LastWriteTimeUtc.Ticks)
+                    if (!readAllTags && stamp.TagVersion >= TagReader.Version
+                        && stamp.Size == file.Length && stamp.ModifiedTicks == file.LastWriteTimeUtc.Ticks)
                         continue;
                 }
                 else

@@ -241,13 +241,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         RunSearch();
     }
 
-    public void RescanRoot(long rootId)
+    /// <param name="readAllTags">Read every song's tags again, not only changed files (see <see cref="LibraryScanner.ScanAsync"/>).</param>
+    public void RescanRoot(long rootId, bool readAllTags = false)
     {
         if (_database.GetRoots().FirstOrDefault(r => r.Id == rootId) is { } root)
-            _ = ScanAsync(root);
+            _ = ScanAsync(root, readAllTags);
     }
 
-    private async Task ScanAsync(LibraryRoot root)
+    private async Task ScanAsync(LibraryRoot root, bool readAllTags = false)
     {
         await _scanLock.WaitAsync();
         try
@@ -276,7 +277,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 }
             });
 
-            ScanResult result = await _scanner.ScanAsync(root, progress);
+            ScanResult result = await _scanner.ScanAsync(root, progress, readAllTags);
             if (result.Added + result.Updated + result.Removed > 0)
             {
                 RefreshTree();

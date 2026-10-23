@@ -116,6 +116,7 @@ public sealed class HistoryTests : IDisposable
                     (1, 'd.mp3', '', 'd.mp3', 1, 0, 'No tag', NULL);
                 INSERT INTO sessions(id, started_utc) VALUES (1, 0);
                 INSERT INTO plays(session_id, played_utc, path, title, bpm) VALUES (1, 0, 'a.mp3', 'Pink Panther Theme', 1180);
+                ALTER TABLE tracks DROP COLUMN tag_version;   -- added by upgrade 14
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();
