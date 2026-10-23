@@ -626,8 +626,9 @@ not here. This file records what was decided and built, and why.
   **Locked BPMs** (the DJ confirmed them in Mixxx) become typed BPMs.
 - **Only fills gaps:** GZJam's own ratings and typed BPMs stand, labels are added to, and a night
   already imported is skipped, so importing again is safe.
-- **Not brought over: cue points.** Mixxx places intro and outro markers automatically when it
+- **Not brought over: intro and outro markers.** Mixxx places them automatically when it
   analyses a song; GZJam finds where songs start and end itself (and the DJ's own trims stay).
+  Hot cues do come over, since cue keys (issue #36, below).
 - **Typing a BPM** came with it: the BPM menu (library, queue and deck) has *Type the BPM…*; a typed
   BPM wins over the tag and detection, in the BPM column, on the deck and in `bpm:` searches
   (`manual_bpm`, schema upgrade 12). *Automatic* or a range forgets it.
@@ -776,7 +777,12 @@ not here. This file records what was decided and built, and why.
   waveform is 24 px at its shortest, too short for them, so four decks have *Go to cue N* in the
   deck's ⋯ menu instead (the maintainer expects touch to be used mostly with two decks). The JUMP
   key, 32 px in touch mode, made a four-deck waveform (and its deck) taller; it's now 16 px there.
-- Not yet: bringing over Mixxx's hot cues (issue #36).
+- **From Mixxx** (issue #36): Settings › Import from Mixxx › *Hot cues*. Mixxx's hot cues 1 to 4
+  (it numbers them from 0, and has up to 36) become cues 1 to 4, numbers kept, for songs with no
+  cues in GZJam; higher ones are counted in the dialog and left behind. Not saved loops, the main
+  cue point, or the intro and outro markers. Mixxx stores where a cue is in samples of both
+  channels (`CueDAO`: `FramePos::toEngineSamplePos`), so seconds = position / 2 / the song's
+  sample rate.
 
 ### Status: phones mix (2026-10-23, issue #3)
 

@@ -51,7 +51,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - **A level meter on each deck**, showing its level before the crossfader, so a song you're cueing
   is visibly too quiet or too loud before the room hears it.
 - **Cue keys:** mark up to four points in a song, then tap a numbered key to go there at once,
-  at the moment you choose (wait for the end of a phrase, then go to the outro).
+  at the moment you choose (wait for the end of a phrase, then go to the outro). Hot cues come
+  over from Mixxx.
 - **Phones mix:** blend the headphones from what's cued to what the room hears, to keep an ear on
   the dancers while previewing the next song.
 - **Nothing moves:** nothing on a deck shifts or resizes as it starts or goes on air, and with four
@@ -60,7 +61,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Planned next
 
-- [Bring over Mixxx's hot cues as cue keys](https://github.com/GemZombie/GZJam/issues/36) (0.4.0)
 - [Quieter logs on Linux](https://github.com/GemZombie/GZJam/issues/21) (0.4.0)
 - [Testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and [on a real Mac](https://github.com/GemZombie/GZJam/issues/18)
 

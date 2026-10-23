@@ -48,13 +48,20 @@
         </StackPanel>
         <ToggleButton x:Name="BpmsSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Bpms}" />
       </Grid>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="Hot cues" />
+          <TextBlock Classes="setting-help" Text="{Binding HotCuesText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="HotCuesSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding HotCues}" />
+      </Grid>
       <Border Height="1" Background="{StaticResource LineBrush}" />
       <TextBlock Classes="setting-help" Text="{Binding MissingText}" TextWrapping="Wrap"
                  IsVisible="{Binding MissingText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 
     <TextBlock Classes="setting-help" TextWrapping="Wrap"
-               Text="Mixxx's library is only read: nothing in Mixxx or in your music files changes, and what's already in GZJam stays as it is. Cue points don't come over: GZJam finds where each song starts and ends itself." />
+               Text="Mixxx's library is only read: nothing in Mixxx or in your music files changes, and what's already in GZJam stays as it is. Mixxx's intro and outro markers don't come over: GZJam finds where each song starts and ends itself." />
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
       <Button x:Name="CancelButton" Classes="hw" Content="CANCEL" IsCancel="True" MinWidth="88" Click="OnCancelClick" />
       <Button x:Name="ImportButton" Classes="hw" Content="IMPORT" IsDefault="True" MinWidth="88"

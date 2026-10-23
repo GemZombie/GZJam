@@ -31,6 +31,7 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
     [ObservableProperty] public partial string CratesText { get; private set; } = "";
     [ObservableProperty] public partial string HistoryText { get; private set; } = "";
     [ObservableProperty] public partial string BpmsText { get; private set; } = "";
+    [ObservableProperty] public partial string HotCuesText { get; private set; } = "";
 
     /// <summary>Mixxx songs GZJam doesn't have, and where they are; empty if it has them all.</summary>
     [ObservableProperty] public partial string MissingText { get; private set; } = "";
@@ -39,9 +40,11 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Crates { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool History { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Bpms { get; set; } = true;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool HotCues { get; set; } = true;
 
     public bool CanImport => HasPlan && !IsBusy && _plan is { } p &&
-        (Ratings && p.RatingCount > 0 || Crates && p.CrateCount > 0 || History && p.SessionCount > 0 || Bpms && p.BpmCount > 0);
+        (Ratings && p.RatingCount > 0 || Crates && p.CrateCount > 0 || History && p.SessionCount > 0 || Bpms && p.BpmCount > 0 ||
+         HotCues && p.CuedSongCount > 0);
 
     /// <summary>Reads the Mixxx library at <paramref name="path"/>, or where Mixxx keeps it on this computer.</summary>
     public async Task LoadAsync(string? path = null)
@@ -92,6 +95,10 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
         BpmsText = plan.BpmCount == 0
             ? "None: no songs with a BPM you locked in Mixxx (and none typed in GZJam)."
             : $"{Songs(plan.BpmCount)} with a BPM you locked in Mixxx: used as typed BPMs.";
+        HotCuesText = plan.CuedSongCount == 0
+            ? "None: no songs with hot cues that have no cues in GZJam."
+            : $"{Songs(plan.CuedSongCount)}: hot cues 1 to 4 become cue keys 1 to 4. Songs with cues in GZJam keep theirs." +
+              (plan.LeftOutHotCues > 0 ? $" {Format.Count(plan.LeftOutHotCues)} hot {(plan.LeftOutHotCues == 1 ? "cue" : "cues")} numbered above 4 {(plan.LeftOutHotCues == 1 ? "stays" : "stay")} behind." : "");
         int missing = plan.MixxxSongs - plan.FoundSongs;
         MissingText = missing == 0
             ? ""
@@ -108,7 +115,7 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
         Status = "Importing…";
         try
         {
-            var options = new MixxxImportOptions(Ratings, Crates, History, Bpms);
+            var options = new MixxxImportOptions(Ratings, Crates, History, Bpms, HotCues);
             MixxxImportResult result = await Task.Run(() => plan.Apply(database, options));
             Log.Info($"Imported from Mixxx ({plan.Source}): {result}");
             imported(result);
@@ -132,6 +139,8 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
             parts.Add($"{Format.Count(result.Sessions)} {(result.Sessions == 1 ? "night" : "nights")} of History");
         if (result.Bpms > 0)
             parts.Add($"{Format.Count(result.Bpms)} {(result.Bpms == 1 ? "BPM" : "BPMs")}");
+        if (result.CuedSongs > 0)
+            parts.Add($"hot cues for {Songs(result.CuedSongs)}");
         return parts.Count == 0 ? "Nothing new to import from Mixxx." : "Imported from Mixxx: " + string.Join(", ", parts) + ".";
     }
 
