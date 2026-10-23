@@ -38,6 +38,10 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     [RelayCommand]
     private void Rescan() => _owner.RescanRoot(Node.RootId);
 
+    /// <summary>Every song's tags again, for tags edited by a program that keeps the file's date.</summary>
+    [RelayCommand]
+    private void ReadAllTagsAgain() => _owner.RescanRoot(Node.RootId, readAllTags: true);
+
     [RelayCommand]
     private void RemoveFromLibrary() => _owner.RemoveRoot(Node.RootId);
 

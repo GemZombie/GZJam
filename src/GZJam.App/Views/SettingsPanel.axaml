@@ -44,6 +44,20 @@
                   </StackPanel>
                   <ComboBox x:Name="MainDeviceBox" Grid.Column="1" ItemsSource="{Binding MainDevices}" SelectedItem="{Binding MainDevice}" />
                 </Grid>
+                <StackPanel IsVisible="{Binding ShowsExclusiveSpeakers}">
+                  <Border Classes="settings-rule" />
+                  <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <TextBlock Classes="setting" Text="Speakers for GZJam alone" />
+                      <TextBlock Classes="setting-help"
+                                 Text="While GZJam is open, other programs' sounds (a notification, a browser) can't reach the room. For an output chosen by name, not Default." />
+                      <TextBlock x:Name="WindowsDefaultHint" Classes="setting-help" FontWeight="SemiBold" Margin="0,4,0,0"
+                                 IsVisible="{Binding SpeakersAreWindowsDefault}"
+                                 Text="These speakers are also Windows' default output, so other programs may refuse to play while GZJam is open. To keep them playing, choose another output in Windows' Sound settings." />
+                    </StackPanel>
+                    <ToggleButton x:Name="ExclusiveSpeakersSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding ExclusiveSpeakers}" />
+                  </Grid>
+                </StackPanel>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
@@ -57,6 +71,15 @@
                 </Grid>
                 <Button Classes="link" Content="Plugged something in? Refresh the list" Command="{Binding RefreshDevicesCommand}"
                         HorizontalAlignment="Left" Margin="8,-6,0,6" />
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Extra protection against crackles" />
+                    <TextBlock Classes="setting-help"
+                               Text="If the sound crackles or drops out on this computer, turn this on. Play and the crossfader respond a little later." />
+                  </StackPanel>
+                  <ToggleButton x:Name="ExtraBufferingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding ExtraBuffering}" />
+                </Grid>
               </StackPanel>
             </Border>
 

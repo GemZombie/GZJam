@@ -6,6 +6,13 @@ namespace GZJam.Library;
 internal static class TagReader
 {
     /// <summary>
+    /// Which way of reading tags a song was read with. Raise it whenever tags are read better (a
+    /// new field, a fix like BPMs stored x10): the next scan reads every song again, rather than
+    /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back.
+    /// </summary>
+    public const int Version = 1;
+
+    /// <summary>
     /// Builds a <see cref="Track"/> for a file. Files with unreadable or missing tags still get a
     /// track (titled by file name) so they're never silently missing from the library.
     /// </summary>

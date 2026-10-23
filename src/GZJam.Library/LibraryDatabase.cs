@@ -240,6 +240,23 @@ public sealed partial class LibraryDatabase
                 bpm  REAL NOT NULL
             );
             """,
+
+        // 13: Tags that store BPM x10 ("1180" for 118.0) or x100 are read correctly since
+        // 2026-10-21 (TagReader.NormalizeBpm), but songs scanned before then kept the raw value,
+        // and a rescan skips files that haven't changed. The same rule, once, for the stored tag
+        // BPMs and History (issue #26).
+        """
+            UPDATE tracks SET bpm = bpm / 10 WHERE bpm > 400 AND bpm / 10 BETWEEN 40 AND 400;
+            UPDATE tracks SET bpm = bpm / 100 WHERE bpm > 400 AND bpm / 100 BETWEEN 30 AND 400;
+            UPDATE plays SET bpm = bpm / 10 WHERE bpm > 400 AND bpm / 10 BETWEEN 40 AND 400;
+            UPDATE plays SET bpm = bpm / 100 WHERE bpm > 400 AND bpm / 100 BETWEEN 30 AND 400;
+            """,
+
+        // 14: Which way of reading tags each song was read with (TagReader.Version). When it's
+        // raised, the next scan reads every song's tags again, not only changed files. 0: before.
+        """
+            ALTER TABLE tracks ADD COLUMN tag_version INTEGER NOT NULL DEFAULT 0;
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -282,18 +299,18 @@ public sealed partial class LibraryDatabase
 
     // ───────────── Scanning support ─────────────
 
-    internal readonly record struct FileStamp(long Id, long Size, long ModifiedTicks);
+    internal readonly record struct FileStamp(long Id, long Size, long ModifiedTicks, int TagVersion);
 
     internal Dictionary<string, FileStamp> GetFileStamps(long rootId)
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = "SELECT path, id, file_size, modified_utc FROM tracks WHERE root_id = $root;";
+        cmd.CommandText = "SELECT path, id, file_size, modified_utc, tag_version FROM tracks WHERE root_id = $root;";
         cmd.Parameters.AddWithValue("$root", rootId);
         using var r = cmd.ExecuteReader();
         var stamps = new Dictionary<string, FileStamp>(StringComparer.Ordinal);
         while (r.Read())
-            stamps[r.GetString(0)] = new FileStamp(r.GetInt64(1), r.GetInt64(2), r.GetInt64(3));
+            stamps[r.GetString(0)] = new FileStamp(r.GetInt64(1), r.GetInt64(2), r.GetInt64(3), r.GetInt32(4));
         return stamps;
     }
 
@@ -305,20 +322,20 @@ public sealed partial class LibraryDatabase
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
             INSERT INTO tracks (root_id, path, folder, file_name, file_size, modified_utc,
-                                title, artist, album, album_artist, genre, comment, year, track_number, bpm, duration_ms)
+                                title, artist, album, album_artist, genre, comment, year, track_number, bpm, duration_ms, tag_version)
             VALUES ($root, $path, $folder, $file, $size, $mod,
-                    $title, $artist, $album, $album_artist, $genre, $comment, $year, $track, $bpm, $duration)
+                    $title, $artist, $album, $album_artist, $genre, $comment, $year, $track, $bpm, $duration, $tag_version)
             ON CONFLICT(path) DO UPDATE SET
                 root_id = excluded.root_id, folder = excluded.folder, file_name = excluded.file_name,
                 file_size = excluded.file_size, modified_utc = excluded.modified_utc,
                 title = excluded.title, artist = excluded.artist, album = excluded.album,
                 album_artist = excluded.album_artist, genre = excluded.genre, comment = excluded.comment,
                 year = excluded.year, track_number = excluded.track_number, bpm = excluded.bpm,
-                duration_ms = excluded.duration_ms;
+                duration_ms = excluded.duration_ms, tag_version = excluded.tag_version;
             """;
         var p = new Dictionary<string, SqliteParameter>();
         foreach (string name in new[] { "$root", "$path", "$folder", "$file", "$size", "$mod", "$title", "$artist",
-                     "$album", "$album_artist", "$genre", "$comment", "$year", "$track", "$bpm", "$duration" })
+                     "$album", "$album_artist", "$genre", "$comment", "$year", "$track", "$bpm", "$duration", "$tag_version" })
             p[name] = cmd.Parameters.Add(new SqliteParameter { ParameterName = name });
         cmd.Prepare();
 
@@ -340,6 +357,7 @@ public sealed partial class LibraryDatabase
             p["$track"].Value = (object?)t.TrackNumber ?? DBNull.Value;
             p["$bpm"].Value = (object?)t.TagBpm ?? DBNull.Value;
             p["$duration"].Value = (long)t.Duration.TotalMilliseconds;
+            p["$tag_version"].Value = TagReader.Version;
             cmd.ExecuteNonQuery();
         }
         tx.Commit();

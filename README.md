@@ -28,6 +28,19 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 - **macOS** may say it can't check GZJam for malicious software: open **System Settings ›
   Privacy & Security**, scroll down and click **Open Anyway** beside the note about GZJam.
 
+## If the sound crackles or drops out
+
+- Turn on **Settings › Sound › Extra protection against crackles**. Play and the crossfader respond
+  a little later, which hardly matters for most DJing.
+- Use a wired output: Bluetooth speakers and headphones add delay and drop out.
+- Plug the sound card straight into the computer rather than through a hub or dock.
+- Keep the computer plugged in, and set its power mode to best performance during a set.
+- On Windows, if other programs refuse to play while GZJam is open, the speakers GZJam has to
+  itself are also Windows' default output: choose another output in Windows' Sound settings.
+
+If it still happens, [open an issue](https://github.com/GemZombie/GZJam/issues/new/choose) and
+attach the activity log: it notes when the speakers' sound ran dry.
+
 ## Supporting GZJam
 
 GZJam is free, and always will be. If it's useful to you and you'd like to support the work,

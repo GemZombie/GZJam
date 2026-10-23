@@ -60,6 +60,32 @@ public sealed class OutputSwitchingTests : IDisposable
     }
 
     [Fact]
+    public void Extra_buffering_lengthens_the_buffers_and_reopens_the_outputs_with_them()
+    {
+        int normal = Bass.GetConfig(Configuration.PlaybackBufferLength);
+        _engine.ExtraBuffering = true;
+        Assert.Equal(normal * 3, Bass.GetConfig(Configuration.PlaybackBufferLength));
+
+        var devices = _engine.GetOutputDevices();
+        if (devices.Count > 0)
+        {
+            try
+            {
+                _mix.SetOutputs(devices[0], null);
+            }
+            catch (AudioException)
+            {
+                Assert.Skip("Needs an output device that opens.");
+            }
+            Assert.Equal(devices[0], _mix.Main.Device);
+            Assert.True(IsOpen(devices[0]));
+        }
+
+        _engine.ExtraBuffering = false;
+        Assert.Equal(normal, Bass.GetConfig(Configuration.PlaybackBufferLength));
+    }
+
+    [Fact]
     public void A_busy_output_is_explained()
     {
         string message = AudioException.Busy("Cable Creation USB Audio").Message;

@@ -99,6 +99,41 @@ public sealed class HistoryTests : IDisposable
     }
 
     [Fact]
+    public void Bpms_stored_ten_or_a_hundred_times_over_are_scaled_back_once()
+    {
+        // A library scanned before tags storing BPM x10 were understood (schema 12).
+        string path = Path.Combine(_lib.Directory, "x10.db");
+        new LibraryDatabase(path).AddRoot(@"C:\music");
+        using (var c = new SqliteConnection($"Data Source={path}"))
+        {
+            c.Open();
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = """
+                INSERT INTO tracks(root_id, path, folder, file_name, file_size, modified_utc, title, bpm) VALUES
+                    (1, 'a.mp3', '', 'a.mp3', 1, 0, 'Pink Panther Theme', 1180),
+                    (1, 'b.mp3', '', 'b.mp3', 1, 0, 'Times a hundred', 13200),
+                    (1, 'c.mp3', '', 'c.mp3', 1, 0, 'Fine as it is', 236),
+                    (1, 'd.mp3', '', 'd.mp3', 1, 0, 'No tag', NULL);
+                INSERT INTO sessions(id, started_utc) VALUES (1, 0);
+                INSERT INTO plays(session_id, played_utc, path, title, bpm) VALUES (1, 0, 'a.mp3', 'Pink Panther Theme', 1180);
+                ALTER TABLE tracks DROP COLUMN tag_version;   -- added by upgrade 14
+                PRAGMA user_version = 12;
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        SqliteConnection.ClearAllPools();
+
+        var db = new LibraryDatabase(path);
+
+        double? Bpm(string title) => db.Search(null).Single(t => t.Title == title).TagBpm;
+        Assert.Equal(118, Bpm("Pink Panther Theme"));
+        Assert.Equal(132, Bpm("Times a hundred"));
+        Assert.Equal(236, Bpm("Fine as it is"));
+        Assert.Null(Bpm("No tag"));
+        Assert.Equal(118, Assert.Single(db.GetPlays(1)).Bpm);
+    }
+
+    [Fact]
     public void An_existing_library_is_upgraded_in_place()
     {
         // A database made by the first version of GZJam (schema 1, no history tables).
@@ -109,6 +144,7 @@ public sealed class HistoryTests : IDisposable
             using var cmd = c.CreateCommand();
             cmd.CommandText = """
                 CREATE TABLE roots (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE);
+                CREATE TABLE tracks (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE, bpm REAL);
                 INSERT INTO roots(path) VALUES ('C:\music');
                 PRAGMA user_version = 1;
                 """;

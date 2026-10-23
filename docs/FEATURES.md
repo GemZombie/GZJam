@@ -54,6 +54,12 @@ is out of scope until it earns a place.
   say why when loaded ("it's AAC, which GZJam can't play on Linux"). Tests decode a two-second tone
   in each format on all three systems (`tests/Shared/Formats`, made with ffmpeg).
 - Skips macOS `._name.mp3` metadata files (24 of them in the real library).
+- **Reading tags again** (2026-10-23, issue #26): each song remembers which way of reading tags it
+  was read with (`TagReader.Version`, schema upgrade 14); raising it makes the next scan read every
+  song again, so a fix in tag reading reaches libraries scanned before it. Right-click a folder ›
+  *Read all tags again* does the same by hand, for tags edited by a program that keeps the file's
+  date (Mp3tag can). About 3 s for 12,700 songs. The DJ's own data (ratings, labels, EQ, trims,
+  History) is kept by path and untouched.
 
 ### What the real library looks like (12,686 tracks in `C:\music`)
 
@@ -115,7 +121,9 @@ is out of scope until it earns a place.
   the detected BPM is shown even over a tag's BPM; Automatic goes back to the tag.
 - A global "my music's tempo range" setting was tried first and dropped: the DJ felt one range
   for the whole library wouldn't fit, and wanted to fix individual songs instead.
-- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
+- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100. Libraries scanned before
+  that kept the raw value (a rescan skips unchanged files): schema upgrade 13 corrects them once,
+  in the library and History (issue #26).
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
   outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
 - Not yet: typing or tapping a BPM, per-folder BPM ranges,
@@ -651,6 +659,53 @@ not here. This file records what was decided and built, and why.
   analog), never one driver's naming. The sound server's own entry (the same as Default) and
   Intel SOF's second copy of the headphone jack are left out; anything unrecognised keeps ALSA's
   name. The log keeps both names.
+
+### Status: speakers for GZJam alone on Windows (2026-10-22, issue #10)
+
+- **Settings › Sound › Speakers for GZJam alone** (Windows only; on by default): the speakers' sound
+  card is opened in WASAPI exclusive mode (un4seen's BASSWASAPI, `ExclusiveOutput`), so no
+  notification or browser can reach the room while GZJam is open. Linux already gets this by
+  opening a chosen card directly.
+- Only for an output chosen by name, never *Default* (which follows whatever Windows picks), and
+  only the speakers: the headphones stay shared, so the DJ can still hear other things on them.
+- The mix runs at the card's own rate: 44.1 kHz where it takes it (most music, no resampling),
+  else 48, 96, 88.2 or 192 kHz, with BASSmix resampling the decks. The limiter follows the rate.
+- Windows lets an exclusive output take a card even from a program already playing on it, so a
+  browser playing can't block GZJam. A card another program holds *exclusively* can't be opened
+  at all: GZJam says who has it and the room keeps the output it had.
+- A card that won't open alone for another reason (no stereo at those rates) is shared instead,
+  with a notice saying so. The log says "(GZJam's alone)" when it is.
+- If the card stops by itself (unplugged, or taken by Windows), GZJam opens it again if it's still
+  there, else the system default, with a notice, as at startup.
+- **The room comes first** (found testing on the move, 2026-10-23): headphones that won't open no
+  longer stop the speakers opening (before, both stayed shut and the decks played to nothing);
+  the headphones are silent and a notice says why. Speakers that fall back to the system default
+  when it's the headphones' own output (a laptop unplugged from its dock and TV) leave the
+  headphones off, with a notice, so a preview can't reach the room; that also predates this
+  feature. Headphones chosen on the speakers' output on purpose share it rather than being shut
+  out by an exclusive speaker output.
+- **Unplugged mid-song** (also found on the move): Windows can still list a card just unplugged,
+  so GZJam reopens the speakers only if they actually open; otherwise it goes to the system
+  default, as above, and says so. When neither the new speakers nor the old ones open, the
+  headphones carry on rather than going quiet with them. An exclusive output that runs dry because
+  it's been unplugged counts as lost at once, not as a dropout.
+- Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
+  computer's default; they skip on CI machines, which have no sound cards.
+
+### Status: extra protection against crackles (2026-10-23, issue #25)
+
+- **Settings › Sound › Extra protection against crackles** (off by default): every output's buffers
+  about three times as long (BASS's playback buffer 200 → 600 ms, the device buffer on Linux and
+  Windows' shared output, the exclusive speakers 150 → 400 ms). One switch rather than numbers: a
+  DJ can't be expected to know buffer sizes, and a wrong one causes what it's meant to fix.
+  GZJam doesn't beatmatch or scratch, so a little delay costs little. Turning it on reopens the
+  outputs (a short gap), since a device's buffer is set when it's opened.
+- The exclusive speakers' normal buffer went from 100 to 150 ms for everyone: cheap insurance.
+- **Dropouts are logged:** the exclusive speakers' buffer is checked about 30 times a second, and
+  an empty one is noted in the activity log (at most every 10 s), with a hint to try the switch.
+- **Windows default warning:** when the speakers GZJam has to itself are also Windows' default
+  output, Settings › Sound says other programs may refuse to play (YouTube did, in testing) and
+  how to avoid it: make another output Windows' default.
 
 ### Status: asking before closing mid-set (2026-10-23, issue #28)
 

@@ -3,6 +3,7 @@ Their licences, in full, are in THIRD-PARTY-NOTICES.txt beside GZJam.
 
 BASS, BASS_FX and BASSmix: playback, tempo and mixing
 BASSFLAC, BASSOPUS and BASSALAC: FLAC, Opus and Apple Lossless
+BASSWASAPI: on Windows, the speakers for GZJam alone
   Copyright (c) Un4seen Developments Ltd. https://www.un4seen.com
   Free for non-commercial software, under Un4seen's own licence.
   BASSFLAC includes libFLAC (BSD licence), BASSOPUS libopus (BSD), and BASSALAC Apple's
