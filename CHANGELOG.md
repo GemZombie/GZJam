@@ -9,7 +9,7 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2026-10-22)
 
 New:
 
