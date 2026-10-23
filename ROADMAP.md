@@ -69,6 +69,8 @@ as where they're put; finding the exact spot, by mouse or finger, is the focus.
 - [Drag the start, end, jump and cue markers](https://github.com/GemZombie/GZJam/issues/12), by
   finger or mouse
 - [Tap tempo](https://github.com/GemZombie/GZJam/issues/11), to set a BPM by tapping along
+- [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
+- [Choose how close `~bpm:` searches are](https://github.com/GemZombie/GZJam/issues/7)
 
 **After that, 0.6.0:** [rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41),
 named and tagged.
@@ -84,8 +86,6 @@ to one you'd use.
 **Library**
 - [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
-- [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
-- [Choose how close `~bpm:` searches are](https://github.com/GemZombie/GZJam/issues/7)
 
 **Sound and outputs**
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
