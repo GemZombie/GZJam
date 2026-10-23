@@ -120,11 +120,11 @@
             <!-- Rate the song while it plays: tap to cycle, like the library columns -->
             <Button x:Name="RatingButton" Classes="row-icon" Padding="3,2" Click="OnRatingClick" IsVisible="{Binding HasTrack}"
                     VerticalAlignment="Center" ToolTip.Tip="Would you play this for a dance? Tap: ♥ yes, then broken heart: no, then unrated.">
-              <c:RatingIcon Rating="{Binding Track.Rating, FallbackValue={x:Static lib:Rating.Unrated}}" Width="14" Height="14" />
+              <c:RatingIcon Rating="{Binding Track?.Rating, TargetNullValue={x:Static lib:Rating.Unrated}}" Width="14" Height="14" />
             </Button>
             <Button x:Name="EnergyButton" Grid.Column="1" Classes="row-icon" Padding="5,3" Click="OnEnergyClick" IsVisible="{Binding HasTrack}"
                     VerticalAlignment="Center" ToolTip.Tip="Energy. Tap: low, medium, high, then unset.">
-              <c:EnergyIcon Energy="{Binding Track.Energy, FallbackValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
+              <c:EnergyIcon Energy="{Binding Track?.Energy, TargetNullValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
             </Button>
             <!-- EQ for this song (lit when set) -->
             <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Margin="4,0,2,0"
