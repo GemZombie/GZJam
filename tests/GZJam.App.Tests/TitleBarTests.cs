@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Chrome;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using GZJam.App.Views;
 
@@ -11,6 +12,8 @@ namespace GZJam.App.Tests;
 public sealed class TitleBarTests
 {
     private static WindowDecorationsElementRole Role(Control control) => WindowDecorationProperties.GetElementRole(control);
+
+    private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
     [AvaloniaFact]
     public void The_bar_moves_the_window_and_its_keys_stay_keys()
@@ -26,22 +29,31 @@ public sealed class TitleBarTests
     }
 
     [AvaloniaFact]
-    public void On_windows_gzjam_draws_minimise_maximise_and_close_and_windows_knows_them()
+    public void On_windows_gzjam_draws_and_handles_minimise_maximise_and_close()
     {
         Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows only: macOS draws its own.");
         using var app = new AppHarness();
         Assert.Equal(WindowDecorations.BorderOnly, app.Window.WindowDecorations);   // no title drawn over the bar
         Assert.True(app.Window.FindControl<StackPanel>("CaptionButtons")!.IsVisible);
-        Assert.Equal(WindowDecorationsElementRole.MinimizeButton, Role(app.Window.FindControl<Button>("MinimizeButton")!));
-        Assert.Equal(WindowDecorationsElementRole.MaximizeButton, Role(app.Window.FindControl<Button>("MaximizeButton")!));
-        Assert.Equal(WindowDecorationsElementRole.CloseButton, Role(app.Window.FindControl<Button>("CloseButton")!));
+        // Ordinary keys GZJam handles: marked as Windows' own, clicks would go nowhere.
+        foreach (string name in new[] { "MinimizeButton", "MaximizeButton", "CloseButton" })
+            Assert.Equal(WindowDecorationsElementRole.User, Role(app.Window.FindControl<Button>(name)!));
 
         var maximize = app.Window.FindControl<Button>("MaximizeButton")!;
-        Assert.Equal("", maximize.Content);
-        app.Window.WindowState = WindowState.Maximized;
-        Assert.Equal("", maximize.Content);   // restore
+        Assert.Equal("\uE922", maximize.Content);
+        Click(maximize);
+        Assert.Equal(WindowState.Maximized, app.Window.WindowState);
+        Assert.Equal("\uE923", maximize.Content);   // restore
+        Click(maximize);
+        Assert.Equal(WindowState.Normal, app.Window.WindowState);
+        Assert.Equal("\uE922", maximize.Content);
+
+        Click(app.Window.FindControl<Button>("MinimizeButton")!);
+        Assert.Equal(WindowState.Minimized, app.Window.WindowState);
         app.Window.WindowState = WindowState.Normal;
-        Assert.Equal("", maximize.Content);
+
+        Click(app.Window.FindControl<Button>("CloseButton")!);   // nothing playing: closes
+        Assert.False(app.Window.IsVisible);
     }
 
     [AvaloniaFact]

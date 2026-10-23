@@ -38,6 +38,9 @@ public partial class MainWindow
             WindowDecorations = WindowDecorations.BorderOnly;
             CaptionButtons.IsVisible = true;
             TopBarContent.Margin = new Thickness(20, 0, 12, 0);
+            MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
+            MaximizeButton.Click += (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            CloseButton.Click += (_, _) => Close();   // still asks first while the room hears a deck
             ShowMaximizeOrRestore();
         }
 
@@ -55,11 +58,9 @@ public partial class MainWindow
                 ShowMaximizeOrRestore();
         };
 
-        // Set last: the bar's buttons are pressable, these three are Windows' own. Windows then
-        // minimises, maximises (with snap layouts) and closes by itself, by mouse, touch or pen.
-        WindowDecorationProperties.SetElementRole(MinimizeButton, WindowDecorationsElementRole.MinimizeButton);
-        WindowDecorationProperties.SetElementRole(MaximizeButton, WindowDecorationsElementRole.MaximizeButton);
-        WindowDecorationProperties.SetElementRole(CloseButton, WindowDecorationsElementRole.CloseButton);
+        // The three are ordinary keys handled here, like the bar's others. Marked as Windows' own
+        // buttons, Windows recognises them (and would show snap layouts on maximise) but, with
+        // border-only decorations, neither it nor Avalonia acts on a click: they'd do nothing.
     }
 
     /// <summary>The middle button shows maximise, or restore when the window is maximised.</summary>

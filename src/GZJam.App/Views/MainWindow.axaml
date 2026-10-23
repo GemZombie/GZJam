@@ -21,8 +21,7 @@
     <Border x:Name="TopBar" DockPanel.Dock="Top" Height="{DynamicResource TopBarHeight}"
             Background="{StaticResource BgBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
       <DockPanel>
-      <!-- Windows: minimise, maximise (or restore) and close, drawn by GZJam and marked for Windows,
-           which treats them as its own (snap layouts on maximise included) -->
+      <!-- Windows: minimise, maximise (or restore) and close, drawn and handled by GZJam -->
       <StackPanel x:Name="CaptionButtons" DockPanel.Dock="Right" Orientation="Horizontal" IsVisible="False">
         <Button x:Name="MinimizeButton" Focusable="False" Classes="caption" Content="&#xE921;" AutomationProperties.Name="Minimise" />
         <Button x:Name="MaximizeButton" Focusable="False" Classes="caption" Content="&#xE922;" AutomationProperties.Name="Maximise" />

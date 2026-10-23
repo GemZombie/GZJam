@@ -726,10 +726,13 @@ not here. This file records what was decided and built, and why.
 - The bar is marked as the title bar for Windows' hit-testing, so its empty space moves the window
   and a double-click maximises; every key in it is marked as a key.
 - **Windows:** Avalonia 12 would draw Windows' title bar itself, the window's title included,
-  over the left of the bar, so the decorations are border-only and GZJam draws minimise,
-  maximise (restore when maximised) and close in Windows' style, marked as Windows' own: Windows
-  then handles them, snap layouts included. Checked by asking the window (WM_NCHITTEST) about
-  each spot. When maximised, the window's off-screen edge is kept clear of the bar.
+  over the left of the bar, so the decorations are border-only and GZJam draws and handles
+  minimise, maximise (restore when maximised) and close in Windows' style. First tried marking
+  them as Windows' own buttons: Windows recognised them (and would show snap layouts on hover) but
+  with border-only decorations neither it nor Avalonia acted on a click, so they did nothing (the
+  maintainer found it). Snap layouts on hover would need Windows' messages handled directly; drag
+  to a screen edge and Win+Z still snap. Checked by asking a real window (WM_NCHITTEST) about each
+  spot. When maximised, the window's off-screen edge is kept clear of the bar.
 - **macOS:** the bar leaves room on the left for the window's own buttons. Not yet seen on a Mac
   (issue #18).
 - **Linux** keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
