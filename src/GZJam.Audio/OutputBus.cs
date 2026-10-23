@@ -34,18 +34,14 @@ public sealed class OutputBus : IDisposable
     private float _peakLeft, _peakRight;
     private volatile bool _limited;
     private readonly float _release;   // per sample
-    private readonly IDisposable? _exclusive;
-    private readonly Func<bool>? _isLost;
+    private readonly ExclusiveOutput? _exclusive;
 
     /// <param name="exclusive">The output GZJam has to itself (Windows), freed with the bus.</param>
-    /// <param name="isLost">Whether that output has stopped by itself (e.g. unplugged).</param>
-    internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate,
-        IDisposable? exclusive = null, Func<bool>? isLost = null)
+    internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate, ExclusiveOutput? exclusive = null)
     {
         Handle = handle;
         Device = device;
         _exclusive = exclusive;
-        _isLost = isLost;
         _release = MathF.Exp(-1f / (ReleaseSeconds * sampleRate));
         _dsp = Process;
         Bass.ChannelSetDSP(handle, _dsp);
@@ -65,7 +61,10 @@ public sealed class OutputBus : IDisposable
     public bool IsExclusive => _exclusive is not null;
 
     /// <summary>An exclusive output that has stopped by itself: unplugged, or taken by Windows.</summary>
-    internal bool IsLost => _isLost?.Invoke() ?? false;
+    internal bool IsLost => _exclusive?.IsLost ?? false;
+
+    /// <summary>An exclusive output whose buffer is empty right now: a dropout (see <see cref="ExclusiveOutput.IsDry"/>).</summary>
+    internal bool IsDry() => _exclusive?.IsDry() ?? false;
 
     /// <summary>Output level, 0 (silent) to 1 (as mixed).</summary>
     public float Volume

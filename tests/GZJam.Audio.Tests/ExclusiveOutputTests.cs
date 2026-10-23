@@ -109,6 +109,18 @@ public sealed class ExclusiveOutputTests : IDisposable
     }
 
     [Fact]
+    public void With_extra_buffering_the_speakers_are_still_gzjams_alone()
+    {
+        AudioDevice device = SpareDevice();
+        _engine.ExtraBuffering = true;
+        _mix.SetOutputs(device, null);
+        Assert.True(_mix.Main.IsExclusive);
+        Thread.Sleep(1300);   // past settling: a running output isn't dry
+        Assert.False(_mix.Main.IsDry());
+        _engine.ExtraBuffering = false;
+    }
+
+    [Fact]
     public void Headphones_stay_shared()
     {
         AudioDevice device = SpareDevice();

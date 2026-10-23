@@ -672,6 +672,21 @@ not here. This file records what was decided and built, and why.
 - Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
   computer's default; they skip on CI machines, which have no sound cards.
 
+### Status: extra protection against crackles (2026-10-23, issue #25)
+
+- **Settings › Sound › Extra protection against crackles** (off by default): every output's buffers
+  about three times as long (BASS's playback buffer 200 → 600 ms, the device buffer on Linux and
+  Windows' shared output, the exclusive speakers 150 → 400 ms). One switch rather than numbers: a
+  DJ can't be expected to know buffer sizes, and a wrong one causes what it's meant to fix.
+  GZJam doesn't beatmatch or scratch, so a little delay costs little. Turning it on reopens the
+  outputs (a short gap), since a device's buffer is set when it's opened.
+- The exclusive speakers' normal buffer went from 100 to 150 ms for everyone: cheap insurance.
+- **Dropouts are logged:** the exclusive speakers' buffer is checked about 30 times a second, and
+  an empty one is noted in the activity log (at most every 10 s), with a hint to try the switch.
+- **Windows default warning:** when the speakers GZJam has to itself are also Windows' default
+  output, Settings › Sound says other programs may refuse to play (YouTube did, in testing) and
+  how to avoid it: make another output Windows' default.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

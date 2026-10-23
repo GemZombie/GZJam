@@ -39,6 +39,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         if (audio is not null)
         {
+            audio.ExtraBuffering = settings.ExtraBuffering;
             Analysis = new TrackAnalysisService(database, audio);
             Analysis.Analyzed += OnAnalyzed;
             Analysis.PropertyChanged += (_, _) => BackgroundChanged();
@@ -59,6 +60,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             mix.ExclusiveSpeakers = settings.ExclusiveSpeakers;
             mix.MainOutputLost += (_, _) => OnMainOutputLost();
+            mix.MainDropout += (_, _) => Log.Info(
+                $"Speakers: the sound buffer ran dry (a dropout may have been heard){(settings.ExtraBuffering ? "" : "; Settings › Sound › Extra protection against crackles may help")}");
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
@@ -441,6 +444,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         Mix.ExclusiveSpeakers = value;
         if (!Mix.IsOffline && Mix.Main.Device is not null)
+            SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
+    }
+
+    /// <summary>Applies <see cref="AppSettings.ExtraBuffering"/>, opening the outputs again with it.</summary>
+    public void SetExtraBuffering(bool value)
+    {
+        _settings.ExtraBuffering = value;
+        Log.Info($"Extra protection against crackles: {(value ? "on" : "off")}");
+        if (Audio is null)
+            return;
+        Audio.ExtraBuffering = value;
+        if (Mix is { IsOffline: false })
             SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
     }
 

@@ -84,6 +84,21 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
+    public void Extra_protection_against_crackles_is_off_by_default_and_remembered()
+    {
+        using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Sound);
+        var toggle = Panel(app).FindControl<ToggleButton>("ExtraBufferingSwitch")!;
+        Assert.True(toggle.IsEffectivelyVisible);
+        Assert.False(toggle.IsChecked);
+
+        app.ViewModel.Settings.ExtraBuffering = true;
+        Assert.True(app.Settings.ExtraBuffering);
+        Assert.True(toggle.IsChecked);
+        Assert.False(Panel(app).FindControl<TextBlock>("WindowsDefaultHint")!.IsEffectivelyVisible);   // no speakers chosen
+    }
+
+    [AvaloniaFact]
     public void Each_section_in_pictures()
     {
         using var app = new AppHarness();

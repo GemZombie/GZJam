@@ -97,6 +97,27 @@ public sealed partial class SettingsViewModel : ObservableObject
                 return;
             _owner.SetExclusiveSpeakers(value);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(SpeakersAreWindowsDefault));
+        }
+    }
+
+    /// <summary>
+    /// The speakers GZJam has to itself are also Windows' default output, so other programs that
+    /// play there (a browser) may refuse to play while GZJam is open.
+    /// </summary>
+    public bool SpeakersAreWindowsDefault =>
+        ShowsExclusiveSpeakers && ExclusiveSpeakers && MainDevice is { IsDefault: true, FollowsSystemDefault: false };
+
+    /// <summary>Extra protection against crackles (see <see cref="AppSettings.ExtraBuffering"/>).</summary>
+    public bool ExtraBuffering
+    {
+        get => _settings.ExtraBuffering;
+        set
+        {
+            if (value == _settings.ExtraBuffering)
+                return;
+            _owner.SetExtraBuffering(value);
+            OnPropertyChanged();
         }
     }
 
@@ -181,6 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnMainDeviceChanged(AudioDevice? value)
     {
+        OnPropertyChanged(nameof(SpeakersAreWindowsDefault));
         if (!_loading && value is not null)
             _owner.SetOutputs(value, CueDevice == NoDevice ? null : CueDevice);
     }

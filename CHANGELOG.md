@@ -17,7 +17,11 @@ New:
   notification, a browser) can reach the room through the speaker output. Settings › Sound ›
   *Speakers for GZJam alone*, on by default, for an output chosen by name (not *Default*). The
   headphones stay shared. If the card is unplugged mid-set, the music moves to the computer's
-  default output and GZJam says so.
+  default output and GZJam says so. When those speakers are also Windows' default output, Settings
+  says other programs may refuse to play, and how to avoid it.
+- **Extra protection against crackles** (Settings › Sound): for a computer where the sound crackles
+  or drops out. Play and the crossfader respond a little later. The activity log notes when the
+  speakers' sound runs dry, and the README has a short troubleshooting list.
 
 ## 0.2.1 (2026-10-22)
 

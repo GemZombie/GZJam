@@ -15,15 +15,16 @@ internal sealed class ExclusiveOutput : IDisposable
     /// <summary>The rates tried, music's own first so most songs aren't resampled.</summary>
     private static readonly int[] Rates = [44100, 48000, 96000, 88200, 192000];
 
-    /// <summary>The output's buffer: long enough to ride out a busy moment, short enough for the crossfader.</summary>
-    private const float BufferSeconds = 0.1f;
-
     private static readonly Lock s_lock = new();
     private static readonly WasapiNotifyProcedure s_notify = OnNotify;   // kept alive: BASSWASAPI calls it
     private static readonly ConcurrentDictionary<int, ExclusiveOutput> s_open = new();   // read by the notification, lock-free
     private static bool s_notifying;
 
+    /// <summary>A just-opened output fills its buffer first: an empty one then isn't a dropout.</summary>
+    private static readonly TimeSpan Settling = TimeSpan.FromSeconds(1);
+
     private readonly int _device;
+    private readonly long _opened = Environment.TickCount64;
     private volatile bool _lost;
 
     private ExclusiveOutput(int device, int mixer, int sampleRate)
@@ -31,6 +32,23 @@ internal sealed class ExclusiveOutput : IDisposable
         _device = device;
         Mixer = mixer;
         SampleRate = sampleRate;
+    }
+
+    /// <summary>
+    /// Whether the output's buffer is empty right now, which is heard as a dropout or crackle: the
+    /// computer didn't keep up. Checked regularly, it tells a report of crackles from other causes.
+    /// </summary>
+    public bool IsDry()
+    {
+        if (_lost || Environment.TickCount64 - _opened < Settling.TotalMilliseconds)
+            return false;
+        lock (s_lock)
+        {
+            if (!s_open.ContainsKey(_device))
+                return false;
+            BassWasapi.CurrentDevice = _device;
+            return BassWasapi.GetData(IntPtr.Zero, (int)DataFlags.Available) == 0;
+        }
     }
 
     /// <summary>The decoding mixer the output plays: decks and the preview are added to it.</summary>
@@ -67,7 +85,7 @@ internal sealed class ExclusiveOutput : IDisposable
                 throw new AudioException("Could not create mixer", Bass.LastError);
 
             // WASAPIPROC_BASS (-1): BASSWASAPI reads the mixer itself, on its own thread.
-            if (!BassWasapi.InitEx(wasapi, rate, MixEngine.Channels, WasapiInitFlags.Exclusive, BufferSeconds, 0, new IntPtr(-1), new IntPtr(mixer)))
+            if (!BassWasapi.InitEx(wasapi, rate, MixEngine.Channels, WasapiInitFlags.Exclusive, engine.ExclusiveBufferSeconds, 0, new IntPtr(-1), new IntPtr(mixer)))
             {
                 Errors error = Bass.LastError;
                 Bass.StreamFree(mixer);

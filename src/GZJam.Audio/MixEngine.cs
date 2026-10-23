@@ -22,6 +22,7 @@ public sealed class MixEngine : IDisposable
     private readonly bool _offline;
     private double _crossfader;
     private bool _mainLostRaised;
+    private long _lastDropout = long.MinValue / 2;
 
     /// <param name="offline">
     /// Mix without audio devices; pull audio with <see cref="OutputBus.Render"/>. For tests.
@@ -61,6 +62,13 @@ public sealed class MixEngine : IDisposable
     /// once, from <see cref="Update"/>; the app opens outputs again.
     /// </summary>
     public event EventHandler? MainOutputLost;
+
+    /// <summary>
+    /// The speakers' exclusive output ran dry: a dropout or crackle may have been heard because the
+    /// computer didn't keep up. Raised from <see cref="Update"/>, at most every 10 seconds; the app
+    /// logs it.
+    /// </summary>
+    public event EventHandler? MainDropout;
 
     public OutputBus Main { get; private set; }
     public OutputBus Cue { get; private set; }
@@ -165,6 +173,11 @@ public sealed class MixEngine : IDisposable
             _mainLostRaised = true;
             MainOutputLost?.Invoke(this, EventArgs.Empty);
         }
+        else if (Environment.TickCount64 - _lastDropout > 10_000 && Main.IsDry())
+        {
+            _lastDropout = Environment.TickCount64;
+            MainDropout?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>Offline only: renders both buses in small interleaved chunks, returning each one's peak level.</summary>
@@ -200,7 +213,7 @@ public sealed class MixEngine : IDisposable
             try
             {
                 var exclusive = ExclusiveOutput.Open(Engine, device!, MixerFlags);
-                return new OutputBus(exclusive.Mixer, device, exclusive.SampleRate, exclusive, () => exclusive.IsLost);
+                return new OutputBus(exclusive.Mixer, device, exclusive.SampleRate, exclusive);
             }
             catch (AudioException ex)
             {

@@ -64,6 +64,12 @@ public sealed class AppSettings
     public bool ExclusiveSpeakers { get; set; } = true;
 
     /// <summary>
+    /// Longer buffers on every output, for a computer where the sound crackles or drops out. Play
+    /// and the crossfader respond a little later. Off by default.
+    /// </summary>
+    public bool ExtraBuffering { get; set; }
+
+    /// <summary>
     /// How many decks are on screen: 2, or 4 (half height, 1 and 3 on the left of the mixer, 2 and
     /// 4 on the right).
     /// </summary>
