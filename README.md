@@ -28,6 +28,12 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 - **macOS** may say it can't check GZJam for malicious software: open **System Settings ›
   Privacy & Security**, scroll down and click **Open Anyway** beside the note about GZJam.
 
+## Supporting GZJam
+
+GZJam is free, and always will be. If it's useful to you and you'd like to support the work,
+you can [sponsor it on GitHub](https://github.com/sponsors/GemZombie). Telling other DJs about it,
+reporting problems and sharing ideas help just as much.
+
 ## Stack
 
 - .NET 10 + [Avalonia](https://avaloniaui.net/) (Windows, Linux and macOS)
@@ -39,8 +45,10 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 
 GZJam's own code is under the [MIT licence](LICENSE). It's built with other people's software,
 each under its own licence, listed in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). BASS
-(in `lib/bass/`) isn't open source: it's free for software that makes no money, which is how
-GZJam uses it, and anything sold would need a licence from [un4seen](https://www.un4seen.com/).
+(in `lib/bass/`) isn't open source: it's free for software that isn't sold, which is how GZJam
+uses it. Donations are asked for here and on GitHub only, never inside GZJam, and donors get
+nothing extra, which un4seen says keeps BASS free to use. Selling GZJam, or asking for money inside
+it, would need a licence from [un4seen](https://www.un4seen.com/).
 
 ## Running from source
 
