@@ -62,22 +62,26 @@ Nothing yet: 0.4.0 has just come out.
 
 ## Planned next
 
-- [Testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and [on a real Mac](https://github.com/GemZombie/GZJam/issues/18)
+**0.5.0: setting points precisely.** Cue keys, jumps and a song's start and end are only as good
+as where they're put; finding the exact spot, by mouse or finger, is the focus.
+- [A zoomed, scrolling waveform](https://github.com/GemZombie/GZJam/issues/14), for finding a phrase
+  end or the end of applause to within a beat
+- [Drag the start, end, jump and cue markers](https://github.com/GemZombie/GZJam/issues/12), by
+  finger or mouse
+- [Tap tempo](https://github.com/GemZombie/GZJam/issues/11), to set a BPM by tapping along
+
+**After that, 0.6.0:** [rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41),
+named and tagged.
+
+**Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
+[on a real Mac](https://github.com/GemZombie/GZJam/issues/18).
 
 ## Being considered
 
 Requests and ideas, in no particular order. Each links to its discussion; add a 👍 or a comment
 to one you'd use.
 
-**Finding the right spot in a song**
-- [A zoomed, scrolling waveform](https://github.com/GemZombie/GZJam/issues/14), for setting
-  points precisely
-- [Drag the start, end and jump markers](https://github.com/GemZombie/GZJam/issues/12), by
-  finger or mouse
-- [Tap tempo](https://github.com/GemZombie/GZJam/issues/11), to set a BPM by tapping along
-
 **Library**
-- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
 - [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
