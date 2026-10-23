@@ -5,7 +5,7 @@ what you need to play music for people, without the clutter. This page is the bi
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.3.0** (22 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.4.0** (23 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -25,10 +25,17 @@ release.
 - Songs start at their first note: silence (or applause) at either end is found automatically, or
   set by hand.
 - Jumps: skip a part, or play one again, at the end of a phrase, without a gap.
+- Cue keys: mark up to four points in a song, then tap a numbered key to go there at once, at the
+  moment you choose (wait for the end of a phrase, then go to the outro), on air too.
+- A level meter on each deck, before the crossfader, so a song you're cueing is visibly too quiet
+  or too loud before the room hears it.
+- Nothing on a deck shifts or resizes as it starts or goes on air.
 - BPM detection, with easy fixes when it's wrong.
 
 **Mixing and sound**
 - The crossfader only affects the room; each deck has its own cue button for the headphones.
+- Phones mix: blend the headphones from what's cued to what the room hears, to keep an ear on the
+  dancers while previewing the next song.
 - Speakers and headphones on separate outputs, mono by default.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level.
 - A level meter and a safety limiter for the speakers.
@@ -40,24 +47,18 @@ release.
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
 - GZJam asks before closing while the room is hearing music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows.
+- On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
+  and library.
 
 **Coming from Mixxx**
-- Import ratings, crates (as labels), history and locked BPMs. Mixxx's own files are never changed.
+- Import ratings, crates (as labels), history, locked BPMs and hot cues. Mixxx's own files are
+  never changed.
 
 Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and AAC on Windows and Mac.
 
-## Finished, coming in 0.4.0
+## Finished, coming in the next release
 
-- **A level meter on each deck**, showing its level before the crossfader, so a song you're cueing
-  is visibly too quiet or too loud before the room hears it.
-- **Cue keys:** mark up to four points in a song, then tap a numbered key to go there at once,
-  at the moment you choose (wait for the end of a phrase, then go to the outro). Hot cues come
-  over from Mixxx.
-- **Phones mix:** blend the headphones from what's cued to what the room hears, to keep an ear on
-  the dancers while previewing the next song.
-- **Nothing moves:** nothing on a deck shifts or resizes as it starts or goes on air, and with four
-  decks all four are the same height.
-- **One bar at the top** on Windows and Mac, for more room.
+Nothing yet: 0.4.0 has just come out.
 
 ## Planned next
 
@@ -76,6 +77,7 @@ to one you'd use.
 - [Tap tempo](https://github.com/GemZombie/GZJam/issues/11), to set a BPM by tapping along
 
 **Library**
+- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
 - [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
