@@ -47,7 +47,16 @@ internal sealed class ExclusiveOutput : IDisposable
             if (!s_open.ContainsKey(_device))
                 return false;
             BassWasapi.CurrentDevice = _device;
-            return BassWasapi.GetData(IntPtr.Zero, (int)DataFlags.Available) == 0;
+            if (BassWasapi.GetData(IntPtr.Zero, (int)DataFlags.Available) != 0)
+                return false;
+            // Empty because it's been unplugged, not a dropout: say it's lost (sooner than
+            // Windows' notification, which can take a moment).
+            if (!BassWasapi.GetDeviceInfo(_device, out WasapiDeviceInfo info) || info.IsUnplugged || info.IsDisabled || !info.IsEnabled)
+            {
+                _lost = true;
+                return false;
+            }
+            return true;
         }
     }
 

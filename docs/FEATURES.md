@@ -676,6 +676,11 @@ not here. This file records what was decided and built, and why.
   headphones off, with a notice, so a preview can't reach the room; that also predates this
   feature. Headphones chosen on the speakers' output on purpose share it rather than being shut
   out by an exclusive speaker output.
+- **Unplugged mid-song** (also found on the move): Windows can still list a card just unplugged,
+  so GZJam reopens the speakers only if they actually open; otherwise it goes to the system
+  default, as above, and says so. When neither the new speakers nor the old ones open, the
+  headphones carry on rather than going quiet with them. An exclusive output that runs dry because
+  it's been unplugged counts as lost at once, not as a dropout.
 - Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
   computer's default; they skip on CI machines, which have no sound cards.
 

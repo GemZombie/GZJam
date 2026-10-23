@@ -454,12 +454,33 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     private void OnMainOutputLost()
     {
-        string name = Mix!.Main.Device?.Name ?? "The speaker output";
+        AudioDevice? lost = Mix!.Main.Device;
+        string name = lost?.Name ?? "The speaker output";
         Log.Error($"Speaker output stopped: {name}");
-        bool stillThere = Audio!.FindDevice(_settings.MainDevice) is not null;
-        ConnectSavedOutputs();
-        if (stillThere)
+        AudioDevice? cue = Audio!.FindDevice(_settings.CueDevice);
+
+        // Still there (Windows took it for a moment): open it again. Windows may still list a card
+        // just unplugged, so only opening it says it's back.
+        if (Audio.FindDevice(_settings.MainDevice) is { } saved && SetOutputs(saved, cue, remember: false, quiet: true))
+        {
             ShowNotice($"{name} stopped for a moment; GZJam opened it again.");
+            Settings.RefreshDevices();
+            return;
+        }
+
+        // Gone: the system default, as at startup, keeping the headphones out of the room.
+        AudioDevice? fallback = Audio.GetDefaultDevice() is { } byDefault && byDefault.Index != lost?.Index ? byDefault : null;
+        var (main, newCue, _) = ChooseOutputs(_settings.MainDevice, _settings.CueDevice, null, cue, fallback);
+        if (SetOutputs(main, newCue, remember: false))
+        {
+            string notice = main is null
+                ? $"{name} stopped (unplugged?), and no other speakers are connected. Choose them in Settings › Sound."
+                : $"{name} stopped (unplugged?), so the music is playing through {main.Name}." +
+                  (cue is not null && newCue is null ? " Headphones are off: they'd play in the room. Choose them in Settings › Sound." : "");
+            Log.Info(notice);
+            ShowNotice(notice);
+        }
+        Settings.RefreshDevices();
     }
 
     /// <summary>Applies <see cref="AppSettings.ExclusiveSpeakers"/>, opening the speakers again with it.</summary>
@@ -486,10 +507,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
     }
 
-    public void SetOutputs(AudioDevice? main, AudioDevice? cue, bool remember = true)
+    /// <summary>Opens outputs. Returns whether they opened (if not, the last ones play on and a notice says why).</summary>
+    /// <param name="remember">Save them as the DJ's choice.</param>
+    /// <param name="quiet">No notice if they won't open (GZJam is only trying).</param>
+    public bool SetOutputs(AudioDevice? main, AudioDevice? cue, bool remember = true, bool quiet = false)
     {
         if (Mix is null)
-            return;
+            return false;
+        bool opened = false;
         try
         {
             Mix.SetOutputs(main, cue);
@@ -509,17 +534,22 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 _settings.MainDevice = main?.Preference;
                 _settings.CueDevice = cue?.Preference;
             }
+            opened = true;
         }
         catch (AudioException ex)
         {
             Log.Error("Couldn't open output", ex);
-            ShowNotice($"Couldn't open that output: {ex.Message}");
-            Settings.RefreshDevices();   // show the outputs still in use
+            if (!quiet)
+            {
+                ShowNotice($"Couldn't open that output: {ex.Message}");
+                Settings.RefreshDevices();   // show the outputs still in use
+            }
         }
         OnPropertyChanged(nameof(MainOutputName));
         OnPropertyChanged(nameof(CueOutputName));
         OnPropertyChanged(nameof(HasMainOutput));
         OnPropertyChanged(nameof(HasCueOutput));
+        return opened;
     }
 
     // ───────────── Decks ─────────────

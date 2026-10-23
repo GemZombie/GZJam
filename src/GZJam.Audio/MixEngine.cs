@@ -138,7 +138,9 @@ public sealed class MixEngine : IDisposable
             }
             catch (AudioException)
             {
-                Open(null, null, oldMain, oldCue);
+                // The old speakers are gone too (unplugged): silent speakers, but the headphones,
+                // if they still open, carry on.
+                Open(null, oldCue.Device, oldMain, oldCue);
             }
             throw;
         }
