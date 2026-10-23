@@ -126,6 +126,77 @@ public sealed class CloseUpTests
         Assert.Equal(TimeSpan.FromSeconds(30), deck.Deck.Position);   // a right-click doesn't seek
     }
 
+    /// <summary>The close-up drawn on its own, as pixels (BGRA).</summary>
+    private static byte[] Draw(CloseUpWaveform closeUp, int width, int height)
+    {
+        closeUp.Measure(new Size(width, height));
+        closeUp.Arrange(new Rect(0, 0, width, height));
+        using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize(width, height));
+        bitmap.Render(closeUp);
+        byte[] pixels = new byte[width * height * 4];
+        IntPtr buffer = System.Runtime.InteropServices.Marshal.AllocHGlobal(pixels.Length);
+        try
+        {
+            bitmap.CopyPixels(new PixelRect(0, 0, width, height), buffer, pixels.Length, width * 4);
+            System.Runtime.InteropServices.Marshal.Copy(buffer, pixels, 0, pixels.Length);
+        }
+        finally
+        {
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(buffer);
+        }
+        return pixels;
+    }
+
+    [AvaloniaFact]
+    public void Bars_keep_their_shape_as_the_song_moves_past()
+    {
+        using var app = new AppHarness();
+        string beat = GZJam.Testing.TestWav.WriteSwingBeat(Path.Combine(app.WorkDirectory, "beat.wav"), 140, TimeSpan.FromSeconds(20));
+        var closeUp = new CloseUpWaveform { Waveform = new GZJam.Audio.TrackAnalyzer(app.Audio).Detail(beat), Length = 20, WindowSeconds = 8, TrimEnd = 1 };
+        const int width = 400, height = 60;
+        double barSeconds = 2 * 8.0 / width;
+
+        closeUp.Progress = 10.0 / 20;
+        byte[] before = Draw(closeUp, width, height);
+        closeUp.Progress = (10 + 7.5 * barSeconds) / 20;   // seven and a half bars on: everything 15 px to the left
+        byte[] after = Draw(closeUp, width, height);
+
+        // Away from the playhead (where played turns to unplayed) and the edges, the picture is
+        // the same, shifted: no bar has changed shape.
+        int same = 0, compared = 0;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 20; x < 150; x++)
+            {
+                compared++;
+                if (Enumerable.Range(0, 4).All(c => Math.Abs(after[(y * width + x) * 4 + c] - before[(y * width + x + 15) * 4 + c]) <= 2))
+                    same++;
+            }
+        }
+        Assert.True(same >= compared * 0.98, $"{same} of {compared} pixels the same, shifted");
+    }
+
+    [AvaloniaFact]
+    public void While_playing_the_playhead_moves_on_between_reports_and_eases_towards_them()
+    {
+        var closeUp = new CloseUpWaveform { Length = 100, TempoPercent = 0 };
+        closeUp.Progress = 0.3;   // 30 s
+        closeUp.IsPlaying = true;
+        Thread.Sleep(200);
+        Assert.InRange(closeUp.Playhead, 30.15, 30.4);   // moving on by itself
+
+        closeUp.Progress = (closeUp.Playhead + 0.05) / 100;   // a report a little ahead: eased, not jumped to
+        double eased = closeUp.Playhead;
+        Assert.InRange(closeUp.Progress * 100 - eased, 0.03, 0.06);
+
+        closeUp.Progress = 0.6;   // a seek: straight there
+        Assert.Equal(60, closeUp.Playhead, 1);
+
+        closeUp.IsPlaying = false;
+        closeUp.Progress = 0.5;
+        Assert.Equal(50, closeUp.Playhead, 3);   // paused: exactly where the deck is
+    }
+
     [AvaloniaFact]
     public void Four_decks_show_the_whole_song_and_zoom_in_on_demand()
     {

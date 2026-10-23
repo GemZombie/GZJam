@@ -208,6 +208,7 @@
         <Grid x:Name="WaveRows" RowDefinitions="2*,4,*">
           <c:CloseUpWaveform x:Name="CloseUp" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
                              Waveform="{Binding CloseUpWaveform}" Length="{Binding LengthSeconds}" WindowSeconds="{Binding CloseUpSeconds}"
+                             IsPlaying="{Binding IsPlaying}" TempoPercent="{Binding TempoPercent}"
                              TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
                              IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
                              Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"

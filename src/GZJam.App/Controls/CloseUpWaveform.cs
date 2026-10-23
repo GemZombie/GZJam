@@ -15,6 +15,12 @@ namespace GZJam.App.Controls;
 /// frequency, what's played dimmed, trimmed silence shaded, jumps and cues marked), from a close-up
 /// waveform (10 ms a slice) or, until that's ready, the overview.
 /// <para>
+/// While the deck plays, it's redrawn at every frame the screen shows, the playhead worked out
+/// from the clock and the tempo and eased towards where the deck says it is (which arrives about
+/// 30 times a second, in uneven steps), so the music glides past instead of stuttering. Each bar
+/// covers a fixed stretch of the song, so bars keep their shape as they move.
+/// </para>
+/// <para>
 /// Drag it to move through the song like a record (a mouse click goes to that spot); locked, a
 /// press says why. The mouse wheel or a pinch shows more or less of the song.
 /// </para>
@@ -68,11 +74,19 @@ public sealed class CloseUpWaveform : Control
     public static readonly StyledProperty<IBrush?> FillProperty =
         AvaloniaProperty.Register<CloseUpWaveform, IBrush?>(nameof(Fill), Brushes.White);
 
+    /// <summary>The deck is playing: the close-up moves on by itself between position reports.</summary>
+    public static readonly StyledProperty<bool> IsPlayingProperty =
+        AvaloniaProperty.Register<CloseUpWaveform, bool>(nameof(IsPlaying));
+
+    /// <summary>The deck's tempo change in percent: how fast the song goes by.</summary>
+    public static readonly StyledProperty<double> TempoPercentProperty =
+        AvaloniaProperty.Register<CloseUpWaveform, double>(nameof(TempoPercent));
+
     static CloseUpWaveform()
     {
         AffectsRender<CloseUpWaveform>(WaveformProperty, LengthProperty, ProgressProperty, WindowSecondsProperty,
             TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, JumpsProperty,
-            PendingJumpFromProperty, CuesProperty, IsLockedProperty, FillProperty, IsEnabledProperty);
+            PendingJumpFromProperty, CuesProperty, IsLockedProperty, FillProperty, IsEnabledProperty, IsPlayingProperty);
     }
 
     public CloseUpWaveform()
@@ -106,6 +120,76 @@ public sealed class CloseUpWaveform : Control
     public IReadOnlyList<CueMarker>? Cues { get => GetValue(CuesProperty); set => SetValue(CuesProperty, value); }
     public bool IsLocked { get => GetValue(IsLockedProperty); set => SetValue(IsLockedProperty, value); }
     public IBrush? Fill { get => GetValue(FillProperty); set => SetValue(FillProperty, value); }
+    public bool IsPlaying { get => GetValue(IsPlayingProperty); set => SetValue(IsPlayingProperty, value); }
+    public double TempoPercent { get => GetValue(TempoPercentProperty); set => SetValue(TempoPercentProperty, value); }
+
+    // ───────────── The playhead, between reports ─────────────
+
+    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+    private double _clockFrom;    // the song's position (s) at _clockAt
+    private double _clockAt;      // on _clock, in seconds
+    private double _correction;   // eased towards the reported position
+    private bool _animating;
+
+    private double Now => _clock.Elapsed.TotalSeconds;
+
+    private static double Rate(double tempoPercent) => 1 + tempoPercent / 100;
+
+    private double Predicted => _clockFrom + (Now - _clockAt) * Rate(TempoPercent) + _correction;
+
+    /// <summary>Where the playhead is drawn, in seconds into the song.</summary>
+    internal double Playhead => IsPlaying && Length > 0 ? Math.Clamp(Predicted, 0, Length) : Progress * Length;
+
+    /// <summary>Starts the clock again from where the deck says it is.</summary>
+    private void Restart() => (_clockFrom, _clockAt, _correction) = (Progress * Length, Now, 0);
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ProgressProperty || change.Property == LengthProperty)
+        {
+            double error = Progress * Length - Predicted;
+            if (!IsPlaying || Math.Abs(error) > 0.25)
+                Restart();               // paused, a seek, a jump, a new song
+            else
+                _correction += error * 0.1;   // reports come in uneven steps: ease towards them
+            Animate();
+        }
+        else if (change.Property == TempoPercentProperty)
+        {
+            // Carry on from where the old tempo had got to.
+            double now = Now;
+            _clockFrom += (now - _clockAt) * Rate(change.GetOldValue<double>());
+            _clockAt = now;
+        }
+        else if (change.Property == IsPlayingProperty || change.Property == IsVisibleProperty)
+        {
+            Restart();
+            Animate();
+        }
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Animate();
+    }
+
+    /// <summary>While playing and shown, redraws at every frame the screen shows.</summary>
+    private void Animate()
+    {
+        if (_animating || !IsPlaying || !IsVisible || TopLevel.GetTopLevel(this) is not { } top)
+            return;
+        _animating = true;
+        top.RequestAnimationFrame(_ =>
+        {
+            _animating = false;
+            if (!IsPlaying || !IsVisible)
+                return;
+            InvalidateVisual();
+            Animate();
+        });
+    }
 
     /// <summary>Asks to move the playhead to a fraction (0..1) of the song.</summary>
     public event EventHandler<double>? SeekRequested;
@@ -131,7 +215,7 @@ public sealed class CloseUpWaveform : Control
     private double SecondsPerPixel => Bounds.Width > 0 ? WindowSeconds / Bounds.Width : 0;
 
     /// <summary>Where the close-up starts, in seconds (the playhead is in the middle).</summary>
-    private double WindowStart => Progress * Length - WindowSeconds / 2;
+    private double WindowStart => Playhead - WindowSeconds / 2;
 
     /// <summary>The position (0..1 through the song) at a point on the close-up.</summary>
     public double FractionAt(Point point) =>
@@ -177,10 +261,15 @@ public sealed class CloseUpWaveform : Control
         double centre = bounds.Height / 2, reach = centre - 3;
         double maxPeak = Waveform.Decode(waveform.Peak), maxLoudness = Waveform.Decode(waveform.LoudnessPeak);
         double slicesPerSecond = waveform.Count / Length, start = WindowStart, spp = SecondsPerPixel;
-        for (double x = 0; x < bounds.Width; x += BarStep)
+        // Each bar is a fixed stretch of the song (not of the screen), so it keeps its shape as it
+        // slides past; the first one may start just off the left edge.
+        double barSeconds = BarStep * spp;
+        for (long bar = (long)Math.Floor(start / barSeconds); ; bar++)
         {
-            double from = (start + x * spp) * slicesPerSecond, to = (start + (x + BarStep) * spp) * slicesPerSecond;
-            int a = (int)Math.Floor(from), b = Math.Max(a + 1, (int)Math.Ceiling(to));
+            double from = bar * barSeconds, x = (from - start) / spp;
+            if (x >= bounds.Width)
+                break;
+            int a = (int)Math.Floor(from * slicesPerSecond), b = Math.Max(a + 1, (int)Math.Floor((from + barSeconds) * slicesPerSecond));
             if (b <= 0 || a >= waveform.Count)
                 continue;
             byte low = 0, mid = 0, high = 0, loud = 0;
