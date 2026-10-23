@@ -106,6 +106,8 @@ to one you'd use.
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
 - [An Arch Linux (AUR) package that updates itself](https://github.com/GemZombie/GZJam/issues/30)
   (waiting on the AUR)
+- [A startup screen with the logo](https://github.com/GemZombie/GZJam/issues/49), while GZJam gets
+  ready
 
 ## Decided against
 
