@@ -717,6 +717,23 @@ not here. This file records what was decided and built, and why.
 - Never when the computer is shutting down (`WindowCloseReason.OSShutdown`), so GZJam doesn't hold
   that up. The activity log notes each question and the answer.
 
+### Status: one bar at the top (2026-10-22, issue #32)
+
+- The maintainer's suggestion, after djay Pro. GZJam's top bar (the GZ mark, clock, background
+  progress, MAIN and CUE, settings) is also the window's title bar on Windows and macOS
+  (`MainWindow.TitleBar.cs`): 44 px instead of the system's 32 px plus GZJam's own 72, about 50 px
+  more for the decks and library. Touch mode makes it 54 px, and the title bar follows.
+- The bar is marked as the title bar for Windows' hit-testing, so its empty space moves the window
+  and a double-click maximises; every key in it is marked as a key.
+- **Windows:** Avalonia 12 would draw Windows' title bar itself, the window's title included,
+  over the left of the bar, so the decorations are border-only and GZJam draws minimise,
+  maximise (restore when maximised) and close in Windows' style, marked as Windows' own: Windows
+  then handles them, snap layouts included. Checked by asking the window (WM_NCHITTEST) about
+  each spot. When maximised, the window's off-screen edge is kept clear of the bar.
+- **macOS:** the bar leaves room on the left for the window's own buttons. Not yet seen on a Mac
+  (issue #18).
+- **Linux** keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

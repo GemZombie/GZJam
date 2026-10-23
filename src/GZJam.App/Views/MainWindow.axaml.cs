@@ -41,6 +41,7 @@ public partial class MainWindow : Window
         InitializeHistory();
         InitializeSearch();
         InitializeColumns();
+        UseTopBarAsTitleBar();
     }
 
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
