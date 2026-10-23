@@ -94,6 +94,9 @@ public sealed class AppSettings
     /// <summary>What the headphones hear: 0 = what's cued, 1 = what the room hears, between = both.</summary>
     public double PhonesMix { get; set; }
 
+    /// <summary>How many seconds of the song the decks' close-up waveforms show.</summary>
+    public double CloseUpSeconds { get; set; } = 8;
+
     public PlayingDeckLoad LoadOntoPlayingDeck { get; set; } = PlayingDeckLoad.Block;
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;

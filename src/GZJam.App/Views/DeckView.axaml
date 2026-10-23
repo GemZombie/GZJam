@@ -27,10 +27,16 @@
     <Style Selector="v|DeckView.compact Border.deck">
       <Setter Property="Padding" Value="12,8" />
     </Style>
+    <Style Selector="c|CloseUpWaveform">
+      <Setter Property="MinHeight" Value="30" />
+    </Style>
     <Style Selector="c|SeekBar">
-      <Setter Property="MinHeight" Value="48" />
+      <Setter Property="MinHeight" Value="14" />
     </Style>
     <Style Selector="v|DeckView.compact c|SeekBar">
+      <Setter Property="MinHeight" Value="24" />
+    </Style>
+    <Style Selector="v|DeckView.compact c|CloseUpWaveform">
       <Setter Property="MinHeight" Value="24" />
     </Style>
     <Style Selector="TextBlock.bpm">
@@ -195,49 +201,67 @@
         </Button>
       </Grid>
 
-      <!-- Waveform and position. Seeking is blocked while the room is hearing the deck. -->
+      <!-- Waveform and position: a close-up scrolling past the playhead over the whole song (with four
+           decks, the whole song, zoomed in on demand: DeckView.ApplyWaveformLayout).
+           Seeking is blocked while the room is hearing the deck. -->
       <Panel Grid.Row="1">
-        <c:SeekBar x:Name="Seek" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
-                   Waveform="{Binding Waveform}" TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
-                   IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
-                   Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
-                   Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <!-- Right-click or long-press: set where the song starts and ends -->
-          <c:SeekBar.ContextMenu>
-            <ContextMenu x:Name="TrimMenu" />
-          </c:SeekBar.ContextMenu>
-        </c:SeekBar>
-        <TextBlock Classes="dim" Text="Analyzing…" FontSize="11" Margin="10,6" HorizontalAlignment="Left" VerticalAlignment="Top"
-                   IsVisible="{Binding IsAnalyzing}" IsHitTestVisible="False" />
-        <!-- The song's jumps: lit = the next one will happen. Tap to cancel, or to arm again. -->
-        <Button x:Name="JumpButton" Classes="hw jump" Command="{Binding ToggleJumpCommand}" IsVisible="{Binding HasJumps}"
-                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
-                ToolTip.Tip="Jumps: lit means the song will jump. Tap to cancel for this play, or to arm again.">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <Border Classes="led green" Classes.on="{Binding IsJumpArmed}" />
-            <TextBlock Text="JUMP" />
-          </StackPanel>
-        </Button>
-        <!-- The song's cues: tap one to carry on from there, now (on air too). Four decks: in the ⋯ menu. -->
-        <ItemsControl x:Name="CueKeys" Classes="full-only" ItemsSource="{Binding Cues}"
-                      HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="4">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Classes="cue-keys" Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="lib:SongCue">
-              <Button Classes="hw cue-key" Content="{Binding Number}" CommandParameter="{Binding Number}"
-                      Command="{Binding $parent[v:DeckView].((vm:DeckViewModel)DataContext).GoToCueCommand}"
-                      ToolTip.Tip="Go to this cue now (the number on the waveform)" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <Border Classes="hint" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}"
-                HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock Text="{Binding Hint}" />
-        </Border>
+        <Grid x:Name="WaveRows" RowDefinitions="2*,4,*">
+          <c:CloseUpWaveform x:Name="CloseUp" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
+                             Waveform="{Binding CloseUpWaveform}" Length="{Binding LengthSeconds}" WindowSeconds="{Binding CloseUpSeconds}"
+                             TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
+                             IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
+                             Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
+                             Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
+            <c:CloseUpWaveform.ContextMenu>
+              <ContextMenu x:Name="CloseUpMenu" />
+            </c:CloseUpWaveform.ContextMenu>
+          </c:CloseUpWaveform>
+          <c:SeekBar x:Name="Seek" Grid.Row="2" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
+                     Waveform="{Binding Waveform}" TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
+                     IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
+                     Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
+                     CloseUp="{Binding CloseUpFraction}"
+                     Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
+            <!-- Right-click or long-press: set where the song starts and ends -->
+            <c:SeekBar.ContextMenu>
+              <ContextMenu x:Name="TrimMenu" />
+            </c:SeekBar.ContextMenu>
+          </c:SeekBar>
+          <!-- The song's cues: tap one to carry on from there, now (on air too). Four decks: in the ⋯ menu. -->
+          <ItemsControl x:Name="CueKeys" Classes="full-only" ItemsSource="{Binding Cues}"
+                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="4">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Classes="cue-keys" Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="lib:SongCue">
+                <Button Classes="hw cue-key" Content="{Binding Number}" CommandParameter="{Binding Number}"
+                        Command="{Binding $parent[v:DeckView].((vm:DeckViewModel)DataContext).GoToCueCommand}"
+                        ToolTip.Tip="Go to this cue now (the number on the waveform)" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+        <!-- Over the waveform, and never making the deck taller as they come and go -->
+        <c:OverlayPanel>
+          <TextBlock Classes="dim" Text="Analyzing…" FontSize="11" Margin="10,6" HorizontalAlignment="Left" VerticalAlignment="Top"
+                     IsVisible="{Binding IsAnalyzing}" IsHitTestVisible="False" />
+          <!-- The song's jumps: lit = the next one will happen. Tap to cancel, or to arm again. -->
+          <Button x:Name="JumpButton" Classes="hw jump" Command="{Binding ToggleJumpCommand}" IsVisible="{Binding HasJumps}"
+                  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
+                  ToolTip.Tip="Jumps: lit means the song will jump. Tap to cancel for this play, or to arm again.">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Border Classes="led green" Classes.on="{Binding IsJumpArmed}" />
+              <TextBlock Text="JUMP" />
+            </StackPanel>
+          </Button>
+          <Border Classes="hint" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+            <TextBlock Text="{Binding Hint}" />
+          </Border>
+        </c:OverlayPanel>
       </Panel>
 
       <!-- Transport and tempo -->

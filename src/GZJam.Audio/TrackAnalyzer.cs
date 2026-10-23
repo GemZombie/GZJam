@@ -32,6 +32,9 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     /// <summary>Slices in the overview waveform: about one per pixel of a wide deck.</summary>
     public const int WaveformSlices = 1000;
 
+    /// <summary>Slices per second in a close-up waveform (<see cref="Detail"/>): 10 ms each.</summary>
+    public const int DetailSlicesPerSecond = 100;
+
     /// <summary>Silence is judged in windows this long.</summary>
     private static readonly TimeSpan Window = TimeSpan.FromMilliseconds(50);
 
@@ -82,7 +85,8 @@ public sealed class TrackAnalyzer(AudioEngine engine)
 
             var tempo = detectBpm ? new TempoDetector(rate) : null;
             var loudness = new LoudnessMeter(channels, rate);
-            var (waveform, windows) = Decode(stream, channels, rate, totalFrames, tempo, loudness, cancellationToken);
+            int slices = (int)Math.Clamp(totalFrames / 64, 1, WaveformSlices);
+            var (waveform, windows) = Decode(stream, channels, rate, totalFrames, slices, tempo, loudness, cancellationToken);
             var (start, end) = FindAudible(windows, length);
 
             var candidates = tempo?.Estimate(start, end, MinBpm, MaxBpm) ?? [];
@@ -132,11 +136,37 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         return best;
     }
 
-    /// <summary>Reads every sample once: band peaks per waveform slice, and RMS per silence window.</summary>
-    private static (Waveform, List<float>) Decode(int stream, int channels, int rate, long totalFrames, TempoDetector? tempo,
-        LoudnessMeter meter, CancellationToken cancellationToken)
+    /// <summary>
+    /// A close-up waveform of the whole track, <see cref="DetailSlicesPerSecond"/> slices a second
+    /// (about 24,000 for a four-minute song): for the deck's close-up, which shows a few seconds
+    /// at a time. Worked out when a song is loaded onto a deck, in under a second, and not stored:
+    /// for a whole library it would take about a gigabyte.
+    /// </summary>
+    public Waveform Detail(string path, CancellationToken cancellationToken = default)
     {
-        int slices = (int)Math.Clamp(totalFrames / 64, 1, WaveformSlices);
+        engine.UseNoSoundDevice();
+        int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
+        if (stream == 0)
+            throw AudioException.CouldNotOpen(path);
+        try
+        {
+            ChannelInfo info = Bass.ChannelGetInfo(stream);
+            int channels = Math.Max(1, info.Channels);
+            int rate = info.Frequency;
+            long totalFrames = Bass.ChannelGetLength(stream) / (sizeof(float) * channels);
+            int slices = (int)Math.Max(1, Math.Ceiling((double)totalFrames * DetailSlicesPerSecond / rate));
+            return Decode(stream, channels, rate, totalFrames, slices, null, null, cancellationToken).Waveform;
+        }
+        finally
+        {
+            Bass.StreamFree(stream);
+        }
+    }
+
+    /// <summary>Reads every sample once: band peaks per waveform slice, and RMS per silence window.</summary>
+    private static (Waveform Waveform, List<float> Windows) Decode(int stream, int channels, int rate, long totalFrames, int slices,
+        TempoDetector? tempo, LoudnessMeter? meter, CancellationToken cancellationToken)
+    {
         var low = new float[slices];
         var energy = new double[slices];
         var frameCount = new int[slices];
@@ -161,7 +191,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
             if (bytes <= 0)
                 break;
             int frames = bytes / sizeof(float) / channels;
-            meter.Push(buffer, frames);
+            meter?.Push(buffer, frames);
             for (int f = 0; f < frames; f++, frame++)
             {
                 float m = 0;

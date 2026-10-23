@@ -100,5 +100,16 @@ public sealed class LayoutStabilityTests
         Assert.Equal(mixer.Top, decks.Min(d => d.Top), 1);
         Assert.Equal(mixer.Bottom, decks.Max(d => d.Bottom), 1);
         Assert.True(app.Window.FindControl<Control>("PhonesMixFader")!.Bounds.Height >= (touch ? 44 : 28));
+
+        // A hint over the waveform (here: why the room's deck can't be sought) never makes it taller.
+        vm.Mixer!.Crossfader = 0;
+        vm.Deck1!.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+        var deck1 = app.Window.FindControl<DeckView>("Deck1View")!;
+        double before = deck1.Bounds.Height;
+        vm.Deck1.ExplainSeekLock();
+        AppHarness.Settle(100);
+        Assert.NotNull(vm.Deck1.Hint);
+        Assert.Equal(before, deck1.Bounds.Height, 1);
     }
 }

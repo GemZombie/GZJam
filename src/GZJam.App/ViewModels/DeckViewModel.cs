@@ -60,7 +60,64 @@ public sealed partial class DeckViewModel : ObservableObject
 
     /// <summary>The track's overview waveform, once analyzed.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CloseUpWaveform))]
     public partial Waveform? Waveform { get; private set; }
+
+    private Waveform? _detail;
+    private CancellationTokenSource? _detailStop;
+
+    /// <summary>For the close-up: the song in detail (10 ms a slice) once it's worked out, the overview until then.</summary>
+    public Waveform? CloseUpWaveform => _detail ?? Waveform;
+
+    /// <summary>The song's length in seconds.</summary>
+    public double LengthSeconds => Deck.Length.TotalSeconds;
+
+    /// <summary>How many seconds the close-up shows (the same on every deck, and remembered).</summary>
+    public double CloseUpSeconds
+    {
+        get => _settings.CloseUpSeconds;
+        set
+        {
+            value = Math.Clamp(value, Controls.CloseUpWaveform.MinWindowSeconds, Controls.CloseUpWaveform.MaxWindowSeconds);
+            if (value == _settings.CloseUpSeconds)
+                return;
+            _settings.CloseUpSeconds = value;
+            foreach (DeckViewModel deck in _owner.Decks)
+                deck.OnCloseUpChanged();
+        }
+    }
+
+    /// <summary>How much of the song the close-up shows, as a fraction (for its box on the whole-song view).</summary>
+    public double CloseUpFraction => LengthSeconds > 0 ? CloseUpSeconds / LengthSeconds : 0;
+
+    private void OnCloseUpChanged()
+    {
+        OnPropertyChanged(nameof(CloseUpSeconds));
+        OnPropertyChanged(nameof(CloseUpFraction));
+    }
+
+    /// <summary>Works out the loaded song's close-up waveform in the background.</summary>
+    private async Task LoadDetailAsync(Track track)
+    {
+        if (_owner.Analysis is not { } analysis)
+            return;
+        var stop = _detailStop = new CancellationTokenSource();
+        Waveform? detail = await analysis.DetailAsync(track.Path, stop.Token);
+        if (Track != track || stop.IsCancellationRequested)
+            return;   // something else was loaded meanwhile
+        _detail = detail;
+        OnPropertyChanged(nameof(CloseUpWaveform));
+    }
+
+    private void ForgetDetail()
+    {
+        _detailStop?.Cancel();
+        _detailStop = null;
+        _detail = null;
+        OnPropertyChanged(nameof(CloseUpWaveform));
+        OnPropertyChanged(nameof(LengthSeconds));
+        OnCloseUpChanged();
+    }
 
     /// <summary>The track is being analyzed (its waveform isn't ready yet).</summary>
     [ObservableProperty]
@@ -639,6 +696,7 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.Unload();
         Track = null;
         Waveform = null;
+        ForgetDetail();
         _autoStart = _autoEnd = null;
         _manualTrim = default;
         OnTrimChanged();
@@ -714,6 +772,7 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.TempoPercent = 0;
         Track = track;
         Waveform = null;
+        ForgetDetail();
         Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path})");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
@@ -734,6 +793,7 @@ public sealed partial class DeckViewModel : ObservableObject
             Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
         Refresh();
         _ = AnalyzeAsync(track);
+        _ = LoadDetailAsync(track);
     }
 
     /// <summary>
