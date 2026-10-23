@@ -72,8 +72,10 @@ as where they're put; finding the exact spot, by mouse or finger, is the focus.
 - [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
 - [Choose how close `~bpm:` searches are](https://github.com/GemZombie/GZJam/issues/7)
 
-**After that, 0.6.0:** [rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41),
-named and tagged.
+**After that, 0.6.0:**
+- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
+- [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
+  a glance that the right record is loaded
 
 **Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
 [on a real Mac](https://github.com/GemZombie/GZJam/issues/18).
