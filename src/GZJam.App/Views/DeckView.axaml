@@ -42,6 +42,14 @@
     <Style Selector="c|PitchFader">
       <Setter Property="Height" Value="40" />
     </Style>
+    <!-- Four decks: the waveform is short, so the JUMP key is too (with its margin, no taller than the
+         waveform's 24 px: taller, it would grow the deck) -->
+    <Style Selector="v|DeckView.compact Button.hw.jump">
+      <Setter Property="MinHeight" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Padding" Value="6,0" />
+      <Setter Property="FontSize" Value="9" />
+    </Style>
     <Style Selector="v|DeckView.compact c|PitchFader">
       <Setter Property="Height" Value="26" />
     </Style>
@@ -192,7 +200,7 @@
         <c:SeekBar x:Name="Seek" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
                    Waveform="{Binding Waveform}" TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
                    IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
-                   Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}"
+                   Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
                    Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
           <!-- Right-click or long-press: set where the song starts and ends -->
           <c:SeekBar.ContextMenu>
@@ -210,6 +218,22 @@
             <TextBlock Text="JUMP" />
           </StackPanel>
         </Button>
+        <!-- The song's cues: tap one to carry on from there, now (on air too). Four decks: in the ⋯ menu. -->
+        <ItemsControl x:Name="CueKeys" Classes="full-only" ItemsSource="{Binding Cues}"
+                      HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="4">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Classes="cue-keys" Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="lib:SongCue">
+              <Button Classes="hw cue-key" Content="{Binding Number}" CommandParameter="{Binding Number}"
+                      Command="{Binding $parent[v:DeckView].((vm:DeckViewModel)DataContext).GoToCueCommand}"
+                      ToolTip.Tip="Go to this cue now (the number on the waveform)" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <Border Classes="hint" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <TextBlock Text="{Binding Hint}" />

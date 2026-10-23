@@ -68,6 +68,13 @@
     <Setter Property="MinHeight" Value="32" />
     <Setter Property="Padding" Value="10,0" />
   </Style>
+  <Style Selector="StackPanel.cue-keys">
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector="Button.hw.cue-key">
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="MinWidth" Value="44" />
+  </Style>
   <Style Selector="Button.eq-chip">
     <Setter Property="MinHeight" Value="26" />
     <Setter Property="Padding" Value="8,2,9,2" />

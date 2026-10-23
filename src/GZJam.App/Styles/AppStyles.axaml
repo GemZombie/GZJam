@@ -257,6 +257,18 @@
     <Setter Property="FontSize" Value="10" />
     <Setter Property="Opacity" Value="0.92" />
   </Style>
+  <!-- Cue keys 1-4, small, over the bottom left of the waveform -->
+  <Style Selector="StackPanel.cue-keys">
+    <Setter Property="Spacing" Value="4" />
+  </Style>
+  <Style Selector="Button.hw.cue-key">
+    <Setter Property="MinHeight" Value="22" />
+    <Setter Property="MinWidth" Value="26" />
+    <Setter Property="Padding" Value="7,0" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Opacity" Value="0.92" />
+  </Style>
 
   <!-- LEDs: dark when off; lit with a soft glow. Colour by meaning: red = the room, amber = the
        headphones, green = running, accent = something you set. -->

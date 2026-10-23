@@ -446,6 +446,24 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void Going_somewhere_else_while_playing_leaves_no_gap()
+    {
+        // A cue key on the deck the room hears: the music carries on from there, without a quiet moment.
+        A.Load(_tone);
+        A.Play();
+        float quietest = Full;
+        for (int i = 0; i < 20; i++)
+        {
+            quietest = Math.Min(quietest, Render(0.05).Main);
+            if (i == 10)
+                A.Seek(TimeSpan.FromSeconds(8));
+        }
+
+        Assert.InRange(A.Position.TotalSeconds, 8.3, 8.6);
+        Assert.InRange(quietest, Full * 0.9f, Full * 1.1f);
+    }
+
+    [Fact]
     public void A_backward_jump_plays_a_part_again_once_and_can_be_rearmed()
     {
         A.Load(_tone);

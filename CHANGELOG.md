@@ -16,6 +16,11 @@ New:
 - **A level meter on each deck,** along its edge beside the mixer. It shows the deck's level
   before the crossfader, so you can see a deck you're cueing is too quiet or too loud before the
   room hears it. The top light means as loud as the speakers go.
+- **Cue keys: go to a point in the song at a tap.** Right-click (or long-press) the waveform ›
+  *Cue 1 here* or *at the playhead*, up to four per song. A numbered key for each appears over the
+  waveform, and a numbered flag marks the spot: tap the key and the deck carries on from there at
+  once, on air too, at the moment you choose (wait for the end of a phrase, then go to the outro).
+  With four decks, they're in the deck's ⋯ menu. Saved for the song in GZJam, never in the file.
 
 Changed:
 
@@ -29,6 +34,7 @@ Fixed:
 - **Nothing on a deck moves when it starts or goes on air.** The ON AIR line used to appear above
   the title and push it, the waveform and (with four decks) the title down or sideways; its space
   is now kept.
+- **The JUMP key fits a four-deck waveform** in touch mode, instead of making that deck taller.
 
 ## 0.3.0 (2026-10-22)
 

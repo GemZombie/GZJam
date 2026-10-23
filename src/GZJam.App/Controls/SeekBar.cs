@@ -10,6 +10,9 @@ namespace GZJam.App.Controls;
 /// <summary>A jump drawn on the waveform: where it leaves and lands (fractions of the file), and whether it's armed.</summary>
 public readonly record struct JumpMarker(double From, double To, bool Armed);
 
+/// <summary>A cue drawn on the waveform: where it is (a fraction of the file) and its number.</summary>
+public readonly record struct CueMarker(double At, int Number);
+
 /// <summary>
 /// A track's overview waveform with a playhead; press or drag to seek (mouse, touch or pen).
 /// Each bar's solid body is how loud that moment is, with its peaks as a faint outline; bars are
@@ -46,6 +49,10 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<double?> PendingJumpFromProperty =
         AvaloniaProperty.Register<SeekBar, double?>(nameof(PendingJumpFrom));
 
+    /// <summary>The song's cues, as fractions of the file.</summary>
+    public static readonly StyledProperty<IReadOnlyList<CueMarker>?> CuesProperty =
+        AvaloniaProperty.Register<SeekBar, IReadOnlyList<CueMarker>?>(nameof(Cues));
+
     public static readonly StyledProperty<double> ProgressProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(Progress));
 
@@ -69,7 +76,7 @@ public sealed class SeekBar : Control
     {
         AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
             WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty,
-            JumpsProperty, PendingJumpFromProperty);
+            JumpsProperty, PendingJumpFromProperty, CuesProperty);
     }
 
     public Waveform? Waveform
@@ -153,6 +160,12 @@ public sealed class SeekBar : Control
         set => SetValue(PendingJumpFromProperty, value);
     }
 
+    public IReadOnlyList<CueMarker>? Cues
+    {
+        get => GetValue(CuesProperty);
+        set => SetValue(CuesProperty, value);
+    }
+
     private bool CanSeek => IsEnabled && !IsLocked;
 
     public override void Render(DrawingContext context)
@@ -182,6 +195,7 @@ public sealed class SeekBar : Control
             }
         }
         DrawJumps(context, bounds);
+        DrawCues(context, bounds);
         context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
     }
 
@@ -220,6 +234,27 @@ public sealed class SeekBar : Control
         {
             double at = Math.Clamp(pending, 0, 1) * bounds.Width;
             context.DrawRectangle(JumpOffBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
+        }
+    }
+
+    // ───────────── Cues ─────────────
+
+    private static readonly IBrush CueNumberBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x0E, 0x11, 0x16));
+
+    /// <summary>Each cue: a line, with its number on a flag at the top (the number on its key).</summary>
+    private void DrawCues(DrawingContext context, Rect bounds)
+    {
+        var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Bold);
+        double flag = Math.Min(13, bounds.Height);
+        foreach (CueMarker cue in Cues ?? [])
+        {
+            double at = Math.Clamp(cue.At, 0, 1) * bounds.Width;
+            context.DrawRectangle(JumpBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
+            double left = Math.Clamp(at - 1, 0, bounds.Width - flag);
+            context.DrawRectangle(JumpBrush, null, new Rect(left, 0, flag, flag));
+            var number = new FormattedText(cue.Number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 10, CueNumberBrush);
+            context.DrawText(number, new Point(left + (flag - number.Width) / 2, (flag - number.Height) / 2));
         }
     }
 

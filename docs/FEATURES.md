@@ -758,6 +758,26 @@ not here. This file records what was decided and built, and why.
   fixed width. `LayoutStabilityTests` records where every visible control is, plays a deck and puts
   it on air, and fails if anything moved except the play key's icon and the words themselves.
 
+### Status: cue keys (2026-10-23, issue #1)
+
+- **The ask:** jump somewhere *now*, at a moment the DJ chooses (on a long track, wait for the end
+  of a phrase and go to the outro). Jumps fire by themselves where they were set; this is the key
+  for the moment itself. The maintainer chose numbered keys (over one key that goes to the next
+  marked point) and allowed them on air, like jumps.
+- **Marking:** the waveform's menu › *Cue N here* / *Cue N at the playhead* (N: the lowest free
+  number, 1 to 4), *Remove cue N*. Two cues within a second of each other are refused. Saved by
+  path (`cues`, schema upgrade 15); a removed cue's number is free again, the others keep theirs.
+- **Going there:** a key per cue over the bottom left of the waveform (the JUMP key is top right),
+  and a flag with the number on the waveform, in the jumps' blue (both are things the DJ set).
+  Tapping one seeks at once, playing or paused, on air or not; seeking by the waveform stays locked
+  on air. Not snapped to the beat: GZJam knows a song's BPM but not where its beats fall, so the
+  tap is the timing. A test checks the room hears no quiet moment as it goes.
+- **Touch:** keys 40 x 44 px, 8 apart, acting on release (sliding off cancels). A four-deck
+  waveform is 24 px at its shortest, too short for them, so four decks have *Go to cue N* in the
+  deck's ⋯ menu instead (the maintainer expects touch to be used mostly with two decks). The JUMP
+  key, 32 px in touch mode, made a four-deck waveform (and its deck) taller; it's now 16 px there.
+- Not yet: bringing over Mixxx's hot cues.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to
