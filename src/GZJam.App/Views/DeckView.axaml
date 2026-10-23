@@ -218,8 +218,11 @@
                 </Flyout>
               </Button.Flyout>
             </Button>
-            <TextBlock Grid.Column="3" Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis"
-                       VerticalAlignment="Center" Margin="4,0,0,0" />
+            <!-- The artist, then the song's labels in what room is left -->
+            <c:PriorityRow Grid.Column="3" Margin="4,0,0,0">
+              <TextBlock Classes="muted" Text="{Binding Subtitle}" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+              <c:LabelChips x:Name="DeckLabels" ItemsSource="{Binding Track?.Labels}" />
+            </c:PriorityRow>
           </Grid>
         </StackPanel>
         <Button Grid.Column="2" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
@@ -246,12 +249,16 @@
           <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
           <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
         </StackPanel>
-        <TextBlock Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"
-                   Classes.dim="{Binding !HasTrack}">
-          <Run Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
-          <Run Text="  " />
-          <Run Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource MutedBrush}" />
-        </TextBlock>
+        <!-- The title and artist, then the song's labels in what room is left -->
+        <c:PriorityRow Grid.Column="2">
+          <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"
+                     Classes.dim="{Binding !HasTrack}">
+            <Run Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
+            <Run Text="  " />
+            <Run Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource MutedBrush}" />
+          </TextBlock>
+          <c:LabelChips x:Name="CompactDeckLabels" ItemsSource="{Binding Track?.Labels}" />
+        </c:PriorityRow>
         <Button x:Name="CompactEqButton" Grid.Column="3" Classes="eq-chip" Classes.on="{Binding IsEqSet}"
                 IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
           <StackPanel Orientation="Horizontal" Spacing="4">

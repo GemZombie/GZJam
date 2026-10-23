@@ -29,6 +29,11 @@ public partial class MainWindow
             items.Add(new Separator());
         items.Add(Choice("Songs without a label", "none", "none".Equals(current, StringComparison.OrdinalIgnoreCase)));
         items.Add(Choice("Any label", null, false, enabled: current is not null));
+        if (LabelsMenu.Rename(Vm) is { } rename)
+        {
+            items.Add(new Separator());
+            items.Add(rename);
+        }
         items.Add(new MenuItem
         {
             Header = "Label songs: right-click them › Labels.\nOr type label:slow  -label:requests",

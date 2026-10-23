@@ -870,6 +870,22 @@ not here. This file records what was decided and built, and why.
 - **SET** saves it as the song's typed BPM (`SetManualBpm`: GZJam's database, never the file), so
   the BPM menu then shows "Typed: …", and the activity log notes the taps and tempo.
 
+### Status: labels on the decks and queue, and renaming (2026-10-23, issue #13)
+
+- **Shown:** the same grey chips as the library's (`LabelChips`): on a deck after the artist (four
+  decks: after the artist on the title line), and on a queue row after the artist (a size smaller
+  there, so a row with labels is no taller: a test checks). `PriorityRow` lays them out: the title
+  or artist takes the room it needs, the chips go straight after it in what's left, cut off at the
+  edge, and aren't shown at all with less than 24 px. Nothing grows or moves.
+- **Renaming:** Labels › *Rename a label* › each label (with its count), from right-clicking songs
+  or the Label button by the search; it asks for the new name, starting with the old one. Renamed
+  on every song (`LibraryDatabase.RenameLabel`), and on every copy on screen (library, queue,
+  decks); a `label:` search for it follows the new name. A change of case only respells it.
+- **Two become one:** renaming to another label's name (any case) puts both sets of songs under
+  that label, with its spelling, and says so. The dialog warns before. It can't be undone.
+- Not followed: a `-label:` exclusion in the search. A Mixxx crate imported again comes back under
+  its old name, since GZJam only reads Mixxx's database.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

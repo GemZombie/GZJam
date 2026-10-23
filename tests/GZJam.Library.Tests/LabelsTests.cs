@@ -35,6 +35,36 @@ public sealed class LabelsTests : IDisposable
     }
 
     [Fact]
+    public void A_label_renamed_is_renamed_on_every_song_and_in_searches()
+    {
+        var db = _lib.Database;
+        db.AddLabel([_woodside, _splanky], "Lindy");
+
+        Assert.Equal("Lindy hop", db.RenameLabel("lindy", " Lindy hop "));
+
+        Assert.Equal(["Lindy hop"], db.GetLabels(_woodside));
+        Assert.Equal(["Jumpin' at the Woodside", "Splanky"], Titles("label:\"lindy hop\""));
+        Assert.Equal(["Lindy hop"], db.GetLabels().Select(l => l.Name));   // the old name is gone
+        Assert.Equal("LINDY HOP", db.RenameLabel("Lindy hop", "LINDY HOP"));   // only its spelling
+        Assert.Equal(["LINDY HOP"], db.GetLabels().Select(l => l.Name));
+        Assert.Null(db.RenameLabel("Balboa", "Bal"));   // no such label
+    }
+
+    [Fact]
+    public void Renamed_to_another_labels_name_the_two_become_one()
+    {
+        var db = _lib.Database;
+        db.AddLabel([_woodside, _splanky], "Lindy");
+        db.AddLabel([_splanky, _tain], "Swing");
+
+        Assert.Equal("Lindy", db.RenameLabel("Swing", "lindy"));   // the existing label's spelling
+
+        var lindy = db.GetLabels().Single();
+        Assert.Equal(("Lindy", 3), (lindy.Name, lindy.Count));   // Splanky carried both: once now
+        Assert.Equal(["Lindy"], db.GetLabels(_splanky));
+    }
+
+    [Fact]
     public void A_labels_first_spelling_wins_and_it_goes_when_no_song_has_it()
     {
         var db = _lib.Database;

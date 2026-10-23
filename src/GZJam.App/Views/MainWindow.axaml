@@ -300,21 +300,7 @@
                         <ColumnDefinition Width="Auto" />
                       </Grid.ColumnDefinitions>
                       <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                      <ItemsControl Grid.Column="1" ItemsSource="{Binding Labels}" VerticalAlignment="Center" IsHitTestVisible="False"
-                                    MaxWidth="140" HorizontalAlignment="Left">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="3" />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="x:String">
-                            <Border Classes="label-chip">
-                              <TextBlock Text="{Binding}" />
-                            </Border>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
+                      <c:LabelChips Grid.Column="1" ItemsSource="{Binding Labels}" MaxWidth="140" HorizontalAlignment="Left" />
                     </Grid>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -534,7 +520,11 @@
                                HorizontalAlignment="Right" VerticalAlignment="Center" />
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,7">
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
+                      <!-- The artist, then the song's labels in what room is left -->
+                      <c:PriorityRow Spacing="5">
+                        <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <c:LabelChips x:Name="QueueLabels" Classes="small" ItemsSource="{Binding Track.Labels}" />
+                      </c:PriorityRow>
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
                       <c:RatingIcon Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12" VerticalAlignment="Center" />

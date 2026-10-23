@@ -87,6 +87,60 @@ public sealed partial class LibraryDatabase
         transaction.Commit();
     }
 
+    /// <summary>
+    /// Renames a label on every song that carries it. If another label already has the new name
+    /// (in any case), the two become one, under that label's spelling. Returns the name it ends up
+    /// with, or null if there's no label called <paramref name="name"/>.
+    /// </summary>
+    public string? RenameLabel(string name, string newName)
+    {
+        newName = newName.Trim();
+        if (newName.Length == 0)
+            throw new ArgumentException("A label needs a name.", nameof(newName));
+        using var c = Open();
+        using var transaction = c.BeginTransaction();
+        long? Find(string n)
+        {
+            using var find = c.CreateCommand();
+            find.CommandText = "SELECT id FROM labels WHERE name = $name;";
+            find.Parameters.AddWithValue("$name", n);
+            return find.ExecuteScalar() as long?;
+        }
+        if (Find(name) is not { } id)
+            return null;
+        if (Find(newName) is { } other && other != id)
+        {
+            // Already a label by that name: its songs and these share it now.
+            using var merge = c.CreateCommand();
+            merge.CommandText = """
+                INSERT OR IGNORE INTO track_labels (path, label_id) SELECT path, $other FROM track_labels WHERE label_id = $id;
+                DELETE FROM track_labels WHERE label_id = $id;
+                DELETE FROM labels WHERE id = $id;
+                """;
+            merge.Parameters.AddWithValue("$id", id);
+            merge.Parameters.AddWithValue("$other", other);
+            merge.ExecuteNonQuery();
+            id = other;
+        }
+        else
+        {
+            using var rename = c.CreateCommand();
+            rename.CommandText = "UPDATE labels SET name = $name WHERE id = $id;";
+            rename.Parameters.AddWithValue("$name", newName);
+            rename.Parameters.AddWithValue("$id", id);
+            rename.ExecuteNonQuery();
+        }
+        string stored;
+        using (var read = c.CreateCommand())
+        {
+            read.CommandText = "SELECT name FROM labels WHERE id = $id;";
+            read.Parameters.AddWithValue("$id", id);
+            stored = (string)read.ExecuteScalar()!;
+        }
+        transaction.Commit();
+        return stored;
+    }
+
     /// <summary>The labels on a file, alphabetically.</summary>
     public IReadOnlyList<string> GetLabels(string path)
     {

@@ -174,6 +174,15 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private static bool IsLabelFilter(string token) =>
         token.StartsWith("label:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("labels:", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>A label was renamed: a search for it follows the new name (else its results may have changed).</summary>
+    public void LabelRenamed(string name, string newName)
+    {
+        if (name.Equals(LabelFilter, StringComparison.OrdinalIgnoreCase))
+            SetLabelFilter(newName);
+        else
+            LabelsChanged();
+    }
+
     /// <summary>Labels were added or taken off: a label filter's results may have changed.</summary>
     public void LabelsChanged()
     {

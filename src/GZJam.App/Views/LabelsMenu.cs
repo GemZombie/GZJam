@@ -6,7 +6,7 @@ namespace GZJam.App.Views;
 
 /// <summary>
 /// The "Labels" submenu for the selected tracks: every label, ticked if all of them carry it
-/// (a tap puts it on all of them, or takes it off), and "New label…".
+/// (a tap puts it on all of them, or takes it off), "New label…" and "Rename a label".
 /// </summary>
 internal static class LabelsMenu
 {
@@ -38,5 +38,33 @@ internal static class LabelsMenu
                 vm.SetLabel(tracks, name, on: true);
         };
         menu.Items.Add(create);
+        if (Rename(vm) is { } rename)
+            menu.Items.Add(rename);
+    }
+
+    /// <summary>
+    /// "Rename a label" › each label (with how many songs): asks for the new name. Null if there
+    /// are no labels. Also on the label filter button by the search.
+    /// </summary>
+    public static MenuItem? Rename(MainWindowViewModel vm)
+    {
+        var labels = vm.GetLabels();
+        if (labels.Count == 0)
+            return null;
+        var rename = new MenuItem { Header = "Rename a label" };
+        foreach (LabelInfo label in labels)
+        {
+            var item = new MenuItem { Header = $"{label.Name}  ({label.Count})" };
+            item.Click += async (_, _) =>
+            {
+                if (vm.PromptAsync is { } prompt &&
+                    await prompt($"Rename \"{label.Name}\"",
+                        $"{label.Count} {(label.Count == 1 ? "song" : "songs")}. If another label already has this name, the two become one.",
+                        "Rename", label.Name) is { } name)
+                    vm.RenameLabel(label.Name, name);
+            };
+            rename.Items.Add(item);
+        }
+        return rename;
     }
 }
