@@ -800,6 +800,17 @@ public sealed partial class DeckViewModel : ObservableObject
             PlayedToRoom?.Invoke(this, firstOnAir);
     }
 
+    /// <summary>
+    /// The deck's level, 0..1 along its meter, falling back smoothly: after its gain and EQ, before
+    /// the crossfader, so a deck the room can't hear shows its level too.
+    /// </summary>
+    [ObservableProperty]
+    public partial double Level { get; private set; }
+
+    /// <summary>Reads the deck's level for its meter; called on every playback tick.</summary>
+    public void UpdateMeter() =>
+        Level = Math.Max(Controls.LevelMeter.FromPeak(Deck.TakePeak()), Level - Controls.LevelMeter.Fall);
+
     /// <summary>Re-reads everything that changes as the track plays.</summary>
     public void Refresh()
     {

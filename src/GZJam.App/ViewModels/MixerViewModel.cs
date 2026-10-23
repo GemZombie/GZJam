@@ -16,9 +16,6 @@ public sealed partial class MixerViewModel : ObservableObject
     /// <summary>How long the limit light stays on after the limiter acts, so a brief peak is noticed.</summary>
     private static readonly TimeSpan LimitHold = TimeSpan.FromSeconds(1.5);
 
-    /// <summary>How far the meter falls per tick (about 30 a second): roughly 30 dB a second.</summary>
-    private const double MeterFall = 0.02;
-
     private readonly MainWindowViewModel owner;
     private readonly MixEngine mix;
     private readonly AppSettings _settings;
@@ -118,8 +115,8 @@ public sealed partial class MixerViewModel : ObservableObject
     private void UpdateMeter()
     {
         var (left, right, limited) = mix.Main.TakeLevels();
-        LevelLeft = Math.Max(Controls.LevelMeter.FromPeak(left), LevelLeft - MeterFall);
-        LevelRight = Math.Max(Controls.LevelMeter.FromPeak(right), LevelRight - MeterFall);
+        LevelLeft = Math.Max(Controls.LevelMeter.FromPeak(left), LevelLeft - Controls.LevelMeter.Fall);
+        LevelRight = Math.Max(Controls.LevelMeter.FromPeak(right), LevelRight - Controls.LevelMeter.Fall);
         if (limited)
             _limitedAt = TimeProvider.System.GetTimestamp();
         IsLimiting = _limitedAt != 0 && TimeProvider.System.GetElapsedTime(_limitedAt) < LimitHold;

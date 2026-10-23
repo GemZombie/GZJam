@@ -11,12 +11,24 @@ has no section, and uses the section as the release's notes (tools/release-notes
 
 ## 0.4.0 (unreleased)
 
+New:
+
+- **A level meter on each deck,** along its edge beside the mixer. It shows the deck's level
+  before the crossfader, so you can see a deck you're cueing is too quiet or too loud before the
+  room hears it. The top light means as loud as the speakers go.
+
 Changed:
 
 - **One bar at the top on Windows and Mac:** GZJam's top bar is now also the window's title bar,
   giving the decks and library about 50 more pixels. Drag its empty space to move the window, and
   double-click it to maximise; minimise, maximise and close sit at its end. Linux keeps its own
   title bar where it has one.
+
+Fixed:
+
+- **Nothing on a deck moves when it starts or goes on air.** The ON AIR line used to appear above
+  the title and push it, the waveform and (with four decks) the title down or sideways; its space
+  is now kept.
 
 ## 0.3.0 (2026-10-22)
 

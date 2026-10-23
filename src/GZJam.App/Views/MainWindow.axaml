@@ -134,7 +134,7 @@
                 <TextBlock Text="3" Foreground="{StaticResource Deck3Brush}" IsVisible="{Binding IsFourDecks}" />
               </StackPanel>
             </Button>
-            <TextBlock Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <TextBlock x:Name="LiveLabel" Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
                        Text="{Binding LiveText}" />
             <Button x:Name="RightSideButton" Grid.Column="2" Classes="hw side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -148,9 +148,9 @@
       </Border>
 
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
-        <v:DeckView x:Name="Deck2View" Label="2" Accent="{StaticResource Deck2Brush}"
+        <v:DeckView x:Name="Deck2View" Classes="meter-left" Label="2" Accent="{StaticResource Deck2Brush}"
                     DataContext="{Binding Deck2}" />
-        <v:DeckView x:Name="Deck4View" Grid.Row="1" Label="4" Accent="{StaticResource Deck4Brush}" Margin="0,8,0,0"
+        <v:DeckView x:Name="Deck4View" Grid.Row="1" Classes="meter-left" Label="4" Accent="{StaticResource Deck4Brush}" Margin="0,8,0,0"
                     IsVisible="False" DataContext="{Binding Deck4}" />
       </Grid>
     </Grid>

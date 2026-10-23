@@ -9,12 +9,16 @@ namespace GZJam.App.Controls;
 /// An upright LED level meter like a mixer's: a column of segments for left and right (one wider
 /// column for a mono output), green, then amber near the top, red at the top segment, with a dB
 /// scale beside it and a peak marker that holds for a moment before falling. Levels are 0..1 up
-/// the meter (see <see cref="FromPeak"/>).
+/// the meter (see <see cref="FromPeak"/>). Without the scale it's a single slim column, as on
+/// each deck.
 /// </summary>
 public sealed class LevelMeter : Control
 {
     /// <summary>The quietest level shown, in dB below full scale.</summary>
     public const double Range = 48;
+
+    /// <summary>How far a meter falls per tick (about 30 a second): roughly 30 dB a second.</summary>
+    public const double Fall = 0.02;
 
     private const double Segment = 3, Gap = 1.5, ColumnGap = 2, ScaleWidth = 20;
     private static readonly TimeSpan PeakHold = TimeSpan.FromSeconds(1.2);
@@ -28,6 +32,9 @@ public sealed class LevelMeter : Control
     public static readonly StyledProperty<bool> IsMonoProperty =
         AvaloniaProperty.Register<LevelMeter, bool>(nameof(IsMono));
 
+    public static readonly StyledProperty<bool> ShowScaleProperty =
+        AvaloniaProperty.Register<LevelMeter, bool>(nameof(ShowScale), defaultValue: true);
+
     private static readonly IBrush Off = new ImmutableSolidColorBrush(Color.Parse("#1C2027"));
     private static readonly IBrush Green = new ImmutableSolidColorBrush(Color.Parse("#34D399"));
     private static readonly IBrush Amber = new ImmutableSolidColorBrush(Color.Parse("#F5C024"));
@@ -37,7 +44,11 @@ public sealed class LevelMeter : Control
 
     private readonly (double Level, long At)[] _peaks = new (double, long)[2];
 
-    static LevelMeter() => AffectsRender<LevelMeter>(LeftProperty, RightProperty, IsMonoProperty);
+    static LevelMeter()
+    {
+        AffectsRender<LevelMeter>(LeftProperty, RightProperty, IsMonoProperty, ShowScaleProperty);
+        AffectsMeasure<LevelMeter>(ShowScaleProperty);
+    }
 
     public double Left
     {
@@ -58,17 +69,25 @@ public sealed class LevelMeter : Control
         set => SetValue(IsMonoProperty, value);
     }
 
+    /// <summary>The dB scale beside the meter.</summary>
+    public bool ShowScale
+    {
+        get => GetValue(ShowScaleProperty);
+        set => SetValue(ShowScaleProperty, value);
+    }
+
     /// <summary>Converts a peak sample (0..1) to a position up the meter (0..1), in decibels.</summary>
     public static double FromPeak(double peak) =>
         peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + Range) / Range, 0, 1);
 
-    protected override Size MeasureOverride(Size availableSize) => new(42, 100);
+    // The slim deck meter takes the deck's height and asks for none of its own.
+    protected override Size MeasureOverride(Size availableSize) => ShowScale ? new(42, 100) : new(8, 0);
 
     public override void Render(DrawingContext context)
     {
-        double meterWidth = Bounds.Width - ScaleWidth;
+        double meterWidth = Bounds.Width - (ShowScale ? ScaleWidth : 0);
         int count = (int)((Bounds.Height + Gap) / (Segment + Gap));
-        if (count <= 0 || meterWidth <= 4)
+        if (count <= 0 || meterWidth < 2)
             return;
         double height = (Bounds.Height + Gap) / count - Gap;   // fill the height exactly
         if (IsMono)
@@ -81,7 +100,8 @@ public sealed class LevelMeter : Control
             DrawColumn(context, 0, Left, 0, column, count, height);
             DrawColumn(context, 1, Right, column + ColumnGap, column, count, height);
         }
-        DrawScale(context, meterWidth);
+        if (ShowScale)
+            DrawScale(context, meterWidth);
     }
 
     private void DrawColumn(DrawingContext context, int channel, double level, double x, double width, int count, double height)

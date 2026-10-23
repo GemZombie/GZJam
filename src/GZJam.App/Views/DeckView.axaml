@@ -45,6 +45,14 @@
     <Style Selector="v|DeckView.compact c|PitchFader">
       <Setter Property="Height" Value="26" />
     </Style>
+    <!-- ON AIR / OFF AIR keeps its space when the deck isn't playing, and the same width either way
+         (four decks: it's beside the title), so nothing moves as a deck starts or goes on air -->
+    <Style Selector="StackPanel.status-line.idle">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="v|DeckView.compact TextBlock.status">
+      <Setter Property="MinWidth" Value="54" />
+    </Style>
     <!-- On air: a red bar along the top edge (the frame's padding is undone so it reaches the edges) -->
     <Style Selector="Border.onair-bar">
       <Setter Property="Height" Value="3" />
@@ -54,6 +62,24 @@
     </Style>
     <Style Selector="v|DeckView.compact Border.onair-bar">
       <Setter Property="Margin" Value="-12,-8,-12,0" />
+    </Style>
+    <!-- The deck's level meter, in the frame's padding along the edge nearest the mixer (Decks 2
+         and 4: the left), so it takes no room from the deck's controls -->
+    <Style Selector="c|LevelMeter.deck-meter">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Width" Value="6" />
+      <Setter Property="Margin" Value="0,0,-11,0" />
+    </Style>
+    <Style Selector="v|DeckView.meter-left c|LevelMeter.deck-meter">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Margin" Value="-11,0,0,0" />
+    </Style>
+    <Style Selector="v|DeckView.compact c|LevelMeter.deck-meter">
+      <Setter Property="Width" Value="5" />
+      <Setter Property="Margin" Value="0,0,-8,0" />
+    </Style>
+    <Style Selector="v|DeckView.compact.meter-left c|LevelMeter.deck-meter">
+      <Setter Property="Margin" Value="-8,0,0,0" />
     </Style>
     <Style Selector="StackPanel.tempo">
       <Setter Property="Width" Value="170" />
@@ -65,6 +91,8 @@
 
   <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}">
     <Panel>
+    <c:LevelMeter x:Name="DeckMeter" Classes="deck-meter" IsMono="True" ShowScale="False" Left="{Binding Level}" Right="{Binding Level}"
+                  ToolTip.Tip="This deck's level, before the crossfader: it shows even when the room can't hear the deck. The top light: as loud as the speakers go." />
     <Grid Classes="deck-rows" RowDefinitions="Auto,*,Auto">
 
       <!-- Number, track, readout -->
@@ -74,7 +102,7 @@
           <TextBlock Text="{Binding Label}" />
         </Border>
         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsPlaying}" Margin="0,0,0,2">
+          <StackPanel x:Name="StatusLine" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" Margin="0,0,0,2">
             <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
             <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
           </StackPanel>
@@ -127,7 +155,7 @@
                 Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
           <TextBlock Text="{Binding Label}" />
         </Border>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsPlaying}" VerticalAlignment="Center">
+        <StackPanel x:Name="CompactStatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
           <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
           <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
         </StackPanel>
