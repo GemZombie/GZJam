@@ -156,6 +156,13 @@ public sealed class ScreenshotTests
         app.Screenshot("13c-dragging-a-cue");
         app.Window.MouseUp(cue2 + new Avalonia.Vector(45, 0), MouseButton.Left, RawInputModifiers.None);
 
+        // Deck 2 (at -2.5%): tapping along to set its BPM.
+        vm.Deck2.StartTapTempo();
+        for (int i = 0; i < 9; i++)
+            vm.Deck2.Tap(TimeSpan.FromSeconds(50 + i * 60 / 254.0));
+        app.Screenshot("13d-tap-tempo");
+        vm.Deck2.CancelTapCommand.Execute(null);
+
         // Four decks in the space of two: Deck 3 ready under Deck 1, Deck 4 empty.
         vm.SetDeckCount(4);
         vm.LoadToDeckAsync(vm.Deck3!, tracks[7]).GetAwaiter().GetResult();
@@ -164,6 +171,12 @@ public sealed class ScreenshotTests
         library.SearchText = "jump";
         app.Play(0.2);
         app.Screenshot("14-four-decks");
+        vm.Deck2.StartTapTempo();
+        for (int i = 0; i < 9; i++)
+            vm.Deck2.Tap(TimeSpan.FromSeconds(80 + i * 60 / 254.0));
+        app.Play(0.1);
+        app.Screenshot("14b-four-decks-tap-tempo");
+        vm.Deck2.CancelTapCommand.Execute(null);
 
         // Deck 3's EQ: the treble down for a hissy transfer.
         vm.Deck3.LessHissCommand.Execute(null);

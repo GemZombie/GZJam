@@ -850,6 +850,26 @@ not here. This file records what was decided and built, and why.
 - **The start, followed:** a deck waiting at its start (cued up, paused) moves with it when it's
   dragged earlier as well as later; mid-song, the deck stays where it is.
 
+### Status: tap tempo (2026-10-23, issue #11)
+
+- **Where:** on a deck only (BPM menu › *Tap tempo…*, from the BPM under the deck, the readout's
+  BPM menu or, with four decks, the ⋯ menu): tapping along needs the song playing. Not in the
+  library or queue menus.
+- **On the deck, not a window** (the maintainer's choice over a small dialog): a panel over that
+  deck's waveform, in an `OverlayPanel` so the deck stays its size, with a TAP pad, the BPM, how
+  many taps and whether they're steady, SET and CANCEL. The other decks and the mixer carry on, so
+  a DJ can tap a song cued in the headphones mid-set. Four decks: all on one line.
+- **Tapping:** the pad counts on the press (`ClickMode=Press`), by finger, mouse, or Space/Enter
+  while it has the focus (it takes it on opening). Each tap lights the pad. Escape or CANCEL puts it
+  away unchanged; loading or ejecting a song does too.
+- **The BPM** (`TapTempo`): the least-squares line through every tap since the last pause, so one
+  tap off barely moves it. Shown from 4 taps; "steady" from 8, when the taps are on average within
+  8% of a beat of the line (about 20 ms at 260 BPM). A 2 s gap (or a tap out of order) starts again.
+- **Tempo:** the DJ taps what they hear, so the deck's tempo change is taken out (tapped ÷ (1 +
+  tempo%)); with the tempo changed, the panel says what they're hearing too. Rounded to 0.1 BPM.
+- **SET** saves it as the song's typed BPM (`SetManualBpm`: GZJam's database, never the file), so
+  the BPM menu then shows "Typed: …", and the activity log notes the taps and tempo.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

@@ -12,8 +12,12 @@ internal static class BpmMenu
 {
     public const string Title = "BPM";
 
-    /// <summary>Replaces <paramref name="menu"/>'s items. <paramref name="withTitle"/> adds a heading (for a menu of its own).</summary>
-    public static void Fill(ItemsControl menu, MainWindowViewModel vm, IReadOnlyList<Track> tracks, bool withTitle = false)
+    /// <summary>
+    /// Replaces <paramref name="menu"/>'s items. <paramref name="withTitle"/> adds a heading (for a
+    /// menu of its own). On a deck (<paramref name="deck"/>), there's tap tempo too: tapping along
+    /// needs the song playing.
+    /// </summary>
+    public static void Fill(ItemsControl menu, MainWindowViewModel vm, IReadOnlyList<Track> tracks, bool withTitle = false, DeckViewModel? deck = null)
     {
         menu.Items.Clear();
         bool enabled = tracks.Count > 0 && vm.Analysis is not null;
@@ -62,6 +66,13 @@ internal static class BpmMenu
                 vm.ShowNotice($"\"{text}\" isn't a BPM: type a number like 156 or 128.5.");
         };
         menu.Items.Add(type);
+
+        if (deck is not null)
+        {
+            var tap = new MenuItem { Header = "Tap tempo…", IsEnabled = deck.HasTrack };
+            tap.Click += (_, _) => deck.StartTapTempo();
+            menu.Items.Add(tap);
+        }
 
         MenuItem Item(string header, BpmRange? range, bool isChecked)
         {
