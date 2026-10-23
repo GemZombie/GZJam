@@ -47,6 +47,28 @@ public partial class DeckView : UserControl
         InitializeComponent();
         Seek.SeekRequested += (_, fraction) => Vm?.SeekTo(fraction);
         Seek.LockedPressed += (_, _) => Vm?.ExplainSeekLock();
+        CloseUp.SeekRequested += (_, fraction) => Vm?.SeekTo(fraction);
+        CloseUp.LockedPressed += (_, _) => Vm?.ExplainSeekLock();
+        // Four decks: the mouse wheel or a pinch on the whole song zooms in; out past the widest, back.
+        Seek.AddHandler(PointerWheelChangedEvent, (_, e) =>
+        {
+            if (IsCompact && e.Delta.Y > 0)
+            {
+                ZoomIn();
+                e.Handled = true;
+            }
+        });
+        Seek.GestureRecognizers.Add(new Avalonia.Input.PinchGestureRecognizer());
+        Seek.AddHandler(PinchEvent, (_, e) =>
+        {
+            if (IsCompact && e.Scale > 1.15)
+                ZoomIn();
+        });
+        CloseUp.ZoomedOutPastWidest += (_, _) =>
+        {
+            if (IsCompact)
+                SetZoomed(false);
+        };
         PlayButton.AddHandler(PointerPressedEvent, OnPlayPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerReleasedEvent, OnPlayReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.AddHandler(PointerCaptureLostEvent, (_, _) => CancelHold(), RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -61,8 +83,14 @@ public partial class DeckView : UserControl
         Seek.AddHandler(ContextRequestedEvent, (_, e) =>
             _trimMenuAt = e.TryGetPosition(Seek, out Point point) ? Seek.FractionAt(point) : null,
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
-        TrimMenu.Opening += (_, e) => FillTrimMenu(e);
-        TrimMenu.Opened += (_, _) => FillTrimMenu(null);
+        CloseUp.AddHandler(ContextRequestedEvent, (_, e) =>
+            _trimMenuAt = e.TryGetPosition(CloseUp, out Point point) ? CloseUp.FractionAt(point) : null,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+        foreach (ContextMenu menu in new[] { TrimMenu, CloseUpMenu })
+        {
+            menu.Opening += (_, e) => FillTrimMenu(menu, e);
+            menu.Opened += (_, _) => FillTrimMenu(menu, null);
+        }
         MoreMenu.Opening += (_, _) => FillMoreMenu();
         ApplyCompact();
     }
@@ -79,10 +107,41 @@ public partial class DeckView : UserControl
         set => SetValue(IsTouchProperty, value);
     }
 
+    // ───────────── Close-up ─────────────
+
+    /// <summary>Four decks: this deck shows its close-up instead of the whole song (zoomed in on demand).</summary>
+    public bool IsZoomed { get; private set; }
+
+    private void ZoomIn() => SetZoomed(true);
+
+    private void SetZoomed(bool zoomed)
+    {
+        IsZoomed = zoomed && IsCompact;
+        ApplyWaveformLayout();
+    }
+
+    /// <summary>
+    /// Two decks: the close-up over the whole song (2 : 1). Four: the whole song, or (zoomed) the
+    /// close-up in its place. The rows are set here, so the deck's height never changes.
+    /// </summary>
+    private void ApplyWaveformLayout()
+    {
+        bool closeUp = !IsCompact || IsZoomed, whole = !IsCompact || !IsZoomed;
+        CloseUp.IsVisible = closeUp;
+        Seek.IsVisible = whole;
+        Seek.ShowCloseUp = !IsCompact;
+        WaveRows.RowDefinitions[0].Height = closeUp ? new GridLength(whole ? 2 : 1, GridUnitType.Star) : new GridLength(0);
+        WaveRows.RowDefinitions[1].Height = new GridLength(closeUp && whole ? 4 : 0);
+        WaveRows.RowDefinitions[2].Height = whole ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+    }
+
     private void ApplyCompact()
     {
         bool compact = IsCompact;
         Classes.Set("compact", compact);
+        if (!compact)
+            IsZoomed = false;
+        ApplyWaveformLayout();
         MinHeight = compact ? CompactHeight : FullHeight;
         // Smaller transport buttons; the full sizes come from the app's resources.
         (string, double)[] sizes = IsTouch
@@ -134,7 +193,7 @@ public partial class DeckView : UserControl
     /// The waveform's menu: start or end the song where it was clicked, or at the playhead (after
     /// listening for the spot in the headphones), or go back to the automatic trim.
     /// </summary>
-    private void FillTrimMenu(System.ComponentModel.CancelEventArgs? opening)
+    private void FillTrimMenu(ContextMenu menu, System.ComponentModel.CancelEventArgs? opening)
     {
         if (Vm is not { HasTrack: true } vm)
         {
@@ -145,7 +204,7 @@ public partial class DeckView : UserControl
         Deck deck = vm.Deck;
         TimeSpan playhead = deck.Position;
         TimeSpan? here = _trimMenuAt is { } fraction ? deck.Length * fraction : null;
-        var items = TrimMenu.Items;
+        var items = menu.Items;
         items.Clear();
         items.Add(new MenuItem { Header = "Song starts", IsEnabled = false });
         if (here is { } h)

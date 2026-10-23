@@ -82,6 +82,22 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         return job.Done.Task;
     });
 
+    /// <summary>
+    /// A close-up waveform of a file, for a deck's close-up (worked out now, not stored). Null if
+    /// it can't be read or <paramref name="cancellationToken"/> fires first (another song loaded).
+    /// </summary>
+    public Task<Waveform?> DetailAsync(string path, CancellationToken cancellationToken) => Task.Run(() =>
+    {
+        try
+        {
+            return _analyzer.Detail(path, cancellationToken);
+        }
+        catch (Exception ex) when (ex is AudioException or OperationCanceledException)
+        {
+            return null;
+        }
+    }, CancellationToken.None);
+
     /// <summary>Moves tracks ahead of the library (e.g. they've just been queued).</summary>
     public void Prioritize(IEnumerable<Track> tracks)
     {

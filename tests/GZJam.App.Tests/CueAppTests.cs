@@ -157,7 +157,7 @@ public sealed class CueAppTests
     }
 
     [AvaloniaFact]
-    public void Touch_cue_keys_are_finger_sized_and_sit_on_the_waveform()
+    public void Touch_cue_keys_are_finger_sized_and_sit_on_the_close_up()
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
@@ -168,15 +168,15 @@ public sealed class CueAppTests
         AppHarness.Settle(200);
 
         var view = app.Window.FindControl<DeckView>("Deck1View")!;
-        var seek = view.FindControl<SeekBar>("Seek")!;
+        var closeUp = view.FindControl<CloseUpWaveform>("CloseUp")!;   // the keys sit on the close-up
         var keys = CueKeys(app);
         Assert.Equal(4, keys.Count);
         foreach (Button key in keys)
         {
             Assert.True(key.Bounds.Height >= 40 && key.Bounds.Width >= 44, $"key {key.Bounds.Size}");
-            var topLeft = key.TranslatePoint(default, seek)!.Value;
-            Assert.True(topLeft.Y >= 0 && topLeft.Y + key.Bounds.Height <= seek.Bounds.Height, $"key at {topLeft.Y} on a waveform {seek.Bounds.Height} high");
-            Assert.True(topLeft.X + key.Bounds.Width < seek.Bounds.Width / 2, "the keys stay on the left half");
+            var topLeft = key.TranslatePoint(default, closeUp)!.Value;
+            Assert.True(topLeft.Y >= 0 && topLeft.Y + key.Bounds.Height <= closeUp.Bounds.Height, $"key at {topLeft.Y} on a waveform {closeUp.Bounds.Height} high");
+            Assert.True(topLeft.X + key.Bounds.Width < closeUp.Bounds.Width / 2, "the keys stay on the left half");
         }
     }
 }

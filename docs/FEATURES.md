@@ -802,6 +802,33 @@ not here. This file records what was decided and built, and why.
   mode they already did (issue #37): the two rows now share it equally, and a test checks the
   decks are level with each other and with the mixer in all four layouts.
 
+### Status: a close-up waveform (2026-10-23, issue #14)
+
+- **The ask:** find a spot precisely (a phrase end for a cue or a jump, the end of applause for a
+  start point). On the whole-song view a pixel is a fifth of a second, and a fingertip ±4 s.
+- **Two decks: always both** (the maintainer's choice over a ZOOM key): the close-up takes the top
+  two thirds of the waveform, the whole song the bottom third, in the same space, so the deck is
+  no taller. The playhead stays in the middle and the music scrolls past it; the whole song shows a
+  box around what the close-up covers. Cue keys sit on the close-up, the JUMP key at its top right.
+- **Four decks:** the waveform is 24-48 px, too short for both, so it's the whole song, and the
+  mouse wheel or a pinch on it zooms that deck in (the close-up in its place); out past the widest,
+  back to the whole song.
+- **Detail:** the stored overview has 1,000 slices a song, about 0.2 s each. The close-up needs
+  10 ms, which for a whole library would be about a gigabyte, so it's worked out when a song is
+  loaded (`TrackAnalyzer.Detail`, a second decode of that file, well under a second) and not
+  stored; until then the close-up stretches the overview.
+- **Zoom:** 2 to 30 seconds across, 8 to start with; the mouse wheel (25% a notch) or a pinch.
+  The same on every deck, remembered (`CloseUpSeconds`).
+- **Moving through the song:** off air, dragging moves it like a record (the playhead goes the
+  other way), and a mouse click goes to that spot; a finger has to drag, so a tap can't move the
+  song. On air it's locked, like the whole-song view, and says why. Right-click or long-press: the
+  waveform's menu, with "here" where it was pressed.
+- **Nothing grows:** the hint, the "Analyzing…" label and the JUMP key sit in an `OverlayPanel`,
+  which lays them over the waveform without asking for room. Before, the analysing label (27 px)
+  and a hint made a 24 px four-deck waveform, and so its deck, taller while they showed: a test
+  checks a hint no longer does.
+- Next: dragging the start, end, jump and cue markers on it (issue #12).
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

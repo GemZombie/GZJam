@@ -10,6 +10,24 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.5.0 (unreleased)
+
+New:
+
+- **A close-up of the song on each deck.** Above the whole song, a few seconds around the
+  playhead scroll past it, beat by beat, so you can see the end of a phrase coming before you tap
+  a cue key, and find the exact spot for a cue, a jump or where a song starts. The box on the whole
+  song shows what the close-up covers. The mouse wheel or a pinch shows more or less (2 to 30
+  seconds; 8 to start with). On a deck the room can't hear, drag the close-up to move through the
+  song like a record, or click a spot to go there. Right-click or long-press it for the same menu
+  as the whole song, with "here" just where you pressed. With four decks there's no room for both:
+  the mouse wheel or a pinch on a deck's waveform zooms it in, and out again.
+
+Fixed:
+
+- **A hint or the "Analyzing…" label never makes a deck taller.** With four decks in touch mode,
+  they used to push the deck down a few pixels while they showed.
+
 ## 0.4.0 (2026-10-23)
 
 New:

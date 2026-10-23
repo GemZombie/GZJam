@@ -56,6 +56,14 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<double> ProgressProperty =
         AvaloniaProperty.Register<SeekBar, double>(nameof(Progress));
 
+    /// <summary>How much of the song the deck's close-up shows (a fraction): boxed around the playhead.</summary>
+    public static readonly StyledProperty<double> CloseUpProperty =
+        AvaloniaProperty.Register<SeekBar, double>(nameof(CloseUp));
+
+    /// <summary>Show the close-up's box (off where there's no close-up beside it, as with four decks).</summary>
+    public static readonly StyledProperty<bool> ShowCloseUpProperty =
+        AvaloniaProperty.Register<SeekBar, bool>(nameof(ShowCloseUp), true);
+
     public static readonly StyledProperty<IBrush?> FillProperty =
         AvaloniaProperty.Register<SeekBar, IBrush?>(nameof(Fill), Brushes.White);
 
@@ -76,7 +84,7 @@ public sealed class SeekBar : Control
     {
         AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
             WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty,
-            JumpsProperty, PendingJumpFromProperty, CuesProperty);
+            JumpsProperty, PendingJumpFromProperty, CuesProperty, CloseUpProperty, ShowCloseUpProperty);
     }
 
     public Waveform? Waveform
@@ -166,6 +174,18 @@ public sealed class SeekBar : Control
         set => SetValue(CuesProperty, value);
     }
 
+    public double CloseUp
+    {
+        get => GetValue(CloseUpProperty);
+        set => SetValue(CloseUpProperty, value);
+    }
+
+    public bool ShowCloseUp
+    {
+        get => GetValue(ShowCloseUpProperty);
+        set => SetValue(ShowCloseUpProperty, value);
+    }
+
     private bool CanSeek => IsEnabled && !IsLocked;
 
     public override void Render(DrawingContext context)
@@ -196,15 +216,21 @@ public sealed class SeekBar : Control
         }
         DrawJumps(context, bounds);
         DrawCues(context, bounds);
+        if (ShowCloseUp && CloseUp > 0)
+        {
+            // What the close-up shows: a box around the playhead, at least a few pixels wide.
+            double half = Math.Max(3, CloseUp * bounds.Width / 2);
+            context.DrawRectangle(null, CloseUpPen, new Rect(x - half + 0.5, 0.5, half * 2 - 1, bounds.Height - 1));
+        }
         context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
     }
 
     // ───────────── Jumps ─────────────
 
-    private static readonly IBrush JumpBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6));
-    private static readonly IBrush JumpOffBrush = new ImmutableSolidColorBrush(Color.FromArgb(120, 0x9D, 0xBE, 0xE6));
-    private static readonly IBrush SkippedShade = new ImmutableSolidColorBrush(Color.FromArgb(140, 12, 14, 18));
-    private static readonly IBrush RepeatShade = new ImmutableSolidColorBrush(Color.FromArgb(40, 0x9D, 0xBE, 0xE6));
+    internal static readonly IBrush JumpBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6));
+    internal static readonly IBrush JumpOffBrush = new ImmutableSolidColorBrush(Color.FromArgb(120, 0x9D, 0xBE, 0xE6));
+    internal static readonly IBrush SkippedShade = new ImmutableSolidColorBrush(Color.FromArgb(140, 12, 14, 18));
+    internal static readonly IBrush RepeatShade = new ImmutableSolidColorBrush(Color.FromArgb(40, 0x9D, 0xBE, 0xE6));
 
     /// <summary>
     /// Each jump: a marker where it leaves (with an arrow towards where it lands) and where it lands.
@@ -239,23 +265,28 @@ public sealed class SeekBar : Control
 
     // ───────────── Cues ─────────────
 
+    private static readonly IPen CloseUpPen = new ImmutablePen(new ImmutableSolidColorBrush(Colors.White, 0.75), 1);
     private static readonly IBrush CueNumberBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x0E, 0x11, 0x16));
+
+    private static readonly Typeface CueTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Bold);
 
     /// <summary>Each cue: a line, with its number on a flag at the top (the number on its key).</summary>
     private void DrawCues(DrawingContext context, Rect bounds)
     {
-        var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Bold);
-        double flag = Math.Min(13, bounds.Height);
         foreach (CueMarker cue in Cues ?? [])
-        {
-            double at = Math.Clamp(cue.At, 0, 1) * bounds.Width;
-            context.DrawRectangle(JumpBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
-            double left = Math.Clamp(at - 1, 0, bounds.Width - flag);
-            context.DrawRectangle(JumpBrush, null, new Rect(left, 0, flag, flag));
-            var number = new FormattedText(cue.Number.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 10, CueNumberBrush);
-            context.DrawText(number, new Point(left + (flag - number.Width) / 2, (flag - number.Height) / 2));
-        }
+            DrawCue(context, bounds, Math.Clamp(cue.At, 0, 1) * bounds.Width, cue.Number);
+    }
+
+    /// <summary>A cue at <paramref name="at"/> (also drawn on the close-up).</summary>
+    internal static void DrawCue(DrawingContext context, Rect bounds, double at, int number)
+    {
+        double flag = Math.Min(13, bounds.Height);
+        context.DrawRectangle(JumpBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
+        double left = Math.Clamp(at - 1, 0, bounds.Width - flag);
+        context.DrawRectangle(JumpBrush, null, new Rect(left, 0, flag, flag));
+        var text = new FormattedText(number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, CueTypeface, 10, CueNumberBrush);
+        context.DrawText(text, new Point(left + (flag - text.Width) / 2, (flag - text.Height) / 2));
     }
 
     // ───────────── Waveform ─────────────
@@ -348,7 +379,7 @@ public sealed class SeekBar : Control
     }
 
     /// <summary>Red for bass, green for mids, blue for highs, mixed by how strong each band is.</summary>
-    private static Color BandColour(byte low, byte mid, byte high)
+    internal static Color BandColour(byte low, byte mid, byte high)
     {
         // Stored values are square roots of the level, so the 4th power is the level squared,
         // which lets the strongest band dominate the colour.

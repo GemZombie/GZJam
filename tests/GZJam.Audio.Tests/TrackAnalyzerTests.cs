@@ -35,6 +35,22 @@ public sealed class TrackAnalyzerTests : IDisposable
     }
 
     [Fact]
+    public void The_close_up_waveform_has_a_slice_every_10_ms()
+    {
+        // 2 s of silence, 1.23 s of tone, 0.77 s of silence: the close-up sees the edges to the slice.
+        string path = TestWav.WriteTone(File("edges.wav"), TimeSpan.FromSeconds(1.23),
+            silenceBefore: TimeSpan.FromSeconds(2), silenceAfter: TimeSpan.FromSeconds(0.77));
+
+        Waveform detail = _analyzer.Detail(path, TestContext.Current.CancellationToken);
+
+        Assert.Equal(400, detail.Count);   // 4 s, 100 a second
+        int first = Array.FindIndex(detail.Loudness, v => v > 0), last = Array.FindLastIndex(detail.Loudness, v => v > 0);
+        Assert.Equal(200, first);
+        Assert.Equal(322, last);           // 2 + 1.23 s: the slice from 3.22 s
+        Assert.InRange(Waveform.Decode(detail.Peak), 0.3, 0.7);   // a tone at half scale (its band, softly filtered)
+    }
+
+    [Fact]
     public void A_quiet_ending_is_kept()
     {
         // The last two seconds are 30 dB down: soft, but music.
