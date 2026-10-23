@@ -61,7 +61,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Planned next
 
-- [Quieter logs on Linux](https://github.com/GemZombie/GZJam/issues/21) (0.4.0)
 - [Testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and [on a real Mac](https://github.com/GemZombie/GZJam/issues/18)
 
 ## Being considered

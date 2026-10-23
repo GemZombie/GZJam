@@ -9,8 +9,12 @@ internal static class Program
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
     // Also used by the visual designer.
-    public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>()
+    public static AppBuilder BuildAvaloniaApp()
+    {
+        AppBuilder builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace();
+        AvaloniaLog.QuietInputMethods();   // Fcitx or IBus not answering on Linux: a note, not the console (issue #21)
+        return builder;
+    }
 }
