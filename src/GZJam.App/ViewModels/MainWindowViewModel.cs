@@ -39,6 +39,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         if (audio is not null)
         {
+            audio.ExtraBuffering = settings.ExtraBuffering;
             Analysis = new TrackAnalysisService(database, audio);
             Analysis.Analyzed += OnAnalyzed;
             Analysis.PropertyChanged += (_, _) => BackgroundChanged();
@@ -57,6 +58,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         if (mix is not null)
         {
+            mix.ExclusiveSpeakers = settings.ExclusiveSpeakers;
+            mix.MainOutputLost += (_, _) => OnMainOutputLost();
+            mix.MainDropout += (_, _) => Log.Info(
+                $"Speakers: the sound buffer ran dry (a dropout may have been heard){(settings.ExtraBuffering ? "" : "; Settings › Sound › Extra protection against crackles may help")}");
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
@@ -405,41 +410,146 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     private void ConnectSavedOutputs()
     {
-        AudioDevice? main = Audio!.FindDevice(_settings.MainDevice);
-        AudioDevice? cue = Audio.FindDevice(_settings.CueDevice);
-        if (_settings.MainDevice is not null && main is null)
-            ShowNotice($"Speaker output \"{_settings.MainDevice.Name}\" isn't connected; using the system default.");
-        else if (_settings.CueDevice is not null && cue is null)
-            ShowNotice($"Headphone output \"{_settings.CueDevice.Name}\" isn't connected.");
-        main ??= Audio.GetDefaultDevice();
+        var (main, cue, notice) = ChooseOutputs(_settings.MainDevice, _settings.CueDevice,
+            Audio!.FindDevice(_settings.MainDevice), Audio.FindDevice(_settings.CueDevice), Audio.GetDefaultDevice());
+        if (notice is not null)
+        {
+            Log.Info(notice);
+            ShowNotice(notice);
+        }
         SetOutputs(main, cue, remember: false);
         Settings.RefreshDevices();
     }
 
-    public void SetOutputs(AudioDevice? main, AudioDevice? cue, bool remember = true)
+    /// <summary>
+    /// The outputs to open from the saved choices and what's connected now. Speakers that aren't
+    /// connected fall back to the system default. If that's the very output the headphones are on,
+    /// the headphones are left off, so a preview can't reach the room (after an unplug, a laptop's
+    /// own output is often both).
+    /// </summary>
+    internal static (AudioDevice? Main, AudioDevice? Cue, string? Notice) ChooseOutputs(
+        AudioDevicePreference? savedMain, AudioDevicePreference? savedCue, AudioDevice? main, AudioDevice? cue, AudioDevice? fallback)
     {
+        string? notice = null;
+        if (savedMain is not null && main is null)
+            notice = $"Speaker output \"{savedMain.Name}\" isn't connected; using {fallback?.Name ?? "the system default"}.";
+        else if (savedCue is not null && cue is null)
+            notice = $"Headphone output \"{savedCue.Name}\" isn't connected.";
+
+        if (main is null)
+        {
+            main = fallback;
+            if (main is not null && cue?.Index == main.Index)
+            {
+                cue = null;
+                notice = $"{notice} Headphones are off: they'd play in the room. Choose them in Settings › Sound.".TrimStart();
+            }
+        }
+        return (main, cue, notice);
+    }
+
+    /// <summary>
+    /// The speakers stopped by themselves while GZJam had them alone (unplugged, or taken by
+    /// Windows): opens them again if they're still there, else the system default, as at startup.
+    /// </summary>
+    private void OnMainOutputLost()
+    {
+        AudioDevice? lost = Mix!.Main.Device;
+        string name = lost?.Name ?? "The speaker output";
+        Log.Error($"Speaker output stopped: {name}");
+        AudioDevice? cue = Audio!.FindDevice(_settings.CueDevice);
+
+        // Still there (Windows took it for a moment): open it again. Windows may still list a card
+        // just unplugged, so only opening it says it's back.
+        if (Audio.FindDevice(_settings.MainDevice) is { } saved && SetOutputs(saved, cue, remember: false, quiet: true))
+        {
+            ShowNotice($"{name} stopped for a moment; GZJam opened it again.");
+            Settings.RefreshDevices();
+            return;
+        }
+
+        // Gone: the system default, as at startup, keeping the headphones out of the room.
+        AudioDevice? fallback = Audio.GetDefaultDevice() is { } byDefault && byDefault.Index != lost?.Index ? byDefault : null;
+        var (main, newCue, _) = ChooseOutputs(_settings.MainDevice, _settings.CueDevice, null, cue, fallback);
+        if (SetOutputs(main, newCue, remember: false))
+        {
+            string notice = main is null
+                ? $"{name} stopped (unplugged?), and no other speakers are connected. Choose them in Settings › Sound."
+                : $"{name} stopped (unplugged?), so the music is playing through {main.Name}." +
+                  (cue is not null && newCue is null ? " Headphones are off: they'd play in the room. Choose them in Settings › Sound." : "");
+            Log.Info(notice);
+            ShowNotice(notice);
+        }
+        Settings.RefreshDevices();
+    }
+
+    /// <summary>Applies <see cref="AppSettings.ExclusiveSpeakers"/>, opening the speakers again with it.</summary>
+    public void SetExclusiveSpeakers(bool value)
+    {
+        _settings.ExclusiveSpeakers = value;
+        Log.Info($"Speakers for GZJam alone: {(value ? "on" : "off")}");
         if (Mix is null)
             return;
+        Mix.ExclusiveSpeakers = value;
+        if (!Mix.IsOffline && Mix.Main.Device is not null)
+            SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
+    }
+
+    /// <summary>Applies <see cref="AppSettings.ExtraBuffering"/>, opening the outputs again with it.</summary>
+    public void SetExtraBuffering(bool value)
+    {
+        _settings.ExtraBuffering = value;
+        Log.Info($"Extra protection against crackles: {(value ? "on" : "off")}");
+        if (Audio is null)
+            return;
+        Audio.ExtraBuffering = value;
+        if (Mix is { IsOffline: false })
+            SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
+    }
+
+    /// <summary>Opens outputs. Returns whether they opened (if not, the last ones play on and a notice says why).</summary>
+    /// <param name="remember">Save them as the DJ's choice.</param>
+    /// <param name="quiet">No notice if they won't open (GZJam is only trying).</param>
+    public bool SetOutputs(AudioDevice? main, AudioDevice? cue, bool remember = true, bool quiet = false)
+    {
+        if (Mix is null)
+            return false;
+        bool opened = false;
         try
         {
             Mix.SetOutputs(main, cue);
-            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}], cue = {cue?.Name ?? "none"} [{cue?.Driver}]");
+            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.Main.IsExclusive ? " (GZJam's alone)" : "")}, cue = {Mix.Cue.Device?.Name ?? "none"} [{Mix.Cue.Device?.Driver}]");
+            if (Mix.CueRefusal is { } cueWhy)
+            {
+                Log.Error($"Headphones couldn't open: {cueWhy}");
+                ShowNotice($"The headphones couldn't open: {cueWhy} The speakers are playing.");
+            }
+            if (Mix.ExclusiveRefusal is { } why)
+            {
+                Log.Info($"Speakers shared, not GZJam's alone: {why}");
+                ShowNotice($"{why}, so it's shared: other programs' sounds can still play through it.");
+            }
             if (remember)
             {
                 _settings.MainDevice = main?.Preference;
                 _settings.CueDevice = cue?.Preference;
             }
+            opened = true;
         }
         catch (AudioException ex)
         {
             Log.Error("Couldn't open output", ex);
-            ShowNotice($"Couldn't open that output: {ex.Message}");
-            Settings.RefreshDevices();   // show the outputs still in use
+            if (!quiet)
+            {
+                ShowNotice($"Couldn't open that output: {ex.Message}");
+                Settings.RefreshDevices();   // show the outputs still in use
+            }
         }
         OnPropertyChanged(nameof(MainOutputName));
         OnPropertyChanged(nameof(CueOutputName));
         OnPropertyChanged(nameof(HasMainOutput));
         OnPropertyChanged(nameof(HasCueOutput));
+        return opened;
     }
 
     // ───────────── Decks ─────────────

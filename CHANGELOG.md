@@ -9,6 +9,25 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
+## 0.3.0 (unreleased)
+
+New:
+
+- **Windows: the speakers are GZJam's alone.** While GZJam is open, no other program's sound (a
+  notification, a browser) can reach the room through the speaker output. Settings › Sound ›
+  *Speakers for GZJam alone*, on by default, for an output chosen by name (not *Default*). The
+  headphones stay shared. If the card is unplugged mid-set, the music moves to the computer's
+  default output and GZJam says so. When those speakers are also Windows' default output, Settings
+  says other programs may refuse to play, and how to avoid it.
+- **The speakers always open, even if the headphones can't** (they're silent, and GZJam says why).
+  Before, both stayed shut and the decks played to nothing.
+- **Headphones never end up in the room after an unplug.** When the speakers fall back to the
+  computer's default output and that's where the headphones are (a laptop taken off its dock), the
+  headphones are switched off, with a notice.
+- **Extra protection against crackles** (Settings › Sound): for a computer where the sound crackles
+  or drops out. Play and the crossfader respond a little later. The activity log notes when the
+  speakers' sound runs dry, and the README has a short troubleshooting list.
+
 ## 0.2.1 (2026-10-22)
 
 The first public release. (0.2.0 was never released: a test failed on the Linux build machine.)

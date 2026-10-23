@@ -87,6 +87,43 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Speakers for GZJam alone (see <see cref="AppSettings.ExclusiveSpeakers"/>).</summary>
+    public bool ExclusiveSpeakers
+    {
+        get => _settings.ExclusiveSpeakers;
+        set
+        {
+            if (value == _settings.ExclusiveSpeakers)
+                return;
+            _owner.SetExclusiveSpeakers(value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SpeakersAreWindowsDefault));
+        }
+    }
+
+    /// <summary>
+    /// The speakers GZJam has to itself are also Windows' default output, so other programs that
+    /// play there (a browser) may refuse to play while GZJam is open.
+    /// </summary>
+    public bool SpeakersAreWindowsDefault =>
+        ShowsExclusiveSpeakers && ExclusiveSpeakers && MainDevice is { IsDefault: true, FollowsSystemDefault: false };
+
+    /// <summary>Extra protection against crackles (see <see cref="AppSettings.ExtraBuffering"/>).</summary>
+    public bool ExtraBuffering
+    {
+        get => _settings.ExtraBuffering;
+        set
+        {
+            if (value == _settings.ExtraBuffering)
+                return;
+            _owner.SetExtraBuffering(value);
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Exclusive output is a Windows matter: Linux already opens a chosen card directly.</summary>
+    public bool ShowsExclusiveSpeakers => OperatingSystem.IsWindows();
+
     /// <summary>Loudness matching (see <see cref="AppSettings.MatchLoudness"/>).</summary>
     public bool MatchLoudness
     {
@@ -165,6 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnMainDeviceChanged(AudioDevice? value)
     {
+        OnPropertyChanged(nameof(SpeakersAreWindowsDefault));
         if (!_loading && value is not null)
             _owner.SetOutputs(value, CueDevice == NoDevice ? null : CueDevice);
     }

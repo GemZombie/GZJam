@@ -24,8 +24,8 @@ public sealed class OutputBus : IDisposable
     /// </summary>
     private const float Noticeable = 0.794f;
 
-    /// <summary>How quickly the limiter lets go after a loud moment (per sample, about 300 ms).</summary>
-    private static readonly float Release = MathF.Exp(-1f / (0.3f * MixEngine.SampleRate));
+    /// <summary>How quickly the limiter lets go after a loud moment: about 300 ms.</summary>
+    private const float ReleaseSeconds = 0.3f;
 
     private readonly DSPProcedure _dsp;   // kept alive: BASS calls it from its mixing thread
     private volatile float _volume = 1;
@@ -33,11 +33,16 @@ public sealed class OutputBus : IDisposable
     private float _gain = 1;
     private float _peakLeft, _peakRight;
     private volatile bool _limited;
+    private readonly float _release;   // per sample
+    private readonly ExclusiveOutput? _exclusive;
 
-    internal OutputBus(int handle, AudioDevice? device)
+    /// <param name="exclusive">The output GZJam has to itself (Windows), freed with the bus.</param>
+    internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate, ExclusiveOutput? exclusive = null)
     {
         Handle = handle;
         Device = device;
+        _exclusive = exclusive;
+        _release = MathF.Exp(-1f / (ReleaseSeconds * sampleRate));
         _dsp = Process;
         Bass.ChannelSetDSP(handle, _dsp);
     }
@@ -48,6 +53,18 @@ public sealed class OutputBus : IDisposable
     public AudioDevice? Device { get; }
 
     public bool IsOffline => Device is null;
+
+    /// <summary>
+    /// GZJam has the device to itself, so no other program's sound reaches it (Windows: see
+    /// <see cref="MixEngine.ExclusiveSpeakers"/>).
+    /// </summary>
+    public bool IsExclusive => _exclusive is not null;
+
+    /// <summary>An exclusive output that has stopped by itself: unplugged, or taken by Windows.</summary>
+    internal bool IsLost => _exclusive?.IsLost ?? false;
+
+    /// <summary>An exclusive output whose buffer is empty right now: a dropout (see <see cref="ExclusiveOutput.IsDry"/>).</summary>
+    internal bool IsDry() => _exclusive?.IsDry() ?? false;
 
     /// <summary>Output level, 0 (silent) to 1 (as mixed).</summary>
     public float Volume
@@ -97,7 +114,7 @@ public sealed class OutputBus : IDisposable
 
             // Instant attack, smooth release: the gain drops at once to keep this frame under
             // the ceiling, then recovers gradually so there's no pumping.
-            gain = 1 - (1 - gain) * Release;
+            gain = 1 - (1 - gain) * _release;
             float peak = Math.Max(Math.Abs(l), Math.Abs(r));
             if (peak * gain > Ceiling)
             {
@@ -153,5 +170,11 @@ public sealed class OutputBus : IDisposable
         return peak;
     }
 
-    public void Dispose() => Bass.StreamFree(Handle);
+    public void Dispose()
+    {
+        if (_exclusive is not null)
+            _exclusive.Dispose();   // stops the output, then frees the mixer
+        else
+            Bass.StreamFree(Handle);
+    }
 }
