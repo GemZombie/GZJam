@@ -240,6 +240,17 @@ public sealed partial class LibraryDatabase
                 bpm  REAL NOT NULL
             );
             """,
+
+        // 13: Tags that store BPM x10 ("1180" for 118.0) or x100 are read correctly since
+        // 2026-10-21 (TagReader.NormalizeBpm), but songs scanned before then kept the raw value,
+        // and a rescan skips files that haven't changed. The same rule, once, for the stored tag
+        // BPMs and History (issue #26).
+        """
+            UPDATE tracks SET bpm = bpm / 10 WHERE bpm > 400 AND bpm / 10 BETWEEN 40 AND 400;
+            UPDATE tracks SET bpm = bpm / 100 WHERE bpm > 400 AND bpm / 100 BETWEEN 30 AND 400;
+            UPDATE plays SET bpm = bpm / 10 WHERE bpm > 400 AND bpm / 10 BETWEEN 40 AND 400;
+            UPDATE plays SET bpm = bpm / 100 WHERE bpm > 400 AND bpm / 100 BETWEEN 30 AND 400;
+            """,
     ];
 
     // ───────────── Roots ─────────────

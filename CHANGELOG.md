@@ -9,6 +9,14 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
+## 0.3.0 (unreleased)
+
+Fixed:
+
+- **BPMs over 1000** (Pink Panther Theme showed 1180) for songs whose tags store the BPM ten times
+  over, in libraries first scanned before 0.2.1. They're corrected once when GZJam starts, in the
+  library and in History.
+
 ## 0.2.1 (2026-10-22)
 
 The first public release. (0.2.0 was never released: a test failed on the Linux build machine.)

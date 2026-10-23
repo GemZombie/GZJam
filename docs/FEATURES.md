@@ -115,7 +115,9 @@ is out of scope until it earns a place.
   the detected BPM is shown even over a tag's BPM; Automatic goes back to the tag.
 - A global "my music's tempo range" setting was tried first and dropped: the DJ felt one range
   for the whole library wouldn't fit, and wanted to fix individual songs instead.
-- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
+- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100. Libraries scanned before
+  that kept the raw value (a rescan skips unchanged files): schema upgrade 13 corrects them once,
+  in the library and History (issue #26).
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
   outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
 - Not yet: typing or tapping a BPM, per-folder BPM ranges,
