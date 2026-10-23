@@ -61,6 +61,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - **A close-up of the song on each deck:** a few seconds around the playhead, scrolling past
   beat by beat, over the whole song. See the end of a phrase coming, and find the exact spot for a
   cue, a jump or a song's start. Zoom with the mouse wheel or a pinch; drag it like a record.
+- **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into
+  bars like a waveform.
 
 ## Planned next
 
@@ -104,7 +106,6 @@ to one you'd use.
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
 - [An Arch Linux (AUR) package that updates itself](https://github.com/GemZombie/GZJam/issues/30)
   (waiting on the AUR)
-- [A better logo](https://github.com/GemZombie/GZJam/issues/17)
 
 ## Decided against
 

@@ -23,6 +23,11 @@ New:
   as the whole song, with "here" just where you pressed. With four decks there's no room for both:
   the mouse wheel or a pinch on a deck's waveform zooms it in, and out again.
 
+Changed:
+
+- **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into bars
+  like a waveform. It's in the top bar and on Settings › About too.
+
 Fixed:
 
 - **A hint or the "Analyzing…" label never makes a deck taller.** With four decks in touch mode,

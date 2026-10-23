@@ -1,25 +1,22 @@
+using GZJam.App.Controls;
 using SkiaSharp;
 
 namespace GZJam.DevTools;
 
 /// <summary>
 /// Draws GZJam's app icon at each size it ships in, so small sizes are drawn for their pixels
-/// rather than scaled down: a platter on a graphite tile, with a steel-blue position ring like the
-/// light ring round a jog wheel.
+/// rather than scaled down: the logo's waveform G (<see cref="LogoShapes"/>) on a graphite tile.
+/// Small, the G's ring is drawn solid, as the app's <see cref="LogoMark"/> does.
 /// </summary>
 internal static class IconArt
 {
-    private static readonly SKColor TileTop = SKColor.Parse("#1F242D");
-    private static readonly SKColor TileBottom = SKColor.Parse("#0E1116");
-    private static readonly SKColor TileEdge = SKColor.Parse("#363D4B");
-    private static readonly SKColor RingTrack = SKColor.Parse("#262C37");
-    private static readonly SKColor Accent = SKColor.Parse("#7FA3CF");
-    private static readonly SKColor VinylCentre = SKColor.Parse("#171A21");
-    private static readonly SKColor VinylEdge = SKColor.Parse("#090B0E");
-    private static readonly SKColor Label = SKColor.Parse("#E7EAF0");
-    private static readonly SKColor Spindle = SKColor.Parse("#0C0E12");
+    private static readonly SKColor TileTop = SKColor.Parse(LogoShapes.TileTop);
+    private static readonly SKColor TileBottom = SKColor.Parse(LogoShapes.TileBottom);
+    private static readonly SKColor TileEdge = SKColor.Parse(LogoShapes.TileEdge);
+    private static readonly SKColor Played = SKColor.Parse(LogoShapes.Played);
+    private static readonly SKColor ToCome = SKColor.Parse(LogoShapes.ToCome);
 
-    /// <summary>Writes the icon files into the repository at <paramref name="repo"/>.</summary>
+    /// <summary>Writes the icon files, and the logo's SVG files, into the repository at <paramref name="repo"/>.</summary>
     public static int Generate(string repo)
     {
         string assets = Path.Combine(repo, "src", "GZJam.App", "Assets");
@@ -28,10 +25,11 @@ internal static class IconArt
         WriteIco(Path.Combine(assets, "gzjam.ico"), [16, 20, 24, 32, 40, 48, 64, 256]);
         File.WriteAllBytes(Path.Combine(assets, "gzjam.png"), Png(256, mac: false));
         WriteIcns(Path.Combine(repo, "packaging", "macos", "GZJam.icns"));
+        LogoFiles.Write(repo);
 
         string preview = Path.Combine(Path.GetTempPath(), "gzjam-icon-preview.png");
         WritePreview(preview);
-        Console.WriteLine($"Icons written; preview: {preview}");
+        Console.WriteLine($"Icons and branding/*.svg written; preview: {preview}");
         return 0;
     }
 
@@ -46,7 +44,6 @@ internal static class IconArt
         float tile = s - 2 * inset;
         float radius = mac ? s * 185 / 1024 : tile * 0.2f;
         float px = Math.Max(1, s / 256);   // a hairline that stays one pixel when small
-        var c = new SKPoint(s / 2, s / 2);
 
         using var paint = new SKPaint { IsAntialias = true };
 
@@ -71,80 +68,40 @@ internal static class IconArt
             var edge = tileRect;
             edge.Inflate(-px / 2, -px / 2);
             canvas.DrawRoundRect(edge, radius - px / 2, radius - px / 2, paint);
-            paint.Style = SKPaintStyle.Fill;
         }
 
-        // The position ring: a dim track, three quarters lit in the accent, starting at the top.
-        float ringRadius = tile * 0.385f;
-        float ringWidth = Math.Max(tile * 0.06f, 1.75f);
-        var ringRect = new SKRect(c.X - ringRadius, c.Y - ringRadius, c.X + ringRadius, c.Y + ringRadius);
+        // The G, laid out on the logo's 64-unit square, whose tile spans 1 to 63.
+        float unit = tile / 62;
+        canvas.Save();
+        canvas.Translate(inset - unit, inset - unit);
+        canvas.Scale(unit);
         paint.Style = SKPaintStyle.Stroke;
-        paint.StrokeWidth = ringWidth;
-        paint.Color = RingTrack;
-        canvas.DrawOval(ringRect, paint);
-        paint.StrokeCap = SKStrokeCap.Round;
-        if (s >= 64)
-        {
-            paint.Color = Accent.WithAlpha(110);
-            paint.MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, tile * 0.018f);
-            canvas.DrawArc(ringRect, -90, 270, false, paint);
-            paint.MaskFilter = null;
-        }
-        paint.Color = Accent;
-        canvas.DrawArc(ringRect, -90, 270, false, paint);
         paint.StrokeCap = SKStrokeCap.Butt;
-        paint.Style = SKPaintStyle.Fill;
-
-        // The record: near-black, with grooves and a sheen when there's room for them.
-        float vinyl = tile * 0.31f;
-        paint.Shader = SKShader.CreateRadialGradient(c, vinyl, [VinylCentre, VinylEdge], SKShaderTileMode.Clamp);
-        canvas.DrawCircle(c, vinyl, paint);
-        paint.Shader = null;
-        float labelRadius = tile * 0.125f;
-        if (s >= 96)
+        if (tile >= LogoShapes.MarkBarsFromPixels)
         {
-            paint.Style = SKPaintStyle.Stroke;
-            paint.StrokeWidth = px * 0.75f;
-            paint.Color = SKColors.White.WithAlpha(13);
-            for (float r = labelRadius + tile * 0.03f; r < vinyl - tile * 0.012f; r += tile * 0.016f)
-                canvas.DrawCircle(c, r, paint);
-            paint.Style = SKPaintStyle.Fill;
+            paint.StrokeWidth = (float)LogoShapes.BarWidth;
+            foreach (var bar in LogoShapes.Bars)
+            {
+                paint.Color = bar.Played ? Played : ToCome;
+                canvas.DrawLine((float)bar.X1, (float)bar.Y1, (float)bar.X2, (float)bar.Y2, paint);
+            }
+            paint.StrokeWidth = (float)LogoShapes.GBarWidth;
         }
-        if (s >= 48)
+        else
         {
-            var clear = SKColors.White.WithAlpha(0);
-            var shine = SKColors.White.WithAlpha(22);
-            paint.Shader = SKShader.CreateSweepGradient(c,
-                [clear, shine, clear, clear, shine, clear, clear],
-                [0f, 0.09f, 0.18f, 0.5f, 0.59f, 0.68f, 1f]);
-            canvas.Save();
-            canvas.RotateDegrees(-20, c.X, c.Y);
-            canvas.DrawCircle(c, vinyl, paint);
-            canvas.Restore();
-            paint.Shader = null;
+            float r = (float)LogoShapes.Ring, c = (float)LogoShapes.Centre, half = (float)LogoShapes.BarStep / 2;
+            var ring = new SKRect(c - r, c - r, c + r, c + r);
+            float start = (float)LogoShapes.RingStart - half, split = (float)LogoShapes.PlayedTo + half, end = (float)LogoShapes.RingEnd + half;
+            paint.StrokeWidth = (float)LogoShapes.SolidRingWidth;
+            paint.Color = Played;
+            canvas.DrawArc(ring, start, split - start, false, paint);
+            paint.Color = ToCome;
+            canvas.DrawArc(ring, split, end - split, false, paint);
+            paint.StrokeWidth = (float)LogoShapes.SolidGBarWidth;
         }
-
-        // The index mark at the top of the platter, as on a jog wheel: it turns with the record.
-        if (s >= 32)
-        {
-            paint.Style = SKPaintStyle.Stroke;
-            paint.StrokeWidth = Math.Max(tile * 0.022f, 1.25f);
-            paint.StrokeCap = SKStrokeCap.Round;
-            paint.Color = Label.WithAlpha(220);
-            canvas.DrawLine(c.X, c.Y - vinyl * 0.93f, c.X, c.Y - vinyl * 0.64f, paint);
-            paint.StrokeCap = SKStrokeCap.Butt;
-            paint.Style = SKPaintStyle.Fill;
-        }
-
-        // The label, light like the badge in the app's top bar, and the spindle.
-        paint.Color = Label;
-        canvas.DrawCircle(c, labelRadius, paint);
-        float spindle = tile * 0.024f;
-        if (spindle >= 0.8f)
-        {
-            paint.Color = Spindle;
-            canvas.DrawCircle(c, spindle, paint);
-        }
+        paint.Color = Played;
+        canvas.DrawLine((float)LogoShapes.GBarFrom, (float)LogoShapes.Centre, (float)LogoShapes.GBarTo, (float)LogoShapes.Centre, paint);
+        canvas.Restore();
     }
 
     private static byte[] Png(int size, bool mac)

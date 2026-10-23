@@ -1,4 +1,9 @@
-# GZJam
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="branding/gzjam-logo-light.svg">
+    <img src="branding/gzjam-logo.svg" alt="GZJam" height="64">
+  </picture>
+</h1>
 
 A DJ app that aims to be simple, intuitive and useful: what you need to play music for people,
 without the clutter.
@@ -165,9 +170,11 @@ The packages aren't signed yet, so the first launch asks for confirmation:
 - **macOS** says it can't verify the app: open System Settings › Privacy & Security and click
   *Open Anyway*, or run `xattr -dr com.apple.quarantine /Applications/GZJam.app`.
 
-The app icon is drawn in code, so every size is sharp: after changing `tools/GZJam.DevTools/IconArt.cs`,
-run `dotnet run --project tools/GZJam.DevTools -- icon .` to redraw `src/GZJam.App/Assets/gzjam.ico`,
-`gzjam.png` and `packaging/macos/GZJam.icns` (and a preview of every size in the temp folder).
+The logo and app icon are drawn in code, so every size is sharp: the shapes are in
+`src/GZJam.App/Controls/LogoShapes.cs`, which the app draws from too. After changing them (or
+`tools/GZJam.DevTools/IconArt.cs`), run `dotnet run --project tools/GZJam.DevTools -- icon .` to redraw
+`src/GZJam.App/Assets/gzjam.ico`, `gzjam.png`, `packaging/macos/GZJam.icns` and the logo's SVG files
+in `branding/` (and a preview of every icon size in the temp folder).
 
 Packaging files are in `packaging/` (the Inno Setup script, the macOS `Info.plist` and bundle
 script, the Linux tarball and install scripts).
