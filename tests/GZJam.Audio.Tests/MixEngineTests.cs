@@ -328,6 +328,37 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void Each_deck_has_a_meter_the_crossfader_does_not_change()
+    {
+        A.Load(_tone);
+        B.Load(_tone);
+        A.Play();
+        B.Play();
+        _mix.Crossfader = 0;   // the room hears only Deck 1
+        Render(0.1);
+        A.TakePeak();
+        B.TakePeak();
+
+        var (main, _) = Render();
+        Assert.Equal(Full, main, 0.02f);
+        Assert.Equal(Full, A.TakePeak(), 0.02f);
+        Assert.Equal(Full, B.TakePeak(), 0.02f);   // out of the room, but its level shows
+
+        B.GainDb = -6;   // gain (loudness matching and the DJ's) counts
+        Render(0.1);
+        B.TakePeak();
+        Render();
+        Assert.Equal(Full / 2, B.TakePeak(), 0.02f);
+
+        B.Pause();
+        Render(0.1);
+        B.TakePeak();
+        Render();
+        Assert.Equal(0, B.TakePeak());
+        Assert.Equal(Full, A.TakePeak(), 0.02f);
+    }
+
+    [Fact]
     public void Volume_turns_an_output_down()
     {
         A.Load(_tone);

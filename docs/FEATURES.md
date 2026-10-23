@@ -737,6 +737,27 @@ not here. This file records what was decided and built, and why.
   (issue #18).
 - **Linux** keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
 
+### Status: a level meter on each deck (2026-10-23, issue #2)
+
+- A slim LED column on each deck, in the frame's padding along the edge nearest the mixer (Decks
+  1 and 3 on the right, 2 and 4 on the left), so it takes no room from the deck's controls; half
+  height with four decks. One column (the louder side), no scale: the speakers' meter has that.
+- Measured like a mixer's channel meter: after the deck's gain (loudness matching and the DJ's)
+  and EQ, before the crossfader. A deck the room can't hear still shows its level, which is the
+  point when cueing. A DSP on the deck's split to the speakers' mix (`Deck.TakePeak`), where BASS
+  hasn't yet applied the crossfader's volume. Same segments and colours as the speakers' meter;
+  the top (red) light is the limiter's ceiling, so a deck lighting it would make the speakers'
+  limiter work at full crossfader.
+
+### Status: nothing moves as a deck starts or goes on air (2026-10-23, issue #34)
+
+- The maintainer noticed things resizing as a deck went live. Measured: the ON AIR / OFF AIR line
+  only appeared while playing, so starting a deck pushed its title down 14 px and shrank the
+  waveform by 10; with four decks the title jumped about 60 px sideways, then 3 back on air.
+- The line now always keeps its space (blank until the deck plays), and with four decks has a
+  fixed width. `LayoutStabilityTests` records where every visible control is, plays a deck and puts
+  it on air, and fails if anything moved except the play key's icon and the words themselves.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

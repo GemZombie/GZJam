@@ -632,6 +632,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Mix?.Update();
         Mixer?.Update();
         AutoPlay?.Tick();
+        foreach (DeckViewModel deck in Decks)
+            deck.UpdateMeter();
         RefreshDecks();
         Preview?.Refresh();
     }

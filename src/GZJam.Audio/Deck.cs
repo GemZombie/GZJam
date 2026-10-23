@@ -31,12 +31,15 @@ public sealed class Deck : IDisposable
     private readonly SyncProcedure _jumpSync;   // kept alive: BASS holds only a pointer to it
     private volatile bool _jumped;               // set on the audio thread, reported by Update
     private readonly int[] _eqFx = new int[3];
+    private readonly DSPProcedure _meterDsp;     // kept alive: BASS calls it from its mixing thread
+    private float _peak;                         // since the last TakePeak, set on the audio thread
 
     internal Deck(MixEngine mix, int index)
     {
         _mix = mix;
         Index = index;
         _jumpSync = OnJumpSync;
+        _meterDsp = Measure;
     }
 
     public int Index { get; }
@@ -83,6 +86,7 @@ public sealed class Deck : IDisposable
         SetJumpSyncs();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
+        Bass.ChannelSetDSP(_splitMain, _meterDsp);
         TrackPath = path;
         _playing = false;
         _ended = false;
@@ -373,6 +377,27 @@ public sealed class Deck : IDisposable
     {
         _mainGain = mainGain;
         ApplyVolumes();
+    }
+
+    /// <summary>
+    /// The deck's loudest sample since the last call (1 = full scale), after its gain and EQ but
+    /// before the crossfader, like a mixer's channel meter: a deck the room can't hear still shows
+    /// its level. 0 while paused. For the deck's meter: call it regularly.
+    /// </summary>
+    public float TakePeak() => Interlocked.Exchange(ref _peak, 0);
+
+    /// <summary>On the audio thread, as the speakers' mix takes the deck's audio (before its volume is applied).</summary>
+    private unsafe void Measure(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+    {
+        var samples = new ReadOnlySpan<float>((void*)buffer, length / sizeof(float));
+        float peak = 0;
+        foreach (float sample in samples)
+            peak = Math.Max(peak, Math.Abs(sample));
+        peak *= (float)_gain;
+        float current;
+        while (peak > (current = Volatile.Read(ref _peak)) && Interlocked.CompareExchange(ref _peak, peak, current) != current)
+        {
+        }
     }
 
     internal void Update()

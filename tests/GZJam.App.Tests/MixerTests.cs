@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using GZJam.App.Controls;
+using GZJam.App.Views;
 
 namespace GZJam.App.Tests;
 
@@ -24,6 +25,34 @@ public sealed class MixerTests
         Assert.False(app.Settings.Mono);
         Assert.False(mixer.IsMono);
         Assert.False(app.Window.FindControl<LevelMeter>("MainMeter")!.IsMono);
+    }
+
+    [AvaloniaFact]
+    public void Each_deck_has_a_meter_beside_the_mixer_that_shows_it_out_of_the_room_too()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var meter1 = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<LevelMeter>("DeckMeter")!;
+        var meter2 = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<LevelMeter>("DeckMeter")!;
+        Assert.Equal(Avalonia.Layout.HorizontalAlignment.Right, meter1.HorizontalAlignment);   // the edge nearest the mixer
+        Assert.Equal(Avalonia.Layout.HorizontalAlignment.Left, meter2.HorizontalAlignment);
+        Assert.False(meter1.ShowScale);
+
+        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone")).GetAwaiter().GetResult();
+        vm.Mixer!.Crossfader = 0;   // the room hears Deck 1, which is empty
+        vm.Deck2!.TogglePlayCommand.Execute(null);
+        app.Play(0.3);
+        app.Play(0.3);
+
+        Assert.InRange(vm.Deck2.Level, 0.7, 1);
+        Assert.Equal(vm.Deck2.Level, meter2.Left);
+        Assert.Equal(0, vm.Deck1!.Level);
+        Assert.InRange(vm.Mixer.LevelLeft, 0, 0.1);   // nothing in the room
+
+        vm.Deck2.TogglePlayCommand.Execute(null);   // paused: the meter falls back
+        for (int i = 0; i < 60; i++)
+            app.Play(0.05);
+        Assert.Equal(0, vm.Deck2.Level);
     }
 
     [AvaloniaFact]
