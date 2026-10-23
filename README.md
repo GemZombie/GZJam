@@ -7,6 +7,7 @@ without the clutter.
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
 the file for your computer. What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
+Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions).
 
 | Computer | File | To install |
 |---|---|---|

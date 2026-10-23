@@ -3,12 +3,18 @@
 Thanks for wanting to help. GZJam aims to stay simple, intuitive and useful, so what goes in is
 decided by its maintainer, [@GemZombie](https://github.com/GemZombie).
 
-## Ideas, problems and requests
+## Questions and ideas
 
-[Open an issue](https://github.com/GemZombie/GZJam/issues). For a problem, say what you did, what
-happened and which computer you were on. Attach the activity log if you can: it's in GZJam's data
-folder under `logs/` (`%LOCALAPPDATA%\GZJam` on Windows, `~/.local/share/GZJam` on Linux,
-`~/Library/Application Support/GZJam` on a Mac).
+[Discussions](https://github.com/GemZombie/GZJam/discussions) is the place to ask how to do
+something (Q&A), talk an idea over with other DJs (Ideas), or show your setup (Show and tell). New
+releases are announced there too. Ideas the maintainer takes up become issues.
+
+## Problems and requests
+
+[Open an issue](https://github.com/GemZombie/GZJam/issues) for something that's wrong, or a clear
+request. For a problem, say what you did, what happened and which computer you were on. Attach
+the activity log if you can: it's in GZJam's data folder under `logs/` (`%LOCALAPPDATA%\GZJam` on
+Windows, `~/.local/share/GZJam` on Linux, `~/Library/Application Support/GZJam` on a Mac).
 
 ## Pull requests
 
