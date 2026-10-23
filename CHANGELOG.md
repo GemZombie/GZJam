@@ -22,6 +22,8 @@ New:
   waveform, and a numbered flag marks the spot: tap the key and the deck carries on from there at
   once, on air too, at the moment you choose (wait for the end of a phrase, then go to the outro).
   With four decks, they're in the deck's ⋯ menu. Saved for the song in GZJam, never in the file.
+  Import from Mixxx brings over your hot cues 1 to 4 as cue keys 1 to 4, for songs that don't have
+  cues in GZJam yet.
 - **Phones mix: hear the room in the headphones too.** A new fader under MAIN and PHONES blends
   what the headphones hear, from what's cued (CUE, where it starts: as before) to what the room
   hears (MAIN), with both at full in the middle. Keep one ear on the dancers while you preview

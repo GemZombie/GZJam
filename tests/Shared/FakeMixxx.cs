@@ -26,6 +26,9 @@ public sealed class FakeMixxx(string path)
                 show INTEGER DEFAULT 1, locked INTEGER DEFAULT 0, autodj_source INTEGER DEFAULT 0);
             CREATE TABLE crate_tracks (crate_id INTEGER NOT NULL REFERENCES crates(id), track_id INTEGER NOT NULL REFERENCES library(id),
                 UNIQUE (crate_id, track_id));
+            CREATE TABLE cues (id INTEGER PRIMARY KEY AUTOINCREMENT, track_id INTEGER NOT NULL REFERENCES library(id),
+                type INTEGER DEFAULT 0 NOT NULL, position INTEGER DEFAULT -1 NOT NULL, length INTEGER DEFAULT 0 NOT NULL,
+                hotcue INTEGER DEFAULT -1 NOT NULL, label TEXT DEFAULT '' NOT NULL, color INTEGER DEFAULT 4294901760 NOT NULL);
             """);
         return c;
     }
@@ -57,6 +60,15 @@ public sealed class FakeMixxx(string path)
                   "VALUES ($t, 'Mixxx Artist', $l, 180.5, 44100, $b, $r, $k, $x);",
             ("$t", title), ("$l", location), ("$b", bpm), ("$r", stars), ("$k", locked ? 1 : 0), ("$x", deleted ? 1 : 0));
     }
+
+    /// <summary>
+    /// A cue as Mixxx stores it: <paramref name="index"/> from 0 (the first pad; -1 for none), the
+    /// position in samples of both channels at the song's 44.1 kHz (a REAL, as Mixxx writes it).
+    /// Type 1 is a hot cue; 4 a saved loop, 6 and 7 the intro and outro markers.
+    /// </summary>
+    public void Cue(long song, int index, double seconds, int type = 1) =>
+        Exec(_c, "INSERT INTO cues (track_id, type, position, length, hotcue) VALUES ($t, $y, $p, 0, $h);",
+            ("$t", song), ("$y", type), ("$p", seconds * 44100 * 2), ("$h", index));
 
     public void Crate(string name, params long[] songs)
     {

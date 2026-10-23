@@ -144,4 +144,44 @@ public sealed class MixxxImportTests : IDisposable
         Assert.Equal(before, File.ReadAllBytes(_mixxxDb));
         Assert.False(File.Exists(_mixxxDb + "-wal"));
     }
+
+    [Fact]
+    public void Hot_cues_one_to_four_become_cues_for_songs_without_any()
+    {
+        string a = _lib.AddMp3("Swing/a.mp3", new GZJam.Testing.TestMp3.Tags(Title: "A"));
+        string b = _lib.AddMp3("Swing/b.mp3", new GZJam.Testing.TestMp3.Tags(Title: "B"));
+        string c = _lib.AddMp3("Swing/c.mp3", new GZJam.Testing.TestMp3.Tags(Title: "C"));
+        _lib.AddRootAndScan();
+        _lib.Database.SetCues(b, [new SongCue(1, TimeSpan.FromSeconds(30))]);   // set in GZJam: stays
+
+        var mixxx = new FakeMixxx(_mixxxDb);
+        long ida = mixxx.Song(a, "A");
+        mixxx.Cue(ida, 0, 12.5);              // Mixxx's first pad: cue 1
+        mixxx.Cue(ida, 2, 95.25);             // third pad: cue 3 (numbers are kept)
+        mixxx.Cue(ida, 7, 150);               // eighth pad: GZJam has four cue keys
+        mixxx.Cue(ida, -1, 3, type: 2);       // the main cue point: not a hot cue
+        mixxx.Cue(ida, 1, 40, type: 4);       // a saved loop on the second pad: not a cue
+        mixxx.Cue(ida, -1, 170, type: 7);     // the outro marker: GZJam finds the end itself
+        long idb = mixxx.Song(b, "B");
+        mixxx.Cue(idb, 0, 60);
+        long idc = mixxx.Song(c, "C");
+        mixxx.Cue(idc, 3, 5);
+        mixxx.Close();
+
+        MixxxImport plan = Plan();
+        Assert.Equal(2, plan.CuedSongCount);   // A and C; B has cues in GZJam
+        Assert.Equal(1, plan.LeftOutHotCues);
+
+        MixxxImportResult result = plan.Apply(_lib.Database, new MixxxImportOptions());
+        Assert.Equal(2, result.CuedSongs);
+        Assert.Equal([new SongCue(1, TimeSpan.FromSeconds(12.5)), new SongCue(3, TimeSpan.FromSeconds(95.25))], _lib.Database.GetCues(a));
+        Assert.Equal([new SongCue(1, TimeSpan.FromSeconds(30))], _lib.Database.GetCues(b));
+        Assert.Equal([new SongCue(4, TimeSpan.FromSeconds(5))], _lib.Database.GetCues(c));
+
+        // Again: nothing new (the songs have cues now), and not chosen: nothing comes over.
+        Assert.Equal(0, Plan().CuedSongCount);
+        _lib.Database.SetCues(c, []);
+        Assert.Equal(0, Plan().Apply(_lib.Database, new MixxxImportOptions(HotCues: false)).CuedSongs);
+        Assert.Empty(_lib.Database.GetCues(c));
+    }
 }

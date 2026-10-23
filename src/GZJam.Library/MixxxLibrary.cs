@@ -10,6 +10,9 @@ public sealed record MixxxTrack(long Id, string Path, string FileName, long? Fil
 /// <summary>A crate, by name, with its songs' Mixxx ids.</summary>
 public sealed record MixxxCrate(string Name, IReadOnlyList<long> TrackIds);
 
+/// <summary>A hot cue in Mixxx: its song, its number as Mixxx shows it (1 for the first pad), and where.</summary>
+public sealed record MixxxHotCue(long TrackId, int Number, TimeSpan At);
+
 /// <summary>A night in Mixxx's History: the songs played, in order, with when (UTC).</summary>
 public sealed record MixxxSession(string Name, IReadOnlyList<(long TrackId, DateTime PlayedUtc)> Plays);
 
@@ -17,7 +20,7 @@ public sealed record MixxxSession(string Name, IReadOnlyList<(long TrackId, Date
 /// Reads a Mixxx library (mixxxdb.sqlite). Mixxx's database is copied first and only the copy is
 /// read, so Mixxx (running or not) is never touched. Layout from Mixxx's res/schema.xml: songs in
 /// library + track_locations, crates in crates + crate_tracks, History in playlists marked as set
-/// logs (Playlists.hidden = 2), timestamps in UTC.
+/// logs (Playlists.hidden = 2), timestamps in UTC, cues in cues (see <see cref="HotCues"/>).
 /// </summary>
 public sealed class MixxxLibrary : IDisposable
 {
@@ -91,6 +94,30 @@ public sealed class MixxxLibrary : IDisposable
                 !r.IsDBNull(11) && r.GetInt32(11) != 0));
         }
         return tracks;
+    }
+
+    private const int HotCueType = 1;   // cues.type for a hot cue (mixxx::CueType::HotCue)
+
+    /// <summary>
+    /// Hot cues: not saved loops, or the intro and outro markers Mixxx places by itself. Mixxx
+    /// numbers them from 0 (the first pad) and stores where they are in samples of both channels
+    /// (CueDAO: FramePos::toEngineSamplePos, two per frame), at the song's sample rate.
+    /// </summary>
+    public IReadOnlyList<MixxxHotCue> HotCues()
+    {
+        if (!Columns("cues").Contains("hotcue"))
+            return [];
+        using var cmd = _db.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT c.track_id, c.hotcue, c.position, l.samplerate
+            FROM cues c JOIN library l ON l.id = c.track_id
+            WHERE c.type = {HotCueType} AND c.hotcue >= 0 AND c.position >= 0 AND l.samplerate > 0;
+            """;
+        using var r = cmd.ExecuteReader();
+        var cues = new List<MixxxHotCue>();
+        while (r.Read())
+            cues.Add(new MixxxHotCue(r.GetInt64(0), r.GetInt32(1) + 1, TimeSpan.FromSeconds(r.GetDouble(2) / 2 / r.GetInt32(3))));
+        return cues;
     }
 
     /// <summary>Crates with their songs.</summary>

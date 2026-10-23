@@ -25,6 +25,8 @@ public sealed class MixxxImportAppTests
         long a = mixxx.Song(first.Path, first.DisplayTitle, stars: 5, bpm: 236, locked: true);
         long b = mixxx.Song(second.Path, second.DisplayTitle, stars: 1);
         mixxx.Crate("Lindy", a, b);
+        mixxx.Cue(a, 0, 20);
+        mixxx.Cue(a, 5, 90);   // the sixth pad: stays behind
         mixxx.Night("2024-03-14", (a, new DateTime(2024, 3, 14, 20, 0, 0, DateTimeKind.Utc)), (b, new DateTime(2024, 3, 14, 20, 3, 0, DateTimeKind.Utc)));
         mixxx.Close();
 
@@ -39,6 +41,8 @@ public sealed class MixxxImportAppTests
         Assert.StartsWith("1 crate, 2 songs", import.CratesText);
         Assert.StartsWith("1 night, 2 songs played", import.HistoryText);
         Assert.StartsWith("1 song with a BPM you locked", import.BpmsText);
+        Assert.Equal("1 song: hot cues 1 to 4 become cue keys 1 to 4. Songs with cues in GZJam keep theirs. 1 hot cue numbered above 4 stays behind.",
+            import.HotCuesText);
         Assert.Equal("", import.MissingText);
         Assert.True(import.CanImport);
 
@@ -53,8 +57,9 @@ public sealed class MixxxImportAppTests
         dialog.Close();
         AppHarness.Settle();
 
-        Assert.Equal(new MixxxImportResult(2, 1, 2, 0, 0, 1), result);
-        Assert.Equal("Imported from Mixxx: 2 ratings, 1 crate as labels, 1 BPM.", MixxxImportViewModel.Summary(result!));
+        Assert.Equal(new MixxxImportResult(2, 1, 2, 0, 0, 1, 1), result);
+        Assert.Equal("Imported from Mixxx: 2 ratings, 1 crate as labels, 1 BPM, hot cues for 1 song.", MixxxImportViewModel.Summary(result!));
+        Assert.Equal([new SongCue(1, TimeSpan.FromSeconds(20))], app.Database.GetCues(first.Path));
         Track nowFirst = app.Library.ResultFor(first.Path)!;
         Assert.Equal(Rating.Loved, nowFirst.Rating);
         Assert.Equal(236, nowFirst.Bpm);
