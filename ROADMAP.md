@@ -85,6 +85,9 @@ as where they're put; finding the exact spot, by mouse or finger, is the focus.
 Requests and ideas, in no particular order. Each links to its discussion; add a 👍 or a comment
 to one you'd use.
 
+**Decks**
+- [Smoother close-up scrolling when zoomed in tight](https://github.com/GemZombie/GZJam/issues/46)
+
 **Library**
 - [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
