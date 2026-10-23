@@ -78,7 +78,8 @@ as where they're put; finding the exact spot, by mouse or finger, is the focus.
   a glance that the right record is loaded
 
 **Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
-[on a real Mac](https://github.com/GemZombie/GZJam/issues/18).
+[on a real Mac](https://github.com/GemZombie/GZJam/issues/18), and [checking for a rare dropout with extra
+crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows).
 
 ## Being considered
 
