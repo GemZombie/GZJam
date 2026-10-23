@@ -18,7 +18,7 @@ public readonly record struct CueMarker(double At, int Number);
 /// Each bar's solid body is how loud that moment is, with its peaks as a faint outline; bars are
 /// coloured by frequency (red bass, green mids, blue highs, blending between). The part already
 /// played is dimmed, and the silence trimmed off either end is shaded. Until the waveform is
-/// ready it's a plain position bar.
+/// ready it's a plain position bar. Its markers (the start and end, jumps, cues) can be dragged.
 /// </summary>
 public sealed class SeekBar : Control
 {
@@ -156,6 +156,11 @@ public sealed class SeekBar : Control
     /// <summary>Raised when the bar is pressed while <see cref="IsLocked"/>.</summary>
     public event EventHandler? LockedPressed;
 
+    /// <summary>A marker was dragged and let go.</summary>
+    public event EventHandler<MarkerMove>? MarkerMoved;
+
+    private readonly MarkerGrab _grab = new();
+
     public IReadOnlyList<JumpMarker>? Jumps
     {
         get => GetValue(JumpsProperty);
@@ -238,7 +243,7 @@ public sealed class SeekBar : Control
     /// </summary>
     private void DrawJumps(DrawingContext context, Rect bounds)
     {
-        foreach (JumpMarker jump in Jumps ?? [])
+        foreach (JumpMarker jump in _grab.Jumps(Jumps) ?? [])
         {
             double from = Math.Clamp(jump.From, 0, 1) * bounds.Width, to = Math.Clamp(jump.To, 0, 1) * bounds.Width;
             IBrush brush = jump.Armed ? JumpBrush : JumpOffBrush;
@@ -273,7 +278,7 @@ public sealed class SeekBar : Control
     /// <summary>Each cue: a line, with its number on a flag at the top (the number on its key).</summary>
     private void DrawCues(DrawingContext context, Rect bounds)
     {
-        foreach (CueMarker cue in Cues ?? [])
+        foreach (CueMarker cue in _grab.Cues(Cues) ?? [])
             DrawCue(context, bounds, Math.Clamp(cue.At, 0, 1) * bounds.Width, cue.Number);
     }
 
@@ -317,18 +322,32 @@ public sealed class SeekBar : Control
         }
 
         // Trimmed silence at either end: shaded, with a marker where the music starts and ends.
-        double start = Math.Clamp(TrimStart, 0, 1) * bounds.Width, end = Math.Clamp(TrimEnd, 0, 1) * bounds.Width;
+        double start = Math.Clamp(_grab.TrimStart(TrimStart), 0, 1) * bounds.Width, end = Math.Clamp(_grab.TrimEnd(TrimEnd), 0, 1) * bounds.Width;
+        bool startManual = _grab.StartManual(IsStartManual), endManual = _grab.EndManual(IsEndManual);
         // A point the DJ set by hand gets a brighter, wider marker with a small flag at the top.
-        if (start >= 1 || IsStartManual)
+        if (start >= 1 || startManual)
         {
             context.DrawRectangle(TrimShade, null, new Rect(0, 0, start, bounds.Height));
-            DrawMarker(context, start, bounds.Height, IsStartManual, pointsRight: true);
+            DrawMarker(context, start, bounds.Height, startManual, pointsRight: true);
         }
-        if (end <= bounds.Width - 1 || IsEndManual)
+        if (end <= bounds.Width - 1 || endManual)
         {
             context.DrawRectangle(TrimShade, null, new Rect(end, 0, bounds.Width - end, bounds.Height));
-            DrawMarker(context, end - 1, bounds.Height, IsEndManual, pointsRight: false);
+            DrawMarker(context, end - 1, bounds.Height, endManual, pointsRight: false);
         }
+    }
+
+    /// <summary>The marker a press at <paramref name="x"/> would grab, if any.</summary>
+    private (MarkerKind Kind, int Index, double At)? MarkerAt(double x, double reach)
+    {
+        double width = Bounds.Width;
+        if (width <= 0)
+            return null;
+        // The start and end show only on the waveform, and only away from the file's edges or when set by hand.
+        bool start = Waveform is not null && (TrimStart * width >= 1 || IsStartManual);
+        bool end = Waveform is not null && (TrimEnd * width <= width - 1 || IsEndManual);
+        return MarkerGrab.Find(MarkerGrab.Draggable(TrimStart, TrimEnd, start, end, Jumps, Cues),
+            fraction => Math.Clamp(fraction, 0, 1) * width, x, reach);
     }
 
     private static void DrawMarker(DrawingContext context, double x, double height, bool manual, bool pointsRight)
@@ -403,6 +422,16 @@ public sealed class SeekBar : Control
         base.OnPointerPressed(e);
         if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
+        double x = e.GetPosition(this).X;
+        if (MarkerAt(x, MarkerGrab.Reach(e.Pointer)) is { } marker)
+        {
+            // On a marker: hold it, to drag it (on air too). Let go without dragging, and it's a
+            // press there like anywhere else.
+            e.Pointer.Capture(this);
+            _grab.Hold(marker, x);
+            e.Handled = true;
+            return;
+        }
         if (IsLocked)
         {
             LockedPressed?.Invoke(this, EventArgs.Empty);
@@ -417,15 +446,55 @@ public sealed class SeekBar : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (CanSeek && e.Pointer.Captured == this)
+        Point point = e.GetPosition(this);
+        if (e.Pointer.Captured != this)
+        {
+            if (e.Pointer.Type == PointerType.Mouse)
+                Cursor = IsEnabled && MarkerAt(point.X, MarkerGrab.Reach(e.Pointer)) is not null ? MarkerGrab.DragCursor : null;
+            return;
+        }
+        if (_grab.IsHolding)
+        {
+            if (_grab.Drag(point.X, FractionAt(point)))
+                InvalidateVisual();
+        }
+        else if (CanSeek)
+        {
             RequestSeek(e);
+        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (e.Pointer.Captured == this)
+        if (e.Pointer.Captured != this)
+            return;
+        if (_grab.IsHolding)
+        {
+            Point point = e.GetPosition(this);
+            _grab.Drag(point.X, FractionAt(point));
+            MarkerMove? move = _grab.Release();
             e.Pointer.Capture(null);
+            InvalidateVisual();
+            if (move is { } moved)
+                MarkerMoved?.Invoke(this, moved);
+            else if (CanSeek)
+                RequestSeek(e);
+            else if (IsLocked)
+                LockedPressed?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+        e.Pointer.Capture(null);
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        if (_grab.IsHolding)
+        {
+            _grab.Cancel();   // taken away (a menu opening, say): the marker stays where it was
+            InvalidateVisual();
+        }
     }
 
     private void RequestSeek(PointerEventArgs e)

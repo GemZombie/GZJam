@@ -333,9 +333,9 @@ public sealed partial class DeckViewModel : ObservableObject
             ShowHint("Two jumps already: remove one first");
             return false;
         }
-        if (from < Deck.Start + ShortestJump || from > Deck.End - ShortestJump)
+        if (LeavingProblem(from) is { } problem)
         {
-            ShowHint("A jump can't leave that close to the start or end");
+            ShowHint(problem);
             return false;
         }
         _jumpFrom = from;
@@ -349,14 +349,9 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         if (Track is null || _jumpFrom is not { } from)
             return false;
-        if ((to - from).Duration() < ShortestJump)
+        if (LandingProblem(from, to) is { } problem)
         {
-            ShowHint("Land the jump further away");
-            return false;
-        }
-        if (to < Deck.Start || to > Deck.End - ShortestJump)
-        {
-            ShowHint("A jump can't land that close to the end");
+            ShowHint(problem);
             return false;
         }
         _jumpFrom = null;
@@ -388,6 +383,40 @@ public sealed partial class DeckViewModel : ObservableObject
         Deck.SetJumps(Deck.Jumps.Where((_, i) => i != index).Select(j => (j.From, j.To, j.Armed)).ToList());
         Log.Info($"Deck {Label}: removed jump {index + 1} from \"{Title}\"");
         OnJumpsChanged();
+    }
+
+    /// <summary>Why a jump can't leave from <paramref name="from"/>, if it can't.</summary>
+    private string? LeavingProblem(TimeSpan from) =>
+        from < Deck.Start + ShortestJump || from > Deck.End - ShortestJump ? "A jump can't leave that close to the start or end" : null;
+
+    /// <summary>Why a jump from <paramref name="from"/> can't land at <paramref name="to"/>, if it can't.</summary>
+    private string? LandingProblem(TimeSpan from, TimeSpan to) =>
+        (to - from).Duration() < ShortestJump ? "Land the jump further away"
+        : to < Deck.Start ? "A jump can't land before the song starts"
+        : to > Deck.End - ShortestJump ? "A jump can't land that close to the end"
+        : null;
+
+    /// <summary>
+    /// Moves where jump <paramref name="index"/> leaves or lands (dragged on the waveform). Saved
+    /// for the song; armed or not, as it was.
+    /// </summary>
+    private bool MoveJump(int index, TimeSpan? from, TimeSpan? to)
+    {
+        if (Track is null || index < 0 || index >= _jumps.Count)
+            return false;
+        var moved = new SongJump(from ?? _jumps[index].From, to ?? _jumps[index].To);
+        if ((LeavingProblem(moved.From) ?? LandingProblem(moved.From, moved.To)) is { } problem)
+        {
+            ShowHint(problem);
+            return false;
+        }
+        _jumps = _jumps.Select((j, i) => i == index ? moved : j).ToList();
+        _owner.SaveJumps(Track.Path, _jumps);
+        Deck.SetJumps(Deck.Jumps.Select((j, i) => i == index ? (moved.From, moved.To, j.Armed) : (j.From, j.To, j.Armed)).ToList());
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: jump {index + 1} moved: from {moved.From.TotalSeconds:0.0} s to {moved.To.TotalSeconds:0.0} s in \"{Title}\""));
+        OnJumpsChanged();
+        return true;
     }
 
     private void OnJumpsChanged()
@@ -456,6 +485,50 @@ public sealed partial class DeckViewModel : ObservableObject
         _owner.SaveCues(Track.Path, _cues);
         Log.Info($"Deck {Label}: removed cue {number} from \"{Title}\"");
         OnCuesChanged();
+    }
+
+    /// <summary>Moves a cue (dragged on the waveform); it keeps its number. Saved for the song.</summary>
+    private bool MoveCue(int number, TimeSpan at)
+    {
+        if (Track is null || _cues.All(c => c.Number != number) || at < TimeSpan.Zero || at >= Deck.Length)
+            return false;
+        if (_cues.Where(c => c.Number != number && (c.At - at).Duration() < CueSpacing).Select(c => c.Number).FirstOrDefault() is > 0 and int near)
+        {
+            ShowHint($"Cue {near} is already there");
+            return false;
+        }
+        _cues = _cues.Select(c => c.Number == number ? c with { At = at } : c).ToList();
+        _owner.SaveCues(Track.Path, _cues);
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: cue {number} moved to {at.TotalSeconds:0.0} s in \"{Title}\""));
+        OnCuesChanged();
+        return true;
+    }
+
+    // ───────────── Dragging markers ─────────────
+
+    /// <summary>
+    /// A marker dragged on the waveform and let go at <paramref name="fraction"/> of the file: the
+    /// start or end, either end of a jump (<paramref name="index"/>: which jump), or a cue (its
+    /// number). Saved for the song; false, with a hint, if it can't go there (it goes back).
+    /// Allowed on air: moving a point changes nothing the room hears until the music gets there,
+    /// and the end can't be moved before what's playing.
+    /// </summary>
+    public bool MoveMarker(Controls.MarkerKind kind, int index, double fraction)
+    {
+        if (Track is null || Deck.Length <= TimeSpan.Zero)
+            return false;
+        // To the millisecond, as it's saved: the same when the song is loaded again.
+        TimeSpan at = TimeSpan.FromMilliseconds(Math.Round((Deck.Length * Math.Clamp(fraction, 0, 1)).TotalMilliseconds));
+        return kind switch
+        {
+            Controls.MarkerKind.Start => SetStart(at),
+            Controls.MarkerKind.End => SetEnd(at),
+            Controls.MarkerKind.JumpFrom => MoveJump(index, from: at, to: null),
+            Controls.MarkerKind.JumpTo => MoveJump(index, from: null, to: at),
+            Controls.MarkerKind.Cue => MoveCue(index, at),
+            _ => false,
+        };
     }
 
     /// <summary>
@@ -843,13 +916,15 @@ public sealed partial class DeckViewModel : ObservableObject
 
     /// <summary>
     /// Sets the deck's start and end: the DJ's, else the automatic ones. A deck still at the top
-    /// moves to the start, skipping the silence (or applause) before it; mid-track, it stays put.
+    /// moves to the start, skipping the silence (or applause) before it, and one waiting at its
+    /// start follows it, earlier or later; mid-track, it stays put.
     /// </summary>
     private void ApplyTrim()
     {
         TimeSpan start = _manualTrim.Start ?? AutomaticStart, end = _manualTrim.End ?? AutomaticEnd;
+        bool atStart = (Deck.Position - Deck.Start).Duration() < TimeSpan.FromMilliseconds(20);
         Deck.SetTrim(start, end);
-        if (!IsPlaying && !IsFinished && Deck.Position < start)
+        if (!IsPlaying && !IsFinished && (Deck.Position < start || atStart))
         {
             Deck.Seek(start);
             _lastPosition = Deck.Position;   // a jump isn't listening
