@@ -49,6 +49,8 @@ public partial class DeckView : UserControl
         Seek.LockedPressed += (_, _) => Vm?.ExplainSeekLock();
         CloseUp.SeekRequested += (_, fraction) => Vm?.SeekTo(fraction);
         CloseUp.LockedPressed += (_, _) => Vm?.ExplainSeekLock();
+        Seek.MarkerMoved += (_, move) => Vm?.MoveMarker(move.Kind, move.Index, move.To);
+        CloseUp.MarkerMoved += (_, move) => Vm?.MoveMarker(move.Kind, move.Index, move.To);
         // Four decks: the mouse wheel or a pinch on the whole song zooms in; out past the widest, back.
         Seek.AddHandler(PointerWheelChangedEvent, (_, e) =>
         {

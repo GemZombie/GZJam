@@ -22,6 +22,11 @@ New:
   song like a record, or click a spot to go there. Right-click or long-press it for the same menu
   as the whole song, with "here" just where you pressed. With four decks there's no room for both:
   the mouse wheel or a pinch on a deck's waveform zooms it in, and out again.
+- **Drag the markers.** A song's start and end, either end of a jump, and its cues can be dragged
+  along the close-up (for precision) or the whole song (for big moves), by mouse or finger. Let go
+  and it's saved for the song. It works on air too, since moving a point changes nothing the room
+  hears until the music gets there; somewhere a point can't go (a cue on top of another, say), it
+  goes back and says why. A deck waiting at its start follows the start when you move it.
 
 Changed:
 

@@ -22,7 +22,8 @@ namespace GZJam.App.Controls;
 /// </para>
 /// <para>
 /// Drag it to move through the song like a record (a mouse click goes to that spot); locked, a
-/// press says why. The mouse wheel or a pinch shows more or less of the song.
+/// press says why. The mouse wheel or a pinch shows more or less of the song. A press on a marker
+/// (the start or end, a jump, a cue) grabs it instead, to drag it, on air too.
 /// </para>
 /// </summary>
 public sealed class CloseUpWaveform : Control
@@ -186,6 +187,9 @@ public sealed class CloseUpWaveform : Control
             _animating = false;
             if (!IsPlaying || !IsVisible)
                 return;
+            // A marker held still while the music moves on stays under the finger.
+            if (_grab.IsDragging)
+                _grab.Drag(_dragX, FractionAt(new Point(_dragX, 0)));
             InvalidateVisual();
             Animate();
         });
@@ -199,6 +203,9 @@ public sealed class CloseUpWaveform : Control
 
     /// <summary>The wheel or a pinch asked for more of the song while it already shows the most it can.</summary>
     public event EventHandler? ZoomedOutPastWidest;
+
+    /// <summary>A marker was dragged and let go.</summary>
+    public event EventHandler<MarkerMove>? MarkerMoved;
 
     /// <summary>Shows more (<paramref name="factor"/> above 1) or less of the song.</summary>
     private void Zoom(double factor)
@@ -223,6 +230,13 @@ public sealed class CloseUpWaveform : Control
 
     /// <summary>Where a fraction of the song is on the close-up, in pixels (may be off either side).</summary>
     private double X(double fraction) => (fraction * Length - WindowStart) / SecondsPerPixel;
+
+    /// <summary>The marker a press at <paramref name="x"/> would grab, if any.</summary>
+    private (MarkerKind Kind, int Index, double At)? MarkerAt(double x, double reach) =>
+        Length > 0 && SecondsPerPixel > 0
+            ? MarkerGrab.Find(MarkerGrab.Draggable(TrimStart, TrimEnd, TrimStart > 0 || IsStartManual, TrimEnd < 1 || IsEndManual, Jumps, Cues),
+                fraction => X(Math.Clamp(fraction, 0, 1)), x, reach)
+            : null;
 
     // ───────────── Drawing ─────────────
 
@@ -302,24 +316,26 @@ public sealed class CloseUpWaveform : Control
 
     private void DrawTrim(DrawingContext context, Rect bounds)
     {
-        double start = X(Math.Clamp(TrimStart, 0, 1)), end = X(Math.Clamp(TrimEnd, 0, 1));
+        double trimStart = _grab.TrimStart(TrimStart), trimEnd = _grab.TrimEnd(TrimEnd);
+        bool startManual = _grab.StartManual(IsStartManual), endManual = _grab.EndManual(IsEndManual);
+        double start = X(Math.Clamp(trimStart, 0, 1)), end = X(Math.Clamp(trimEnd, 0, 1));
         // Before the song's own start and after its end (the file's edges) is plain background.
         double fileStart = X(0), fileEnd = X(1);
-        if (start > 0 && (TrimStart > 0 || IsStartManual))
+        if (start > 0 && (trimStart > 0 || startManual))
         {
             context.DrawRectangle(TrimShade, null, new Rect(Math.Max(0, fileStart), 0, Math.Max(0, start - Math.Max(0, fileStart)), bounds.Height));
-            context.DrawRectangle(IsStartManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(start - (IsStartManual ? 1 : 0.5), 0, IsStartManual ? 2 : 1, bounds.Height));
+            context.DrawRectangle(startManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(start - (startManual ? 1 : 0.5), 0, startManual ? 2 : 1, bounds.Height));
         }
-        if (end < bounds.Width && (TrimEnd < 1 || IsEndManual))
+        if (end < bounds.Width && (trimEnd < 1 || endManual))
         {
             context.DrawRectangle(TrimShade, null, new Rect(end, 0, Math.Max(0, Math.Min(bounds.Width, fileEnd) - end), bounds.Height));
-            context.DrawRectangle(IsEndManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(end - (IsEndManual ? 1 : 0.5), 0, IsEndManual ? 2 : 1, bounds.Height));
+            context.DrawRectangle(endManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(end - (endManual ? 1 : 0.5), 0, endManual ? 2 : 1, bounds.Height));
         }
     }
 
     private void DrawJumps(DrawingContext context, Rect bounds)
     {
-        foreach (JumpMarker jump in Jumps ?? [])
+        foreach (JumpMarker jump in _grab.Jumps(Jumps) ?? [])
         {
             double from = X(Math.Clamp(jump.From, 0, 1)), to = X(Math.Clamp(jump.To, 0, 1));
             IBrush brush = jump.Armed ? SeekBar.JumpBrush : SeekBar.JumpOffBrush;
@@ -338,7 +354,7 @@ public sealed class CloseUpWaveform : Control
 
     private void DrawCues(DrawingContext context, Rect bounds)
     {
-        foreach (CueMarker cue in Cues ?? [])
+        foreach (CueMarker cue in _grab.Cues(Cues) ?? [])
         {
             double at = X(Math.Clamp(cue.At, 0, 1));
             if (at >= -1 && at <= bounds.Width + 1)   // off the close-up: not pinned to its edge
@@ -352,6 +368,8 @@ public sealed class CloseUpWaveform : Control
     private Point _pressedAt;
     private double _progressAtPress;
     private bool _dragged;
+    private readonly MarkerGrab _grab = new();
+    private double _dragX;   // where a held marker's pointer is
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -365,6 +383,16 @@ public sealed class CloseUpWaveform : Control
         base.OnPointerPressed(e);
         if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
+        Point point = e.GetPosition(this);
+        if (MarkerAt(point.X, MarkerGrab.Reach(e.Pointer)) is { } marker)
+        {
+            // On a marker: hold it, to drag it (on air too), rather than the song.
+            e.Pointer.Capture(this);
+            _grab.Hold(marker, point.X);
+            (_pressedAt, _dragX) = (point, point.X);
+            e.Handled = true;
+            return;
+        }
         if (IsLocked)
         {
             LockedPressed?.Invoke(this, EventArgs.Empty);
@@ -372,16 +400,30 @@ public sealed class CloseUpWaveform : Control
             return;
         }
         e.Pointer.Capture(this);
-        (_pressedAt, _progressAtPress, _dragged) = (e.GetPosition(this), Progress, false);
+        (_pressedAt, _progressAtPress, _dragged) = (point, Progress, false);
         e.Handled = true;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (!CanSeek || e.Pointer.Captured != this || Length <= 0)
+        Point point = e.GetPosition(this);
+        if (e.Pointer.Captured != this)
+        {
+            if (e.Pointer.Type == PointerType.Mouse)
+                Cursor = IsEnabled && MarkerAt(point.X, MarkerGrab.Reach(e.Pointer)) is not null ? MarkerGrab.DragCursor : null;
             return;
-        double dx = e.GetPosition(this).X - _pressedAt.X;
+        }
+        if (_grab.IsHolding)
+        {
+            _dragX = point.X;
+            if (_grab.Drag(point.X, FractionAt(point)))
+                InvalidateVisual();
+            return;
+        }
+        if (!CanSeek || Length <= 0)
+            return;
+        double dx = point.X - _pressedAt.X;
         if (!_dragged && Math.Abs(dx) < 4)
             return;
         _dragged = true;
@@ -394,9 +436,35 @@ public sealed class CloseUpWaveform : Control
         base.OnPointerReleased(e);
         if (e.Pointer.Captured != this)
             return;
+        bool click = e.Pointer.Type == PointerType.Mouse && e.InitialPressMouseButton == MouseButton.Left;
+        if (_grab.IsHolding)
+        {
+            Point point = e.GetPosition(this);
+            _grab.Drag(point.X, FractionAt(point));
+            MarkerMove? move = _grab.Release();
+            e.Pointer.Capture(null);
+            InvalidateVisual();
+            if (move is { } moved)
+                MarkerMoved?.Invoke(this, moved);
+            else if (IsLocked)
+                LockedPressed?.Invoke(this, EventArgs.Empty);
+            else if (CanSeek && click)
+                SeekRequested?.Invoke(this, FractionAt(point));   // a click on a marker: as anywhere else
+            return;
+        }
         e.Pointer.Capture(null);
         // A mouse click goes to that spot. A finger has to drag: a tap on the close-up mustn't move the song.
-        if (!_dragged && CanSeek && e.Pointer.Type == PointerType.Mouse && e.InitialPressMouseButton == MouseButton.Left)
+        if (!_dragged && CanSeek && click)
             SeekRequested?.Invoke(this, FractionAt(e.GetPosition(this)));
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        if (_grab.IsHolding)
+        {
+            _grab.Cancel();   // taken away (a menu opening, say): the marker stays where it was
+            InvalidateVisual();
+        }
     }
 }

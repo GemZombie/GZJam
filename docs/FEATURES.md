@@ -827,7 +827,28 @@ not here. This file records what was decided and built, and why.
   which lays them over the waveform without asking for room. Before, the analysing label (27 px)
   and a hint made a 24 px four-deck waveform, and so its deck, taller while they showed: a test
   checks a hint no longer does.
-- Next: dragging the start, end, jump and cue markers on it (issue #12).
+- Next: dragging the start, end, jump and cue markers on it (issue #12, below).
+
+### Status: dragging markers (2026-10-23, issue #12)
+
+- **What drags:** the start and end (where shown: away from the file's edges, or set by hand),
+  either end of each jump, and each cue, on both the close-up and the whole song. Not a jump
+  still waiting for where it lands.
+- **Grabbing:** a press within 5 px of a marker by mouse, 14 px by finger or pen, grabs the
+  nearest (`MarkerGrab`); anywhere else does what it did (the whole song seeks, the close-up drags
+  the song). Over a marker the mouse pointer shows sideways arrows. It moves once dragged 4 px;
+  a press on a marker without dragging is a press there like anywhere else (a seek, a click on the
+  close-up, or, on air, why it's locked).
+- **While dragging,** the control draws the marker where the pointer is; on the close-up while
+  playing, a marker held still stays under the finger as the music moves on. Let go: the deck is
+  asked to move it (`DeckViewModel.MoveMarker`), to the millisecond as it's saved. The same checks
+  as setting it from the menu apply (the start before the end, a jump at least 2 s long and clear of
+  the ends, a cue not within 1 s of another, on air the end not before what's playing); refused,
+  it goes back and the hint says why. A jump keeps its armed state; a cue keeps its number.
+- **On air too:** moving a point changes nothing the room hears until the music gets there, so
+  markers aren't locked like seeking is.
+- **The start, followed:** a deck waiting at its start (cued up, paused) moves with it when it's
+  dragged earlier as well as later; mid-song, the deck stays where it is.
 
 ## Decided against
 

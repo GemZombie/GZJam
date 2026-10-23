@@ -144,6 +144,18 @@ public sealed class ScreenshotTests
         app.Play(0.2);
         app.Screenshot("13b-cue-keys");
 
+        // Deck 2: a cue just after the playhead, caught on the close-up and dragged a little later.
+        vm.Deck2.AddCue(vm.Deck2.Deck.Position + TimeSpan.FromSeconds(1.5));
+        var closeUp2 = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck2View")!.FindControl<GZJam.App.Controls.CloseUpWaveform>("CloseUp")!;
+        AppHarness.Settle(100);
+        double cueX = closeUp2.Bounds.Width / 2 + 1.5 * closeUp2.Bounds.Width / closeUp2.WindowSeconds;
+        var cue2 = closeUp2.TranslatePoint(new Avalonia.Point(cueX, closeUp2.Bounds.Height * 0.6), app.Window)!.Value;
+        app.Window.MouseDown(cue2, MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseMove(cue2 + new Avalonia.Vector(20, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseMove(cue2 + new Avalonia.Vector(45, 0), RawInputModifiers.LeftMouseButton);
+        app.Screenshot("13c-dragging-a-cue");
+        app.Window.MouseUp(cue2 + new Avalonia.Vector(45, 0), MouseButton.Left, RawInputModifiers.None);
+
         // Four decks in the space of two: Deck 3 ready under Deck 1, Deck 4 empty.
         vm.SetDeckCount(4);
         vm.LoadToDeckAsync(vm.Deck3!, tracks[7]).GetAwaiter().GetResult();
