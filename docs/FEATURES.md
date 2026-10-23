@@ -652,6 +652,16 @@ not here. This file records what was decided and built, and why.
   Intel SOF's second copy of the headphone jack are left out; anything unrecognised keeps ALSA's
   name. The log keeps both names.
 
+### Status: asking before closing mid-set (2026-10-23, issue #28)
+
+- Closing GZJam (the close button, Alt+F4, Cmd+Q) while the room is hearing a deck asks
+  "Stop the music and close GZJam?", naming the deck and song. *Keep playing* is the default:
+  Enter and Escape choose it, so a reflex keypress can't quit. *Close GZJam* is red, the room's colour.
+- Only the room counts (the DJ's decision): music only in the headphones (the preview, or a cued
+  deck off air) closes straight away, as does an idle GZJam.
+- Never when the computer is shutting down (`WindowCloseReason.OSShutdown`), so GZJam doesn't hold
+  that up. The activity log notes each question and the answer.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

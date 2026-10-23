@@ -9,6 +9,14 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
+## 0.3.0 (unreleased)
+
+New:
+
+- **GZJam asks before closing while the room is hearing music**, so a stray click on the close
+  button can't stop the set. *Keep playing* is the default (Enter and Escape choose it). Music only
+  in the headphones doesn't count, and GZJam never holds up the computer shutting down.
+
 ## 0.2.1 (2026-10-22)
 
 The first public release. (0.2.0 was never released: a test failed on the Linux build machine.)
