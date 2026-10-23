@@ -598,17 +598,10 @@ rather than being a second one.
   checks there's no quiet moment across a jump. Allowed on air, unlike seeking: it's deliberate.
 - **Time left** counts the armed jumps ahead. A forward jump isn't counted as listening for History.
 
-### Next
+### Planned work
 
-- **Exclusive audio output** so system sounds never reach the PA (WASAPI exclusive on Windows,
-  ALSA hw devices on Linux), plus the Linux test pass (PipeWire for home use).
-
-### Later, maybe
-
-- Booth (monitor) output: a third bus; syncing separate sound cards is the hard part.
-- Grouping versions of the same song (live / studio), perhaps by matching titles.
-- Ordered saved playlists, a sweepable mid EQ.
-
+Features, bugs and testing still to do are tracked as [GitHub issues](https://github.com/GemZombie/GZJam/issues),
+not here. This file records what was decided and built, and why.
 
 ### Status: import from Mixxx built (2026-10-22)
 

@@ -1,0 +1,40 @@
+name: Something's wrong
+description: GZJam did something it shouldn't, or didn't do something it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what GZJam did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen again
+      description: Steps, if you know them. "It happened once, mid-set" is useful too.
+  - type: dropdown
+    id: system
+    attributes:
+      label: Computer
+      options:
+        - Windows
+        - Mac
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: GZJam version
+      description: Settings › About shows it.
+      placeholder: e.g. 0.2.1
+  - type: textarea
+    id: log
+    attributes:
+      label: Activity log
+      description: |
+        Drag the day's log file here if you can. It's in GZJam's data folder under logs:
+        %LOCALAPPDATA%\GZJam on Windows, ~/Library/Application Support/GZJam on a Mac,
+        ~/.local/share/GZJam on Linux.

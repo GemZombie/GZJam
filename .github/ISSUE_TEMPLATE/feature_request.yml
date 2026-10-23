@@ -1,0 +1,23 @@
+name: Idea or request
+description: Something GZJam could do, or do better
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like GZJam to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When would you use it?
+      description: The moment in a set (or while preparing) where you'd reach for it, and what you do today instead.
+  - type: dropdown
+    id: matters
+    attributes:
+      label: How much does it matter to you?
+      options:
+        - Nice to have
+        - I'd use it often
+        - I can't DJ without it
