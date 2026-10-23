@@ -13,12 +13,26 @@ has no section, and uses the section as the release's notes (tools/release-notes
 
 New:
 
+- **Windows: the speakers are GZJam's alone.** While GZJam is open, no other program's sound (a
+  notification, a browser) can reach the room through the speaker output. Settings › Sound ›
+  *Speakers for GZJam alone*, on by default, for an output chosen by name (not *Default*). The
+  headphones stay shared. If the card is unplugged mid-set, the music moves to the computer's
+  default output and GZJam says so. When those speakers are also Windows' default output, Settings
+  says other programs may refuse to play, and how to avoid it.
+- **Extra protection against crackles** (Settings › Sound): for a computer where the sound crackles
+  or drops out. Play and the crossfader respond a little later. The activity log notes when the
+  speakers' sound runs dry, and the README has a short troubleshooting list.
 - **Read all tags again** (right-click a music folder in the library): for tags edited with a
   program set to keep the file's date, which GZJam wouldn't otherwise notice. GZJam also rereads
   every song by itself whenever it gets better at reading tags.
 
 Fixed:
 
+- **The speakers always open, even if the headphones can't** (they're silent, and GZJam says why).
+  Before, both stayed shut and the decks played to nothing.
+- **Headphones never end up in the room after an unplug.** When the speakers fall back to the
+  computer's default output and that's where the headphones are (a laptop taken off its dock), the
+  headphones are switched off, with a notice.
 - **BPMs over 1000** (Pink Panther Theme showed 1180) for songs whose tags store the BPM ten times
   over, in libraries first scanned before 0.2.1. They're corrected once when GZJam starts, in the
   library and in History.

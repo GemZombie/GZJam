@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -64,6 +65,37 @@ public sealed class SettingsTests
         Click(chip);
         Assert.True(app.Window.IsSettingsOpen);
         Assert.Equal(SettingsSection.Sound, Panel(app).Section);
+    }
+
+    [AvaloniaFact]
+    public void Speakers_for_gzjam_alone_is_on_by_default_shown_on_windows_and_remembered()
+    {
+        using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Sound);
+        var toggle = Panel(app).FindControl<ToggleButton>("ExclusiveSpeakersSwitch")!;
+        Assert.Equal(OperatingSystem.IsWindows(), toggle.IsEffectivelyVisible);
+        Assert.True(toggle.IsChecked);
+        Assert.True(app.ViewModel.Mix!.ExclusiveSpeakers);
+
+        app.ViewModel.Settings.ExclusiveSpeakers = false;
+        Assert.False(app.Settings.ExclusiveSpeakers);
+        Assert.False(app.ViewModel.Mix.ExclusiveSpeakers);
+        Assert.False(toggle.IsChecked);
+    }
+
+    [AvaloniaFact]
+    public void Extra_protection_against_crackles_is_off_by_default_and_remembered()
+    {
+        using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Sound);
+        var toggle = Panel(app).FindControl<ToggleButton>("ExtraBufferingSwitch")!;
+        Assert.True(toggle.IsEffectivelyVisible);
+        Assert.False(toggle.IsChecked);
+
+        app.ViewModel.Settings.ExtraBuffering = true;
+        Assert.True(app.Settings.ExtraBuffering);
+        Assert.True(toggle.IsChecked);
+        Assert.False(Panel(app).FindControl<TextBlock>("WindowsDefaultHint")!.IsEffectivelyVisible);   // no speakers chosen
     }
 
     [AvaloniaFact]

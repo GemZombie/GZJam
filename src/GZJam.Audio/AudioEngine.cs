@@ -15,6 +15,9 @@ public sealed class AudioEngine : IDisposable
 
     private readonly HashSet<int> _initializedDevices = [];
     private readonly Lock _lock = new();   // analysis threads decode alongside the UI thread
+    private readonly int _systemDeviceBuffer;
+    private bool _extraBuffering;
+    private bool _reopenDevices;
 
     public AudioEngine()
     {
@@ -25,10 +28,40 @@ public sealed class AudioEngine : IDisposable
         BassVersion = Bass.Version;
         LoadFormatAddOns();
 
-        // Shorter buffers than BASS's defaults (500 ms / 100 ms) keep the crossfader, seeking
-        // and the cue preview responsive. Still comfortably safe against dropouts.
-        Bass.Configure(Configuration.PlaybackBufferLength, 200);
         Bass.Configure(Configuration.UpdatePeriod, 20);
+        _systemDeviceBuffer = Bass.GetConfig(Configuration.DeviceBufferLength);
+        ApplyBuffers();
+    }
+
+    /// <summary>
+    /// Longer buffers on every output, for a computer where the sound crackles or drops out: about
+    /// three times as long, so play and the crossfader respond a little later. Applies to outputs
+    /// opened from now on; <see cref="MixEngine.SetOutputs"/> reopens the ones in use.
+    /// </summary>
+    public bool ExtraBuffering
+    {
+        get => _extraBuffering;
+        set
+        {
+            if (value == _extraBuffering)
+                return;
+            _extraBuffering = value;
+            ApplyBuffers();
+            _reopenDevices = true;
+        }
+    }
+
+    /// <summary>How much audio the exclusive speaker output (Windows) holds.</summary>
+    internal float ExclusiveBufferSeconds => _extraBuffering ? 0.4f : 0.15f;
+
+    private void ApplyBuffers()
+    {
+        // Shorter than BASS's default (500 ms) keeps the crossfader, seeking and the cue preview
+        // responsive, and is still comfortably safe against dropouts. GZJam doesn't beatmatch or
+        // scratch, so extra buffering costs little.
+        Bass.Configure(Configuration.PlaybackBufferLength, _extraBuffering ? 600 : 200);
+        if (_systemDeviceBuffer > 0)   // Linux, and Windows' shared output: the device's own buffer
+            Bass.Configure(Configuration.DeviceBufferLength, _extraBuffering ? Math.Max(_systemDeviceBuffer * 3, 120) : _systemDeviceBuffer);
     }
 
     public Version BassVersion { get; }
@@ -167,6 +200,10 @@ public sealed class AudioEngine : IDisposable
     {
         lock (_lock)
         {
+            // New buffer lengths only reach a device when it's opened again.
+            if (_reopenDevices)
+                keep = [];
+            _reopenDevices = false;
             foreach (int device in _initializedDevices.Where(d => d != NoSoundDevice && !keep.Contains(d)).ToList())
             {
                 Bass.CurrentDevice = device;

@@ -21,6 +21,9 @@ public sealed class MixEngine : IDisposable
 
     private readonly bool _offline;
     private double _crossfader;
+    private bool _mainLostRaised;
+    private long _lastDropout = long.MinValue / 2;
+    private long _dryAt = -1;
 
     /// <param name="offline">
     /// Mix without audio devices; pull audio with <see cref="OutputBus.Render"/>. For tests.
@@ -43,6 +46,37 @@ public sealed class MixEngine : IDisposable
     /// <summary>Mixing without audio devices (tests).</summary>
     public bool IsOffline => _offline;
     internal TimeProvider Time { get; }
+
+    /// <summary>
+    /// Windows: the speakers' sound card is GZJam's alone (WASAPI exclusive mode), so no other
+    /// program's sound can reach the room. Only for a chosen device, never "Default", and only the
+    /// speakers: the headphones stay shared. Applies the next time outputs are set. If the card
+    /// can't be had alone it's shared instead, and <see cref="ExclusiveRefusal"/> says why.
+    /// </summary>
+    public bool ExclusiveSpeakers { get; set; }
+
+    /// <summary>Why the speakers are shared although <see cref="ExclusiveSpeakers"/> is on (after the last <see cref="SetOutputs"/>), or null.</summary>
+    public string? ExclusiveRefusal { get; private set; }
+
+    /// <summary>
+    /// Why the headphones couldn't be opened at the last <see cref="SetOutputs"/>, or null. The
+    /// speakers open regardless, so the room never goes quiet because of the headphones; the
+    /// headphones are then silent.
+    /// </summary>
+    public string? CueRefusal { get; private set; }
+
+    /// <summary>
+    /// The speakers' exclusive output stopped by itself (unplugged, or taken by Windows). Raised
+    /// once, from <see cref="Update"/>; the app opens outputs again.
+    /// </summary>
+    public event EventHandler? MainOutputLost;
+
+    /// <summary>
+    /// The speakers' exclusive output ran dry: a dropout or crackle may have been heard because the
+    /// computer didn't keep up. Raised from <see cref="Update"/> half a second later, unless the card
+    /// turned out to be unplugged, and at most every 10 seconds; the app logs it.
+    /// </summary>
+    public event EventHandler? MainDropout;
 
     public OutputBus Main { get; private set; }
     public OutputBus Cue { get; private set; }
@@ -88,7 +122,9 @@ public sealed class MixEngine : IDisposable
         // once, and GZJam's own "Default" (through PipeWire) may be playing on the very card chosen.
         oldMain.Dispose();
         oldCue.Dispose();
-        Engine.ReleaseDevicesExcept(main?.Index, cue?.Index);
+        // An output wanted for GZJam alone is let go of too: Windows won't give it exclusively
+        // while GZJam itself still has it shared.
+        Engine.ReleaseDevicesExcept(WantsExclusive(main, cue) ? null : main?.Index, cue?.Index);
         try
         {
             Open(main, cue, oldMain, oldCue);
@@ -103,7 +139,9 @@ public sealed class MixEngine : IDisposable
             }
             catch (AudioException)
             {
-                Open(null, null, oldMain, oldCue);
+                // The old speakers are gone too (unplugged): silent speakers, but the headphones,
+                // if they still open, carry on.
+                Open(null, oldCue.Device, oldMain, oldCue);
             }
             throw;
         }
@@ -111,21 +149,26 @@ public sealed class MixEngine : IDisposable
 
     private void Open(AudioDevice? main, AudioDevice? cue, OutputBus settingsMain, OutputBus settingsCue)
     {
-        OutputBus newMain = CreateBus(main);
+        OutputBus newMain = CreateMainBus(main, cue);
         OutputBus newCue;
+        CueRefusal = null;
         try
         {
             newCue = CreateBus(cue);
         }
-        catch (AudioException)
+        catch (AudioException ex)
         {
-            newMain.Dispose();
-            throw;
+            // The room comes first: the speakers play on, the headphones are silent, and the app
+            // says why.
+            CueRefusal = ex.Message;
+            newCue = CreateBus(null);
         }
         newMain.CopySettingsFrom(settingsMain);
         newCue.CopySettingsFrom(settingsCue);
         Main = newMain;
         Cue = newCue;
+        _mainLostRaised = false;
+        _dryAt = -1;
 
         foreach (Deck deck in Decks)
             deck.Attach();
@@ -139,6 +182,28 @@ public sealed class MixEngine : IDisposable
         foreach (Deck deck in Decks)
             deck.Update();
         Preview.Update();
+        long now = Environment.TickCount64;
+        if (!_mainLostRaised && Main.IsLost)
+        {
+            _mainLostRaised = true;
+            _dryAt = -1;
+            MainOutputLost?.Invoke(this, EventArgs.Empty);
+        }
+        else if (_dryAt < 0 && now - _lastDropout > 10_000 && Main.IsDry())
+        {
+            _dryAt = now;
+        }
+        // A card being unplugged runs dry a moment before Windows says it's gone: only a dry
+        // buffer that isn't followed by the card going within half a second is a dropout.
+        if (_dryAt >= 0 && now - _dryAt >= 500)
+        {
+            _dryAt = -1;
+            if (!Main.IsLost)
+            {
+                _lastDropout = now;
+                MainDropout?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 
     /// <summary>Offline only: renders both buses in small interleaved chunks, returning each one's peak level.</summary>
@@ -162,10 +227,40 @@ public sealed class MixEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// The speakers are to be GZJam's alone. Not when the headphones are the same output: GZJam
+    /// would then be keeping its own headphones out.
+    /// </summary>
+    private bool WantsExclusive(AudioDevice? device, AudioDevice? cue) =>
+        ExclusiveSpeakers && OperatingSystem.IsWindows() && device is { FollowsSystemDefault: false } && cue?.Index != device.Index;
+
+    /// <summary>The speakers: GZJam's alone if wanted and possible, else shared (saying why).</summary>
+    private OutputBus CreateMainBus(AudioDevice? device, AudioDevice? cue)
+    {
+        ExclusiveRefusal = null;
+        if (ExclusiveSpeakers && OperatingSystem.IsWindows() && device is { FollowsSystemDefault: false } && cue?.Index == device.Index)
+            ExclusiveRefusal = $"{device.Name} is also the headphone output";
+        if (WantsExclusive(device, cue))
+        {
+            try
+            {
+                var exclusive = ExclusiveOutput.Open(Engine, device!, MixerFlags);
+                return new OutputBus(exclusive.Mixer, device, exclusive.SampleRate, exclusive);
+            }
+            catch (AudioException ex)
+            {
+                ExclusiveRefusal = ex.Message;
+            }
+        }
+        return CreateBus(device);
+    }
+
+    // NonStop: keep the output running through silence, so starting a track is instant.
+    private const BassFlags MixerFlags = BassFlags.Float | BassFlags.MixerNonStop;
+
     private OutputBus CreateBus(AudioDevice? device)
     {
-        // NonStop: keep the output running through silence, so starting a track is instant.
-        const BassFlags flags = BassFlags.Float | BassFlags.MixerNonStop;
+        const BassFlags flags = MixerFlags;
 
         if (device is null)
         {
