@@ -7,6 +7,7 @@ What changed in each release, newest first. Downloads are on the
 Before tagging a release, add its section here: "## <version> (<date>)", then what a DJ would
 notice, under "New", "Changed" and "Fixed" as needed. The release workflow refuses a version that
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
+Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
 ## 0.4.0 (unreleased)
