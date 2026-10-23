@@ -78,6 +78,14 @@ public sealed class PreviewPlayer : IDisposable
     {
         if (_stream != 0 && !BassMix.MixerAddChannel(_mix.Cue.Handle, _stream, BassFlags.MixerChanDownMix))
             throw new AudioException("Could not route the preview to the headphones", Bass.LastError);
+        ApplyVolume();
+    }
+
+    /// <summary>The preview is cued: the phones mix turned all the way to the room leaves it out.</summary>
+    internal void ApplyVolume()
+    {
+        if (_stream != 0)
+            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, _mix.PhonesCueLevel);
     }
 
     internal void Detach()

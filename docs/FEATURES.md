@@ -776,7 +776,25 @@ not here. This file records what was decided and built, and why.
   waveform is 24 px at its shortest, too short for them, so four decks have *Go to cue N* in the
   deck's ⋯ menu instead (the maintainer expects touch to be used mostly with two decks). The JUMP
   key, 32 px in touch mode, made a four-deck waveform (and its deck) taller; it's now 16 px there.
-- Not yet: bringing over Mixxx's hot cues.
+- Not yet: bringing over Mixxx's hot cues (issue #36).
+
+### Status: phones mix (2026-10-23, issue #3)
+
+- **The ask:** while previewing a song in the headphones, keep one ear on what the dancers hear,
+  with a knob to balance the two (a DJ mixer's cue/master knob). Before, the only way was to cue
+  the live deck too, at the same level as the preview.
+- **PHONES MIX**, a small crossfader under MAIN and PHONES (CUE at the left, MAIN at the right; its
+  cap's line amber, the headphones' colour). At CUE, where it starts, the headphones are as before:
+  the cued decks and the preview. At MAIN, what the room hears and nothing else. At the centre,
+  both at full; between, one turned down as the other comes up. Saved in the settings.
+- **How:** no new audio path. Each deck's headphone feed is set to the louder of "cued" and "as
+  much as the room hears of it" (the crossfader, the deck's level, a fade-out), each scaled by the
+  phones mix; a deck that's both cued and on air isn't doubled. The preview is cued, so the room
+  side turns it down. The PHONES fader still sets the overall level.
+- **Height:** the mixer grew by the fader's row (two decks: 268 to 297 px; touch: 280 to 337) and
+  the decks with it. With four decks the upper decks took all of the extra height, and in touch
+  mode they already did (issue #37): the two rows now share it equally, and a test checks the
+  decks are level with each other and with the mixer in all four layouts.
 
 ## Decided against
 

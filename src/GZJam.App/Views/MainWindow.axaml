@@ -94,15 +94,16 @@
     <!-- ───────────── Decks + mixer ───────────── -->
     <Grid Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
       <!-- The row is as tall as the decks or the mixer column need, whichever is more. With four
-           decks, 3 sits under 1 and 4 under 2, each half height, so the row stays the same. -->
-      <Grid RowDefinitions="*,Auto">
+           decks, 3 sits under 1 and 4 under 2, all four the same height (MainWindow.ApplyDeckLayout). -->
+      <Grid x:Name="LeftDecks" RowDefinitions="*,Auto">
         <v:DeckView x:Name="Deck1View" Label="1" Accent="{StaticResource Deck1Brush}"
                     DataContext="{Binding Deck1}" />
-        <v:DeckView x:Name="Deck3View" Grid.Row="1" Label="3" Accent="{StaticResource Deck3Brush}" Margin="0,8,0,0"
+        <v:DeckView x:Name="Deck3View" Grid.Row="1" Label="3" Accent="{StaticResource Deck3Brush}"
                     IsVisible="False" DataContext="{Binding Deck3}" />
       </Grid>
 
-      <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the crossfader -->
+      <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the phones
+           mix, the crossfader -->
       <Border Grid.Column="1" Classes="panel" Padding="14,12">
         <Grid RowDefinitions="*,Auto,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
           <Grid ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
@@ -121,6 +122,16 @@
             </StackPanel>
             <TextBlock Grid.Row="1" Grid.Column="1" Classes="fader-label" Text="MAIN" HorizontalAlignment="Center" />
             <TextBlock Grid.Row="1" Grid.Column="2" Classes="fader-label" Text="PHONES" HorizontalAlignment="Center" />
+          </Grid>
+
+          <!-- The phones mix: what the headphones hear, from what's cued to what the room hears -->
+          <Grid Grid.Row="1" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" ToolTip.Tip="{Binding PhonesMixTip}">
+            <TextBlock Classes="fader-label" Text="CUE" />
+            <TextBlock Grid.Column="1" Classes="fader-label" Text="PHONES MIX" HorizontalAlignment="Center" />
+            <TextBlock Grid.Column="2" Classes="fader-label" Text="MAIN" />
+            <c:CrossfaderControl x:Name="PhonesMixFader" Grid.Row="1" Grid.ColumnSpan="3" TickCount="5"
+                                 Height="{DynamicResource PhonesMixHeight}" IndexBrush="{StaticResource Deck2Brush}"
+                                 Value="{Binding PhonesMix}" />
           </Grid>
 
           <c:CrossfaderControl x:Name="Crossfader" Grid.Row="2" Height="{DynamicResource CrossfaderHeight}" Value="{Binding Crossfader}"
@@ -147,10 +158,10 @@
         </Grid>
       </Border>
 
-      <Grid Grid.Column="2" RowDefinitions="*,Auto">
+      <Grid x:Name="RightDecks" Grid.Column="2" RowDefinitions="*,Auto">
         <v:DeckView x:Name="Deck2View" Classes="meter-left" Label="2" Accent="{StaticResource Deck2Brush}"
                     DataContext="{Binding Deck2}" />
-        <v:DeckView x:Name="Deck4View" Grid.Row="1" Classes="meter-left" Label="4" Accent="{StaticResource Deck4Brush}" Margin="0,8,0,0"
+        <v:DeckView x:Name="Deck4View" Grid.Row="1" Classes="meter-left" Label="4" Accent="{StaticResource Deck4Brush}"
                     IsVisible="False" DataContext="{Binding Deck4}" />
       </Grid>
     </Grid>

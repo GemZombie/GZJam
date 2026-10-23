@@ -56,12 +56,21 @@ public partial class MainWindow
             view.IsTouch = on;
     }
 
-    /// <summary>Two full-height decks, or four at half height in the same space.</summary>
+    /// <summary>
+    /// Two full-height decks, or four at half height in the same space. Four share it equally,
+    /// so the upper and lower decks line up whatever the mixer beside them needs.
+    /// </summary>
     private void ApplyDeckLayout()
     {
+        bool four = Vm.FourDecks;
         foreach (DeckView view in DeckViews)
-            view.IsCompact = Vm.FourDecks;
-        Deck3View.IsVisible = Deck4View.IsVisible = Vm.FourDecks;
+            view.IsCompact = four;
+        Deck3View.IsVisible = Deck4View.IsVisible = four;
+        foreach (Grid side in new[] { LeftDecks, RightDecks })
+        {
+            side.RowDefinitions[1].Height = four ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
+            side.RowSpacing = four ? DeckView.CompactGap : 0;
+        }
     }
 
     private DeckViewModel? DeckAt(int index) => Vm.Decks.ElementAtOrDefault(index);

@@ -56,6 +56,38 @@ public sealed class MixerTests
     }
 
     [AvaloniaFact]
+    public void The_phones_mix_lets_the_headphones_hear_the_room_and_is_remembered()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var fader = app.Window.FindControl<CrossfaderControl>("PhonesMixFader")!;
+        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("On air")).GetAwaiter().GetResult();
+        vm.Mixer!.Crossfader = 0;   // the room hears Deck 1, which isn't cued
+        vm.Deck1!.TogglePlayCommand.Execute(null);
+        app.Play(0.3);
+
+        Assert.Equal(0, fader.Value);   // all the way to CUE: as before
+        Assert.InRange(app.Play(0.3).Cue, 0, 0.01);
+        Assert.Contains("what's cued", ToolTip.GetTip((Control)fader.Parent!) as string, StringComparison.Ordinal);
+
+        fader.Value = 1;   // as a drag or the arrow keys would
+        app.Play(0.1);
+        Assert.Equal(1, vm.Mixer.PhonesMix);
+        Assert.Equal(1, app.Mix.PhonesMix);
+        Assert.Equal(1, app.Settings.PhonesMix);
+        Assert.InRange(app.Play(0.3).Cue, 0.4, 0.6);   // the room, in the headphones
+        Assert.StartsWith("Phones mix: the room only", ToolTip.GetTip((Control)fader.Parent!) as string, StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    public void A_saved_phones_mix_is_applied()
+    {
+        using var app = new AppHarness(settings: new AppSettings { PhonesMix = 0.5 });
+        Assert.Equal(0.5, app.Mix.PhonesMix);
+        Assert.Equal(0.5, app.Window.FindControl<CrossfaderControl>("PhonesMixFader")!.Value);
+    }
+
+    [AvaloniaFact]
     public void Saved_volumes_are_applied()
     {
         using var app = new AppHarness(settings: new AppSettings { MainVolume = 50, CueVolume = 0 });

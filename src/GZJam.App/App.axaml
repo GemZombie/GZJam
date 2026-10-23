@@ -76,6 +76,7 @@
       <x:Double x:Key="DeckPlayIconSize">18</x:Double>
       <x:Double x:Key="DeckPauseIconSize">16</x:Double>
       <x:Double x:Key="CrossfaderHeight">44</x:Double>
+      <x:Double x:Key="PhonesMixHeight">28</x:Double>
       <!-- Keys in tight spots: STOP, auto-play, NAME -->
       <x:Double x:Key="SmallKeyHeight">30</x:Double>
 

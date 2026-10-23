@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Headless.XUnit;
+using Avalonia.Controls;
 using Avalonia.VisualTree;
+using GZJam.App.Views;
 
 namespace GZJam.App.Tests;
 
@@ -70,5 +72,33 @@ public sealed class LayoutStabilityTests
 
         var moved = Moved("play", loaded, offAir).Concat(Moved("on air", offAir, onAir)).ToList();
         Assert.True(moved.Count == 0, string.Join(Environment.NewLine, moved));
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void The_decks_are_all_the_same_height_and_the_mixer_lines_up_with_them(bool touch, bool fourDecks)
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        vm.Settings.TouchMode = touch;
+        vm.Settings.FourDecks = fourDecks;
+        foreach (var deck in vm.Decks)
+            vm.LoadToDeckAsync(deck, app.ToneTrack("Tone " + deck.Label)).GetAwaiter().GetResult();
+        AppHarness.Settle(200);
+
+        Rect At(Control control) => new(control.TranslatePoint(default, app.Window)!.Value, control.Bounds.Size);
+        var decks = new[] { "Deck1View", "Deck2View", "Deck3View", "Deck4View" }
+            .Select(name => app.Window.FindControl<DeckView>(name)!).Where(d => d.IsVisible).Select(At).ToList();
+        Assert.Equal(fourDecks ? 4 : 2, decks.Count);
+        var mixer = At(app.Window.FindControl<Control>("Crossfader")!.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("panel")));
+
+        foreach (Rect deck in decks)
+            Assert.True(Math.Abs(deck.Height - decks[0].Height) <= 1, $"decks {string.Join(", ", decks.Select(d => d.Height))} high");
+        Assert.Equal(mixer.Top, decks.Min(d => d.Top), 1);
+        Assert.Equal(mixer.Bottom, decks.Max(d => d.Bottom), 1);
+        Assert.True(app.Window.FindControl<Control>("PhonesMixFader")!.Bounds.Height >= (touch ? 44 : 28));
     }
 }
