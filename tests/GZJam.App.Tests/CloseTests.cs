@@ -97,6 +97,7 @@ public sealed class CloseTests
             AppHarness.Settle(100);
             if (key == Key.Enter)
             {
+                Directory.CreateDirectory(AppHarness.ScreenshotDirectory);   // a fresh machine has none yet
                 using var frame = dialog.CaptureRenderedFrame();
                 frame?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "close-question.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
             }
