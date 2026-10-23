@@ -23,6 +23,7 @@ public sealed class MixEngine : IDisposable
     private double _crossfader;
     private bool _mainLostRaised;
     private long _lastDropout = long.MinValue / 2;
+    private long _dryAt = -1;
 
     /// <param name="offline">
     /// Mix without audio devices; pull audio with <see cref="OutputBus.Render"/>. For tests.
@@ -72,8 +73,8 @@ public sealed class MixEngine : IDisposable
 
     /// <summary>
     /// The speakers' exclusive output ran dry: a dropout or crackle may have been heard because the
-    /// computer didn't keep up. Raised from <see cref="Update"/>, at most every 10 seconds; the app
-    /// logs it.
+    /// computer didn't keep up. Raised from <see cref="Update"/> half a second later, unless the card
+    /// turned out to be unplugged, and at most every 10 seconds; the app logs it.
     /// </summary>
     public event EventHandler? MainDropout;
 
@@ -167,6 +168,7 @@ public sealed class MixEngine : IDisposable
         Main = newMain;
         Cue = newCue;
         _mainLostRaised = false;
+        _dryAt = -1;
 
         foreach (Deck deck in Decks)
             deck.Attach();
@@ -180,15 +182,27 @@ public sealed class MixEngine : IDisposable
         foreach (Deck deck in Decks)
             deck.Update();
         Preview.Update();
+        long now = Environment.TickCount64;
         if (!_mainLostRaised && Main.IsLost)
         {
             _mainLostRaised = true;
+            _dryAt = -1;
             MainOutputLost?.Invoke(this, EventArgs.Empty);
         }
-        else if (Environment.TickCount64 - _lastDropout > 10_000 && Main.IsDry())
+        else if (_dryAt < 0 && now - _lastDropout > 10_000 && Main.IsDry())
         {
-            _lastDropout = Environment.TickCount64;
-            MainDropout?.Invoke(this, EventArgs.Empty);
+            _dryAt = now;
+        }
+        // A card being unplugged runs dry a moment before Windows says it's gone: only a dry
+        // buffer that isn't followed by the card going within half a second is a dropout.
+        if (_dryAt >= 0 && now - _dryAt >= 500)
+        {
+            _dryAt = -1;
+            if (!Main.IsLost)
+            {
+                _lastDropout = now;
+                MainDropout?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
