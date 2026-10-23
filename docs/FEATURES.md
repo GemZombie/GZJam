@@ -669,6 +669,13 @@ not here. This file records what was decided and built, and why.
   with a notice saying so. The log says "(GZJam's alone)" when it is.
 - If the card stops by itself (unplugged, or taken by Windows), GZJam opens it again if it's still
   there, else the system default, with a notice, as at startup.
+- **The room comes first** (found testing on the move, 2026-10-23): headphones that won't open no
+  longer stop the speakers opening (before, both stayed shut and the decks played to nothing);
+  the headphones are silent and a notice says why. Speakers that fall back to the system default
+  when it's the headphones' own output (a laptop unplugged from its dock and TV) leave the
+  headphones off, with a notice, so a preview can't reach the room; that also predates this
+  feature. Headphones chosen on the speakers' output on purpose share it rather than being shut
+  out by an exclusive speaker output.
 - Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
   computer's default; they skip on CI machines, which have no sound cards.
 

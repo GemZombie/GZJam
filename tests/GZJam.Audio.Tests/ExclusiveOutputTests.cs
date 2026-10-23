@@ -121,6 +121,38 @@ public sealed class ExclusiveOutputTests : IDisposable
     }
 
     [Fact]
+    public void The_same_output_for_speakers_and_headphones_is_shared_so_both_play()
+    {
+        AudioDevice device = SpareDevice();
+        _mix.SetOutputs(device, device);
+        Assert.False(_mix.Main.IsExclusive);
+        Assert.Equal(device, _mix.Main.Device);
+        Assert.Equal(device, _mix.Cue.Device);
+        Assert.Null(_mix.CueRefusal);
+        Assert.Contains("also the headphone output", _mix.ExclusiveRefusal);
+    }
+
+    [Fact]
+    public void Headphones_that_wont_open_leave_the_speakers_playing()
+    {
+        AudioDevice device = SpareDevice();
+        _mix.SetOutputs(null, null);
+        AudioDevice? speakers = _engine.GetOutputDevices().FirstOrDefault(d => d.FollowsSystemDefault);
+        Assert.SkipWhen(speakers is null, "Needs the computer's Default output.");
+
+        // Another program has the headphones' output to itself.
+        using var other = new AudioEngine();
+        using var otherMix = new MixEngine(other) { ExclusiveSpeakers = true };
+        otherMix.SetOutputs(device, null);
+        Assert.True(otherMix.Main.IsExclusive);
+
+        _mix.SetOutputs(speakers, device);   // no exception: the room comes first
+        Assert.Equal(speakers, _mix.Main.Device);
+        Assert.Null(_mix.Cue.Device);
+        Assert.Contains("in use by another program", _mix.CueRefusal);
+    }
+
+    [Fact]
     public void Headphones_stay_shared()
     {
         AudioDevice device = SpareDevice();

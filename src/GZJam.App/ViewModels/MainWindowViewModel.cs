@@ -410,15 +410,42 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     private void ConnectSavedOutputs()
     {
-        AudioDevice? main = Audio!.FindDevice(_settings.MainDevice);
-        AudioDevice? cue = Audio.FindDevice(_settings.CueDevice);
-        if (_settings.MainDevice is not null && main is null)
-            ShowNotice($"Speaker output \"{_settings.MainDevice.Name}\" isn't connected; using the system default.");
-        else if (_settings.CueDevice is not null && cue is null)
-            ShowNotice($"Headphone output \"{_settings.CueDevice.Name}\" isn't connected.");
-        main ??= Audio.GetDefaultDevice();
+        var (main, cue, notice) = ChooseOutputs(_settings.MainDevice, _settings.CueDevice,
+            Audio!.FindDevice(_settings.MainDevice), Audio.FindDevice(_settings.CueDevice), Audio.GetDefaultDevice());
+        if (notice is not null)
+        {
+            Log.Info(notice);
+            ShowNotice(notice);
+        }
         SetOutputs(main, cue, remember: false);
         Settings.RefreshDevices();
+    }
+
+    /// <summary>
+    /// The outputs to open from the saved choices and what's connected now. Speakers that aren't
+    /// connected fall back to the system default. If that's the very output the headphones are on,
+    /// the headphones are left off, so a preview can't reach the room (after an unplug, a laptop's
+    /// own output is often both).
+    /// </summary>
+    internal static (AudioDevice? Main, AudioDevice? Cue, string? Notice) ChooseOutputs(
+        AudioDevicePreference? savedMain, AudioDevicePreference? savedCue, AudioDevice? main, AudioDevice? cue, AudioDevice? fallback)
+    {
+        string? notice = null;
+        if (savedMain is not null && main is null)
+            notice = $"Speaker output \"{savedMain.Name}\" isn't connected; using {fallback?.Name ?? "the system default"}.";
+        else if (savedCue is not null && cue is null)
+            notice = $"Headphone output \"{savedCue.Name}\" isn't connected.";
+
+        if (main is null)
+        {
+            main = fallback;
+            if (main is not null && cue?.Index == main.Index)
+            {
+                cue = null;
+                notice = $"{notice} Headphones are off: they'd play in the room. Choose them in Settings › Sound.".TrimStart();
+            }
+        }
+        return (main, cue, notice);
     }
 
     /// <summary>
@@ -466,7 +493,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             Mix.SetOutputs(main, cue);
-            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.Main.IsExclusive ? " (GZJam's alone)" : "")}, cue = {cue?.Name ?? "none"} [{cue?.Driver}]");
+            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.Main.IsExclusive ? " (GZJam's alone)" : "")}, cue = {Mix.Cue.Device?.Name ?? "none"} [{Mix.Cue.Device?.Driver}]");
+            if (Mix.CueRefusal is { } cueWhy)
+            {
+                Log.Error($"Headphones couldn't open: {cueWhy}");
+                ShowNotice($"The headphones couldn't open: {cueWhy} The speakers are playing.");
+            }
             if (Mix.ExclusiveRefusal is { } why)
             {
                 Log.Info($"Speakers shared, not GZJam's alone: {why}");
