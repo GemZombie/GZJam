@@ -91,6 +91,9 @@ public sealed class AppSettings
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;
 
+    /// <summary>What the headphones hear: 0 = what's cued, 1 = what the room hears, between = both.</summary>
+    public double PhonesMix { get; set; }
+
     public PlayingDeckLoad LoadOntoPlayingDeck { get; set; } = PlayingDeckLoad.Block;
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;

@@ -33,6 +33,7 @@ public sealed partial class MixerViewModel : ObservableObject
         mix.Main.Mono = mix.Cue.Mono = settings.Mono;
         mix.Main.Volume = Gain(settings.MainVolume);
         mix.Cue.Volume = Gain(settings.CueVolume);
+        mix.PhonesMix = settings.PhonesMix;
     }
 
     /// <summary>Volume percent to gain: an audio taper, so the slider's middle is about half as loud (-12 dB).</summary>
@@ -71,6 +72,34 @@ public sealed partial class MixerViewModel : ObservableObject
             OnPropertyChanged(nameof(CueVolumeTip));
         }
     }
+
+    /// <summary>
+    /// The phones mix: 0 = the headphones hear what's cued (the decks' cue buttons and the
+    /// preview), 1 = what the room hears; between, both (at the centre both at full).
+    /// </summary>
+    public double PhonesMix
+    {
+        get => _settings.PhonesMix;
+        set
+        {
+            value = Math.Clamp(value, 0, 1);
+            if (value == _settings.PhonesMix)
+                return;
+            _settings.PhonesMix = value;
+            mix.PhonesMix = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PhonesMixTip));
+        }
+    }
+
+    public string PhonesMixTip => PhonesMix switch
+    {
+        <= 0 => "Phones mix: what's cued. Slide towards MAIN to hear the room too, as the speakers play it.",
+        >= 1 => "Phones mix: the room only, as the speakers play it (no cued decks or preview)",
+        < 0.5 => "Phones mix: what's cued, with some of the room",
+        0.5 => "Phones mix: what's cued and the room, both at full",
+        _ => "Phones mix: the room, with some of what's cued",
+    };
 
     public string MainVolumeText => Db(MainVolume);
     public string CueVolumeText => Db(CueVolume);

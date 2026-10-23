@@ -21,6 +21,10 @@ public sealed class CrossfaderControl : Control
     public static readonly StyledProperty<int> TickCountProperty =
         AvaloniaProperty.Register<CrossfaderControl, int>(nameof(TickCount), 7);
 
+    /// <summary>The line across the cap (the phones mix's is amber: the headphones' colour).</summary>
+    public static readonly StyledProperty<IBrush> IndexBrushProperty =
+        AvaloniaProperty.Register<CrossfaderControl, IBrush>(nameof(IndexBrush), new SolidColorBrush(Color.Parse("#F2F4F8")));
+
     private const double CapWidth = 24;
     private const double SlotHeight = 6;
     private const double KeyStep = 0.05;
@@ -31,7 +35,6 @@ public sealed class CrossfaderControl : Control
     private static readonly IBrush SlotEdgeBrush = new SolidColorBrush(Color.Parse("#262B34"));
     private static readonly IBrush ShadowBrush = new SolidColorBrush(Color.FromArgb(110, 0, 0, 0));
     private static readonly IPen CapPen = new Pen(new SolidColorBrush(Color.Parse("#4E535C")), 1);
-    private static readonly IBrush IndexBrush = new SolidColorBrush(Color.Parse("#F2F4F8"));
     private static readonly IBrush CapBrush = new LinearGradientBrush
     {
         StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
@@ -50,7 +53,7 @@ public sealed class CrossfaderControl : Control
 
     static CrossfaderControl()
     {
-        AffectsRender<CrossfaderControl>(ValueProperty, TickCountProperty, IsEnabledProperty);
+        AffectsRender<CrossfaderControl>(ValueProperty, TickCountProperty, IndexBrushProperty, IsEnabledProperty);
         FocusableProperty.OverrideDefaultValue<CrossfaderControl>(true);
         CursorProperty.OverrideDefaultValue<CrossfaderControl>(new Cursor(StandardCursorType.SizeWestEast));
     }
@@ -65,6 +68,12 @@ public sealed class CrossfaderControl : Control
     {
         get => GetValue(TickCountProperty);
         set => SetValue(TickCountProperty, value);
+    }
+
+    public IBrush IndexBrush
+    {
+        get => GetValue(IndexBrushProperty);
+        set => SetValue(IndexBrushProperty, value);
     }
 
     // The cap's centre travels between half a cap-width from each edge.

@@ -446,6 +446,43 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void The_phones_mix_lets_the_headphones_hear_the_room_too()
+    {
+        _mix.Crossfader = 0;   // the room hears Deck 1
+        A.Load(_tone);
+        B.Load(_tone);
+        B.Cue = true;          // Deck 2 cued, not in the room
+        A.Play();
+
+        // All the way to cue (the default): the headphones hear only what's cued.
+        Assert.Equal(0, _mix.PhonesMix);
+        Assert.InRange(Render().Cue, 0, Silent);
+
+        // All the way to the room: Deck 1, as the room hears it; Deck 2 (cued) not at all.
+        _mix.PhonesMix = 1;
+        Assert.Equal(Full, Render().Cue, 0.02f);
+        A.Pause();
+        B.Play();
+        Assert.InRange(Render().Cue, 0, Silent);
+        _mix.Crossfader = 1;   // the room hears Deck 2 now: so do the headphones
+        Assert.Equal(Full, Render(0.5).Cue, 0.02f);
+
+        // In the middle, both at full; a deck both cued and in the room isn't doubled.
+        _mix.PhonesMix = 0.5;
+        Assert.Equal(Full, Render(0.5).Cue, 0.02f);
+
+        // The preview is cued: the room side leaves it out.
+        B.Pause();
+        _mix.Preview.Play(_tone);
+        Assert.Equal(Full, Render().Cue, 0.02f);
+        _mix.PhonesMix = 1;
+        Render(0.1);   // what was mixed before the change
+        Assert.InRange(Render().Cue, 0, Silent);
+        _mix.PhonesMix = 0;
+        Assert.Equal(Full, Render().Cue, 0.02f);
+    }
+
+    [Fact]
     public void Going_somewhere_else_while_playing_leaves_no_gap()
     {
         // A cue key on the deck the room hears: the music carries on from there, without a quiet moment.

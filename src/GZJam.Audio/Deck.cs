@@ -7,7 +7,8 @@ namespace GZJam.Audio;
 /// <summary>
 /// One track player. The file is decoded through a BASS_FX tempo stream (tempo changes keep the
 /// pitch) and three EQ filters, then split so the same audio feeds both the main and the cue bus.
-/// The crossfader sets the main split's volume; <see cref="Cue"/> switches the cue split on or off.
+/// The crossfader sets the main split's volume; <see cref="Cue"/> switches the cue split on or off
+/// (and <see cref="MixEngine.PhonesMix"/> lets the headphones hear the room too).
 /// </summary>
 public sealed class Deck : IDisposable
 {
@@ -487,13 +488,16 @@ public sealed class Deck : IDisposable
         ? Math.Max(0, 1 - _mix.Time.GetElapsedTime(_fadeStarted) / length)
         : 1;
 
-    private void ApplyVolumes()
+    internal void ApplyVolumes()
     {
         if (!IsLoaded)
             return;
         double level = _volume * _gain * FadeFactor;
         Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
-        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, _cue ? level : 0);
+        // The headphones: this deck if it's cued, and as much as the room hears of it, by the
+        // phones mix. Cued and in the room, it's the louder of the two, not both added up.
+        double phones = Math.Max(_cue ? _mix.PhonesCueLevel : 0, _mainGain * _mix.PhonesRoomLevel);
+        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, phones * level);
     }
 
     private void ApplyTempo()

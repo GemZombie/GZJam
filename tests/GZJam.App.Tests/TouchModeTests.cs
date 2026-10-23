@@ -43,11 +43,13 @@ public sealed class TouchModeTests
         Assert.True(queueRow.Bounds.Height >= 52 && queueRow.Bounds.Height > queueRowBefore, $"queue row {queueRowBefore} -> {queueRow.Bounds.Height}");
         Assert.True(autoPlay.Bounds.Height >= 40, $"auto-play key {autoPlay.Bounds.Height}");
 
-        // Four decks: the compact decks' keys grow too, within the same space.
+        // Four decks: the compact decks' keys grow too, and the upper and lower decks stay level
+        // (they share the height of the mixer beside them, which touch mode makes taller).
         app.ViewModel.Settings.FourDecks = true;
         AppHarness.Settle(200);
         Assert.True(deck.FindControl<Button>("CueButton")!.Bounds.Height >= 34, $"compact cue key {deck.FindControl<Button>("CueButton")!.Bounds.Height}");
-        Assert.Equal(DeckView.CompactHeight, deck.Bounds.Height, 0);
+        Assert.True(deck.Bounds.Height >= DeckView.CompactHeight);
+        Assert.Equal(deck.Bounds.Height, app.Window.FindControl<DeckView>("Deck3View")!.Bounds.Height, 1.0);   // an odd pixel goes to one
 
         app.ViewModel.Settings.TouchMode = false;
         app.ViewModel.Settings.FourDecks = false;

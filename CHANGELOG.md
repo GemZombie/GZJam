@@ -21,6 +21,10 @@ New:
   waveform, and a numbered flag marks the spot: tap the key and the deck carries on from there at
   once, on air too, at the moment you choose (wait for the end of a phrase, then go to the outro).
   With four decks, they're in the deck's ⋯ menu. Saved for the song in GZJam, never in the file.
+- **Phones mix: hear the room in the headphones too.** A new fader under MAIN and PHONES blends
+  what the headphones hear, from what's cued (CUE, where it starts: as before) to what the room
+  hears (MAIN), with both at full in the middle. Keep one ear on the dancers while you preview
+  the next song.
 
 Changed:
 
@@ -35,6 +39,8 @@ Fixed:
   the title and push it, the waveform and (with four decks) the title down or sideways; its space
   is now kept.
 - **The JUMP key fits a four-deck waveform** in touch mode, instead of making that deck taller.
+- **With four decks, all four are the same height,** lined up with the mixer beside them. In
+  touch mode the upper decks used to be taller than the lower ones.
 
 ## 0.3.0 (2026-10-22)
 
