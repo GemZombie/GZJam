@@ -57,6 +57,13 @@ public sealed class AppSettings
     public bool Mono { get; set; } = true;
 
     /// <summary>
+    /// Windows: the speakers' sound card is GZJam's alone while it's open, so no other program's
+    /// sound (a notification, a browser) can reach the room. Only for an output chosen by name,
+    /// not "Default"; the headphones stay shared. On by default.
+    /// </summary>
+    public bool ExclusiveSpeakers { get; set; } = true;
+
+    /// <summary>
     /// How many decks are on screen: 2, or 4 (half height, 1 and 3 on the left of the mixer, 2 and
     /// 4 on the right).
     /// </summary>

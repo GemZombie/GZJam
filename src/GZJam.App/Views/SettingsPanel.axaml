@@ -44,6 +44,17 @@
                   </StackPanel>
                   <ComboBox x:Name="MainDeviceBox" Grid.Column="1" ItemsSource="{Binding MainDevices}" SelectedItem="{Binding MainDevice}" />
                 </Grid>
+                <StackPanel IsVisible="{Binding ShowsExclusiveSpeakers}">
+                  <Border Classes="settings-rule" />
+                  <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <TextBlock Classes="setting" Text="Speakers for GZJam alone" />
+                      <TextBlock Classes="setting-help"
+                                 Text="While GZJam is open, other programs' sounds (a notification, a browser) can't reach the room. For an output chosen by name, not Default." />
+                    </StackPanel>
+                    <ToggleButton x:Name="ExclusiveSpeakersSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding ExclusiveSpeakers}" />
+                  </Grid>
+                </StackPanel>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2" VerticalAlignment="Center">

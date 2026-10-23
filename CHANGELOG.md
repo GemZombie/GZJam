@@ -9,6 +9,16 @@ notice, under "New", "Changed" and "Fixed" as needed. The release workflow refus
 has no section, and uses the section as the release's notes (tools/release-notes.sh).
 -->
 
+## 0.3.0 (unreleased)
+
+New:
+
+- **Windows: the speakers are GZJam's alone.** While GZJam is open, no other program's sound (a
+  notification, a browser) can reach the room through the speaker output. Settings › Sound ›
+  *Speakers for GZJam alone*, on by default, for an output chosen by name (not *Default*). The
+  headphones stay shared. If the card is unplugged mid-set, the music moves to the computer's
+  default output and GZJam says so.
+
 ## 0.2.1 (2026-10-22)
 
 The first public release. (0.2.0 was never released: a test failed on the Linux build machine.)

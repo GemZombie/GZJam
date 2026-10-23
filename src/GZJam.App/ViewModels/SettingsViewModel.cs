@@ -87,6 +87,22 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Speakers for GZJam alone (see <see cref="AppSettings.ExclusiveSpeakers"/>).</summary>
+    public bool ExclusiveSpeakers
+    {
+        get => _settings.ExclusiveSpeakers;
+        set
+        {
+            if (value == _settings.ExclusiveSpeakers)
+                return;
+            _owner.SetExclusiveSpeakers(value);
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Exclusive output is a Windows matter: Linux already opens a chosen card directly.</summary>
+    public bool ShowsExclusiveSpeakers => OperatingSystem.IsWindows();
+
     /// <summary>Loudness matching (see <see cref="AppSettings.MatchLoudness"/>).</summary>
     public bool MatchLoudness
     {

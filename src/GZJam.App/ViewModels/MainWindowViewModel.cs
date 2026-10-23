@@ -57,6 +57,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         if (mix is not null)
         {
+            mix.ExclusiveSpeakers = settings.ExclusiveSpeakers;
+            mix.MainOutputLost += (_, _) => OnMainOutputLost();
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
@@ -416,6 +418,32 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Settings.RefreshDevices();
     }
 
+    /// <summary>
+    /// The speakers stopped by themselves while GZJam had them alone (unplugged, or taken by
+    /// Windows): opens them again if they're still there, else the system default, as at startup.
+    /// </summary>
+    private void OnMainOutputLost()
+    {
+        string name = Mix!.Main.Device?.Name ?? "The speaker output";
+        Log.Error($"Speaker output stopped: {name}");
+        bool stillThere = Audio!.FindDevice(_settings.MainDevice) is not null;
+        ConnectSavedOutputs();
+        if (stillThere)
+            ShowNotice($"{name} stopped for a moment; GZJam opened it again.");
+    }
+
+    /// <summary>Applies <see cref="AppSettings.ExclusiveSpeakers"/>, opening the speakers again with it.</summary>
+    public void SetExclusiveSpeakers(bool value)
+    {
+        _settings.ExclusiveSpeakers = value;
+        Log.Info($"Speakers for GZJam alone: {(value ? "on" : "off")}");
+        if (Mix is null)
+            return;
+        Mix.ExclusiveSpeakers = value;
+        if (!Mix.IsOffline && Mix.Main.Device is not null)
+            SetOutputs(Mix.Main.Device, Mix.Cue.Device, remember: false);
+    }
+
     public void SetOutputs(AudioDevice? main, AudioDevice? cue, bool remember = true)
     {
         if (Mix is null)
@@ -423,7 +451,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             Mix.SetOutputs(main, cue);
-            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}], cue = {cue?.Name ?? "none"} [{cue?.Driver}]");
+            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.Main.IsExclusive ? " (GZJam's alone)" : "")}, cue = {cue?.Name ?? "none"} [{cue?.Driver}]");
+            if (Mix.ExclusiveRefusal is { } why)
+            {
+                Log.Info($"Speakers shared, not GZJam's alone: {why}");
+                ShowNotice($"{why}, so it's shared: other programs' sounds can still play through it.");
+            }
             if (remember)
             {
                 _settings.MainDevice = main?.Preference;

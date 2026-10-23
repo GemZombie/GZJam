@@ -652,6 +652,26 @@ not here. This file records what was decided and built, and why.
   Intel SOF's second copy of the headphone jack are left out; anything unrecognised keeps ALSA's
   name. The log keeps both names.
 
+### Status: speakers for GZJam alone on Windows (2026-10-22, issue #10)
+
+- **Settings › Sound › Speakers for GZJam alone** (Windows only; on by default): the speakers' sound
+  card is opened in WASAPI exclusive mode (un4seen's BASSWASAPI, `ExclusiveOutput`), so no
+  notification or browser can reach the room while GZJam is open. Linux already gets this by
+  opening a chosen card directly.
+- Only for an output chosen by name, never *Default* (which follows whatever Windows picks), and
+  only the speakers: the headphones stay shared, so the DJ can still hear other things on them.
+- The mix runs at the card's own rate: 44.1 kHz where it takes it (most music, no resampling),
+  else 48, 96, 88.2 or 192 kHz, with BASSmix resampling the decks. The limiter follows the rate.
+- Windows lets an exclusive output take a card even from a program already playing on it, so a
+  browser playing can't block GZJam. A card another program holds *exclusively* can't be opened
+  at all: GZJam says who has it and the room keeps the output it had.
+- A card that won't open alone for another reason (no stereo at those rates) is shared instead,
+  with a notice saying so. The log says "(GZJam's alone)" when it is.
+- If the card stops by itself (unplugged, or taken by Windows), GZJam opens it again if it's still
+  there, else the system default, with a notice, as at startup.
+- Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
+  computer's default; they skip on CI machines, which have no sound cards.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to
