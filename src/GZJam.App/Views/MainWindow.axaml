@@ -168,6 +168,7 @@
                   <Grid.ContextMenu>
                     <ContextMenu>
                       <MenuItem Header="Rescan" Command="{Binding RescanCommand}" />
+                      <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" />
                       <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" />
                       <Separator IsVisible="{Binding IsRoot}" />
                       <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"

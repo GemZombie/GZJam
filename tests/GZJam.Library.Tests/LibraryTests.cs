@@ -112,6 +112,46 @@ public sealed class ScanningTests : IDisposable
     }
 
     [Fact]
+    public void Tags_edited_without_changing_the_files_date_are_read_when_asked()
+    {
+        string song = _lib.AddMp3("Swing/song.mp3", new TestMp3.Tags(Title: "Before"));
+        LibraryRoot root = _lib.AddRootAndScan();
+
+        // A tag editor set to keep the file's date (Mp3tag can), with a title of the same length.
+        DateTime date = File.GetLastWriteTimeUtc(song);
+        long size = new FileInfo(song).Length;
+        TestMp3.Write(song, new TestMp3.Tags(Title: "Afters"));
+        File.SetLastWriteTimeUtc(song, date);
+        Assert.Equal(size, new FileInfo(song).Length);
+
+        Assert.Equal(1, _lib.Scanner.Scan(root).Unchanged);   // a normal scan can't tell
+        Assert.Equal("Before", Assert.Single(_lib.Database.Search(null)).Title);
+
+        Assert.Equal(1, _lib.Scanner.Scan(root, readAllTags: true).Updated);
+        Assert.Equal("Afters", Assert.Single(_lib.Database.Search(null)).Title);
+    }
+
+    [Fact]
+    public void Songs_read_before_tags_were_read_better_are_read_again()
+    {
+        _lib.AddMp3("Swing/song.mp3", new TestMp3.Tags(Title: "Song"));
+        LibraryRoot root = _lib.AddRootAndScan();
+        Assert.Equal(1, _lib.Scanner.Scan(root).Unchanged);
+
+        // As if read by an older GZJam.
+        using (var c = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_lib.Database.DatabasePath}"))
+        {
+            c.Open();
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = "UPDATE tracks SET tag_version = 0;";
+            cmd.ExecuteNonQuery();
+        }
+
+        Assert.Equal(1, _lib.Scanner.Scan(root).Updated);     // read again once
+        Assert.Equal(1, _lib.Scanner.Scan(root).Unchanged);   // and then left alone
+    }
+
+    [Fact]
     public void Missing_root_does_not_wipe_the_library()
     {
         _lib.AddMp3("Swing/a.mp3");

@@ -54,6 +54,12 @@ is out of scope until it earns a place.
   say why when loaded ("it's AAC, which GZJam can't play on Linux"). Tests decode a two-second tone
   in each format on all three systems (`tests/Shared/Formats`, made with ffmpeg).
 - Skips macOS `._name.mp3` metadata files (24 of them in the real library).
+- **Reading tags again** (2026-10-23, issue #26): each song remembers which way of reading tags it
+  was read with (`TagReader.Version`, schema upgrade 14); raising it makes the next scan read every
+  song again, so a fix in tag reading reaches libraries scanned before it. Right-click a folder ›
+  *Read all tags again* does the same by hand, for tags edited by a program that keeps the file's
+  date (Mp3tag can). About 3 s for 12,700 songs. The DJ's own data (ratings, labels, EQ, trims,
+  History) is kept by path and untouched.
 
 ### What the real library looks like (12,686 tracks in `C:\music`)
 
@@ -115,7 +121,9 @@ is out of scope until it earns a place.
   the detected BPM is shown even over a tag's BPM; Automatic goes back to the tag.
 - A global "my music's tempo range" setting was tried first and dropped: the DJ felt one range
   for the whole library wouldn't fit, and wanted to fix individual songs instead.
-- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100.
+- Tags storing BPM x10 ("1320") are now read as 132.0, as well as x100. Libraries scanned before
+  that kept the raw value (a rescan skips unchanged files): schema upgrade 13 corrects them once,
+  in the library and History (issue #26).
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
   outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
 - Not yet: typing or tapping a BPM, per-folder BPM ranges,
