@@ -116,6 +116,11 @@ public partial class DeckView : UserControl
         var bpm = new MenuItem { Header = BpmMenu.Title };
         BpmMenu.Fill(bpm, vm.Owner, [track]);
         var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
+        // The cue keys don't fit over a four-deck waveform: they're here instead.
+        foreach (GZJam.Library.SongCue cue in vm.Cues)
+            items.Add(new MenuItem { Header = $"Go to cue {cue.Number} ({Time(cue.At)})", Command = vm.GoToCueCommand, CommandParameter = cue.Number });
+        if (vm.HasCues)
+            items.Add(new Separator());
         items.Add(rating);
         items.Add(energy);
         items.Add(bpm);
@@ -175,6 +180,22 @@ public partial class DeckView : UserControl
             int index = i;
             SongJumpText(vm.SongJumps[i], out string text);
             items.Add(Item($"Remove jump {i + 1} ({text})", () => { vm.RemoveJump(index); return true; }));
+        }
+
+        // Cues: points to go to at a tap (the keys over the waveform), numbered 1 to 4.
+        items.Add(new Separator());
+        items.Add(new MenuItem { Header = "Cue", IsEnabled = false });
+        if (vm.CanAddCue)
+        {
+            int number = vm.NextCueNumber;
+            if (here is { } h5)
+                items.Add(Item($"Cue {number} here ({Time(h5)})", () => vm.AddCue(h5)));
+            items.Add(Item($"Cue {number} at the playhead ({Time(playhead)})", () => vm.AddCue(playhead)));
+        }
+        foreach (GZJam.Library.SongCue cue in vm.Cues)
+        {
+            int number = cue.Number;
+            items.Add(Item($"Remove cue {number} ({Time(cue.At)})", () => { vm.RemoveCue(number); return true; }));
         }
 
         static void SongJumpText(GZJam.Library.SongJump jump, out string text) => text = $"{Time(jump.From)} → {Time(jump.To)}";

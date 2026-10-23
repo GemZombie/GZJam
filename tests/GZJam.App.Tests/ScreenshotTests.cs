@@ -138,6 +138,12 @@ public sealed class ScreenshotTests
         app.Screenshot("13-trim-menu");
         seek2.ContextMenu!.Close();
 
+        // Deck 1, on air: two cues (after the solo, the outro), a key for each.
+        vm.Deck1.AddCue(vm.Deck1.Deck.Length * 0.35);
+        vm.Deck1.AddCue(vm.Deck1.Deck.Length * 0.79);
+        app.Play(0.2);
+        app.Screenshot("13b-cue-keys");
+
         // Four decks in the space of two: Deck 3 ready under Deck 1, Deck 4 empty.
         vm.SetDeckCount(4);
         vm.LoadToDeckAsync(vm.Deck3!, tracks[7]).GetAwaiter().GetResult();

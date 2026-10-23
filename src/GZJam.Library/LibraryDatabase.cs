@@ -257,6 +257,16 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE tracks ADD COLUMN tag_version INTEGER NOT NULL DEFAULT 0;
             """,
+
+        // 15: Cues the DJ marked in a song (see SongCue), numbered 1 to 4, by path.
+        """
+            CREATE TABLE cues (
+                path   TEXT NOT NULL,
+                number INTEGER NOT NULL,
+                at_ms  INTEGER NOT NULL,
+                PRIMARY KEY (path, number)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

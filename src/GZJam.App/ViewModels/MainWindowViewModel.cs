@@ -228,6 +228,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     internal void SaveJumps(string path, IReadOnlyList<SongJump> jumps) => _database.SetJumps(path, jumps);
 
+    /// <summary>The cues the DJ marked in a file.</summary>
+    internal IReadOnlyList<SongCue> GetCues(string path) => _database.GetCues(path);
+
+    internal void SaveCues(string path, IReadOnlyList<SongCue> cues) => _database.SetCues(path, cues);
+
     /// <summary>The EQ the DJ set for a file.</summary>
     internal TrackEq GetEq(string path) => _database.GetEq(path);
 

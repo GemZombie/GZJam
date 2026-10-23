@@ -344,6 +344,87 @@ public sealed partial class DeckViewModel : ObservableObject
         RefreshReadout();
     }
 
+    // ───────────── Cues ─────────────
+
+    /// <summary>Two cues closer than this are the same place.</summary>
+    private static readonly TimeSpan CueSpacing = TimeSpan.FromSeconds(1);
+
+    private List<SongCue> _cues = [];
+
+    /// <summary>The song's cues, by number: a key for each over the waveform.</summary>
+    public IReadOnlyList<SongCue> Cues => _cues;
+
+    public bool HasCues => _cues.Count > 0;
+
+    public bool CanAddCue => _cues.Count < LibraryDatabase.MaxCues;
+
+    /// <summary>The number the next cue gets: the lowest one free.</summary>
+    public int NextCueNumber => Enumerable.Range(1, LibraryDatabase.MaxCues).FirstOrDefault(n => _cues.All(c => c.Number != n));
+
+    /// <summary>The cues as fractions of the file, for the waveform.</summary>
+    public IReadOnlyList<Controls.CueMarker> CueMarkers => Deck.Length <= TimeSpan.Zero
+        ? []
+        : _cues.Select(c => new Controls.CueMarker(c.At / Deck.Length, c.Number)).ToList();
+
+    /// <summary>Marks a cue, with the lowest free number, at a point in the song. Saved for the song.</summary>
+    public bool AddCue(TimeSpan at)
+    {
+        if (Track is null || at < TimeSpan.Zero || at >= Deck.Length)
+            return false;
+        if (!CanAddCue)
+        {
+            ShowHint("Four cues already: remove one first");
+            return false;
+        }
+        if (_cues.Where(c => (c.At - at).Duration() < CueSpacing).Select(c => c.Number).FirstOrDefault() is > 0 and int near)
+        {
+            ShowHint($"Cue {near} is already there");
+            return false;
+        }
+        var cue = new SongCue(NextCueNumber, at);
+        _cues = [.. _cues.Append(cue).OrderBy(c => c.Number)];
+        _owner.SaveCues(Track.Path, _cues);
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: cue {cue.Number} at {at.TotalSeconds:0.0} s in \"{Title}\""));
+        OnCuesChanged();
+        return true;
+    }
+
+    /// <summary>Forgets a cue; the others keep their numbers.</summary>
+    public void RemoveCue(int number)
+    {
+        if (Track is null || _cues.All(c => c.Number != number))
+            return;
+        _cues = _cues.Where(c => c.Number != number).ToList();
+        _owner.SaveCues(Track.Path, _cues);
+        Log.Info($"Deck {Label}: removed cue {number} from \"{Title}\"");
+        OnCuesChanged();
+    }
+
+    /// <summary>
+    /// A cue key: carry on from the cue, now. Allowed on air, unlike seeking: it's a deliberate
+    /// tap on a key, made at the moment the DJ chooses (the end of a phrase, say).
+    /// </summary>
+    [RelayCommand]
+    private void GoToCue(int number)
+    {
+        if (_cues.Where(c => c.Number == number).Select(c => (TimeSpan?)c.At).FirstOrDefault() is not { } at)
+            return;
+        Deck.Seek(at);
+        _lastPosition = Deck.Position;   // a jump isn't listening
+        Log.Info($"Deck {Label}: went to cue {number} (\"{Title}\"){(IsOnAir ? " on air" : "")}");
+        Refresh();
+    }
+
+    private void OnCuesChanged()
+    {
+        OnPropertyChanged(nameof(Cues));
+        OnPropertyChanged(nameof(HasCues));
+        OnPropertyChanged(nameof(CanAddCue));
+        OnPropertyChanged(nameof(NextCueNumber));
+        OnPropertyChanged(nameof(CueMarkers));
+    }
+
     /// <summary>A song can't be trimmed shorter than this.</summary>
     private static readonly TimeSpan ShortestSong = TimeSpan.FromSeconds(5);
 
@@ -568,6 +649,8 @@ public sealed partial class DeckViewModel : ObservableObject
         _jumps = [];
         Deck.SetJumps([]);
         OnJumpsChanged();
+        _cues = [];
+        OnCuesChanged();
         IsAnalyzing = false;
         OnPropertyChanged(nameof(LevelText));
         Log.Info($"Deck {Label}: eject");
@@ -645,6 +728,8 @@ public sealed partial class DeckViewModel : ObservableObject
         _jumps = _owner.GetJumps(track.Path).ToList();
         Deck.SetJumps(_jumps.Select(j => (j.From, j.To, true)).ToList());
         OnJumpsChanged();
+        _cues = _owner.GetCues(track.Path).ToList();
+        OnCuesChanged();
         if (IsEqSet)
             Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
         Refresh();
