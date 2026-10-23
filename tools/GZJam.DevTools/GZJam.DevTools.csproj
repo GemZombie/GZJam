@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <Compile Include="..\..\tests\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <!-- The logo's shapes, so the icons and SVG files match what the app draws -->
+    <Compile Include="..\..\src\GZJam.App\Controls\LogoShapes.cs" Link="Logo\LogoShapes.cs" />
   </ItemGroup>
 
   <ItemGroup>

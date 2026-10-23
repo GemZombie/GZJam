@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>GZJam wordmark concepts</title>
+<style>
+  body { font-family: var(--font-sans, system-ui, sans-serif); }
+  .wrap { display: flex; flex-direction: column; gap: 30px; padding: 2px 0 8px; }
+  .concept h2 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
+  .concept p { margin: 0 0 10px; font-size: 13px; line-height: 1.45; color: var(--muted-foreground, #8b93a1); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .panel { border-radius: var(--radius, 8px); padding: 20px 18px; display: flex; flex-direction: column; gap: 22px; }
+  .dark { background: #0E1116; }
+  .light { background: #EEF0F3; }
+  .panel svg { display: block; }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<svg id="defs" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
+<div class="wrap" id="page"></div>
+<script>
+const C = { deck1: "#36C2DC", deck1Deep: "#1597B0", rest: "#C3CBD6" };
+const theme = {
+  dark: { ink: "#E8ECF2", lit: C.deck1, unlit: C.rest },
+  light: { ink: "#151920", lit: C.deck1Deep, unlit: "#2A303B" },
+};
+
+// Heavy letters on a 20-unit cap height. Strokes are 4.4 wide; Z and M are filled shapes so
+// their sharp corners stay sharp.
+const S = 4.4;
+const glyph = {
+  G: { w: 20, stroke: "M15.01,4.02 A7.8,7.8 0 1 0 17.8,10", bar: "M17.8,10 H11" },
+  Z: { w: 20, fill: "M2.5,0 H17.8 V4 L7.6,15.6 H17.8 V20 H2.2 V16 L12.4,4.4 H2.5 Z" },
+  J: { w: 20, stroke: "M15.6,0 V12 A5.6,5.6 0 0 1 4.4,12" },
+  A: { w: 20, stroke: "M2.2,20 V10 A7.8,7.8 0 0 1 17.8,10 V20 M2.2,13.6 H17.8" },
+  M: { w: 20, fill: "M0,20 V0 H4.6 L10,8.6 L15.4,0 H20 V20 H15.6 V7.6 L10,16.6 L4.4,7.6 V20 Z" },
+};
+// Origins, spaced by the letters' real edges (G, A, M: 0-20; Z, J: 2.2-17.8). J tucks under Z's
+// overhang, since its top is open.
+const X = { G: 0, Z: 21.2, J: 38.6, A: 59.8, M: 83.4 };
+const W = 103.4;
+
+function draw(c, color, { bar = true } = {}) {
+  const g = glyph[c];
+  let s = "";
+  if (g.stroke) s += `<path d="${g.stroke}" fill="none" stroke="${color}" stroke-width="${S}"/>`;
+  if (g.bar && bar) s += `<path d="${g.bar}" fill="none" stroke="${color}" stroke-width="${S}"/>`;
+  if (g.fill) s += `<path d="${g.fill}" fill="${color}"/>`;
+  return `<g transform="translate(${X[c]} 0)">${s}</g>`;
+}
+const word = (letters, colorOf, opts) => [...letters].map(c => draw(c, colorOf(c), opts)).join("");
+
+// The icon's waveform G, without its tile.
+function waveBars(lit, unlit) {
+  const cx = 32, cy = 32, R = 18, step = 9, last = 306;
+  let s = "";
+  for (let deg = 2 * step; deg <= last; deg += step) {
+    const i = deg / step;
+    const envelope = 0.55 + 0.45 * Math.sin(i * 0.42 + 0.6) ** 2;
+    const h = 1.6 + 5.2 * envelope * [1, 0.72, 0.9, 0.62][i % 4];
+    const a = deg * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+    s += `<line x1="${(cx + (R - h) * cos).toFixed(2)}" y1="${(cy + (R - h) * sin).toFixed(2)}" x2="${(cx + (R + h) * cos).toFixed(2)}" y2="${(cy + (R + h) * sin).toFixed(2)}" stroke="${deg <= 160 ? lit : unlit}" stroke-width="1.9"/>`;
+  }
+  s += `<line x1="33" y1="32" x2="${cx + R + 5}" y2="32" stroke="${lit}" stroke-width="3.4"/>`;
+  return s;
+}
+
+const wordmarks = {
+  // 1: letters drawn as waveform bars; GZ is the played part, JAM is still to come.
+  bars: t => `<svg viewBox="-1 -1 ${W + 2} 22"><defs>
+      <pattern id="stripes-${t.key}" width="2.4" height="22" patternUnits="userSpaceOnUse"><rect width="1.65" height="22" fill="#fff"/></pattern>
+      <mask id="m-bars-${t.key}"><rect x="-1" y="-1" width="${W + 2}" height="22" fill="url(#stripes-${t.key})"/></mask></defs>
+      <g mask="url(#m-bars-${t.key})">${word("GZJAM", c => "GZ".includes(c) ? t.lit : t.unlit)}</g></svg>`,
+
+  // 2: every letter split along the centre line, as a waveform is mirrored around it; the G's bar
+  // sits in the cut and carries the colour.
+  line: t => `<svg viewBox="-1 -1 ${W + 2} 22"><defs>
+      <mask id="m-line-${t.key}"><rect x="-1" y="-1" width="${W + 2}" height="22" fill="#fff"/><rect x="-1" y="9.15" width="${W + 2}" height="1.7" fill="#000"/></mask></defs>
+      <g mask="url(#m-line-${t.key})">${word("GZJAM", () => t.ink, { bar: false })}</g>
+      <rect x="11" y="7.8" width="9" height="4.4" fill="${t.lit}"/></svg>`,
+
+  // 3: the icon itself is the G.
+  icon: t => {
+    return `<svg viewBox="-5 -3 ${W + 6} 26">
+      <svg x="-4" y="-2.6" width="25.4" height="25.4" viewBox="7 7 50 50">${waveBars(t.lit, t.unlit)}</svg>
+      ${word("ZJAM", () => t.ink)}</svg>`;
+  },
+};
+
+const iconB = (t, size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64">
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="url(#tile)" stroke="#2B313C"/>${waveBars(C.deck1, C.rest)}</svg>`;
+
+document.getElementById("defs").innerHTML = `<defs>
+  <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E232C"/><stop offset="1" stop-color="#0C0F14"/></linearGradient></defs>`;
+
+const concepts = [
+  { id: "bars", name: "1 · Waveform letters", text: "Every letter is cut into bars, like the icon's waveform. GZ is coloured as the played part, JAM is still to come. The most distinctive, and it animates naturally: the colour can sweep along the word as a song plays or as GZJam loads." },
+  { id: "line", name: "2 · Split", text: "Every letter is split along its centre line, the way a waveform is mirrored around one, and the G's bar carries the colour. Solid letters, so it stays readable at any size." },
+  { id: "icon", name: "3 · The icon is the G", text: "The waveform G replaces the first letter, so the logo and the name are one thing. Works best large: on the website, in videos, on the startup screen." },
+];
+
+const sized = (svg, h) => svg.replace("<svg ", `<svg height="${h}" width="${(h * (W + 2) / 22).toFixed(1)}" `);
+
+document.getElementById("page").innerHTML = concepts.map(c => {
+  const panel = key => {
+    const t = { ...theme[key], key };
+    const make = suffix => wordmarks[c.id]({ ...t, key: key + suffix });
+    return `<div class="panel ${key}">
+      ${sized(make("a"), 56)}
+      <div class="lockup">${iconB(t, 40)}${sized(make("b"), 18)}</div>
+      ${sized(make("c"), 12)}
+    </div>`;
+  };
+  return `<section class="concept"><h2>${c.name}</h2><p>${c.text}</p><div class="pair">${panel("dark")}${panel("light")}</div></section>`;
+}).join("");
+</script>
+</body>
+</html>

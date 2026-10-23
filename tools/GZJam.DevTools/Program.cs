@@ -6,7 +6,8 @@ using GZJam.Library;
 //   bench <music folder>             Scan a folder into a throwaway database; report timings and tag coverage.
 //   analyze <music folder> [count]   Analyze tracks (waveform, silence, BPM): speed, and detected BPM
 //                                    against the tagged BPMs.
-//   icon <repo folder>               Draw the app icon: the .ico, .png and .icns files.
+//   icon <repo folder>               Draw the app icon (the .ico, .png and .icns files) and the logo's
+//                                    SVG files in branding/.
 
 if (args is ["swing", var swingBpm, var swingBackbeat])
 {
