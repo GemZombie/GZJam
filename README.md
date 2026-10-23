@@ -6,7 +6,8 @@ without the clutter.
 ## Download
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
-the file for your computer. What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
+the file for your computer. What changed in each release is in [CHANGELOG.md](CHANGELOG.md);
+what GZJam does and what's coming is in [ROADMAP.md](ROADMAP.md).
 Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions).
 
 | Computer | File | To install |
@@ -137,8 +138,10 @@ GitHub Actions, in `.github/workflows`:
 
   First add the version's section to [CHANGELOG.md](CHANGELOG.md): what a DJ would notice since the
   last release. It becomes the release's notes (with download instructions added by
-  `tools/release-notes.sh`), and a tag without one fails straight away. Then push a version tag to
-  draft a GitHub release with the packages attached, and publish the draft by hand:
+  `tools/release-notes.sh`), and a tag without one fails straight away. Bring
+  [ROADMAP.md](ROADMAP.md) up to date too: the release's features move into "What GZJam does
+  today", and "Up to date as of" gets the new version. Then push a version tag to draft a GitHub
+  release with the packages attached, and publish the draft by hand:
 
   ```
   git tag v0.2.0
