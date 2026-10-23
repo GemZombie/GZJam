@@ -27,6 +27,12 @@ New:
   and it's saved for the song. It works on air too, since moving a point changes nothing the room
   hears until the music gets there; somewhere a point can't go (a cue on top of another, say), it
   goes back and says why. A deck waiting at its start follows the start when you move it.
+- **Tap tempo.** For a song whose BPM is wrong: on a deck, BPM menu › *Tap tempo…*, then tap the
+  pad (or press Space) along to the beat. The BPM shows after four taps and settles the longer you
+  tap; stop for two seconds to start again. SET makes it the song's BPM, saved in GZJam, not the
+  file. With the deck's tempo changed, you tap what you hear and it works out the song's own BPM.
+  It covers only that deck's waveform, so you can keep mixing while you tap a song in your
+  headphones.
 
 Changed:
 

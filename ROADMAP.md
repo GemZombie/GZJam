@@ -63,6 +63,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   cue, a jump or a song's start. Zoom with the mouse wheel or a pinch; drag it like a record.
 - **Drag the markers:** move a song's start and end, its jumps and its cues by dragging them on
   the close-up or the whole song, by finger or mouse, on air too.
+- **Tap tempo:** set a song's BPM by tapping along to it on a deck, while you keep mixing.
 - **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into
   bars like a waveform.
 
@@ -70,7 +71,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 **0.5.0: setting points precisely.** Cue keys, jumps and a song's start and end are only as good
 as where they're put; finding the exact spot, by mouse or finger, is the focus.
-- [Tap tempo](https://github.com/GemZombie/GZJam/issues/11), to set a BPM by tapping along
 - [Rename labels, and show them on the queue and decks](https://github.com/GemZombie/GZJam/issues/13)
 - [Choose how close `~bpm:` searches are](https://github.com/GemZombie/GZJam/issues/7)
 

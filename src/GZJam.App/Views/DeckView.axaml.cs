@@ -94,6 +94,20 @@ public partial class DeckView : UserControl
             menu.Opened += (_, _) => FillTrimMenu(menu, null);
         }
         MoreMenu.Opening += (_, _) => FillMoreMenu();
+        // Tap tempo: the pad takes the keyboard (Space taps it), and Escape puts it away.
+        TapPanel.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsVisibleProperty && TapPanel.IsVisible)
+                Dispatcher.UIThread.Post(() => TapPad.Focus());
+        };
+        TapPanel.AddHandler(KeyDownEvent, (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+            {
+                Vm?.CancelTapCommand.Execute(null);
+                e.Handled = true;
+            }
+        }, RoutingStrategies.Tunnel);
         ApplyCompact();
     }
 
@@ -175,7 +189,7 @@ public partial class DeckView : UserControl
         var energy = new MenuItem { Header = "Energy" };
         MarksMenu.FillEnergy(energy, vm.Owner, [track]);
         var bpm = new MenuItem { Header = BpmMenu.Title };
-        BpmMenu.Fill(bpm, vm.Owner, [track]);
+        BpmMenu.Fill(bpm, vm.Owner, [track], deck: vm);
         var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
         // The cue keys don't fit over a four-deck waveform: they're here instead.
         foreach (GZJam.Library.SongCue cue in vm.Cues)
@@ -286,7 +300,7 @@ public partial class DeckView : UserControl
                 opening.Cancel = true;   // nothing loaded: no menu
             return;
         }
-        BpmMenu.Fill(menu, vm.Owner, [track], withTitle: true);
+        BpmMenu.Fill(menu, vm.Owner, [track], withTitle: true, deck: vm);
     }
 
     public string Label

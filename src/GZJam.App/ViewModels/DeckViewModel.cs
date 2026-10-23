@@ -505,6 +505,88 @@ public sealed partial class DeckViewModel : ObservableObject
         return true;
     }
 
+    // ───────────── Tap tempo ─────────────
+
+    private readonly TapTempo _tap = new();
+    private readonly System.Diagnostics.Stopwatch _tapClock = System.Diagnostics.Stopwatch.StartNew();
+
+    /// <summary>Tapping along to set the song's BPM: the TAP pad shows over the waveform.</summary>
+    [ObservableProperty]
+    public partial bool IsTapping { get; private set; }
+
+    /// <summary>
+    /// The song's BPM from the taps, once there are enough. The DJ taps what they hear, so the
+    /// deck's tempo change is taken out: the song's own BPM, as at 0%.
+    /// </summary>
+    public double? TappedBpm => _tap.Bpm is { } heard ? Math.Round(heard / (1 + Deck.TempoPercent / 100), 1) : null;
+
+    public string TapText => TappedBpm is { } bpm ? Format.Bpm(bpm) : "—";
+
+    public string TapDetail => _tap.Count switch
+    {
+        0 => "Tap along to the beat",
+        < TapTempo.TapsNeeded => $"{_tap.Count} {(_tap.Count == 1 ? "tap" : "taps")}: keep going",
+        _ => $"{_tap.Count} taps · {(_tap.IsSteady ? "steady" : "keep tapping")}",
+    };
+
+    /// <summary>With the tempo changed, what the DJ is hearing (else nothing).</summary>
+    public string? TapTempoNote => _tap.Bpm is { } heard && Deck.TempoPercent != 0
+        ? $"Deck at {TempoText}: you're hearing {Format.Bpm(Math.Round(heard, 1))}"
+        : null;
+
+    /// <summary>BPM menu › Tap tempo: shows the TAP pad over the waveform.</summary>
+    public void StartTapTempo()
+    {
+        if (Track is null)
+            return;
+        _tap.Reset();
+        IsTapping = true;
+        OnTapChanged();
+    }
+
+    /// <summary>The TAP pad (or Space on it).</summary>
+    [RelayCommand]
+    private void Tap() => Tap(_tapClock.Elapsed);
+
+    internal void Tap(TimeSpan at)
+    {
+        if (!IsTapping)
+            return;
+        _tap.Tap(at);
+        OnTapChanged();
+    }
+
+    /// <summary>SET: the tapped BPM becomes the song's, as if typed (in GZJam's database, never the file).</summary>
+    [RelayCommand(CanExecute = nameof(CanSetTappedBpm))]
+    private void SetTappedBpm()
+    {
+        if (Track is not { } track || TappedBpm is not { } bpm)
+            return;
+        Log.Info(string.Create(CultureInfo.InvariantCulture,
+            $"Deck {Label}: tapped {bpm:0.0} BPM for \"{Title}\" ({_tap.Count} taps, tempo {TempoText})"));
+        CancelTap();
+        _owner.SetManualBpm([track], bpm);
+    }
+
+    private bool CanSetTappedBpm => TappedBpm is not null;
+
+    [RelayCommand]
+    private void CancelTap()
+    {
+        IsTapping = false;
+        _tap.Reset();
+        OnTapChanged();
+    }
+
+    private void OnTapChanged()
+    {
+        OnPropertyChanged(nameof(TappedBpm));
+        OnPropertyChanged(nameof(TapText));
+        OnPropertyChanged(nameof(TapDetail));
+        OnPropertyChanged(nameof(TapTempoNote));
+        SetTappedBpmCommand.NotifyCanExecuteChanged();
+    }
+
     // ───────────── Dragging markers ─────────────
 
     /// <summary>
@@ -626,6 +708,8 @@ public sealed partial class DeckViewModel : ObservableObject
             OnPropertyChanged();
             OnPropertyChanged(nameof(TempoText));
             RefreshReadout();
+            if (IsTapping)
+                OnTapChanged();   // the song's BPM from the same taps
         }
     }
 
@@ -767,6 +851,7 @@ public sealed partial class DeckViewModel : ObservableObject
         if (IsPlaying)
             return;
         Deck.Unload();
+        CancelTap();
         Track = null;
         Waveform = null;
         ForgetDetail();
@@ -839,6 +924,7 @@ public sealed partial class DeckViewModel : ObservableObject
     internal void Load(Track track)
     {
         Disarm();
+        CancelTap();   // the taps were for the song before
         IsFinished = false;
         ResetListening();
         Deck.Load(track.Path);
