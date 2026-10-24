@@ -65,13 +65,15 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.5.0.
+For 0.6.0:
+
+- [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
+  a glance that the right record is loaded: the picture in the song's file, or the cover in its
+  folder. The library has an Art column too, hidden to start with.
+- Each deck's number is printed above its title (*DECK 1*), with ON AIR beside it, leaving the
+  corner for the album art.
 
 ## Planned next
-
-**0.6.0:**
-- [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
-  a glance that the right record is loaded
 
 **Before 1.0:**
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
