@@ -79,7 +79,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.7.0.
+- One output for both (a splitter cable) is a switch of its own in Settings › Sound, saying what
+  to plug in and which side is which; the top bar starts with *Left* and *Right*.
 
 ## Planned next
 
