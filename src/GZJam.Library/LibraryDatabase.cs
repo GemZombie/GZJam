@@ -282,6 +282,13 @@ public sealed partial class LibraryDatabase
                 art_key         TEXT
             );
             """,
+
+        // 17: Where a song's mid EQ band sits (Hz), and how much it's evened out (0 to 100, a
+        // compressor): both set with its EQ, in the EQ panel.
+        """
+            ALTER TABLE eq ADD COLUMN mid_hz REAL NOT NULL DEFAULT 1000;
+            ALTER TABLE eq ADD COLUMN even REAL NOT NULL DEFAULT 0;
+            """,
     ];
 
     // ───────────── Roots ─────────────

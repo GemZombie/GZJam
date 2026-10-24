@@ -172,6 +172,26 @@ public sealed partial class DeckViewModel : ObservableObject
 
     public string EqGainText => Db(_eq.Gain);
 
+    /// <summary>How much the song is evened out (a compressor): 0 (off) to 100.</summary>
+    public double EqEven
+    {
+        get => _eq.Even;
+        set => SetEq(_eq with { Even = value });
+    }
+
+    public string EqEvenText => _eq.Even == 0 ? "Off" : _eq.Even.ToString("0", CultureInfo.CurrentCulture);
+
+    public double EqMaxEven => TrackEq.MaxEven;
+
+    /// <summary>Where the mid band sits, e.g. "1 kHz", "315 Hz".</summary>
+    public string EqMidHzText => Hz(_eq.MidHzOrDefault);
+
+    public bool IsMidMoved => !_eq.IsMidAtDefault;
+
+    internal static string Hz(double hz) => hz >= 1000
+        ? (hz / 1000).ToString("0.##", CultureInfo.CurrentCulture) + " kHz"
+        : hz.ToString("0", CultureInfo.CurrentCulture) + " Hz";
+
     public string EqLowText => Db(_eq.Low);
     public string EqMidText => Db(_eq.Mid);
     public string EqHighText => Db(_eq.High);
@@ -199,25 +219,52 @@ public sealed partial class DeckViewModel : ObservableObject
         "low" => _eq with { Low = 0 },
         "mid" => _eq with { Mid = 0 },
         "gain" => _eq with { Gain = 0 },
+        "even" => _eq with { Even = 0 },
+        "midhz" => _eq with { MidHz = TrackEq.DefaultMidHz },
         _ => _eq with { High = 0 },
     });
+
+    /// <summary>Moves the mid band one third of an octave down (-1) or up (+1).</summary>
+    [RelayCommand]
+    private void MoveMid(string direction)
+    {
+        var steps = TrackEq.MidFrequencies;
+        int at = NearestMid(_eq.MidHzOrDefault);
+        int to = Math.Clamp(at + (direction == "down" ? -1 : 1), 0, steps.Count - 1);
+        SetEq(_eq with { MidHz = steps[to] });
+    }
+
+    private static int NearestMid(double hz)
+    {
+        var steps = TrackEq.MidFrequencies;
+        int best = 0;
+        for (int i = 1; i < steps.Count; i++)
+        {
+            if (Math.Abs(Math.Log(steps[i] / hz)) < Math.Abs(Math.Log(steps[best] / hz)))
+                best = i;
+        }
+        return best;
+    }
 
     /// <summary>Applies EQ to the deck (in half-dB steps, within range) and saves it for the song.</summary>
     private void SetEq(TrackEq eq, bool save = true)
     {
         static double Step(double db, double min, double max) => Math.Round(Math.Clamp(db, min, max) * 2) / 2;
         eq = new TrackEq(Step(eq.Low, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Mid, TrackEq.MinDb, TrackEq.MaxDb),
-            Step(eq.High, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Gain, TrackEq.MinDb, TrackEq.MaxDb));
+            Step(eq.High, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Gain, TrackEq.MinDb, TrackEq.MaxDb),
+            TrackEq.MidFrequencies[NearestMid(eq.MidHzOrDefault)], Math.Round(Math.Clamp(eq.Even, 0, TrackEq.MaxEven) / 5) * 5);
         bool changed = eq != _eq;
         _eq = eq;
-        Deck.SetEq(eq.Low, eq.Mid, eq.High);
+        Deck.SetEq(eq.Low, eq.Mid, eq.High, eq.MidHz);
+        ApplyEven();
         ApplyGain();
         if (!changed)
             return;
         if (save && Track is not null)
             _owner.SaveEq(Track.Path, eq);
         foreach (string name in new[] { nameof(EqLow), nameof(EqMid), nameof(EqHigh), nameof(EqGain), nameof(EqLowText), nameof(EqMidText),
-                     nameof(EqHighText), nameof(EqGainText), nameof(IsEqSet), nameof(LevelText) })
+                     nameof(EqHighText), nameof(EqGainText), nameof(EqEven), nameof(EqEvenText), nameof(EqMidHzText), nameof(IsMidMoved),
+                     nameof(IsEqSet), nameof(LevelText) })
             OnPropertyChanged(name);
     }
 
@@ -281,6 +328,15 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     private void ApplyGain() => Deck.GainDb = _matchDb + _eq.Gain;
+
+    /// <summary>
+    /// A typical song's loudness, for evening out one whose loudness isn't measured yet: a guess,
+    /// put right when analysis finishes.
+    /// </summary>
+    private const double UnmeasuredLufs = -16;
+
+    /// <summary>Evens out the song around its own loudness (a compressor after the EQ).</summary>
+    private void ApplyEven() => Deck.Even = new Deck.Evening(_eq.Even / TrackEq.MaxEven, _lufs ?? UnmeasuredLufs);
 
     // ───────────── Jumps ─────────────
 
@@ -949,7 +1005,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _cues = _owner.GetCues(track.Path).ToList();
         OnCuesChanged();
         if (IsEqSet)
-            Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText}, high {EqHighText}");
+            Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText} at {EqMidHzText}, high {EqHighText}, gain {EqGainText}, even {EqEvenText}");
         Refresh();
         _ = AnalyzeAsync(track);
         _ = LoadDetailAsync(track);
@@ -980,6 +1036,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoEnd = analysis.AudibleEnd;
         (_lufs, _peakDb) = (analysis.Lufs, analysis.PeakDb);
         UpdateMatch();
+        ApplyEven();
         OnPropertyChanged(nameof(LevelText));
         if (_lufs is { } lufs)
             Log.Info(string.Create(CultureInfo.InvariantCulture,

@@ -21,6 +21,14 @@ New:
   (right-click a column heading to show it): an album's songs all share one picture, so in a long
   list it doesn't tell them apart. GZJam keeps small copies of the pictures in its own folder;
   your music files are never changed, and nothing is downloaded.
+- **Even out a recording.** For an old record whose quiet passages are hard to hear and loud ones
+  too loud: the EVEN fader in a deck's EQ panel brings them closer together (a compressor). It
+  works around the song's own loudness, so the same setting suits a quiet transfer and a loud
+  one; at the top, passages 20 dB apart end up about 7 dB apart. Off at the bottom, and
+  remembered for the song with its EQ.
+- **Move the mid band.** Under the MID fader, the arrows move the band a third of an octave at a
+  time, from 200 Hz to 5 kHz, to find just the frequency that's boomy or harsh. Tap the
+  frequency for 1 kHz again. Remembered for the song.
 
 Changed:
 
@@ -28,6 +36,8 @@ Changed:
   beside it while the room hears it, rather than in a coloured square beside the title. The album
   art has the corner instead, and the title and artist have more room. With four decks it's just
   the number, and ON AIR sits just before the EQ key.
+- **Flat** in the EQ panel now puts everything back: the bands and gain at 0 dB, the mid at
+  1 kHz, and evening out off.
 
 ## 0.5.0 (2026-10-23)
 

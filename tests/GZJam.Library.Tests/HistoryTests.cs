@@ -119,6 +119,8 @@ public sealed class HistoryTests : IDisposable
                 ALTER TABLE tracks DROP COLUMN tag_version;   -- added by upgrade 14
                 DROP TABLE cues;                              -- added by upgrade 15
                 DROP TABLE art;                               -- added by upgrade 16
+                ALTER TABLE eq DROP COLUMN mid_hz;            -- added by upgrade 17
+                ALTER TABLE eq DROP COLUMN even;
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

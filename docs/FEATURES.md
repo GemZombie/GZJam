@@ -456,7 +456,7 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
 
 - An **EQ** chip on each deck (beside the heart and energy bars; on a compact deck, beside the
   time) opens a panel laid out like a graphic EQ: a dB scale, three faders and the frequencies
-  under them: **low** (shelf below 150 Hz), **mid** (bell around 1 kHz), **high** (shelf above
+  under them: **low** (shelf below 150 Hz), **mid** (bell around 1 kHz, movable since #4), **high** (shelf above
   5 kHz, where record hiss lives). -24 to +6 dB in half-dB steps.
 - The faders (`EqFader`) are drawn like hardware: a ladder line every 3 dB, a brighter 0 dB line
   across all three, a slot and a metal cap matching the crossfader's. The slot and the lines
@@ -895,6 +895,29 @@ not here. This file records what was decided and built, and why.
 - **Typed, for one search:** `~bpm:140/5` (or `/5%`), up to 50%. `~bpm:140/` while still typing
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
+
+### Status: evening out and a movable mid (2026-10-24, issues #5 and #4)
+
+Both asked for by the Mixxx DJ, and both kept in the EQ panel, set once per recording like the
+rest of it.
+
+- **EVEN** (`TrackEq.Even`, 0 to 100 in steps of 5): a fader after GAIN, set apart by a divider
+  since it isn't in dB. A BASS_FX compressor (`BFX_COMPRESSOR2`) on the deck's stream after the
+  EQ, so the room and headphones hear it alike; at 0 it's taken out altogether, so off is
+  exactly as before.
+  - It works around the song's own measured loudness (`Deck.Evening`), so one setting suits a
+    quiet transfer and a loud one: threshold from 3 dB under the integrated loudness (the
+    compressor's average sits about there) down to 20 dB under at 100, ratio 1:1 to 4:1, attack
+    30 ms (a drum or horn keeps its attack), release 400 ms (no pumping). Before the song is
+    measured it assumes -16 LUFS, put right when analysis finishes.
+  - Make-up gain gives back 60% of what it takes from the typical level, so quiet passages come
+    up and loudness matching (measured on the song as it is) roughly holds; GAIN covers the rest.
+  - In the test, a tone with passages 20 dB apart ends up 6.9 dB apart at 100.
+- **The mid band's frequency** (`TrackEq.MidHz`): ◀ ▶ under the MID fader step through the
+  third-octave centres from 200 Hz to 5 kHz (a graphic EQ's bands), so it's precise and works by
+  touch; the frequency shows in the accent colour when moved, and tapping it goes back to 1 kHz.
+  Moving it alone counts as EQ set (the chip lights), so it's saved.
+- Saved in the `eq` table (upgrade 17: `mid_hz`, `even`). *Flat* resets all of it.
 
 ### Status: album art (2026-10-23, issue #44)
 
