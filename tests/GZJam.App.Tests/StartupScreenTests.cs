@@ -68,16 +68,21 @@ public sealed class StartupScreenTests
         Assert.True(progress.IsComplete);
     }
 
-    public static TheoryData<AppSettings.WindowPlacement?> Placements => new()
+    public static TheoryData<AppSettings.WindowPlacement> Placements => new()
     {
-        null,   // first start: centred, at the main window's own size
         new AppSettings.WindowPlacement { X = 120, Y = 80, Width = 1200, Height = 760 },
         new AppSettings.WindowPlacement { X = 0, Y = 0, Width = 1440, Height = 900, Maximized = true },
     };
 
     [AvaloniaTheory]
     [MemberData(nameof(Placements))]
-    public void It_opens_exactly_where_the_main_window_will(AppSettings.WindowPlacement? placement)
+    public void It_opens_exactly_where_the_main_window_will(AppSettings.WindowPlacement placement) => OpensWhereTheMainWindowWill(placement);
+
+    /// <summary>The first start: no placement saved, so centred, at the main window's own size.</summary>
+    [AvaloniaFact]
+    public void On_the_first_start_it_opens_where_the_main_window_will() => OpensWhereTheMainWindowWill(null);
+
+    private static void OpensWhereTheMainWindowWill(AppSettings.WindowPlacement? placement)
     {
         var main = new MainWindow();
         main.RestorePlacement(placement);
