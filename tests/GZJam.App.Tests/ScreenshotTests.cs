@@ -16,6 +16,33 @@ public sealed class ScreenshotTests
 {
     private static readonly string MusicFolder = Environment.GetEnvironmentVariable("GZJAM_SCREENSHOT_MUSIC") ?? @"C:\music";
 
+    /// <summary>
+    /// The picture at the top of the README: the set in progress, as it looks at a dance. Offline
+    /// tests have no outputs, so the top bar's chips are given a typical setup's names, and the
+    /// analysis progress (a fresh database analyzing the whole library) is hidden.
+    /// </summary>
+    private static void ReadmePicture(AppHarness app)
+    {
+        var chips = app.Window.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("output-chip")).ToList();
+        string[] names = ["Speakers (USB Audio)", "Headphones"];
+        var overridden = new List<TextBlock>();
+        for (int i = 0; i < names.Length; i++)
+        {
+            var name = chips[i].GetVisualDescendants().OfType<TextBlock>().Last();
+            name.SetValue(TextBlock.TextProperty, names[i], Avalonia.Data.BindingPriority.Animation);
+            overridden.Add(name);
+        }
+        var status = app.Window.GetVisualDescendants().OfType<TextBlock>()
+            .First(t => t.Text?.StartsWith("Analyzing", StringComparison.Ordinal) == true).Parent as Visual;
+        status?.SetValue(Visual.IsVisibleProperty, false, Avalonia.Data.BindingPriority.Animation);
+
+        app.Screenshot("readme-main-screen");
+
+        foreach (var name in overridden)
+            name.ClearValue(TextBlock.TextProperty);
+        status?.ClearValue(Visual.IsVisibleProperty);
+    }
+
     [AvaloniaFact]
     public void Real_library_screenshots()
     {
@@ -79,6 +106,7 @@ public sealed class ScreenshotTests
         vm.Preview!.Toggle(tracks[4]);
         app.Play(8);
         app.Screenshot("05-decks-playing");
+        ReadmePicture(app);
 
         // The live deck refusing a drop.
         vm.LoadToDeckAsync(vm.Deck1, tracks[6]).GetAwaiter().GetResult();
