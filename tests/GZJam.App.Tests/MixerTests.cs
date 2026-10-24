@@ -105,11 +105,24 @@ public sealed class MixerTests
         vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone")).GetAwaiter().GetResult();
         vm.Deck1!.TogglePlayCommand.Execute(null);
 
-        app.Play(0.3);
-        app.Play(0.3);   // past the start-up ramp
-        double full = mixer.LevelLeft;
+        // The meter's level: the highest of a few readings. GZJam's own timer can tick between
+        // the test's renders, find no new sound, and let the meter fall a step (it did once on
+        // CI's Mac).
+        double Level()
+        {
+            double level = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                app.Play(0.05);
+                level = Math.Max(level, mixer.LevelLeft);
+            }
+            return level;
+        }
+
+        app.Play(0.6);   // past the start-up ramp
+        double full = Level();
         Assert.InRange(full, 0.85, 0.9);   // a 0.5 tone is -6 dB: 42 of the meter's 48 dB
-        Assert.Equal(full, mixer.LevelRight, 3);
+        Assert.Equal(mixer.LevelLeft, mixer.LevelRight, 3);   // mono: both sides alike
         Assert.False(mixer.IsLimiting);
 
         var fader = app.Window.FindControl<Fader>("MainVolumeFader")!;
@@ -118,6 +131,6 @@ public sealed class MixerTests
         for (int i = 0; i < 30; i++)
             app.Play(0.05);   // the meter falls back gradually
 
-        Assert.InRange(mixer.LevelLeft, full - 12.5 / 48, full - 11.5 / 48);
+        Assert.InRange(Level(), full - 12.5 / 48, full - 11.5 / 48);
     }
 }
