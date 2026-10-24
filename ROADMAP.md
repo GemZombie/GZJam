@@ -78,12 +78,13 @@ For 0.7.0:
   saved by name. Open one in the library, drag songs onto it, reorder it, then add it to the
   queue. The queue or a night in History can be saved as one, and Mixxx playlists come across in
   the import.
+- [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
+  instead of closing without a word; and later versions that only add to the library won't lock
+  this one out.
 
 ## Planned next
 
 **Also in 0.7.0:**
-- [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
-  instead of closing without a word (after going back from a test build or a newer release)
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
 - [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
   splitter cable, for laptops and tablets

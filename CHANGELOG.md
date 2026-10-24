@@ -27,6 +27,11 @@ Fixed:
 - **The BPM and Label menus by the search open with their choices again.** A click opened them
   empty, just a thin grey line under the button. A compact deck's ⋯ menu (with four decks) had
   the same fault.
+- **A library a newer GZJam has updated no longer makes GZJam close without a word.** Going back
+  to an older GZJam (or from a test build) used to make it vanish as it started; now it says
+  your library is from a newer GZJam, and offers the newest one. Nothing is changed or lost.
+  And from this version on, an older GZJam opens a library a newer one has updated, as long as
+  the newer one only added to it (as most updates do).
 
 ## 0.6.0 (2026-10-24)
 

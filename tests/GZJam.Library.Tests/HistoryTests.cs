@@ -123,6 +123,7 @@ public sealed class HistoryTests : IDisposable
                 ALTER TABLE eq DROP COLUMN even;
                 DROP TABLE playlist_entries;                  -- added by upgrade 18
                 DROP TABLE playlists;
+                DROP TABLE schema_compat;                     -- added by upgrade 19
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

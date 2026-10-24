@@ -1,4 +1,6 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace GZJam.App.Views;
 
@@ -27,7 +29,25 @@ public partial class ConfirmDialog : Window
             CancelButton.IsDefault = true;
             Opened += (_, _) => CancelButton.Focus();
         }
-        ConfirmButton.Click += (_, _) => Close(true);
+        ConfirmButton.Click += (_, _) =>
+        {
+            Confirmed = true;
+            Close(true);
+        };
         CancelButton.Click += (_, _) => Close(false);
+    }
+
+    /// <summary>Closed with the confirm button (for a dialog shown on its own, not awaited).</summary>
+    public bool Confirmed { get; private set; }
+
+    /// <summary>
+    /// The confirm button in the app's accent colour rather than red: for a choice that loses
+    /// nothing and stops nothing (red says "careful": delete, stop the music).
+    /// </summary>
+    public void ConfirmIsHarmless()
+    {
+        if (Application.Current?.TryFindResource("AccentBrush", out object? accent) == true && accent is IBrush brush)
+            ConfirmButton.Background = brush;
+        ConfirmButton.Foreground = Brushes.Black;
     }
 }
