@@ -163,6 +163,13 @@
     <Setter Property="FontSize" Value="10.5" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
   </Style>
+  <!-- Smaller under a queue row's title, so a row with labels is no taller than one without -->
+  <Style Selector="ItemsControl.small Border.label-chip">
+    <Setter Property="Padding" Value="4,0" />
+  </Style>
+  <Style Selector="ItemsControl.small Border.label-chip > TextBlock">
+    <Setter Property="FontSize" Value="9.5" />
+  </Style>
 
   <!-- Played tonight: dimmed, so it isn't played again by mistake -->
   <Style Selector="DataGrid.tracks DataGridRow" x:DataType="lib:Track">

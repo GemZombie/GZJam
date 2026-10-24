@@ -287,6 +287,32 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Library.LabelsChanged();
     }
 
+    /// <summary>
+    /// Renames a label on every song (or, if another label already has the name, makes the two
+    /// one), wherever the songs are on screen. A search for the label follows it.
+    /// </summary>
+    public void RenameLabel(string name, string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName) || newName.Trim() == name)
+            return;
+        bool merging = _database.GetLabels().Any(l => l.Name.Equals(newName.Trim(), StringComparison.OrdinalIgnoreCase)
+            && !l.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (_database.RenameLabel(name, newName) is not { } stored)
+            return;
+        var onScreen = Library.Results.Concat(Queue.Items.Select(i => i.Track)).Concat(Decks.Select(d => d.Track)).OfType<Track>()
+            .Where(t => t.Labels.Contains(name, StringComparer.OrdinalIgnoreCase)).Distinct().ToList();
+        foreach (var group in onScreen.GroupBy(t => t.Path))
+        {
+            var labels = _database.GetLabels(group.Key);
+            foreach (Track track in group)
+                track.Labels = labels;
+        }
+        Log.Info($"Label \"{name}\" renamed \"{stored}\"{(merging ? ", joining the label already called that" : "")}");
+        if (merging)
+            ShowNotice($"\"{name}\" and \"{stored}\" are one label now.");
+        Library.LabelRenamed(name, stored);
+    }
+
     /// <summary>Asks the DJ for a short piece of text (heading, message, button); the window supplies the dialog.</summary>
     /// <summary>Asks for a short text (heading, message, OK button, starting text); the window supplies the dialog.</summary>
     public Func<string, string, string, string, Task<string?>>? PromptAsync { get; set; }

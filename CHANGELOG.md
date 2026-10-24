@@ -33,6 +33,11 @@ New:
   file. With the deck's tempo changed, you tap what you hear and it works out the song's own BPM.
   It covers only that deck's waveform, so you can keep mixing while you tap a song in your
   headphones.
+- **Labels on the decks and queue, and renaming them.** A song's labels now show after the artist
+  on its deck and its queue row, as in the library, in whatever room the title and artist leave.
+  Rename a label from Labels › *Rename a label* (right-click songs) or the Label button by the
+  search; a search for it follows the new name. Rename it to another label's name and the two
+  become one.
 
 Changed:
 
