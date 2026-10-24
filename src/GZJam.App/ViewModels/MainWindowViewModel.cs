@@ -24,6 +24,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Mix = mix;
         AudioError = audioError;
         Library = new LibraryViewModel(database) { NearBpm = settings.NearBpmPercent / 100 };
+        Art = new AlbumArtCache(database, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(database.DatabasePath))!, "art"));
         Queue = new QueueViewModel();
         History = new HistoryViewModel(database);
         Library.TonightSince = () => History.CurrentSessionStartUtc;
@@ -110,6 +111,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>Waveforms, silence trimming and BPM detection; null without audio.</summary>
     public TrackAnalysisService? Analysis { get; }
+
+    /// <summary>Songs' album art, for the decks, queue and library.</summary>
+    public AlbumArtCache Art { get; }
 
     /// <summary>What's happening in the background (scanning, then analyzing), for the top bar.</summary>
     public string? BackgroundStatus => Library.ScanStatus ?? Analysis?.Status;
@@ -691,6 +695,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _clock.Stop();
         _playbackTimer.Stop();
         Library.Dispose();
+        Art.Dispose();
         Analysis?.Dispose();   // stops decoding before BASS goes away
         Mix?.Dispose();
         Audio?.Dispose();

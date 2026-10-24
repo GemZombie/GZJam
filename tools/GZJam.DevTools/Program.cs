@@ -6,6 +6,8 @@ using GZJam.Library;
 //   bench <music folder>             Scan a folder into a throwaway database; report timings and tag coverage.
 //   analyze <music folder> [count]   Analyze tracks (waveform, silence, BPM): speed, and detected BPM
 //                                    against the tagged BPMs.
+//   art <music folder> [count]       How many songs have album art (in the file, in the folder), and
+//                                    how long finding it and making the small copies takes.
 //   icon <repo folder>               Draw the app icon (the .ico, .png and .icns files) and the logo's
 //                                    SVG files in branding/.
 
@@ -25,6 +27,9 @@ if (args is ["tempo", var tempoFile])
 if (args is ["envelope", var envelopeFile])
     return AnalyzeBench.Envelope(envelopeFile);
 
+if (args is ["art", var artFolder, ..])
+    return ArtBench.Run(artFolder, args.Length > 2 ? int.Parse(args[2]) : 400);
+
 if (args is ["analyze", var analyzeFolder, ..])
     return await AnalyzeBench.RunAsync(analyzeFolder, args.Length > 2 ? int.Parse(args[2]) : 60);
 
@@ -32,6 +37,7 @@ if (args is not ["bench", var musicFolder])
 {
     Console.WriteLine("usage: GZJam.DevTools bench <music folder>");
     Console.WriteLine("       GZJam.DevTools analyze <music folder> [count]");
+    Console.WriteLine("       GZJam.DevTools art <music folder> [count]");
     return 1;
 }
 

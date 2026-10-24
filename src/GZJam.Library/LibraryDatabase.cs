@@ -267,6 +267,21 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (path, number)
             );
             """,
+
+        // 16: Which picture each song shows (see AlbumArtFinder), by path: art_key names the small
+        // copy in the art folder, null for none. A cache, like the analysis: the file's size and
+        // modified time, and its folder's modified time (a cover.jpg added later), say whether it's
+        // still right.
+        """
+            CREATE TABLE art (
+                path            TEXT PRIMARY KEY,
+                file_size       INTEGER NOT NULL,
+                modified_utc    INTEGER NOT NULL,
+                folder_modified INTEGER NOT NULL,
+                version         INTEGER NOT NULL,
+                art_key         TEXT
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

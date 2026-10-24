@@ -39,6 +39,15 @@ public static class TestMp3
         file.Save();
     }
 
+    /// <summary>Puts a picture in a file's tag (TagLib# doesn't look inside it, so any bytes do for finding it).</summary>
+    public static void EmbedPicture(string path, byte[] picture, TagLib.PictureType type = TagLib.PictureType.FrontCover)
+    {
+        using var file = TagLib.File.Create(path);
+        var id3 = (TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, create: true);
+        id3.Pictures = [.. id3.Pictures, new TagLib.Picture(new TagLib.ByteVector(picture)) { Type = type, MimeType = "image/png" }];
+        file.Save();
+    }
+
     private static byte[] BuildAudio(TimeSpan duration)
     {
         var data = new byte[FrameLength * FramesWritten];

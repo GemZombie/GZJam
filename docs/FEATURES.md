@@ -896,6 +896,29 @@ not here. This file records what was decided and built, and why.
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
+### Status: album art (2026-10-23, issue #44)
+
+- **Where:** decks (56 px beside the title and artist; 24 px before the title with four decks),
+  queue rows (30 px), and a library Art column (22 px), hidden to start with. The deck's square
+  is always there, so nothing moves when a picture appears. No picture (or no song): a dim record
+  in the deck's colour (neutral grey in the queue and library); never a made-up picture, a blurred
+  background or colours taken from the art.
+- **Which picture** (`AlbumArtFinder`): the file's own (the front cover if marked, else the
+  first), since it can differ per song; else the folder's `cover.*`, `folder.*`, `front.*` (also
+  within a longer name like "Album - Front.jpg"), else its only image that isn't plainly the back,
+  disc or inlay. jpg, png, webp. Read only; nothing is downloaded.
+- **Small copies** (`AlbumArtCache`): 128 px wide PNGs in the data folder's `art/`, named by a
+  hash of the source picture, so an album's songs share one. The `art` table (upgrade 16) records
+  each song's picture or none, valid while the file, its folder's modified time (a cover added
+  later) and `AlbumArtFinder.Version` are unchanged. Found when first shown, newest request first,
+  on one below-normal thread, rather than in a pass over the library: on `C:\music` (1,000 songs)
+  finding takes about 1 ms a song and a small copy about 2 ms, and 88% have a picture (55% in the
+  file, 34% in the folder). Up to 300 pictures stay in memory. `GZJam.DevTools art <folder>`
+  measures a library.
+- **Settings:** `SeenColumns` makes a column added later start hidden in settings saved before it
+  existed, once; after that `HiddenColumns` holds the DJ's choice.
+- **Not yet:** a bigger picture on hover or tap; covers fetched for ripped CDs (#41).
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

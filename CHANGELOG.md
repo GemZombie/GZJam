@@ -10,6 +10,18 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.6.0 (unreleased)
+
+New:
+
+- **Album art on the decks and queue,** small, to see at a glance that the right record is on the
+  right deck. It's the picture in the song's file, or failing that the cover in its folder
+  (`cover.jpg`, `folder.jpg`, `front.jpg`, or the folder's only picture). A song without one shows
+  a dim record in the deck's colour. The library has an Art column too, hidden to start with
+  (right-click a column heading to show it): an album's songs all share one picture, so in a long
+  list it doesn't tell them apart. GZJam keeps small copies of the pictures in its own folder;
+  your music files are never changed, and nothing is downloaded.
+
 ## 0.5.0 (2026-10-23)
 
 New:
