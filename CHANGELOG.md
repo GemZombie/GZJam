@@ -38,6 +38,9 @@ New:
   Rename a label from Labels › *Rename a label* (right-click songs) or the Label button by the
   search; a search for it follows the new name. Rename it to another label's name and the two
   become one.
+- **Choose how near `~bpm:` searches reach.** Settings › Library › *Near a BPM*: ±8% to start with
+  (as far as the tempo slider goes), from ±1% to ±20%. The BPM button's *Near Deck* choices follow
+  it. For one search, type `~bpm:140/5`.
 
 Changed:
 

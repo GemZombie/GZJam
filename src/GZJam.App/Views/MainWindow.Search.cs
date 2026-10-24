@@ -62,8 +62,9 @@ public partial class MainWindow
         var items = BpmFilterMenu.Items;
         items.Clear();
 
-        // Near a deck's tempo as the room would hear it (with its tempo slider), within the
-        // slider's reach, so anything listed could be pitched to match.
+        // Near a deck's tempo as the room would hear it (with its tempo slider), as near as
+        // Settings › Library says (the slider's reach to start with: anything listed could be
+        // pitched to match).
         foreach (DeckViewModel deck in Vm.ActiveDecks)
         {
             bool has = deck.CurrentBpm is not null;

@@ -17,6 +17,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private readonly SemaphoreSlim _scanLock = new(1, 1);
     private CancellationTokenSource? _typingDelay;
     private CancellationTokenSource? _searchCancel;
+    private double _nearBpm = LibraryDatabase.DefaultNearBpm;
     private int _searchVersion;
     private bool _suppressSearch;
     private (string RootPath, string Folder)? _pendingSelection;
@@ -181,6 +182,20 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             SetLabelFilter(newName);
         else
             LabelsChanged();
+    }
+
+    /// <summary>How far <c>~bpm:</c> reaches either side, as a fraction (Settings › Library).</summary>
+    public double NearBpm
+    {
+        get => _nearBpm;
+        set
+        {
+            if (value == _nearBpm)
+                return;
+            _nearBpm = value;
+            if (FindBpmFilters(SearchText).Any(f => f.StartsWith('~')))
+                RunSearch();   // the near-BPM search reaches further or less far now
+        }
     }
 
     /// <summary>Labels were added or taken off: a label filter's results may have changed.</summary>
@@ -384,8 +399,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         int version = ++_searchVersion;
         string text = SearchText;
         FolderScope? scope = SelectedFolder?.Node.Scope;
+        double near = NearBpm;
 
-        Task.Run(() => _database.Search(text, scope, cancel.Token), cancel.Token).ContinueWith(t =>
+        Task.Run(() => _database.Search(text, scope, cancel.Token, near), cancel.Token).ContinueWith(t =>
         {
             if (version == _searchVersion)
                 Dispatcher.UIThread.Post(() =>

@@ -39,7 +39,21 @@ public sealed class SearchQueryTests : IDisposable
     [InlineData("bpm:<100", "Hootie Blues")]
     [InlineData("~bpm:140", "Basie Blues|Corner Pocket|Stompin' at the Savoy")]   // 128.8 to 151.2
     [InlineData("~bpm:250", "Jumpin' at the Woodside")]
+    [InlineData("~bpm:140/2", "Corner Pocket")]   // 137.2 to 142.8
+    [InlineData("~bpm:140/12%", "Basie Blues|Corner Pocket|Stompin' at the Savoy")]
+    [InlineData("~bpm:236/1", "Jumpin' at the Woodside")]
     public void Bpm_filters(string query, string expected) => Assert.Equal(expected.Split('|'), Titles(query));
+
+    [Fact]
+    public void How_near_a_bpm_reaches_is_the_djs_choice_unless_the_search_says()
+    {
+        string[] Near(string text, double near) => _lib.Database.Search(text, nearBpm: near).Select(t => t.Title!).Order().ToArray();
+
+        Assert.Equal(["Corner Pocket"], Near("~bpm:140", 0.02));
+        Assert.Equal(["Basie Blues", "Corner Pocket", "Stompin' at the Savoy"], Near("~bpm:140", 0.08));
+        Assert.Equal(["Basie Blues", "Corner Pocket", "Stompin' at the Savoy"], Near("~bpm:140/8", 0.02));   // typed: this search only
+        Assert.Equal(["Corner Pocket"], Near("~bpm:140/", 0.02));   // still typing: as near as usual
+    }
 
     [Theory]
     [InlineData("year:1938", "Jumpin' at the Woodside")]
@@ -81,6 +95,9 @@ public sealed class SearchQueryTests : IDisposable
     [InlineData("bpm:1")]          // still typing 140: nothing at 1 BPM
     [InlineData("rating:")]
     [InlineData("~bpm:abc")]
+    [InlineData("~bpm:140/")]
+    [InlineData("~bpm:140/x")]
+    [InlineData("~bpm:/5")]
     [InlineData("artist:\"count")]
     [InlineData("year:-")]
     [InlineData("-")]

@@ -101,6 +101,8 @@ public sealed class ScreenshotTests
 
         app.Window.OpenSettings(GZJam.App.Views.SettingsSection.Sound);
         app.Screenshot("09-settings");
+        app.Window.OpenSettings(GZJam.App.Views.SettingsSection.Library);
+        app.Screenshot("09c-settings-library");
         app.Window.CloseSettings();
 
         // Right-click Deck 2's BPM: detect it again in a range.
