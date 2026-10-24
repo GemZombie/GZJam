@@ -39,7 +39,7 @@ public sealed class ColumnsTests
         Assert.True(menu.IsOpen);
         Assert.False(app.Window.FindControl<ContextMenu>("TrackMenu")!.IsOpen);   // not the track menu
         var items = menu.Items.OfType<MenuItem>().Skip(1).ToList();
-        Assert.Equal(["♥ Rating", "Album", "Genre", "Year", "BPM", "Energy", "Played"], items.Select(i => (string)i.Header!));
+        Assert.Equal(["♥ Rating", "Album art", "Album", "Genre", "Year", "BPM", "Energy", "Played"], items.Select(i => (string)i.Header!));
         Assert.False(items.Single(i => (string)i.Header! == "Genre").IsChecked);
 
         items.Single(i => (string)i.Header! == "Year").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));

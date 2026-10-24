@@ -109,9 +109,20 @@ public sealed class AppSettings
 
     /// <summary>
     /// Library columns the DJ has hidden, by header. Genre starts hidden: the folder tree already
-    /// sorts music by genre and style, and a laptop can't fit every column.
+    /// sorts music by genre and style, and a laptop can't fit every column. Art too: an album's
+    /// songs all share one picture, so in a long list it doesn't tell them apart.
     /// </summary>
-    public List<string> HiddenColumns { get; set; } = ["Genre"];
+    public List<string> HiddenColumns { get; set; } = ["Genre", "Art"];
+
+    /// <summary>
+    /// Columns added since the column chooser that start hidden, which these settings have seen
+    /// (so <see cref="HiddenColumns"/> already says whether the DJ wants them). Null: settings
+    /// new this session, which started with them hidden, or saved before this was kept.
+    /// </summary>
+    public List<string>? SeenColumns { get; set; }
+
+    /// <summary>Columns added later that start hidden; settings saved before one was added get it hidden.</summary>
+    private static readonly string[] NewHiddenColumns = ["Art"];
 
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
@@ -154,6 +165,13 @@ public sealed class AppSettings
             if (settings.DeckReadouts.Remove(old, out DeckReadout readout))
                 settings.DeckReadouts.TryAdd(renamed, readout);
         }
+        settings.SeenColumns ??= [];
+        foreach (string column in NewHiddenColumns.Except(settings.SeenColumns).ToList())
+        {
+            if (!settings.HiddenColumns.Contains(column))
+                settings.HiddenColumns.Add(column);
+            settings.SeenColumns.Add(column);
+        }
         return settings;
     }
 
@@ -161,6 +179,7 @@ public sealed class AppSettings
     {
         try
         {
+            SeenColumns ??= [.. NewHiddenColumns];   // new settings: they started hidden
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             // Write then swap, so a crash mid-save never leaves a truncated file.
             string temp = path + ".tmp";
