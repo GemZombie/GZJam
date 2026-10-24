@@ -898,7 +898,7 @@ not here. This file records what was decided and built, and why.
 
 ### Status: album art (2026-10-23, issue #44)
 
-- **Where:** decks (56 px beside the title and artist; 24 px before the title with four decks),
+- **Where:** decks (64 px in the corner, before the title and artist; 24 px with four decks),
   queue rows (30 px), and a library Art column (22 px), hidden to start with. The deck's square
   is always there, so nothing moves when a picture appears. No picture (or no song): a dim record
   in the deck's colour (neutral grey in the queue and library); never a made-up picture, a blurred
@@ -915,6 +915,12 @@ not here. This file records what was decided and built, and why.
   finding takes about 1 ms a song and a small copy about 2 ms, and 88% have a picture (55% in the
   file, 34% in the folder). Up to 300 pictures stay in memory. `GZJam.DevTools art <folder>`
   measures a library.
+- **The deck's number moved for it:** the coloured number square and the art were two squares
+  competing for one corner. The number is still needed (Load to Deck N, the mixer's 1/2 and 1+3
+  / 2+4 keys, auto-play's "Next: Deck 2", History), so it's printed above the title as `DECK 1`
+  in the deck's colour, like a label on hardware, with ON AIR beside it. Four decks: just the
+  number before the art, and ON AIR's kept space at the end of the line, before EQ, rather than
+  a gap between the number and the art.
 - **Settings:** `SeenColumns` makes a column added later start hidden in settings saved before it
   existed, once; after that `HiddenColumns` holds the DJ's choice.
 - **Not yet:** a bigger picture on hover or tap; covers fetched for ripped CDs (#41).

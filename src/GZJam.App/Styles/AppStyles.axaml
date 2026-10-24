@@ -319,6 +319,20 @@
   <Style Selector="TextBlock.status.air">
     <Setter Property="Foreground" Value="{StaticResource OnAirBrush}" />
   </Style>
+  <!-- A deck's name above its title, printed like a label on hardware, in the deck's colour -->
+  <Style Selector="TextBlock.deck-name">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.6" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- With four decks, just the number, before the art -->
+  <Style Selector="TextBlock.deck-number">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="Black" />
+    <Setter Property="MinWidth" Value="10" />
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
 
   <!-- Decks -->
   <Style Selector="Border.deck">
@@ -737,11 +751,6 @@
   <Style Selector="Button.row-icon:pointerover">
     <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
   </Style>
-  <Style Selector="Border.badge">
-    <Setter Property="Width" Value="28" />
-    <Setter Property="Height" Value="28" />
-    <Setter Property="CornerRadius" Value="4" />
-  </Style>
   <!-- The EQ panel's frame: the app's panel colours rather than the stock flyout grey -->
   <Style Selector="FlyoutPresenter.eq, FlyoutPresenter.panel">
     <Setter Property="Background" Value="{StaticResource PanelBrush}" />
@@ -776,21 +785,6 @@
     <Setter Property="Height" Value="5" />
   </Style>
 
-  <Style Selector="Border.badge.small">
-    <Setter Property="Width" Value="22" />
-    <Setter Property="Height" Value="22" />
-    <Setter Property="CornerRadius" Value="3" />
-  </Style>
-  <Style Selector="Border.badge.small > TextBlock">
-    <Setter Property="FontSize" Value="13" />
-  </Style>
-  <Style Selector="Border.badge > TextBlock">
-    <Setter Property="FontSize" Value="16" />
-    <Setter Property="FontWeight" Value="Black" />
-    <Setter Property="Foreground" Value="#0C0E12" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
   <Style Selector="Border.well">
     <Setter Property="Background" Value="{StaticResource WellBrush}" />
     <Setter Property="CornerRadius" Value="7" />

@@ -22,6 +22,13 @@ New:
   list it doesn't tell them apart. GZJam keeps small copies of the pictures in its own folder;
   your music files are never changed, and nothing is downloaded.
 
+Changed:
+
+- **A deck's number is printed above its title,** as *DECK 1* in the deck's colour, with ON AIR
+  beside it while the room hears it, rather than in a coloured square beside the title. The album
+  art has the corner instead, and the title and artist have more room. With four decks it's just
+  the number, and ON AIR sits just before the EQ key.
+
 ## 0.5.0 (2026-10-23)
 
 New:

@@ -183,19 +183,20 @@
     <Grid Classes="deck-rows" RowDefinitions="Auto,*,Auto">
 
       <!-- Number, track, readout -->
-      <Grid Classes="full-only" ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
-        <Border Classes="badge" VerticalAlignment="Top"
-                Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <TextBlock Text="{Binding Label}" />
-        </Border>
+      <Grid Classes="full-only" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
         <!-- Album art, to see at a glance that the right record is loaded; always there, so nothing moves when it appears -->
-        <c:AlbumArt x:Name="Art" Grid.Column="1" Width="56" Height="56" VerticalAlignment="Center" SongPath="{Binding Track?.Path}"
+        <c:AlbumArt x:Name="Art" Width="64" Height="64" VerticalAlignment="Center" SongPath="{Binding Track?.Path}"
                     Accent="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
-        <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
-          <StackPanel x:Name="StatusLine" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" Margin="0,0,0,2">
-            <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
-            <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
-          </StackPanel>
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <!-- The deck's name, printed like a label on hardware, then ON AIR while it plays -->
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,2">
+            <TextBlock x:Name="DeckName" Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
+                       Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+            <StackPanel x:Name="StatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6">
+              <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+              <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
+            </StackPanel>
+          </Grid>
           <TextBlock Text="{Binding Title}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                      Classes.dim="{Binding !HasTrack}" ToolTip.Tip="{Binding Title}" />
           <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="2">
@@ -228,7 +229,7 @@
             </c:PriorityRow>
           </Grid>
         </StackPanel>
-        <Button Grid.Column="3" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
+        <Button Grid.Column="2" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Top"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM. Right-click if the BPM is wrong.">
           <Button.ContextMenu>
             <ContextMenu x:Name="ReadoutBpmMenu" />
@@ -243,19 +244,13 @@
       </Grid>
 
       <!-- The same on one line, for four decks -->
-      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
-        <Border Classes="badge small" VerticalAlignment="Center"
-                Background="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
-          <TextBlock Text="{Binding Label}" />
-        </Border>
-        <StackPanel x:Name="CompactStatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
-          <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
-        </StackPanel>
-        <c:AlbumArt x:Name="CompactArt" Grid.Column="2" Width="24" Height="24" CornerRadius="2" VerticalAlignment="Center"
+      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+        <TextBlock x:Name="CompactDeckName" Classes="deck-number" Text="{Binding Label}" VerticalAlignment="Center"
+                   Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
+        <c:AlbumArt x:Name="CompactArt" Grid.Column="1" Width="24" Height="24" CornerRadius="2" VerticalAlignment="Center"
                     SongPath="{Binding Track?.Path}" Accent="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
         <!-- The title and artist, then the song's labels in what room is left -->
-        <c:PriorityRow Grid.Column="3">
+        <c:PriorityRow Grid.Column="2">
           <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"
                      Classes.dim="{Binding !HasTrack}">
             <Run Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
@@ -264,6 +259,11 @@
           </TextBlock>
           <c:LabelChips x:Name="CompactDeckLabels" ItemsSource="{Binding Track?.Labels}" />
         </c:PriorityRow>
+        <!-- ON AIR keeps its space at the end of the line, so the title doesn't move when it shows -->
+        <StackPanel x:Name="CompactStatusLine" Grid.Column="3" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+          <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
+        </StackPanel>
         <Button x:Name="CompactEqButton" Grid.Column="4" Classes="eq-chip" Classes.on="{Binding IsEqSet}"
                 IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
           <StackPanel Orientation="Horizontal" Spacing="4">

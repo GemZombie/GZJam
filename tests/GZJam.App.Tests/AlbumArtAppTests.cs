@@ -55,7 +55,13 @@ public sealed class AlbumArtAppTests
         AppHarness.Settle(300);
         Assert.False(DeckArt(app, 2).HasPicture);
         Assert.Equal(height, app.Window.FindControl<Views.DeckView>("Deck1View")!.Bounds.Height);   // nothing moved
+        deck1.TogglePlayCommand.Execute(null);
+        app.ViewModel.Mixer!.Crossfader = 0;   // on air
+        app.Play(0.1);
+        AppHarness.Settle(150);
         app.Screenshot("album-art-decks");
+        deck1.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
 
         Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck1, inFile)));
         AppHarness.WaitFor(() => DeckArt(app, 1).HasPicture);
@@ -68,6 +74,31 @@ public sealed class AlbumArtAppTests
             using var bitmap = new Bitmap(copy);
             Assert.Equal(AlbumArtCache.Size, bitmap.PixelSize.Width);
         }
+    }
+
+    [AvaloniaFact]
+    public void Four_decks_show_small_pictures()
+    {
+        using var app = new AppHarness();
+        File.WriteAllBytes(Path.Combine(AlbumFolder(app, "April in Paris"), "cover.jpg"), Picture(400, 400, Colors.SteelBlue));
+        File.WriteAllBytes(Path.Combine(AlbumFolder(app, "The Complete Decca Recordings"), "cover.jpg"), Picture(400, 400, Colors.Goldenrod));
+        var vm = app.ViewModel;
+        vm.Settings.FourDecks = true;
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[0], app.Library.Results.First(t => t.Album == "April in Paris")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[1], app.Library.Results.First(t => t.Album == "Live at Carnegie Hall")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[2], app.Library.Results.First(t => t.Album == "The Complete Decca Recordings")));
+
+        var compact = Enumerable.Range(1, 4)
+            .Select(n => app.Window.FindControl<Views.DeckView>($"Deck{n}View")!.FindControl<AlbumArt>("CompactArt")!).ToList();
+        AppHarness.WaitFor(() => compact[0].HasPicture && compact[2].HasPicture);
+        AppHarness.Settle(300);
+        Assert.False(compact[1].HasPicture);
+        Assert.False(compact[3].HasPicture);
+        vm.Decks[0].TogglePlayCommand.Execute(null);
+        vm.Mixer!.Crossfader = 0;   // on air
+        app.Play(0.1);
+        AppHarness.Settle(150);
+        app.Screenshot("album-art-four-decks");
     }
 
     [AvaloniaFact]
