@@ -160,7 +160,8 @@ GitHub Actions, in `.github/workflows`:
   for a draft nobody has seen. The patch number is for fixes only (0.2.0 → 0.2.1), the minor
   number for anything new (0.2.x → 0.3.0), and 1.0 for when GZJam is ready for any DJ to pick up.
   After a release, `VersionPrefix` in `src/GZJam.App/GZJam.App.csproj` goes up to the next minor
-  version, so builds made in between read "0.3.0-dev".
+  version, so builds made in between read "0.3.0-dev". A test fails until it does
+  (`A_build_made_here_is_ahead_of_the_newest_release`).
 
 Uninstalling never removes settings, the library database or the DJ's data, and never touches music.
 
