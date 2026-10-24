@@ -5,7 +5,7 @@ what you need to play music for people, without the clutter. This page is the bi
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.4.0** (23 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.5.0** (23 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -15,22 +15,29 @@ release.
   folder you pick. Nothing to import, and your music files are never changed.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:` and `played:` (`-played:7` leaves out the songs the room heard last week).
-- Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels.
+- Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
+  which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
 
 **Decks**
 - Two decks, or four in the same space.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out, per-song EQ.
+- A close-up of the song around the playhead, scrolling past beat by beat, to see the end of a
+  phrase coming and find the exact spot for a cue or a jump. Zoom with the mouse wheel or a pinch;
+  drag it like a record.
 - Protection against loading a new song over one the room is hearing.
 - Songs start at their first note: silence (or applause) at either end is found automatically, or
   set by hand.
 - Jumps: skip a part, or play one again, at the end of a phrase, without a gap.
 - Cue keys: mark up to four points in a song, then tap a numbered key to go there at once, at the
   moment you choose (wait for the end of a phrase, then go to the outro), on air too.
+- Drag a song's start and end, its jumps and its cues along the waveform, by finger or mouse, on
+  air too.
 - A level meter on each deck, before the crossfader, so a song you're cueing is visibly too quiet
   or too loud before the room hears it.
 - Nothing on a deck shifts or resizes as it starts or goes on air.
-- BPM detection, with easy fixes when it's wrong.
+- BPM detection, with easy fixes when it's wrong, and tap tempo: tap along on a deck while you keep
+  mixing.
 
 **Mixing and sound**
 - The crossfader only affects the room; each deck has its own cue button for the headphones.
@@ -58,27 +65,11 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- **A close-up of the song on each deck:** a few seconds around the playhead, scrolling past
-  beat by beat, over the whole song. See the end of a phrase coming, and find the exact spot for a
-  cue, a jump or a song's start. Zoom with the mouse wheel or a pinch; drag it like a record.
-- **Drag the markers:** move a song's start and end, its jumps and its cues by dragging them on
-  the close-up or the whole song, by finger or mouse, on air too.
-- **Tap tempo:** set a song's BPM by tapping along to it on a deck, while you keep mixing.
-- **Labels on the decks and queue,** and renaming a label.
-- **How near `~bpm:` searches reach:** a setting (±8% to start with, the tempo slider's reach),
-  or for one search `~bpm:140/5`.
-- **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into
-  bars like a waveform.
-- **A startup screen, and starting sooner:** the logo shows as soon as GZJam starts, while it gets
-  ready, and it's ready about a second sooner than before (Windows and Mac).
+Nothing yet since 0.5.0.
 
 ## Planned next
 
-**0.5.0: setting points precisely.** Cue keys, jumps and a song's start and end are only as good
-as where they're put; finding the exact spot, by mouse or finger, is the focus. Everything planned
-for it is finished (above).
-
-**After that, 0.6.0:**
+**0.6.0:**
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
 - [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
   a glance that the right record is loaded
