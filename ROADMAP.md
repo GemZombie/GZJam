@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.7.1** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.7.2** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -54,7 +54,8 @@ release.
 - Phones mix: blend the headphones from what's cued to what the room hears, to keep an ear on the
   dancers while previewing the next song.
 - Speakers and headphones on separate outputs, mono by default. On a laptop with one output, a
-  splitter cable can carry both: the room on the left, your headphones on the right.
+  splitter cable can carry both (*One output for both* in Settings): the room on the left, your
+  headphones on the right.
 - A booth output, for a monitor speaker at the DJ table: what the room hears, at its own volume.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level.
 - A level meter and a safety limiter for the speakers.
@@ -79,8 +80,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- One output for both (a splitter cable) is a switch of its own in Settings › Sound, saying what
-  to plug in and which side is which; the top bar starts with *Left* and *Right*.
+Nothing yet since 0.7.2.
 
 ## Planned next
 
