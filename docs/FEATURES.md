@@ -896,6 +896,25 @@ not here. This file records what was decided and built, and why.
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
+### Status: the gap, the end of a song, and the dividers (2026-10-24, issues #61, #62, #60)
+
+From the maintainer's test on the small Linux touch laptop: in auto-play the gap between songs
+felt as if GZJam had stopped, and the panel dividers were hard to find by finger.
+
+- **The gap (#61):** when the song the room hears finishes, auto-play glides the crossfader to
+  the next deck's side over the gap (`MixerViewModel.GlideTo`, the same glide as the 1 and 2
+  keys, at the gap's length), so it finishes as the next deck starts. Before, it jumped at the
+  end. The next deck's status line (where ON AIR goes) shows *STARTS IN n*, its red light
+  blinking twice a second (`DeckViewModel.StartsIn`). Grabbing the crossfader during the gap
+  stops the glide, and auto-play then leaves it where the DJ put it; the song still starts.
+  Turning auto-play off in the gap clears the countdown.
+- **The end of a song (#62):** as on CDJs, the big readout (whatever it shows) blinks slowly,
+  dimmed for half of each second, in the last 30 s of the song the room hears, to
+  `Deck.Remaining` (which counts the trim, the tempo and armed jumps). Only on air; no colour
+  change. Could become a setting if it's found distracting.
+- **The dividers (#60):** a short grip in the middle of each 12 px gap (taller in touch mode), and
+  in touch mode the splitter reaches 8 px into the panels either side (above them), so a finger
+  needn't land in the gap.
 ### Status: smoother close-up when zoomed in tight (2026-10-24, issue #46)
 
 - **Measured first** (`GZJam.DevTools clock`, playing silently on the default output): a deck's
