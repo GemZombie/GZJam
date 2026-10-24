@@ -37,7 +37,11 @@ public partial class DeckView : UserControl
     }
 
     /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
-    public static readonly TimeSpan HoldToPause = TimeSpan.FromMilliseconds(600);
+    /// <remarks>
+    /// Timed by the clock, so a test machine that stalls between a click's press and release turns
+    /// the click into a hold: tests of clicks make it long.
+    /// </remarks>
+    internal TimeSpan HoldToPause { get; set; } = TimeSpan.FromMilliseconds(600);
 
     private CancellationTokenSource? _hold;
     private bool _holdCompleted;
