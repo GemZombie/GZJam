@@ -722,7 +722,36 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>Playing, but the crossfader has it out of the room.</summary>
     public bool IsOffAir => IsPlaying && !IsInRoom;
 
-    public string Status => IsOnAir ? "ON AIR" : IsOffAir ? "OFF AIR" : "";
+    public string Status => IsOnAir ? "ON AIR" : IsOffAir ? "OFF AIR"
+        : StartsIn is { } left ? $"STARTS IN {Math.Max(1, Math.Ceiling(left)):0}" : "";
+
+    /// <summary>
+    /// Auto-play starts this deck after the gap, this many seconds from now; null if it isn't
+    /// waiting. Shown where ON AIR goes, counting down, with the light blinking.
+    /// </summary>
+    public double? StartsIn
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsStarting));
+            OnPropertyChanged(nameof(Status));
+            OnPropertyChanged(nameof(StatusLight));
+        }
+    }
+
+    /// <summary>Waiting out auto-play's gap: the status line shows, as when playing.</summary>
+    public bool IsStarting => StartsIn is not null;
+
+    /// <summary>The status line's light: on air, or blinking (twice a second) while it counts down to starting.</summary>
+    public bool StatusLight => IsOnAir || StartsIn is { } left && left % 0.5 >= 0.25;
+
+    /// <summary>The status line shows: playing, or about to.</summary>
+    public bool ShowsStatus => IsPlaying || IsStarting;
 
     /// <summary>The cue button: this deck in the headphones. Independent of the crossfader.</summary>
     public bool IsCueOn
@@ -783,6 +812,18 @@ public sealed partial class DeckViewModel : ObservableObject
         DeckReadout.Bpm => BpmText,
         _ => HasTrack ? "-" + Format.Duration(Deck.Remaining) : "-0:00",
     };
+
+    /// <summary>How long before the music ends the readout starts blinking, as on CDJs.</summary>
+    internal static readonly TimeSpan EndingWarning = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// The song the room hears is in its last <see cref="EndingWarning"/> (to where its music
+    /// ends: after trimmed silence, with the tempo and armed jumps counted): get the next one ready.
+    /// </summary>
+    public bool IsEnding => IsOnAir && Deck.Remaining is var left && left > TimeSpan.Zero && left <= EndingWarning;
+
+    /// <summary>The readout blinks slowly while <see cref="IsEnding"/>: dimmed for the second half of each second left.</summary>
+    public bool IsReadoutDimmed => IsEnding && Deck.Remaining.TotalSeconds % 1 < 0.5;
 
     public string ReadoutCaption => Readout switch
     {
@@ -1186,6 +1227,8 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(IsOnAir));
         OnPropertyChanged(nameof(IsOffAir));
         OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(StatusLight));
+        OnPropertyChanged(nameof(ShowsStatus));
         OnPropertyChanged(nameof(CanSeek));
         OnPropertyChanged(nameof(Progress));
         OnPropertyChanged(nameof(PauseNeedsConfirm));
@@ -1209,5 +1252,7 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(BpmCaption));
         OnPropertyChanged(nameof(ReadoutText));
         OnPropertyChanged(nameof(ReadoutCaption));
+        OnPropertyChanged(nameof(IsEnding));
+        OnPropertyChanged(nameof(IsReadoutDimmed));
     }
 }

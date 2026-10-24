@@ -23,6 +23,7 @@ public sealed partial class MixerViewModel : ObservableObject
     private double? _snapTarget;
     private double _snapFrom;
     private long _snapStarted;
+    private TimeSpan _snapTime = SnapTime;
     private string? _liveText;
 
     public MixerViewModel(MainWindowViewModel owner, MixEngine mix, AppSettings settings)
@@ -171,6 +172,23 @@ public sealed partial class MixerViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Slides the crossfader to <paramref name="target"/> over <paramref name="time"/>: auto-play
+    /// does this through the gap between songs, while the room is silent, so the DJ sees the hand
+    /// over coming. Grabbing the fader stops it (<see cref="IsGliding"/> goes false).
+    /// </summary>
+    public void GlideTo(double target, TimeSpan time)
+    {
+        _snapFrom = mix.Crossfader;
+        _snapTarget = target;
+        _snapTime = time;
+        _snapStarted = TimeProvider.System.GetTimestamp();
+        Update();
+    }
+
+    /// <summary>A glide or a switch is under way (false once it's there, or the DJ grabbed the fader).</summary>
+    public bool IsGliding => _snapTarget is not null;
+
     /// <summary>Moves the crossfader straight to a position (auto-play does this while the decks are silent).</summary>
     public void SetNow(double value)
     {
@@ -223,10 +241,7 @@ public sealed partial class MixerViewModel : ObservableObject
     private void SnapTo(double target)
     {
         Log.Info($"Crossfader: switch to the {(target == 0 ? "left (Deck 1" : "right (Deck 2")}{(owner.FourDecks ? target == 0 ? " and 3" : " and 4" : "")}) (from {mix.Crossfader:0.00})");
-        _snapFrom = mix.Crossfader;
-        _snapTarget = target;
-        _snapStarted = TimeProvider.System.GetTimestamp();
-        Update();
+        GlideTo(target, SnapTime);
     }
 
     /// <summary>Advances a snap in progress; called on every UI tick.</summary>
@@ -240,7 +255,7 @@ public sealed partial class MixerViewModel : ObservableObject
         }
         if (_snapTarget is not { } target)
             return;
-        double t = Math.Min(1, TimeProvider.System.GetElapsedTime(_snapStarted) / SnapTime);
+        double t = _snapTime <= TimeSpan.Zero ? 1 : Math.Min(1, TimeProvider.System.GetElapsedTime(_snapStarted) / _snapTime);
         mix.Crossfader = _snapFrom + (target - _snapFrom) * t;
         if (t >= 1)
             _snapTarget = null;

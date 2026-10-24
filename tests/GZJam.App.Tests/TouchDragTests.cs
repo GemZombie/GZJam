@@ -180,4 +180,22 @@ public sealed class TouchDragTests
         Assert.False(app.Window.IsDragging);
         Assert.Empty(app.ViewModel.Queue.Items);
     }
+    [AvaloniaFact]
+    public void In_touch_mode_a_finger_beside_a_panel_divider_drags_it()
+    {
+        using var app = new AppHarness();
+        app.ViewModel.Settings.TouchMode = true;
+        AppHarness.Settle(200);
+        var splitter = app.Window.FindControl<GridSplitter>("TreeSplitter")!;
+        var folders = (Control)((Grid)splitter.Parent!).Children.OfType<Control>().First(c => Grid.GetColumn(c) == 0);
+        double before = folders.Bounds.Width;
+
+        // 5 px into the folder panel, beside the 12 px gap: still the divider in touch mode.
+        var gap = splitter.TranslatePoint(new Point(splitter.Bounds.Width / 2, splitter.Bounds.Height / 2), app.Window)!.Value;
+        var from = gap - new Vector(6 + 5, 0);
+        new Finger(app.Window).Swipe(from, from + new Vector(80, 0));
+
+        Assert.InRange(folders.Bounds.Width - before, 60, 100);
+    }
 }
+

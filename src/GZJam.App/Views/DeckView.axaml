@@ -168,6 +168,10 @@
     <Style Selector="v|DeckView.compact.meter-left c|LevelMeter.deck-meter">
       <Setter Property="Margin" Value="-8,0,0,0" />
     </Style>
+    <!-- The song the room hears is in its last 30 seconds: the readout blinks slowly, as on CDJs -->
+    <Style Selector="TextBlock.readout-text.blink">
+      <Setter Property="Opacity" Value="0.3" />
+    </Style>
     <Style Selector="StackPanel.tempo">
       <Setter Property="Width" Value="170" />
     </Style>
@@ -192,8 +196,8 @@
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,2">
             <TextBlock x:Name="DeckName" Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
                        Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
-            <StackPanel x:Name="StatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6">
-              <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+            <StackPanel x:Name="StatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !ShowsStatus}" Orientation="Horizontal" Spacing="6">
+              <Border Classes="led red" Classes.on="{Binding StatusLight}" />
               <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
             </StackPanel>
           </Grid>
@@ -235,7 +239,7 @@
             <ContextMenu x:Name="ReadoutBpmMenu" />
           </Button.ContextMenu>
           <StackPanel>
-            <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="38" FontWeight="SemiBold"
+            <TextBlock Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}" Text="{Binding ReadoutText}" FontSize="38" FontWeight="SemiBold"
                        HorizontalAlignment="Right" LineHeight="40"
                        Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
             <TextBlock Classes="muted mono" Text="{Binding ReadoutCaption}" FontSize="12" HorizontalAlignment="Right" />
@@ -260,8 +264,8 @@
           <c:LabelChips x:Name="CompactDeckLabels" ItemsSource="{Binding Track?.Labels}" />
         </c:PriorityRow>
         <!-- ON AIR keeps its space at the end of the line, so the title doesn't move when it shows -->
-        <StackPanel x:Name="CompactStatusLine" Grid.Column="3" Classes="status-line" Classes.idle="{Binding !IsPlaying}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Border Classes="led red" Classes.on="{Binding IsOnAir}" />
+        <StackPanel x:Name="CompactStatusLine" Grid.Column="3" Classes="status-line" Classes.idle="{Binding !ShowsStatus}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Border Classes="led red" Classes.on="{Binding StatusLight}" />
           <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
         </StackPanel>
         <Button x:Name="CompactEqButton" Grid.Column="4" Classes="eq-chip" Classes.on="{Binding IsEqSet}"
@@ -279,7 +283,7 @@
         <Button Grid.Column="5" Classes="readout" Classes.empty="{Binding !HasTrack}" Command="{Binding CycleReadoutCommand}" VerticalAlignment="Center"
                 ToolTip.Tip="Tap to switch between time left, time elapsed and BPM.">
           <StackPanel Orientation="Horizontal" Spacing="7">
-            <TextBlock Classes="mono" Text="{Binding ReadoutText}" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"
+            <TextBlock Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}" Text="{Binding ReadoutText}" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"
                        Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
             <TextBlock Classes="muted mono" Text="{Binding ReadoutCaption}" FontSize="11" VerticalAlignment="Center" />
           </StackPanel>

@@ -212,7 +212,10 @@
         </DockPanel>
       </Border>
 
-      <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns" />
+      <!-- Drag to share the room between the panels: a grip shows where (a finger gets no pointer change) -->
+      <Border Grid.Column="1" Classes="splitter-grip" />
+      <GridSplitter x:Name="TreeSplitter" Grid.Column="1" Classes="panes" Background="Transparent" ResizeDirection="Columns"
+                    ToolTip.Tip="Drag to make the panels either side wider or narrower" />
 
       <!-- Search + results -->
       <Border Grid.Column="2" Classes="panel">
@@ -396,7 +399,10 @@
         </Grid>
       </Border>
 
-      <GridSplitter Grid.Column="3" Background="Transparent" ResizeDirection="Columns" />
+      <!-- Drag to share the room between the panels: a grip shows where (a finger gets no pointer change) -->
+      <Border Grid.Column="3" Classes="splitter-grip" />
+      <GridSplitter x:Name="QueueSplitter" Grid.Column="3" Classes="panes" Background="Transparent" ResizeDirection="Columns"
+                    ToolTip.Tip="Drag to make the panels either side wider or narrower" />
 
       <!-- Queue and History -->
       <Border Grid.Column="4" Classes="panel">

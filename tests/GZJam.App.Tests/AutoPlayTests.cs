@@ -90,6 +90,70 @@ public sealed class AutoPlayTests
     }
 
     [AvaloniaFact]
+    public void Through_the_gap_the_crossfader_slides_over_and_the_next_deck_counts_down()
+    {
+        var (app, auto, _) = Setup(queued: 3, gap: 2);
+        using var _app = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        var mixer = app.ViewModel.Mixer!;
+        auto.IsOn = true;
+        PlayUntil(app, () => d1.IsFinished);
+        Assert.Equal("STARTS IN 2", d2.Status);
+        Assert.True(d2.ShowsStatus);
+
+        // Halfway through: the crossfader is on its way, and the light blinks.
+        var lights = new HashSet<bool>();
+        PlayUntil(app, () =>
+        {
+            lights.Add(d2.StatusLight);
+            return d2.StartsIn < 1;
+        });
+        Assert.InRange(mixer.Crossfader, 0.3, 0.75);
+        Assert.Equal("STARTS IN 1", d2.Status);
+        Assert.Equal([false, true], lights.Order());
+        Assert.False(d2.IsPlaying);
+        AppHarness.Settle(50);
+        app.Screenshot("autoplay-gap");
+
+        PlayUntil(app, () => d2.IsPlaying);
+        Assert.Equal(1, mixer.Crossfader);
+        Assert.Equal("ON AIR", d2.Status);
+        Assert.Null(d2.StartsIn);
+    }
+
+    [AvaloniaFact]
+    public void Grabbing_the_crossfader_in_the_gap_takes_over_from_auto_play()
+    {
+        var (app, auto, _) = Setup(queued: 3, gap: 1);
+        using var _app = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        var mixer = app.ViewModel.Mixer!;
+        auto.IsOn = true;
+        PlayUntil(app, () => d1.IsFinished);
+        PlayUntil(app, () => mixer.Crossfader > 0.1);
+
+        mixer.Crossfader = 0.5;   // the DJ wants a blend
+        Assert.False(mixer.IsGliding);
+        PlayUntil(app, () => d2.IsPlaying);
+        Assert.Equal(0.5, mixer.Crossfader);   // left where the DJ put it; the song still starts
+    }
+
+    [AvaloniaFact]
+    public void Turning_off_in_the_gap_stops_the_countdown()
+    {
+        var (app, auto, _) = Setup(queued: 3, gap: 2);
+        using var _app = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.IsOn = true;
+        PlayUntil(app, () => d1.IsFinished);
+        Assert.True(d2.IsStarting);
+
+        auto.IsOn = false;
+        Assert.False(d2.IsStarting);
+        Assert.Equal("", d2.Status);
+    }
+
+    [AvaloniaFact]
     public void Turning_off_lets_the_song_finish_and_starts_nothing()
     {
         var (app, auto, _) = Setup(queued: 3, gap: 0);
