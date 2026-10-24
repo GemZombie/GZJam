@@ -187,6 +187,52 @@
     <Setter Property="HorizontalContentAlignment" Value="Right" />
   </Style>
 
+  <!-- Playlists, under the folder tree: rows like the folders' -->
+  <Style Selector="Border.playlists-header">
+    <Setter Property="BorderThickness" Value="0,1,0,1" />
+    <Setter Property="Height" Value="36" />
+  </Style>
+  <Style Selector="ListBox.playlists">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.playlists ListBoxItem">
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Padding" Value="10,3,6,3" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="ListBox.playlists ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+  </Style>
+  <!-- A playlist that would take the songs being dragged over it -->
+  <Style Selector="ListBox.playlists ListBoxItem.drop-target /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <!-- A playlist open in the song list -->
+  <Style Selector="Border.playlist-bar">
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="14,7,12,7" />
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+  </Style>
+  <!-- A song's number in the open playlist, before its title -->
+  <Style Selector="TextBlock.playlist-number">
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="TextAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- Where songs dragged within a playlist would go -->
+  <Style Selector="Border.playlist-drop-line">
+    <Setter Property="Height" Value="2" />
+    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+
   <!-- Queue -->
   <Style Selector="ListBox.queue">
     <Setter Property="Background" Value="Transparent" />

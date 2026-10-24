@@ -896,6 +896,40 @@ not here. This file records what was decided and built, and why.
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
+### Status: playlists (2026-10-24, issue #6)
+
+Asked for in the Mixxx DJ's review; built because DJs newer to it will want to plan a set before
+the night, whether or not labels and the queue are enough for experienced ones. Labels say what
+a song is (no order, searchable); a playlist is a plan (ordered, by name); the queue is tonight's
+live list, which a playlist feeds and which can be saved as one.
+
+- **Where:** a PLAYLISTS section under the folder tree (*+ New*), a flat list in alphabetical
+  order with song counts; no folders of playlists yet. A playlist is opened in the song list
+  instead of a folder (one or the other), shown in its order with its number before each title,
+  under a bar with its name, length, how many were played tonight, *Add to queue* and ⋯
+  (Rename…, Delete…). Search filters within it; played tonight dims, as everywhere. The open
+  playlist is remembered (`OpenPlaylist`).
+- **Adding:** drag songs onto a playlist's name (it lights as a target), or the songs' menu ›
+  *Add to playlist* › a name or *New playlist…*. A song can be in a playlist twice: each entry is
+  its own row (`Track.PlaylistEntryId`), so marks and "played tonight" reach every copy.
+- **Reordering and removing:** drag rows within the open playlist (a line shows where); not while
+  a search filters it. Delete or *Remove from playlist* takes the entry out; the file and its
+  library entry are untouched.
+- **Playing it:** *Add to queue* appends the whole playlist, never replacing the queue; *Add to
+  queue from here* the rest from a song on. It's a plan, not a record: no progress of its own
+  beyond songs played tonight dimming; History is the record.
+- **Saving:** the queue's menu › *Save queue as playlist…*, and History's ⋯ › *Save as playlist…*
+  (the night in the order it was played).
+- **Data:** `playlists` and `playlist_entries` (upgrade 18), entries by path, numbered from 0,
+  renumbered on every change. Names are unique ignoring case; a taken name gets a number
+  ("Saturday 2"), so playlists are never merged. A song no longer in the library is kept but not
+  shown, and comes back if the file does.
+- **Mixxx import:** the DJ's own Mixxx playlists (`Playlists.hidden = 0`: not Auto DJ's queue,
+  nor History) come over in their order, songs GZJam doesn't have left out; a name GZJam already
+  has is skipped, so importing again adds nothing twice.
+- **Not yet:** folders of playlists; dragging a playlist's rows while it's sorted by a column (it
+  opens in its own order); export as M3U.
+
 ### Status: the gap, the end of a song, and the dividers (2026-10-24, issues #61, #62, #60)
 
 From the maintainer's test on the small Linux touch laptop: in auto-play the gap between songs

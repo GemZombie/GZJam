@@ -177,6 +177,38 @@
                       ToolTip.Tip="Add a music folder to the library" />
             </Grid>
           </Border>
+          <!-- Playlists: sets planned in order, under the folders -->
+          <DockPanel x:Name="PlaylistsSection" DockPanel.Dock="Bottom">
+            <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="label" Text="PLAYLISTS" />
+                <Button x:Name="NewPlaylistButton" Grid.Column="1" Classes="link" Content="+ New" Click="OnNewPlaylistClick"
+                        ToolTip.Tip="Plan a set: a playlist of songs in order" />
+              </Grid>
+            </Border>
+            <ListBox x:Name="PlaylistList" Classes="playlists" Margin="4,4,4,6" MaxHeight="220"
+                     ItemsSource="{Binding Library.Playlists}" SelectedItem="{Binding Library.SelectedPlaylist, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="lib:PlaylistInfo">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
+                    <Grid.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
+                        <Separator />
+                        <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
+                        <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
+                      </ContextMenu>
+                    </Grid.ContextMenu>
+                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                          Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding Name}" />
+                    <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
           <c:FolderTreeView x:Name="FolderTree" Classes="folders" Margin="4,6"
                     ItemsSource="{Binding Library.Roots}"
                     SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
@@ -219,7 +251,7 @@
 
       <!-- Search + results -->
       <Border Grid.Column="2" Classes="panel">
-        <Grid RowDefinitions="Auto,*,Auto">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
           <Border Classes="panel-header" Height="56" Padding="12,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="10">
               <Panel>
@@ -267,7 +299,32 @@
             </Grid>
           </Border>
 
-          <DataGrid x:Name="TrackGrid" Grid.Row="1" Classes="tracks"
+          <!-- A playlist open in the song list: its name, how long, and adding it to the queue -->
+          <Border x:Name="PlaylistBar" Grid.Row="1" Classes="playlist-bar" IsVisible="{Binding Library.IsPlaylistOpen}">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+              <Path Data="{StaticResource IconPlaylist}" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                    StrokeLineCap="Round" Stretch="Uniform" Width="15" Height="13" VerticalAlignment="Center" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock x:Name="PlaylistNameText" Text="{Binding Library.PlaylistName}" FontSize="14"
+                           FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="PlaylistSummaryText" Classes="muted" FontSize="11.5" Text="{Binding Library.PlaylistSummary}"
+                           TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+              <Button x:Name="PlaylistToQueueButton" Grid.Column="2" Classes="eq-action" Click="OnPlaylistToQueueClick"
+                      ToolTip.Tip="Add every song in this playlist to the end of the queue" Content="Add to queue" />
+              <Button x:Name="PlaylistMoreButton" Grid.Column="3" Classes="eq-action" Content="⋯" Padding="10,5"
+                      ToolTip.Tip="Rename or delete this playlist">
+                <Button.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="Rename…" Click="OnRenameOpenPlaylistClick" />
+                    <MenuItem Header="Delete…" Click="OnDeleteOpenPlaylistClick" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+          </Border>
+
+          <DataGrid x:Name="TrackGrid" Grid.Row="2" Classes="tracks"
                     ItemsSource="{Binding Library.Results}"
                     IsReadOnly="True" SelectionMode="Extended"
                     CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False">
@@ -306,14 +363,18 @@
               <DataGridTemplateColumn Header="Title" Width="2*" MinWidth="140" SortMemberPath="DisplayTitle">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate DataType="lib:Track">
-                    <!-- The title keeps at least 100 px; labels get what's left, clipped at the edge -->
+                    <!-- The title keeps at least 100 px; labels get what's left, clipped at the edge. In an open
+                         playlist, its number in the playlist comes first. -->
                     <Grid ColumnSpacing="6" Background="Transparent" ClipToBounds="True">
                       <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" MinWidth="100" />
                         <ColumnDefinition Width="Auto" />
                       </Grid.ColumnDefinitions>
-                      <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                      <c:LabelChips Grid.Column="1" ItemsSource="{Binding Labels}" MaxWidth="140" HorizontalAlignment="Left" />
+                      <TextBlock Classes="dim mono playlist-number" Text="{Binding PlaylistNumber}" FontSize="11"
+                                 IsVisible="{Binding PlaylistNumber, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                      <TextBlock Grid.Column="1" Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <c:LabelChips Grid.Column="2" ItemsSource="{Binding Labels}" MaxWidth="140" HorizontalAlignment="Left" />
                     </Grid>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -348,6 +409,8 @@
               <ContextMenu x:Name="TrackMenu">
                 <MenuItem Header="Add to queue" InputGesture="Enter" Click="OnAddToQueueClick" />
                 <MenuItem Header="Play next" InputGesture="Shift+Enter" Click="OnPlayNextClick" />
+                <MenuItem x:Name="TrackFromHereMenuItem" Header="Add to queue from here" Click="OnPlaylistFromHereClick"
+                          ToolTip.Tip="This song and the rest of the playlist after it" />
                 <Separator />
                 <MenuItem Header="Preview in headphones" InputGesture="Space" Click="OnPreviewSelectedClick" />
                 <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />
@@ -362,12 +425,19 @@
                 <MenuItem x:Name="TrackLabelsMenu" Header="Labels" />
                 <MenuItem x:Name="TrackEnergyMenu" Header="Energy" />
                 <MenuItem x:Name="TrackBpmMenu" Header="BPM" />
+                <Separator />
+                <MenuItem x:Name="TrackPlaylistsMenu" Header="Add to playlist" />
+                <MenuItem x:Name="RemoveFromPlaylistMenuItem" Header="Remove from playlist" InputGesture="Delete"
+                          Click="OnRemoveFromPlaylistClick" ToolTip.Tip="Take it out of this playlist. The file isn't touched." />
               </ContextMenu>
             </DataGrid.ContextMenu>
           </DataGrid>
 
+          <!-- Where songs dragged within a playlist would land (MainWindow.Playlists) -->
+          <Border x:Name="PlaylistDropLine" Grid.Row="2" Classes="playlist-drop-line" IsVisible="False" Margin="8,0" />
+
           <!-- Empty states -->
-          <StackPanel Grid.Row="1" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center"
+          <StackPanel Grid.Row="2" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center"
                       IsVisible="{Binding Library.HasNoRoots}">
             <TextBlock Text="Add your music folder to get started" FontSize="17" FontWeight="SemiBold"
                        HorizontalAlignment="Center" />
@@ -376,11 +446,11 @@
             <Button Content="Add folder…" HorizontalAlignment="Center" Padding="16,8" Click="OnAddFolderClick"
                     Background="{StaticResource AccentBrush}" Foreground="White" />
           </StackPanel>
-          <TextBlock Grid.Row="1" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center"
+          <TextBlock Grid.Row="2" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center"
                      Text="{Binding Library.EmptyMessage}" IsVisible="{Binding Library.HasNoResults}" />
 
           <!-- Headphone preview -->
-          <Border Grid.Row="2" Classes="preview-bar" DataContext="{Binding Preview}" x:DataType="vm:PreviewViewModel"
+          <Border Grid.Row="3" Classes="preview-bar" DataContext="{Binding Preview}" x:DataType="vm:PreviewViewModel"
                   IsVisible="{Binding IsActive, FallbackValue=False}">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="12">
               <Border Classes="preview-edge" Grid.RowSpan="1" />
@@ -459,6 +529,7 @@
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem x:Name="NameSessionItem" Header="Name this session…" Click="OnNameSessionClick" />
                     <MenuItem x:Name="ExportSetListItem" Header="Export set list…" Click="OnExportSetListClick" />
+                    <MenuItem x:Name="SessionToPlaylistItem" Header="Save as playlist…" Click="OnSessionToPlaylistClick" />
                     <Separator />
                     <MenuItem x:Name="DeleteSessionItem" Header="Delete this session…" Click="OnDeleteSessionClick" />
                   </MenuFlyout>
@@ -574,6 +645,7 @@
                   <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
                   <MenuItem x:Name="QueueBpmMenu" Header="BPM" />
                   <Separator />
+                  <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>
               </ListBox.ContextMenu>

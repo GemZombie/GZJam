@@ -36,6 +36,13 @@
       </Grid>
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
         <StackPanel Spacing="1">
+          <TextBlock Classes="setting" Text="Playlists" />
+          <TextBlock Classes="setting-help" Text="{Binding PlaylistsText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <ToggleButton x:Name="PlaylistsSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Playlists}" />
+      </Grid>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="1">
           <TextBlock Classes="setting" Text="History" />
           <TextBlock Classes="setting-help" Text="{Binding HistoryText}" TextWrapping="Wrap" />
         </StackPanel>

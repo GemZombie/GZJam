@@ -127,7 +127,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>Every copy of a file's track on screen: in the library results, the queue and on the decks.</summary>
     private IEnumerable<Track> TracksFor(string path) =>
-        new[] { Library.ResultFor(path) }
+        Library.ResultsFor(path)
             .Concat(Queue.Items.Select(i => i.Track))
             .Concat(Decks.Select(d => d.Track))
             .OfType<Track>()
@@ -218,6 +218,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public MixxxImportViewModel CreateMixxxImport() => new(_database, _ =>
     {
         Library.LabelsChanged();
+        Library.RefreshPlaylists();
         Library.RefreshResults();
         History.Reload();
     });
@@ -316,6 +317,122 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ShowNotice($"\"{name}\" and \"{stored}\" are one label now.");
         Library.LabelRenamed(name, stored);
     }
+
+    // ───────────── Playlists ─────────────
+
+    /// <summary>A new, empty playlist (a taken name gets a number). Null if the name is empty.</summary>
+    public PlaylistInfo? CreatePlaylist(string name, IReadOnlyList<Track>? songs = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+        PlaylistInfo playlist = _database.CreatePlaylist(name);
+        if (songs is { Count: > 0 })
+            _database.AddToPlaylist(playlist.Id, songs.Select(t => t.Path));
+        Log.Info($"Playlist \"{playlist.Name}\" made{(songs is { Count: > 0 } ? $" with {songs.Count} songs" : "")}");
+        Library.RefreshPlaylists();
+        return playlist;
+    }
+
+    /// <summary>Asks for a name, then makes a playlist (of <paramref name="songs"/>, if any) and opens it.</summary>
+    public async Task<PlaylistInfo?> CreatePlaylistAsync(IReadOnlyList<Track>? songs = null, string suggestion = "", bool open = true)
+    {
+        if (PromptAsync is null)
+            return null;
+        string message = songs is not { Count: > 0 } ? "A set to plan before the night, in order."
+            : songs.Count == 1 ? $"With \"{songs[0].DisplayTitle}\"" : $"With {songs.Count} songs";
+        if (await PromptAsync("New playlist", message, "Make it", suggestion) is not { } name || CreatePlaylist(name, songs) is not { } playlist)
+            return null;
+        if (open)
+            Library.OpenPlaylist(playlist.Id);
+        return playlist;
+    }
+
+    /// <summary>Adds songs to a playlist: at the end, or before its entry number <paramref name="index"/> (from 0).</summary>
+    public void AddToPlaylist(PlaylistInfo playlist, IReadOnlyList<Track> songs, int? index = null)
+    {
+        if (songs.Count == 0)
+            return;
+        _database.AddToPlaylist(playlist.Id, songs.Select(t => t.Path), index);
+        Log.Info($"Added {(songs.Count == 1 ? $"\"{songs[0].DisplayTitle}\"" : $"{songs.Count} songs")} to playlist \"{playlist.Name}\"");
+        Library.RefreshPlaylists();
+        if (Library.SelectedPlaylist?.Id != playlist.Id)
+            ShowNotice(songs.Count == 1 ? $"Added to {playlist.Name}" : $"{songs.Count} songs added to {playlist.Name}");
+    }
+
+    /// <summary>Takes rows of the open playlist out of it. The files are untouched.</summary>
+    public void RemoveFromPlaylist(IReadOnlyList<Track> rows)
+    {
+        if (Library.SelectedPlaylist is not { } playlist || rows.Select(t => t.PlaylistEntryId).OfType<long>().ToList() is not { Count: > 0 } entries)
+            return;
+        _database.RemoveFromPlaylist(playlist.Id, entries);
+        Log.Info($"Removed {entries.Count} from playlist \"{playlist.Name}\"");
+        Library.RefreshPlaylists();
+    }
+
+    /// <summary>Moves rows of the open playlist to before its entry number <paramref name="index"/> (from 0).</summary>
+    public void MoveInPlaylist(IReadOnlyList<Track> rows, int index)
+    {
+        if (Library.SelectedPlaylist is not { } playlist || rows.Select(t => t.PlaylistEntryId).OfType<long>().ToList() is not { Count: > 0 } entries)
+            return;
+        _database.MovePlaylistEntries(playlist.Id, entries, index);
+        Library.RefreshPlaylists();
+    }
+
+    public async Task RenamePlaylistAsync(PlaylistInfo playlist)
+    {
+        if (PromptAsync is null || await PromptAsync($"Rename \"{playlist.Name}\"", $"{playlist.Count} {(playlist.Count == 1 ? "song" : "songs")}",
+                "Rename", playlist.Name) is not { } name || string.IsNullOrWhiteSpace(name))
+            return;
+        string stored = _database.RenamePlaylist(playlist.Id, name);
+        Log.Info($"Playlist \"{playlist.Name}\" renamed \"{stored}\"");
+        Library.RefreshPlaylists();
+    }
+
+    /// <summary>Deletes a playlist, after asking. Its songs stay in the library.</summary>
+    public async Task DeletePlaylistAsync(PlaylistInfo playlist)
+    {
+        if (playlist.Count > 0 && (ConfirmAsync is null || !await ConfirmAsync($"Delete the playlist \"{playlist.Name}\"?",
+                $"Its {playlist.Count} {(playlist.Count == 1 ? "song stays" : "songs stay")} in your library; only the list goes.", "Delete")))
+            return;
+        if (Library.SelectedPlaylist?.Id == playlist.Id)
+            Library.OpenPlaylist(null);
+        _database.DeletePlaylist(playlist.Id);
+        Log.Info($"Playlist \"{playlist.Name}\" deleted");
+        Library.RefreshPlaylists();
+    }
+
+    /// <summary>
+    /// Adds a playlist's songs to the end of the queue (from row <paramref name="from"/> on, if
+    /// given), never replacing what's there. Songs no longer in the library are skipped.
+    /// </summary>
+    public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null)
+    {
+        var songs = _database.Search(null, playlist: playlist.Id).ToList();
+        if (from?.PlaylistNumber is { } number)
+            songs = songs.Where(t => t.PlaylistNumber >= number).ToList();
+        if (songs.Count == 0)
+            return;
+        // The library's rows where they're showing, so marks and "played tonight" stay in step.
+        var shown = songs.Select(t => Library.ResultsFor(t.Path).FirstOrDefault(r => r.PlaylistEntryId == t.PlaylistEntryId) ?? t).ToList();
+        if (TonightSince() is { } since)
+        {
+            foreach (Track track in shown)
+                track.IsPlayedTonight = track.LastPlayedUtc >= since;
+        }
+        Queue.Add(shown);
+        Log.Info($"Playlist \"{playlist.Name}\" added to the queue: {shown.Count} songs{(from is null ? "" : $" from number {from.PlaylistNumber}")}");
+        ShowNotice(shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue");
+    }
+
+    private DateTime? TonightSince() => History.CurrentSessionStartUtc;
+
+    /// <summary>Saves the queue, in its order, as a new playlist (asks for its name).</summary>
+    public Task SaveQueueAsPlaylistAsync() =>
+        CreatePlaylistAsync(Queue.Items.Select(i => i.Track).ToList(), open: false);
+
+    /// <summary>Saves the night shown in History, in the order it was played, as a new playlist.</summary>
+    public Task SaveSessionAsPlaylistAsync() =>
+        CreatePlaylistAsync(History.Plays.Select(p => p.Track).ToList(), History.SelectedName ?? "", open: false);
 
     /// <summary>Asks the DJ for a short piece of text (heading, message, button); the window supplies the dialog.</summary>
     /// <summary>Asks for a short text (heading, message, OK button, starting text); the window supplies the dialog.</summary>
@@ -435,7 +552,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private async Task StartLibraryAsync()
     {
-        await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder);
+        await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
     }
 
@@ -688,6 +805,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public void SaveState()
     {
         (_settings.SelectedRootPath, _settings.SelectedFolder) = Library.GetSelection();
+        _settings.OpenPlaylist = Library.SelectedPlaylist?.Id;
     }
 
     public void Dispose()

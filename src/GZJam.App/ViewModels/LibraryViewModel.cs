@@ -21,7 +21,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private int _searchVersion;
     private bool _suppressSearch;
     private (string RootPath, string Folder)? _pendingSelection;
-    private Dictionary<string, Track> _resultsByPath = new(StringComparer.Ordinal);
+    private Dictionary<string, List<Track>> _resultsByPath = new(StringComparer.Ordinal);
 
     public LibraryViewModel(LibraryDatabase database)
     {
@@ -41,6 +41,92 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial string SearchText { get; set; } = "";
 
+    /// <summary>Every playlist, alphabetically, under the folder tree.</summary>
+    public ObservableCollection<PlaylistInfo> Playlists { get; } = [];
+
+    /// <summary>The playlist the song list shows, in its order; null for the library (a folder, or all of it).</summary>
+    [ObservableProperty]
+    public partial PlaylistInfo? SelectedPlaylist { get; set; }
+
+    public bool IsPlaylistOpen => SelectedPlaylist is not null;
+
+    /// <summary>The open playlist's name, for the bar above the song list ("" if none is open).</summary>
+    public string PlaylistName => SelectedPlaylist?.Name ?? "";
+
+    /// <summary>"14 songs · 46:20 · 3 played tonight", or with a search, "3 of 14 songs".</summary>
+    public string PlaylistSummary
+    {
+        get
+        {
+            if (SelectedPlaylist is not { } playlist)
+                return "";
+            int count = playlist.Count;
+            string songs = count == 1 ? "1 song" : $"{count} songs";
+            if (!string.IsNullOrWhiteSpace(SearchText))
+                return $"{Results.Count} of {songs} match";
+            if (count == 0)
+                return "Empty: drag songs onto its name, or right-click songs › Add to playlist";
+            int played = Results.Count(t => t.IsPlayedTonight);
+            return $"{songs} · {Format.Duration(playlist.Length)}" + (played > 0 ? $" · {played} played tonight" : "");
+        }
+    }
+
+    /// <summary>Rows can be dragged into a new order: a playlist, shown whole and in its own order.</summary>
+    public bool CanReorderPlaylist => IsPlaylistOpen && string.IsNullOrWhiteSpace(SearchText);
+
+    /// <summary>Reads the playlists again (one was made, renamed, deleted or changed), keeping the open one open.</summary>
+    public void RefreshPlaylists()
+    {
+        long? open = SelectedPlaylist?.Id;
+        var playlists = _database.GetPlaylists();
+        _suppressSearch = true;
+        try
+        {
+            Playlists.Clear();
+            foreach (PlaylistInfo playlist in playlists)
+                Playlists.Add(playlist);
+            SelectedPlaylist = playlists.FirstOrDefault(p => p.Id == open);
+        }
+        finally
+        {
+            _suppressSearch = false;
+        }
+        OnPlaylistShown();
+        if (open is not null)
+            RunSearch();
+    }
+
+    /// <summary>Opens a playlist in the song list (null: back to the library).</summary>
+    public void OpenPlaylist(long? id) =>
+        SelectedPlaylist = id is null ? null : Playlists.FirstOrDefault(p => p.Id == id);
+
+    partial void OnSelectedPlaylistChanged(PlaylistInfo? value)
+    {
+        if (!_suppressSearch)
+        {
+            if (value is not null && SelectedFolder is not null)
+            {
+                // One or the other: a playlist isn't within a folder.
+                _suppressSearch = true;
+                SelectedFolder = null;
+                _suppressSearch = false;
+            }
+            RunSearch();
+        }
+        OnPlaylistShown();
+    }
+
+    private void OnPlaylistShown()
+    {
+        OnPropertyChanged(nameof(IsPlaylistOpen));
+        OnPropertyChanged(nameof(PlaylistName));
+        OnPropertyChanged(nameof(PlaylistSummary));
+        OnPropertyChanged(nameof(CanReorderPlaylist));
+        OnPropertyChanged(nameof(HasScope));
+        OnPropertyChanged(nameof(ScopeText));
+        OnPropertyChanged(nameof(EmptyMessage));
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ResultSummary), nameof(EmptyMessage), nameof(HasNoResults))]
     public partial IReadOnlyList<Track> Results { get; private set; } = [];
@@ -57,15 +143,18 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     public bool HasNoRoots => HasLoaded && Roots.Count == 0;
     public bool HasNoResults => HasLoaded && Roots.Count > 0 && Results.Count == 0;
-    public bool HasScope => SelectedFolder is not null;
-    public string ScopeText => SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
+    public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
+    public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
+        : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
 
     public string EmptyMessage
     {
         get
         {
-            string where = SelectedFolder is { } f ? $" in {f.Name}" : "";
+            if (SelectedPlaylist is { } playlist && string.IsNullOrWhiteSpace(SearchText))
+                return $"\"{playlist.Name}\" is empty. Drag songs onto its name, or right-click songs › Add to playlist.";
+            string where = SelectedPlaylist is { } p ? $" in {p.Name}" : SelectedFolder is { } f ? $" in {f.Name}" : "";
             return string.IsNullOrWhiteSpace(SearchText) ? $"No tracks{where}." : $"Nothing matches \"{SearchText.Trim()}\"{where}.";
         }
     }
@@ -80,19 +169,37 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             foreach (Track track in value)
                 track.IsPlayedTonight = track.LastPlayedUtc >= since;
         }
-        _resultsByPath = new Dictionary<string, Track>(value.Count, StringComparer.Ordinal);
+        _resultsByPath = new Dictionary<string, List<Track>>(value.Count, StringComparer.Ordinal);
         foreach (Track track in value)
-            _resultsByPath[track.Path] = track;
+        {
+            if (_resultsByPath.TryGetValue(track.Path, out var rows))
+                rows.Add(track);   // in a playlist twice
+            else
+                _resultsByPath[track.Path] = [track];
+        }
+        OnPropertyChanged(nameof(PlaylistSummary));
     }
 
     /// <summary>The track for a file in the current results, if it's there.</summary>
-    public Track? ResultFor(string path) => _resultsByPath.GetValueOrDefault(path);
+    public Track? ResultFor(string path) => _resultsByPath.GetValueOrDefault(path)?[0];
+
+    /// <summary>Every row for a file in the current results: more than one in a playlist that has it twice.</summary>
+    public IReadOnlyList<Track> ResultsFor(string path) => _resultsByPath.GetValueOrDefault(path) ?? [];
 
     partial void OnSelectedFolderChanged(FolderNodeViewModel? value)
     {
         // Picking a folder by hand overrides a remembered one that hasn't appeared yet.
         if (!_suppressSearch)
             _pendingSelection = null;
+        if (value is not null && SelectedPlaylist is not null)
+        {
+            // A folder: back from the playlist to the library.
+            bool suppressed = _suppressSearch;
+            _suppressSearch = true;
+            SelectedPlaylist = null;
+            _suppressSearch = suppressed;
+            OnPlaylistShown();
+        }
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         if (!_suppressSearch)
@@ -101,6 +208,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     partial void OnSearchTextChanged(string value)
     {
+        OnPropertyChanged(nameof(CanReorderPlaylist));
         OnPropertyChanged(nameof(BpmFilter));
         OnPropertyChanged(nameof(BpmFilterLabel));
         OnPropertyChanged(nameof(HasBpmFilter));
@@ -212,7 +320,11 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(IsBpmFilter).Select(t => t.ToLowerInvariant());
 
     [RelayCommand]
-    private void ClearScope() => SelectedFolder = null;
+    private void ClearScope()
+    {
+        SelectedPlaylist = null;
+        SelectedFolder = null;
+    }
 
     [RelayCommand]
     private void ClearSearch() => SearchText = "";
@@ -220,10 +332,18 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     // ───────────── Lifecycle ─────────────
 
     /// <summary>Shows what's already indexed immediately, then rescans every root in the background.</summary>
-    public async Task StartAsync(string? selectedRootPath, string? selectedFolder)
+    public async Task StartAsync(string? selectedRootPath, string? selectedFolder, long? openPlaylist = null)
     {
         RefreshTree();
-        if (selectedRootPath is not null)
+        RefreshPlaylists();
+        if (openPlaylist is not null)
+        {
+            _suppressSearch = true;
+            OpenPlaylist(openPlaylist);
+            _suppressSearch = false;
+            OnPlaylistShown();
+        }
+        if (selectedRootPath is not null && SelectedPlaylist is null)
         {
             _pendingSelection = (selectedRootPath, selectedFolder ?? "");
             _suppressSearch = true;
@@ -398,10 +518,11 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var cancel = _searchCancel = new CancellationTokenSource();
         int version = ++_searchVersion;
         string text = SearchText;
-        FolderScope? scope = SelectedFolder?.Node.Scope;
+        FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;
+        long? playlist = SelectedPlaylist?.Id;
         double near = NearBpm;
 
-        Task.Run(() => _database.Search(text, scope, cancel.Token, near), cancel.Token).ContinueWith(t =>
+        Task.Run(() => _database.Search(text, scope, cancel.Token, near, playlist), cancel.Token).ContinueWith(t =>
         {
             if (version == _searchVersion)
                 Dispatcher.UIThread.Post(() =>

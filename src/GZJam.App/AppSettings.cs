@@ -44,6 +44,9 @@ public sealed class AppSettings
     public string? SelectedRootPath { get; set; }
     public string? SelectedFolder { get; set; }
 
+    /// <summary>The playlist open in the song list, if one was (instead of a folder).</summary>
+    public long? OpenPlaylist { get; set; }
+
     /// <summary>Speakers. Matched by name and driver ID, since device numbers change between sessions.</summary>
     public AudioDevicePreference? MainDevice { get; set; }
 

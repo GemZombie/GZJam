@@ -87,9 +87,14 @@ public sealed class FakeMixxx(string path)
                 ("$p", id), ("$t", song), ("$o", position++), ("$d", utc.ToString("yyyy-MM-dd HH:mm:ss")));
     }
 
-    public void Playlist(string name, params long[] songs)
+    public void Playlist(string name, params long[] songs) => Playlist(name, hidden: 0, songs);
+
+    /// <summary>Auto DJ's queue: a playlist Mixxx marks hidden = 1.</summary>
+    public void AutoDjQueue(params long[] songs) => Playlist("Auto DJ", hidden: 1, songs);
+
+    private void Playlist(string name, int hidden, long[] songs)
     {
-        long id = Id("INSERT INTO Playlists (name, position, hidden) VALUES ($n, 0, 0);", ("$n", name));
+        long id = Id("INSERT INTO Playlists (name, position, hidden) VALUES ($n, 0, $h);", ("$n", name), ("$h", hidden));
         foreach (long song in songs)
             Exec(_c, "INSERT INTO PlaylistTracks (playlist_id, track_id, position, pl_datetime_added) VALUES ($p, $t, 1, '2024-01-01 10:00:00');",
                 ("$p", id), ("$t", song));

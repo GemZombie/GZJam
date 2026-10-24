@@ -29,6 +29,7 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
 
     [ObservableProperty] public partial string RatingsText { get; private set; } = "";
     [ObservableProperty] public partial string CratesText { get; private set; } = "";
+    [ObservableProperty] public partial string PlaylistsText { get; private set; } = "";
     [ObservableProperty] public partial string HistoryText { get; private set; } = "";
     [ObservableProperty] public partial string BpmsText { get; private set; } = "";
     [ObservableProperty] public partial string HotCuesText { get; private set; } = "";
@@ -38,13 +39,14 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Ratings { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Crates { get; set; } = true;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Playlists { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool History { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool Bpms { get; set; } = true;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanImport))] public partial bool HotCues { get; set; } = true;
 
     public bool CanImport => HasPlan && !IsBusy && _plan is { } p &&
         (Ratings && p.RatingCount > 0 || Crates && p.CrateCount > 0 || History && p.SessionCount > 0 || Bpms && p.BpmCount > 0 ||
-         HotCues && p.CuedSongCount > 0);
+         HotCues && p.CuedSongCount > 0 || Playlists && p.PlaylistCount > 0);
 
     /// <summary>Reads the Mixxx library at <paramref name="path"/>, or where Mixxx keeps it on this computer.</summary>
     public async Task LoadAsync(string? path = null)
@@ -89,6 +91,9 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
         CratesText = plan.CrateCount == 0
             ? "No crates with songs GZJam has."
             : $"{Format.Count(plan.CrateCount)} {(plan.CrateCount == 1 ? "crate" : "crates")}, {Songs(plan.CrateSongCount)}: each becomes a label.";
+        PlaylistsText = plan.PlaylistCount == 0
+            ? "Nothing new: no playlists with songs GZJam has (or GZJam has playlists of those names already)."
+            : $"{Format.Count(plan.PlaylistCount)} {(plan.PlaylistCount == 1 ? "playlist" : "playlists")}, {Songs(plan.PlaylistSongCount)}, in their order. Songs GZJam doesn't have are left out.";
         HistoryText = plan.SessionCount == 0
             ? "Nothing new: no History nights that aren't in GZJam already."
             : $"{Format.Count(plan.SessionCount)} {(plan.SessionCount == 1 ? "night" : "nights")}, {Songs(plan.SessionPlayCount)} played, with their dates: the Played column and played: searches see them.";
@@ -115,7 +120,7 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
         Status = "Importing…";
         try
         {
-            var options = new MixxxImportOptions(Ratings, Crates, History, Bpms, HotCues);
+            var options = new MixxxImportOptions(Ratings, Crates, History, Bpms, HotCues, Playlists);
             MixxxImportResult result = await Task.Run(() => plan.Apply(database, options));
             Log.Info($"Imported from Mixxx ({plan.Source}): {result}");
             imported(result);
@@ -135,6 +140,8 @@ public sealed partial class MixxxImportViewModel(LibraryDatabase database, Actio
             parts.Add($"{Format.Count(result.Ratings)} {(result.Ratings == 1 ? "rating" : "ratings")}");
         if (result.Labels > 0)
             parts.Add($"{Format.Count(result.Labels)} {(result.Labels == 1 ? "crate" : "crates")} as labels");
+        if (result.Playlists > 0)
+            parts.Add($"{Format.Count(result.Playlists)} {(result.Playlists == 1 ? "playlist" : "playlists")}");
         if (result.Sessions > 0)
             parts.Add($"{Format.Count(result.Sessions)} {(result.Sessions == 1 ? "night" : "nights")} of History");
         if (result.Bpms > 0)

@@ -3,10 +3,12 @@ using System.Text.RegularExpressions;
 namespace GZJam.Library;
 
 /// <summary>What to bring over from Mixxx.</summary>
-public sealed record MixxxImportOptions(bool Ratings = true, bool Crates = true, bool History = true, bool LockedBpms = true, bool HotCues = true);
+public sealed record MixxxImportOptions(bool Ratings = true, bool Crates = true, bool History = true, bool LockedBpms = true, bool HotCues = true,
+    bool Playlists = true);
 
 /// <summary>What an import brought over.</summary>
-public sealed record MixxxImportResult(int Ratings, int Labels, int LabelledSongs, int Sessions, int Plays, int Bpms, int CuedSongs = 0);
+public sealed record MixxxImportResult(int Ratings, int Labels, int LabelledSongs, int Sessions, int Plays, int Bpms, int CuedSongs = 0,
+    int Playlists = 0);
 
 /// <summary>
 /// Bringing a Mixxx library into GZJam, planned first (so the DJ sees what will come over) and
@@ -17,6 +19,7 @@ public sealed record MixxxImportResult(int Ratings, int Labels, int LabelledSong
 /// <list type="bullet">
 /// <item>Ratings: 4-5 stars become ♥, 1-2 stars a broken heart; 3 stars stay unrated.</item>
 /// <item>Crates become labels of the same name.</item>
+/// <item>Playlists become playlists, in their order, unless GZJam has one of that name already.</item>
 /// <item>History: each Mixxx night becomes a session, with its songs and when they were played.</item>
 /// <item>BPMs locked in Mixxx (the DJ confirmed them) become typed BPMs.</item>
 /// <item>Hot cues 1 to 4 become cues 1 to 4, for songs with no cues in GZJam yet; Mixxx's others
@@ -29,6 +32,7 @@ public sealed partial class MixxxImport
 {
     private readonly List<(string Path, Rating Rating)> _ratings = [];
     private readonly List<(string Name, List<string> Paths)> _crates = [];
+    private readonly List<(string Name, List<string> Paths)> _playlists = [];
     private readonly List<(string? Name, List<(Track Track, DateTime PlayedUtc)> Plays)> _sessions = [];
     private readonly List<(string Path, double Bpm)> _bpms = [];
     private readonly List<(string Path, List<SongCue> Cues)> _cues = [];
@@ -52,6 +56,8 @@ public sealed partial class MixxxImport
     public int RatingCount => _ratings.Count;
     public int CrateCount => _crates.Count;
     public int CrateSongCount => _crates.SelectMany(c => c.Paths).Distinct().Count();
+    public int PlaylistCount => _playlists.Count;
+    public int PlaylistSongCount => _playlists.Sum(p => p.Paths.Count);
     public int SessionCount => _sessions.Count;
     public int SessionPlayCount => _sessions.Sum(s => s.Plays.Count);
     public int BpmCount => _bpms.Count;
@@ -129,6 +135,16 @@ public sealed partial class MixxxImport
                 import._crates.Add((crate.Name, paths));
         }
 
+        // Playlists: the songs GZJam has, in Mixxx's order. One GZJam already has by name was
+        // imported before, or is the DJ's own: left alone.
+        var existing = gz.GetPlaylists().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (MixxxPlaylist playlist in mixxx.Playlists())
+        {
+            var paths = playlist.TrackIds.Where(matches.ContainsKey).Select(id => matches[id].Path).ToList();
+            if (paths.Count > 0 && existing.Add(playlist.Name))
+                import._playlists.Add((playlist.Name, paths));
+        }
+
         var songs = theirs.ToDictionary(t => t.Id);
         foreach (MixxxSession night in mixxx.History())
         {
@@ -151,7 +167,7 @@ public sealed partial class MixxxImport
     /// <summary>Brings over what was planned and chosen. Safe to repeat: what's there already is skipped.</summary>
     public MixxxImportResult Apply(LibraryDatabase gz, MixxxImportOptions options)
     {
-        int ratings = 0, labelledSongs = 0, sessions = 0, plays = 0, bpms = 0, cuedSongs = 0;
+        int ratings = 0, labelledSongs = 0, sessions = 0, plays = 0, bpms = 0, cuedSongs = 0, playlists = 0;
         if (options.Ratings)
         {
             foreach (var group in _ratings.GroupBy(r => r.Rating))
@@ -163,6 +179,17 @@ public sealed partial class MixxxImport
             foreach (var (name, paths) in _crates)
                 gz.AddLabel(paths, name);
             labelledSongs = CrateSongCount;
+        }
+        if (options.Playlists)
+        {
+            var existing = gz.GetPlaylists().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var (name, paths) in _playlists)
+            {
+                if (!existing.Add(name))
+                    continue;   // made in GZJam since the plan
+                gz.AddToPlaylist(gz.CreatePlaylist(name).Id, paths);
+                playlists++;
+            }
         }
         if (options.History)
         {
@@ -189,7 +216,7 @@ public sealed partial class MixxxImport
                 cuedSongs++;
             }
         }
-        return new MixxxImportResult(ratings, options.Crates ? _crates.Count : 0, labelledSongs, sessions, plays, bpms, cuedSongs);
+        return new MixxxImportResult(ratings, options.Crates ? _crates.Count : 0, labelledSongs, sessions, plays, bpms, cuedSongs, playlists);
     }
 
     /// <summary>A song GZJam doesn't have, as Mixxx knew it, for History.</summary>

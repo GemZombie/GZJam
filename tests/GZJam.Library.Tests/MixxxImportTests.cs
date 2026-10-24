@@ -62,7 +62,8 @@ public sealed class MixxxImportTests : IDisposable
         Assert.Equal(1, plan.BpmCount);
 
         MixxxImportResult result = plan.Apply(_lib.Database, new MixxxImportOptions());
-        Assert.Equal(new MixxxImportResult(3, 2, 3, 2, 4, 1), result);
+        Assert.Equal(new MixxxImportResult(3, 2, 3, 2, 4, 1, Playlists: 1), result);
+        Assert.Equal(["Not history"], _lib.Database.GetPlaylists().Select(x => x.Name));
 
         Assert.Equal(Rating.Loved, Find(woodside).Rating);
         Assert.Equal(Rating.Loved, Find(splanky).Rating);
@@ -81,6 +82,35 @@ public sealed class MixxxImportTests : IDisposable
         Assert.Equal(["Jumpin' at the Woodside", "Lost Song", "Splanky"], plays.Select(x => x.DisplayTitle));
         Assert.Equal(night, plays[0].PlayedUtc);
         Assert.Equal(2, Find(splanky).PlayCount);
+    }
+
+    [Fact]
+    public void Playlists_come_over_in_their_order_but_not_auto_djs_queue_or_names_gzjam_has()
+    {
+        string a = _lib.AddMp3("Swing/a.mp3", new GZJam.Testing.TestMp3.Tags(Title: "A"));
+        string b = _lib.AddMp3("Swing/b.mp3", new GZJam.Testing.TestMp3.Tags(Title: "B"));
+        _lib.AddRootAndScan();
+        _lib.Database.CreatePlaylist("Mine");   // the DJ's own in GZJam: left alone
+
+        var mixxx = new FakeMixxx(_mixxxDb);
+        long ia = mixxx.Song(a, "A");
+        long ib = mixxx.Song(b, "B");
+        long lost = mixxx.Song(Path.Combine(Path.GetTempPath(), "not-in-gzjam", "Lost.mp3"), "Lost", size: 99);
+        mixxx.Playlist("Saturday", ib, lost, ia, ib);
+        mixxx.Playlist("mine", ia);
+        mixxx.Playlist("Only lost songs", lost);
+        mixxx.AutoDjQueue(ia, ib);
+        mixxx.Close();
+
+        MixxxImport plan = Plan();
+        Assert.Equal((1, 3), (plan.PlaylistCount, plan.PlaylistSongCount));
+        Assert.Equal(1, plan.Apply(_lib.Database, new MixxxImportOptions()).Playlists);
+
+        var saturday = _lib.Database.GetPlaylists().Single(x => x.Name == "Saturday");
+        Assert.Equal(["B", "A", "B"], _lib.Database.Search(null, playlist: saturday.Id).Select(t => t.Title));   // in order, B twice, the lost song left out
+        Assert.Equal(["Mine", "Saturday"], _lib.Database.GetPlaylists().Select(x => x.Name));
+
+        Assert.Equal(0, Plan().PlaylistCount);   // importing again: nothing twice
     }
 
     [Fact]

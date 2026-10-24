@@ -119,6 +119,11 @@ public partial class MainWindow
         }
         // One line per drag, to see what a touchscreen did if a drag goes astray.
         string what = drag.Tracks.Count == 1 ? $"\"{drag.Tracks[0].DisplayTitle}\"" : $"{drag.Tracks.Count} songs";
+        if (target is null && DropOnPlaylist(drag, at, out string playlistDrop))
+        {
+            Log.Info($"Dragged {what} by {pointerType.ToString().ToLowerInvariant()} to {playlistDrop}");
+            return;
+        }
         string where = target switch
         {
             DeckView { DataContext: DeckViewModel d } => $"Deck {d.Label}",
@@ -161,6 +166,7 @@ public partial class MainWindow
             view.SetDropState(null);
         QueueDropLine.IsVisible = false;
         SetQueueScroll(0);
+        EndPlaylistDrop();
     }
 
     private void UpdateDrag(Point at)
@@ -196,6 +202,7 @@ public partial class MainWindow
 
         if (Vm.ShowHistory && IsOver(QueueTab, at))
             Vm.ShowHistory = false;
+        UpdatePlaylistDrop(at);
 
         if (target == QueueArea && this.TranslatePoint(at, QueueArea) is { } queuePoint)
         {
