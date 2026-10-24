@@ -28,7 +28,7 @@
         <Button x:Name="MaximizeButton" Focusable="False" Classes="caption" Content="&#xE922;" AutomationProperties.Name="Maximise" />
         <Button x:Name="CloseButton" Focusable="False" Classes="caption close" Content="&#xE8BB;" AutomationProperties.Name="Close" />
       </StackPanel>
-      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
+      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
         <!-- The logo: the waveform G and the name in its drawn letters -->
         <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center" AutomationProperties.Name="GZJam">
           <c:LogoMark Width="24" Height="24" />
@@ -74,7 +74,18 @@
           </StackPanel>
         </Button>
 
-        <Button x:Name="SettingsButton" Grid.Column="6" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
+        <!-- The booth, only once one is chosen -->
+        <Button x:Name="BoothChip" Grid.Column="6" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Booth output (click to change)"
+                IsVisible="{Binding ShowsBoothOutput}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Border Classes="led green on" IsVisible="{Binding HasBoothOutput}" />
+            <Border Classes="led amber on" IsVisible="{Binding !HasBoothOutput}" />
+            <TextBlock Classes="fader-label" Text="BOOTH" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding BoothOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Button>
+
+        <Button x:Name="SettingsButton" Grid.Column="7" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
           <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
         </Button>
       </Grid>

@@ -16,6 +16,7 @@ public sealed class Deck : IDisposable
     private int _tempo;        // decode stream (owns the file stream)
     private int _splitMain;    // -> main bus
     private int _splitCue;     // -> cue bus
+    private int _splitBooth;   // -> booth bus
     private bool _playing;
     private bool _ended;
     private double _tempoPercent;
@@ -91,6 +92,7 @@ public sealed class Deck : IDisposable
         SetJumpSyncs();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
+        _splitBooth = CreateSplit();
         Bass.ChannelSetDSP(_splitMain, _meterDsp);
         TrackPath = path;
         _playing = false;
@@ -110,9 +112,10 @@ public sealed class Deck : IDisposable
             Detach();
             Bass.StreamFree(_splitMain);
             Bass.StreamFree(_splitCue);
+            Bass.StreamFree(_splitBooth);
             Bass.StreamFree(_tempo);
         }
-        _tempo = _splitMain = _splitCue = 0;
+        _tempo = _splitMain = _splitCue = _splitBooth = 0;
         Array.Clear(_eqFx);   // freed with the stream
         _evenFx = 0;
         _playing = false;
@@ -526,7 +529,8 @@ public sealed class Deck : IDisposable
         // Added paused; DownMix folds surround files to stereo, mono is spread to both sides.
         var flags = BassFlags.MixerChanDownMix | BassFlags.MixerChanPause;
         if (!BassMix.MixerAddChannel(_mix.Main.Handle, _splitMain, flags) ||
-            !BassMix.MixerAddChannel(_mix.Cue.Handle, _splitCue, flags))
+            !BassMix.MixerAddChannel(_mix.Cue.Handle, _splitCue, flags) ||
+            !BassMix.MixerAddChannel(_mix.Booth.Handle, _splitBooth, flags))
             throw new AudioException($"Could not route Deck {Name}", Bass.LastError);
         SetPaused(!_playing);
         ApplyVolumes();
@@ -538,6 +542,7 @@ public sealed class Deck : IDisposable
             return;
         BassMix.MixerRemoveChannel(_splitMain);
         BassMix.MixerRemoveChannel(_splitCue);
+        BassMix.MixerRemoveChannel(_splitBooth);
     }
 
     private int CreateSplit()
@@ -552,7 +557,7 @@ public sealed class Deck : IDisposable
     {
         if (!IsLoaded)
             return;
-        foreach (int split in new[] { _splitMain, _splitCue })
+        foreach (int split in new[] { _splitMain, _splitCue, _splitBooth })
         {
             if (paused)
                 BassMix.ChannelAddFlag(split, BassFlags.MixerChanPause);
@@ -579,6 +584,7 @@ public sealed class Deck : IDisposable
             return;
         double level = _volume * _gain * FadeFactor;
         Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
+        Bass.ChannelSetAttribute(_splitBooth, ChannelAttribute.Volume, _mainGain * level);   // the booth hears what the room hears
         // The headphones: this deck if it's cued, and as much as the room hears of it, by the
         // phones mix. Cued and in the room, it's the louder of the two, not both added up.
         double phones = Math.Max(_cue ? _mix.PhonesCueLevel : 0, _mainGain * _mix.PhonesRoomLevel);
