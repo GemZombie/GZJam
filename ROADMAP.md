@@ -72,14 +72,18 @@ For 0.6.0:
   folder. The library has an Art column too, hidden to start with.
 - Each deck's number is printed above its title (*DECK 1*), with ON AIR beside it, leaving the
   corner for the album art.
+- [Even out a recording](https://github.com/GemZombie/GZJam/issues/5): an EVEN fader in the EQ
+  panel brings a song's quiet and loud passages closer together, remembered for the song.
+- [Move the mid band](https://github.com/GemZombie/GZJam/issues/4) from 200 Hz to 5 kHz, in the EQ panel.
+- [Smoother close-up scrolling](https://github.com/GemZombie/GZJam/issues/46) when zoomed in tight.
+- [Auto-play's gap shows what's coming](https://github.com/GemZombie/GZJam/issues/61): the
+  crossfader slides over to the next deck, which counts down to starting.
+- [The time readout blinks in a song's last 30 seconds](https://github.com/GemZombie/GZJam/issues/62),
+  as on CDJs.
+- [Grips on the dividers between panels](https://github.com/GemZombie/GZJam/issues/60), easier to
+  drag by finger.
 
 ## Planned next
-
-**Also in 0.6.0:**
-- [A one-knob compressor for old recordings](https://github.com/GemZombie/GZJam/issues/5), saved
-  with the song's EQ, to even out ones with very quiet and very loud passages
-- [A sweepable mid EQ](https://github.com/GemZombie/GZJam/issues/4), kept out of the way in the EQ panel
-- [Smoother close-up scrolling when zoomed in tight](https://github.com/GemZombie/GZJam/issues/46)
 
 **0.7.0, outputs:**
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
