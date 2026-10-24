@@ -82,21 +82,38 @@ Nothing yet since 0.7.0.
 
 ## Planned next
 
-**Before 1.0:**
+**Before 1.0:** a reliable night, everywhere.
+
+*Fixes*
+- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
+  never move to the speakers, and come back by themselves when plugged in again
+- [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
+  pauses the room when pausing takes two taps
+- [A renamed song in the queue or on a deck, or moved to another music folder](https://github.com/GemZombie/GZJam/issues/87),
+  keeps track of itself too
+- [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
+- [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
+
+*Testing*
+- [A testing checklist](https://github.com/GemZombie/GZJam/issues/88) for each computer, then test
+  passes [on Linux](https://github.com/GemZombie/GZJam/issues/19) and
+  [on a real Mac](https://github.com/GemZombie/GZJam/issues/18), the booth and the splitter cable
+  by ear, a very large library, and a real night
+
+*New*
 - [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
   cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
   what each control does
+- [Say when a new version is out](https://github.com/GemZombie/GZJam/issues/86): a quiet line at
+  startup, never during a set, with a switch to turn it off. GZJam never downloads or installs
+  anything by itself.
 
 **After 1.0:**
+- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged.
   Not something DJ apps usually do, and good free rippers exist (Exact Audio Copy, fre:ac,
   foobar2000), whose files GZJam picks up by itself.
-
-**Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
-[on a real Mac](https://github.com/GemZombie/GZJam/issues/18), [closing GZJam on Linux desktops that
-draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland), and [checking for a rare dropout with extra
-crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows).
 
 ## Being considered
 
@@ -104,15 +121,10 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
-- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
-
-**Sound**
-- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
-  never move to the speakers, and come back by themselves when plugged in again
 
 **Elsewhere**
 - [A companion app for cleaning up tags and file names](https://github.com/GemZombie/GZJam/issues/76):
@@ -125,6 +137,10 @@ to one you'd use.
 
 - **Streaming services** (Spotify, Apple Music, TIDAL, Beatport): DJ streaming is only open to
   partner companies, and Spotify's terms forbid mixing its music.
+- **DJ controllers (MIDI), for now:** they're made for beatmatching and live effects, which
+  partner-dance DJing rarely needs, and GZJam aims to stay simple. A controller's own sound card
+  works as an output already. If you'd use one with GZJam, say so in
+  [Ideas](https://github.com/GemZombie/GZJam/discussions/categories/ideas).
 
 Everything is tracked in [GitHub issues](https://github.com/GemZombie/GZJam/issues); the reasoning
 behind each decision is in [docs/FEATURES.md](docs/FEATURES.md).
