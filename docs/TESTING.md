@@ -65,6 +65,9 @@ For a release you'd use at a dance, test your real library.
       air.
 - [ ] EQ, EVEN and the mid band change the sound, and are remembered when the song is loaded again.
 - [ ] Tap tempo and the BPM menu fix a wrong BPM.
+- [ ] **From the file manager:** drag a song from Explorer, Finder or the file manager onto a
+      deck (it loads; one from outside your music folders too, without joining the library), and
+      several songs or a folder into the queue. A file that isn't a song says so.
 - [ ] Loading over a deck the room is hearing is refused (or asks, as set in Settings › Decks).
 - [ ] Four decks (Settings › Decks): all four play, and the crossfader sides are 1+3 and 2+4.
 

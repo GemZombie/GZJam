@@ -1082,6 +1082,23 @@ rest of it.
   Windows like any speaker output.
 - **Mono:** both sides are always mono in this mode, whatever the Mono switch says.
 
+### Status: songs from the file manager (2026-10-24, issue #99)
+
+- **The ask:** play a file that isn't in the library (a song a dancer brings on a USB stick, one
+  in Downloads) without adding a music folder. BallroomDJ 4 calls these external requests; the
+  DJ wanted it before 1.0.
+- **What it does:** drag files from Explorer, Finder or a Linux file manager onto the window.
+  One song goes on a deck; any number of songs, and whole folders (their songs in path order,
+  other files left out quietly), go into the queue where the line shows. The deck and queue
+  light up as for a drag from the library, and a deck won't take several. A dropped file that
+  isn't a song says so.
+- **Library or not:** a file in the library comes as the library's song, with its marks; one
+  outside is read from its tags and plays like any other (analysis, History), without joining the
+  library. Its marks are kept by path as usual, so they show if its folder is added later.
+- **How:** the system's drag and drop (Avalonia `DragDrop`, files as `IStorageItem`s with local
+  paths), on all three systems; GZJam's own drags stay in-app. Tags are read off the UI thread
+  (`MainWindowViewModel.TracksFromFiles`, `LibraryDatabase.TrackForFile`).
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to
