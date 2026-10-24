@@ -35,7 +35,8 @@ public sealed class AppHarness : IDisposable
     /// <summary>The harness a test is using (UI tests run one at a time, on Avalonia's thread).</summary>
     private static AppHarness? _current;
 
-    public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true)
+    /// <param name="realOutputs">Play on this computer's sound devices (silence, unless a test plays) rather than offline.</param>
+    public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true, bool realOutputs = false)
     {
         _work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
         MusicPath = musicFolder ?? Path.Combine(_work, "Music");
@@ -48,7 +49,7 @@ public sealed class AppHarness : IDisposable
 
         // Real BASS mixing, but offline: nothing plays aloud, and tests pull audio with Render().
         Audio = new AudioEngine();
-        Mix = new MixEngine(Audio, offline: true);
+        Mix = new MixEngine(Audio, offline: !realOutputs);
         ViewModel = new MainWindowViewModel(Database, Settings, Audio, Mix);
         Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
         Window.Show();

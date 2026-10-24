@@ -125,13 +125,58 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
-    public void The_headphones_can_be_the_right_side_of_the_speakers_output_but_not_the_booth()
+    public void One_output_for_both_is_its_own_switch_off_by_default()
     {
         using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Sound);
         var settings = app.ViewModel.Settings;
-        Assert.Equal([SettingsViewModel.NoDevice, SettingsViewModel.SplitChoice], settings.CueDevices.Take(2));
-        Assert.DoesNotContain(SettingsViewModel.SplitChoice, settings.BoothDevices);
-        Assert.Equal(SettingsViewModel.NoDevice, settings.CueDevice);   // offline: nothing chosen
+        var toggle = Panel(app).FindControl<ToggleButton>("SplitOutputSwitch")!;
+        Assert.True(toggle.IsEffectivelyVisible);
+        Assert.False(toggle.IsChecked);
+        Assert.False(settings.SplitOutput);
+        Assert.True(Panel(app).FindControl<ComboBox>("CueDeviceBox")!.IsEffectivelyVisible);
+        Assert.False(Panel(app).FindControl<TextBlock>("CueSplitText")!.IsEffectivelyVisible);
+        Assert.False(Panel(app).FindControl<TextBlock>("SpeakersSplitHelp")!.IsEffectivelyVisible);
+        Assert.Equal(SettingsViewModel.NoDevice, settings.CueDevices[0]);
+        Assert.All(settings.CueDevices.Skip(1), d => Assert.NotEqual(-2, d.Index));   // no split entry in the list
+
+        settings.SplitOutput = true;   // offline: there's nothing to split
+        Assert.False(settings.SplitOutput);
+    }
+
+    [AvaloniaFact]
+    public void One_output_for_both_says_left_and_right_in_settings_and_the_top_bar()
+    {
+        // Shared, not GZJam's alone: another program (a GZJam being tried, say) may be using one.
+        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, ExclusiveSpeakers = false }, realOutputs: true);
+        foreach (var device in app.Audio.GetOutputDevices().Where(d => !d.FollowsSystemDefault))
+        {
+            if (app.Mix.Main.Device is not null)
+                break;
+            app.ViewModel.SetOutputs(device, null, null, remember: false, quiet: true);
+        }
+        Assert.SkipWhen(app.Mix.Main.Device is null, "Needs a sound device that opens.");
+        app.Window.OpenSettings(SettingsSection.Sound);
+        var settings = app.ViewModel.Settings;
+        string name = app.Mix.Main.Device!.Name;
+
+        settings.SplitOutput = true;
+        AppHarness.Settle(100);
+        Assert.True(app.Mix.IsSplit);
+        Assert.True(Panel(app).FindControl<ToggleButton>("SplitOutputSwitch")!.IsChecked);
+        Assert.True(Panel(app).FindControl<TextBlock>("SpeakersSplitHelp")!.IsEffectivelyVisible);
+        Assert.True(Panel(app).FindControl<TextBlock>("CueSplitText")!.IsEffectivelyVisible);
+        Assert.False(Panel(app).FindControl<ComboBox>("CueDeviceBox")!.IsEffectivelyVisible);
+        Assert.Equal($"Left · {name}", app.ViewModel.MainOutputName);   // the side first: a long name is trimmed at its end
+        Assert.Equal($"Right · {name}", app.ViewModel.CueOutputName);
+        Assert.Equal("Split: the room on the left plug, your headphones on the right.", app.ViewModel.Notice);
+        app.Screenshot("settings-sound-split");
+
+        settings.SplitOutput = false;
+        AppHarness.Settle(100);
+        Assert.False(app.Mix.IsSplit);
+        Assert.Null(app.Mix.Cue.Device);   // the headphones are off until chosen again
+        Assert.Equal(name, app.ViewModel.MainOutputName);
     }
 
     [AvaloniaFact]
