@@ -96,8 +96,7 @@ Nothing yet since 0.7.0.
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
 
 *Testing*
-- [A testing checklist](https://github.com/GemZombie/GZJam/issues/88) for each computer, then test
-  passes [on Linux](https://github.com/GemZombie/GZJam/issues/19) and
+- Test passes with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19) and
   [on a real Mac](https://github.com/GemZombie/GZJam/issues/18), the booth and the splitter cable
   by ear, a very large library, and a real night
 
