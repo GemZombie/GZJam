@@ -401,7 +401,8 @@ lock, and automatic history.
 
 - Typed filters, close to Mixxx's so its users feel at home (`SearchQuery`):
   `bpm:140` (anything that rounds to it), `bpm:130-150`, `bpm:>200`; `~bpm:140` = within 8%,
-  the tempo slider's reach, so everything listed could be pitched to 140; `year:1938`,
+  the tempo slider's reach, so everything listed could be pitched to 140 (Settings › Library ›
+  *Near a BPM* changes that, 1-20%; `~bpm:140/5` for one search); `year:1938`,
   `year:1935-1940`, `year:<1950`; `artist:basie`, `title:`, `album:`, `genre:`, `comment:`,
   `folder:` (quote several words: `artist:"count basie"`); `rating:yes|no|none`;
   `energy:high|medium|low|none` or `energy:2-3`. A leading `-` leaves things out
@@ -885,6 +886,15 @@ not here. This file records what was decided and built, and why.
   that label, with its spelling, and says so. The dialog warns before. It can't be undone.
 - Not followed: a `-label:` exclusion in the search. A Mixxx crate imported again comes back under
   its old name, since GZJam only reads Mixxx's database.
+
+### Status: how near `~bpm:` reaches (2026-10-23, issue #7)
+
+- **A setting:** Settings › Library › *Near a BPM*, ±1% to ±20% (8% to start with, as far as the
+  tempo slider goes), remembered (`NearBpmPercent`). It's how far `~bpm:` reaches either side,
+  so the BPM button's *Near Deck N* choices follow it too. Changing it redoes a `~bpm:` search.
+- **Typed, for one search:** `~bpm:140/5` (or `/5%`), up to 50%. `~bpm:140/` while still typing
+  uses the setting meanwhile rather than dropping the filter.
+- Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
 ## Decided against
 

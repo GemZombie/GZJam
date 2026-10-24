@@ -46,4 +46,28 @@ public sealed class SearchAppTests
         Assert.Equal("", app.Library.SearchText);
         Assert.Equal(everything, app.Library.Results.Count);
     }
+
+    [AvaloniaFact]
+    public void How_near_a_bpm_search_reaches_is_a_setting_and_the_results_follow_it()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        app.Library.SearchText = "~bpm:180";
+        AppHarness.Settle();
+        int wide = app.Library.Results.Count;
+        Assert.All(app.Library.Results, t => Assert.InRange(t.Bpm!.Value, 180 * 0.92, 180 * 1.08));
+        Assert.Equal("±8%", vm.Settings.NearBpmText);
+
+        for (int i = 0; i < 6; i++)
+            vm.Settings.NearBpmCloserCommand.Execute(null);
+        AppHarness.Settle();
+
+        Assert.Equal("±2%", vm.Settings.NearBpmText);
+        Assert.Equal(2, app.Settings.NearBpmPercent);   // remembered
+        Assert.All(app.Library.Results, t => Assert.InRange(t.Bpm!.Value, 180 * 0.98, 180 * 1.02));
+        Assert.True(app.Library.Results.Count < wide, $"{app.Library.Results.Count} of {wide}");
+
+        vm.Settings.NearBpmPercent = 0;   // never closer than 1%
+        Assert.Equal("±1%", vm.Settings.NearBpmText);
+    }
 }

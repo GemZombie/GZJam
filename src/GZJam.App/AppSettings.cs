@@ -101,6 +101,9 @@ public sealed class AppSettings
     public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
     public double FadeOutSeconds { get; set; } = 5;
 
+    /// <summary>How far <c>~bpm:</c> searches reach either side, in percent (the tempo slider's ±8% to start with).</summary>
+    public double NearBpmPercent { get; set; } = 8;
+
     /// <summary>Seconds of silence auto-play leaves between songs.</summary>
     public double GapSeconds { get; set; } = 3;
 

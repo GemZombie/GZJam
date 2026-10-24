@@ -409,15 +409,21 @@ public sealed partial class LibraryDatabase
         return counts;
     }
 
+    /// <summary>How far <c>~bpm:</c> searches reach either side unless the DJ chooses: the tempo slider's range.</summary>
+    public const double DefaultNearBpm = 0.08;
+
     /// <summary>
     /// Finds tracks matching every word of <paramref name="text"/> (as word prefixes) in any tag or
     /// folder name, and any filters in it (<c>bpm:130-150</c>, <c>artist:basie</c>, <c>-rating:no</c>;
     /// see <see cref="SearchQuery"/>), within <paramref name="scope"/> and everything beneath it.
     /// Empty text lists everything in scope. Results are in folder order, as they appear on disk.
+    /// <paramref name="nearBpm"/> is how far <c>~bpm:</c> reaches either side (a fraction), unless
+    /// the search says (<c>~bpm:140/5</c>).
     /// </summary>
-    public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default)
+    public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default,
+        double nearBpm = DefaultNearBpm)
     {
-        var query = SearchQuery.Parse(text);
+        var query = SearchQuery.Parse(text, nearBpm: nearBpm);
 
         var sql = new StringBuilder($"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE 1 = 1");
         foreach (string condition in query.Conditions)

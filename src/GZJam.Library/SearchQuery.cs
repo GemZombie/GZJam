@@ -9,8 +9,9 @@ namespace GZJam.Library;
 /// <list type="bullet">
 /// <item><c>artist:basie</c>, <c>title:</c>, <c>album:</c>, <c>genre:</c>, <c>comment:</c>, <c>folder:</c>
 /// (quote several words: <c>artist:"count basie"</c>)</item>
-/// <item><c>bpm:140</c>, <c>bpm:130-150</c>, <c>bpm:&gt;200</c>; <c>~bpm:140</c> is within 8% either side,
-/// as far as the tempo slider reaches</item>
+/// <item><c>bpm:140</c>, <c>bpm:130-150</c>, <c>bpm:&gt;200</c>; <c>~bpm:140</c> is near 140: within 8%
+/// either side (as far as the tempo slider reaches) unless the DJ chose otherwise in Settings, or
+/// for one search <c>~bpm:140/5</c> (5%)</item>
 /// <item><c>year:1938</c>, <c>year:1935-1940</c>, <c>year:&lt;1950</c></item>
 /// <item><c>rating:yes</c> (♥), <c>rating:no</c> (broken heart), <c>rating:none</c></item>
 /// <item><c>energy:high</c>, <c>energy:medium</c>, <c>energy:low</c>, <c>energy:none</c>, <c>energy:2-3</c></item>
@@ -23,8 +24,6 @@ namespace GZJam.Library;
 /// </summary>
 internal sealed class SearchQuery
 {
-    /// <summary>How far <c>~bpm:</c> reaches either side: the tempo slider's range.</summary>
-    public const double NearBpm = 0.08;
 
     /// <summary>The BPM the app shows: the tag's, unless the DJ chose a range for detection.</summary>
     private const string BpmSql = "COALESCE(mb.bpm, CASE WHEN r.min IS NOT NULL THEN COALESCE(a.bpm, t.bpm) ELSE COALESCE(t.bpm, a.bpm) END)";
@@ -43,8 +42,9 @@ internal sealed class SearchQuery
     private readonly Dictionary<string, object> _parameters = [];
     private readonly List<string> _words = [];
     private readonly DateTime _nowUtc;
+    private readonly double _nearBpm;
 
-    private SearchQuery(DateTime nowUtc) => _nowUtc = nowUtc;
+    private SearchQuery(DateTime nowUtc, double nearBpm) => (_nowUtc, _nearBpm) = (nowUtc, nearBpm);
 
     /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r), marks (m) and plays (lp).</summary>
     public IReadOnlyList<string> Conditions => _conditions;
@@ -52,9 +52,10 @@ internal sealed class SearchQuery
     public IReadOnlyDictionary<string, object> Parameters => _parameters;
 
     /// <param name="nowUtc">For <c>played:</c> filters; defaults to now.</param>
-    public static SearchQuery Parse(string? text, DateTime? nowUtc = null)
+    /// <param name="nearBpm">How far <c>~bpm:</c> reaches either side, as a fraction.</param>
+    public static SearchQuery Parse(string? text, DateTime? nowUtc = null, double nearBpm = LibraryDatabase.DefaultNearBpm)
     {
-        var query = new SearchQuery(nowUtc ?? DateTime.UtcNow);
+        var query = new SearchQuery(nowUtc ?? DateTime.UtcNow, nearBpm);
         foreach (string token in Tokenize(text ?? ""))
             query.Add(token);
         if (LibraryDatabase.BuildMatchExpression(string.Join(' ', query._words)) is { } match)
@@ -130,11 +131,25 @@ internal sealed class SearchQuery
         return "";
     }
 
+    /// <summary>"140": near 140, as far as the DJ chose. "140/5": within 5% either side.</summary>
     private string? NearBpmCondition(string value)
     {
+        double near = _nearBpm;
+        int slash = value.IndexOf('/');
+        if (slash >= 0)
+        {
+            string typed = value[(slash + 1)..].TrimEnd('%');
+            if (typed.Length > 0)   // "140/" still being typed: as near as usual meanwhile
+            {
+                if (!TryNumber(typed, out double percent) || percent <= 0)
+                    return null;
+                near = Math.Min(percent, 50) / 100;
+            }
+            value = value[..slash];
+        }
         if (!TryNumber(value, out double bpm) || bpm <= 0)
             return null;
-        return $"{BpmSql} BETWEEN {Parameter(bpm * (1 - NearBpm))} AND {Parameter(bpm * (1 + NearBpm))}";
+        return $"{BpmSql} BETWEEN {Parameter(bpm * (1 - near))} AND {Parameter(bpm * (1 + near))}";
     }
 
     /// <summary>

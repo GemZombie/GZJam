@@ -13,7 +13,7 @@ release.
 **Library**
 - Your music folders are the library: a folder tree, with search covering everything under the
   folder you pick. Nothing to import, and your music files are never changed.
-- Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider), `artist:`,
+- Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:` and `played:` (`-played:7` leaves out the songs the room heard last week).
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
@@ -65,14 +65,16 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   the close-up or the whole song, by finger or mouse, on air too.
 - **Tap tempo:** set a song's BPM by tapping along to it on a deck, while you keep mixing.
 - **Labels on the decks and queue,** and renaming a label.
+- **How near `~bpm:` searches reach:** a setting (±8% to start with, the tempo slider's reach),
+  or for one search `~bpm:140/5`.
 - **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into
   bars like a waveform.
 
 ## Planned next
 
 **0.5.0: setting points precisely.** Cue keys, jumps and a song's start and end are only as good
-as where they're put; finding the exact spot, by mouse or finger, is the focus.
-- [Choose how close `~bpm:` searches are](https://github.com/GemZombie/GZJam/issues/7)
+as where they're put; finding the exact spot, by mouse or finger, is the focus. Everything planned
+for it is finished (above).
 
 **After that, 0.6.0:**
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged

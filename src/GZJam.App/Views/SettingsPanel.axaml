@@ -184,14 +184,32 @@
           <StackPanel Margin="20,16">
             <TextBlock Classes="settings-group" Text="LIBRARY" />
             <Border Classes="settings-card">
-              <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
-                <StackPanel Spacing="2">
-                  <TextBlock Classes="setting" Text="Import from Mixxx" />
-                  <TextBlock Classes="setting-help" Text="Ratings, crates (as labels), History and the BPMs you locked. Mixxx itself isn't changed." />
-                </StackPanel>
-                <Button x:Name="MixxxImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
-                        Click="OnMixxxImportClick" />
-              </Grid>
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Import from Mixxx" />
+                    <TextBlock Classes="setting-help" Text="Ratings, crates (as labels), History and the BPMs you locked. Mixxx itself isn't changed." />
+                  </StackPanel>
+                  <Button x:Name="MixxxImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
+                          Click="OnMixxxImportClick" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Near a BPM" />
+                    <TextBlock Classes="setting-help"
+                               Text="How far ~bpm:140 searches reach either side, and the BPM button's Near Deck choices. ±8% is as far as the tempo slider goes. For one search, type ~bpm:140/5." />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                    <Button x:Name="NearBpmCloserButton" Classes="hw step" Content="−" Command="{Binding NearBpmCloserCommand}" />
+                    <Border Classes="readout-window" MinWidth="52">
+                      <TextBlock Classes="mono" Text="{Binding NearBpmText}" FontWeight="SemiBold" FontSize="12.5"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Button x:Name="NearBpmWiderButton" Classes="hw step" Content="+" Command="{Binding NearBpmWiderCommand}" />
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
             </Border>
           </StackPanel>
         </ScrollViewer>

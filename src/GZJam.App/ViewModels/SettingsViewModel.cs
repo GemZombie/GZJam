@@ -184,6 +184,27 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void FadeOutLonger() => FadeOutSeconds += 1;
 
+    /// <summary>How far <c>~bpm:</c> searches (and the BPM button's "Near Deck") reach either side, in percent.</summary>
+    public double NearBpmPercent
+    {
+        get => _settings.NearBpmPercent;
+        set
+        {
+            _settings.NearBpmPercent = Math.Clamp(Math.Round(value), 1, 20);
+            _owner.Library.NearBpm = _settings.NearBpmPercent / 100;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(NearBpmText));
+        }
+    }
+
+    public string NearBpmText => $"±{NearBpmPercent:0}%";
+
+    [RelayCommand]
+    private void NearBpmCloser() => NearBpmPercent -= 1;
+
+    [RelayCommand]
+    private void NearBpmWider() => NearBpmPercent += 1;
+
     /// <summary>Re-lists devices, e.g. after plugging in a USB interface.</summary>
     [RelayCommand]
     public void RefreshDevices()

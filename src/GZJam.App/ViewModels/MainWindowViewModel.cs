@@ -23,7 +23,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Audio = audio;
         Mix = mix;
         AudioError = audioError;
-        Library = new LibraryViewModel(database);
+        Library = new LibraryViewModel(database) { NearBpm = settings.NearBpmPercent / 100 };
         Queue = new QueueViewModel();
         History = new HistoryViewModel(database);
         Library.TonightSince = () => History.CurrentSessionStartUtc;
