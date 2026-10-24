@@ -29,6 +29,52 @@ public sealed class AboutTests
     }
 
     /// <summary>
+    /// After a release, VersionPrefix in GZJam.App.csproj goes up to the next version, so builds
+    /// made here read "0.6.0-dev" after 0.5.0, not "0.5.0-dev". This fails until it does. Only
+    /// for builds made here ("-dev"); release builds take the tag's version, and a checkout
+    /// without tags (CI) has nothing to compare with.
+    /// </summary>
+    [Fact]
+    public void A_build_made_here_is_ahead_of_the_newest_release()
+    {
+        if (!About.Version.EndsWith("-dev", StringComparison.Ordinal))
+            return;
+        var dev = System.Version.Parse(About.Version[..^"-dev".Length]);
+
+        string repo = AppContext.BaseDirectory;
+        while (!File.Exists(Path.Combine(repo, "GZJam.slnx")))
+            repo = Path.GetDirectoryName(repo)!;
+        string tags;
+        try
+        {
+            using var git = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("git", "tag --list v*")
+            {
+                WorkingDirectory = repo,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+            })!;
+            tags = git.StandardOutput.ReadToEnd();
+            git.WaitForExit();
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            return;   // no git
+        }
+
+        // Released versions; a pre-release (v0.6.0-beta.1) is on the way to its version, so a tie is fine.
+        var released = tags.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(t => (Tag: t, Match: Regex.Match(t, @"^v(\d+\.\d+\.\d+)(-.+)?$")))
+            .Where(t => t.Match.Success)
+            .Select(t => (t.Tag, Version: System.Version.Parse(t.Match.Groups[1].Value), Final: !t.Match.Groups[2].Success))
+            .ToList();
+        foreach (var (tag, version, final) in released)
+        {
+            Assert.True(final ? dev > version : dev >= version,
+                $"Builds made here say {About.Version}, but {tag} is already released: raise VersionPrefix in src/GZJam.App/GZJam.App.csproj to the next version.");
+        }
+    }
+
+    /// <summary>
     /// A library added to GZJam needs its licence in THIRD-PARTY-NOTICES.txt: this fails until its
     /// name (or its family's, like Avalonia for Avalonia.Win32) is in the opening list.
     /// </summary>
