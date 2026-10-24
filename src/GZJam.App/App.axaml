@@ -83,10 +83,11 @@
       <!-- Fluent theme overrides: small corners; menus, drop-downs and flyouts in the panel colours -->
       <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
       <CornerRadius x:Key="OverlayCornerRadius">6</CornerRadius>
-      <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#171A21" />
-      <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#2F3542" />
-      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#262C38" />
-      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#1E232C" />
+      <!-- Menus a step lighter than the panels, with a brighter edge, so they read as above them -->
+      <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#232731" />
+      <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#46505F" />
+      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#323947" />
+      <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#2A303B" />
       <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#13161C" />
       <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#2F3542" />
       <SolidColorBrush x:Key="ComboBoxBackground" Color="#0E1116" />
