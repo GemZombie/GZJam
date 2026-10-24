@@ -89,6 +89,22 @@ public sealed class MixEngine : IDisposable
     public OutputBus Main { get; private set; }
     public OutputBus Cue { get; private set; }
 
+    /// <summary>
+    /// The speakers and headphones share one output, through a splitter cable: the speakers in
+    /// mono on its left channel, the headphones in mono on its right. Chosen by giving the
+    /// headphones the speakers' own output.
+    /// </summary>
+    public bool IsSplit => _carrier is not null;
+
+    /// <summary>When split: the output on the device, carrying both (see <see cref="Split"/>).</summary>
+    private OutputBus? _carrier;
+
+    /// <summary>What plays on the speakers' device: GZJam's alone or not, unplugged or not.</summary>
+    private OutputBus SpeakerOutput => _carrier ?? Main;
+
+    /// <summary>GZJam has the speakers' output to itself (see <see cref="ExclusiveSpeakers"/>).</summary>
+    public bool SpeakersAreExclusive => SpeakerOutput.IsExclusive;
+
     /// <summary>A monitor speaker for the DJ: what the room hears, at its own volume. Never the headphones' preview.</summary>
     public OutputBus Booth { get; private set; }
     public IReadOnlyList<Deck> Decks { get; }
@@ -142,7 +158,8 @@ public sealed class MixEngine : IDisposable
     /// <summary>
     /// Points the buses at audio devices. Decks and preview keep playing through the switch.
     /// A null cue device leaves the headphones silent (they are never sent to the speakers); a null
-    /// booth device, the booth. A booth on the speakers' or headphones' own output isn't opened.
+    /// booth device, the booth. Headphones on the speakers' own output split it (see
+    /// <see cref="IsSplit"/>). A booth on the speakers' or headphones' own output isn't opened.
     /// </summary>
     public void SetOutputs(AudioDevice? main, AudioDevice? cue, AudioDevice? booth = null)
     {
@@ -156,12 +173,14 @@ public sealed class MixEngine : IDisposable
 
         // Let go of the old outputs before opening the new ones. A Linux sound card opens only
         // once, and GZJam's own "Default" (through PipeWire) may be playing on the very card chosen.
+        _carrier?.Dispose();
+        _carrier = null;
         oldMain.Dispose();
         oldCue.Dispose();
         oldBooth.Dispose();
         // An output wanted for GZJam alone is let go of too: Windows won't give it exclusively
         // while GZJam itself still has it shared.
-        Engine.ReleaseDevicesExcept(WantsExclusive(main, cue) ? null : main?.Index, cue?.Index, booth?.Index);
+        Engine.ReleaseDevicesExcept(WantsExclusive(main) ? null : main?.Index, cue?.Index == main?.Index ? null : cue?.Index, booth?.Index);
         try
         {
             Open(main, cue, booth, oldMain, oldCue, oldBooth);
@@ -187,19 +206,32 @@ public sealed class MixEngine : IDisposable
     private void Open(AudioDevice? main, AudioDevice? cue, AudioDevice? booth,
         OutputBus settingsMain, OutputBus settingsCue, OutputBus settingsBooth)
     {
-        OutputBus newMain = CreateMainBus(main, cue);
-        OutputBus newCue;
+        OutputBus newMain, newCue;
         CueRefusal = null;
-        try
+        if (main is not null && cue?.Index == main.Index)
         {
-            newCue = CreateBus(cue);
+            // One output, split: the speakers and headphones each keep their own mix, volume and
+            // limiter, then go to one side each of the speakers' output.
+            OutputBus carrier = CreateMainBus(main);
+            newMain = new OutputBus(CreateMixer(BassFlags.Decode), main);
+            newCue = new OutputBus(CreateMixer(BassFlags.Decode), main);
+            Split(carrier.Handle, newMain, newCue);
+            _carrier = carrier;
         }
-        catch (AudioException ex)
+        else
         {
-            // The room comes first: the speakers play on, the headphones are silent, and the app
-            // says why.
-            CueRefusal = ex.Message;
-            newCue = CreateBus(null);
+            newMain = CreateMainBus(main);
+            try
+            {
+                newCue = CreateBus(cue);
+            }
+            catch (AudioException ex)
+            {
+                // The room comes first: the speakers play on, the headphones are silent, and the
+                // app says why.
+                CueRefusal = ex.Message;
+                newCue = CreateBus(null);
+            }
         }
         OutputBus newBooth = OpenBooth(booth, main, cue);
         newMain.CopySettingsFrom(settingsMain);
@@ -224,13 +256,13 @@ public sealed class MixEngine : IDisposable
             deck.Update();
         Preview.Update();
         long now = Environment.TickCount64;
-        if (!_mainLostRaised && Main.IsLost)
+        if (!_mainLostRaised && SpeakerOutput.IsLost)
         {
             _mainLostRaised = true;
             _dryAt = -1;
             MainOutputLost?.Invoke(this, EventArgs.Empty);
         }
-        else if (_dryAt < 0 && now - _lastDropout > 10_000 && Main.IsDry())
+        else if (_dryAt < 0 && now - _lastDropout > 10_000 && SpeakerOutput.IsDry())
         {
             _dryAt = now;
         }
@@ -239,7 +271,7 @@ public sealed class MixEngine : IDisposable
         if (_dryAt >= 0 && now - _dryAt >= 500)
         {
             _dryAt = -1;
-            if (!Main.IsLost)
+            if (!SpeakerOutput.IsLost)
             {
                 _lastDropout = now;
                 MainDropout?.Invoke(this, EventArgs.Empty);
@@ -276,20 +308,15 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    /// <summary>
-    /// The speakers are to be GZJam's alone. Not when the headphones are the same output: GZJam
-    /// would then be keeping its own headphones out.
-    /// </summary>
-    private bool WantsExclusive(AudioDevice? device, AudioDevice? cue) =>
-        ExclusiveSpeakers && OperatingSystem.IsWindows() && device is { FollowsSystemDefault: false } && cue?.Index != device.Index;
+    /// <summary>The speakers are to be GZJam's alone (split with the headphones or not).</summary>
+    private bool WantsExclusive(AudioDevice? device) =>
+        ExclusiveSpeakers && OperatingSystem.IsWindows() && device is { FollowsSystemDefault: false };
 
-    /// <summary>The speakers: GZJam's alone if wanted and possible, else shared (saying why).</summary>
-    private OutputBus CreateMainBus(AudioDevice? device, AudioDevice? cue)
+    /// <summary>The speakers' output: GZJam's alone if wanted and possible, else shared (saying why).</summary>
+    private OutputBus CreateMainBus(AudioDevice? device)
     {
         ExclusiveRefusal = null;
-        if (ExclusiveSpeakers && OperatingSystem.IsWindows() && device is { FollowsSystemDefault: false } && cue?.Index == device.Index)
-            ExclusiveRefusal = $"{device.Name} is also the headphone output";
-        if (WantsExclusive(device, cue))
+        if (WantsExclusive(device))
         {
             try
             {
@@ -332,18 +359,40 @@ public sealed class MixEngine : IDisposable
     // NonStop: keep the output running through silence, so starting a track is instant.
     private const BassFlags MixerFlags = BassFlags.Float | BassFlags.MixerNonStop;
 
-    private OutputBus CreateBus(AudioDevice? device)
+    /// <summary>A mixer playing on the device, or with none, one that tests pull (offline).</summary>
+    private OutputBus CreateBus(AudioDevice? device) =>
+        device is null ? new OutputBus(CreateMixer(BassFlags.Decode), null) : CreateDeviceBus(device);
+
+    /// <summary>A mixer on no device: pulled by tests, or by another mixer.</summary>
+    private int CreateMixer(BassFlags extra)
+    {
+        Engine.UseNoSoundDevice();
+        int mixer = BassMix.CreateMixerStream(SampleRate, Channels, MixerFlags | extra);
+        if (mixer == 0)
+            throw new AudioException("Could not create mixer", Bass.LastError);
+        return mixer;
+    }
+
+    /// <summary>
+    /// The speakers to the left channel of <paramref name="carrier"/> and the headphones to the
+    /// right, each in mono: a splitter cable gives each side its own plug.
+    /// </summary>
+    internal static void Split(int carrier, OutputBus speakers, OutputBus headphones)
+    {
+        foreach (var (bus, side) in new[] { (speakers, 0), (headphones, 1) })
+        {
+            if (!BassMix.MixerAddChannel(carrier, bus.Handle, BassFlags.MixerChanMatrix))
+                throw new AudioException("Could not split the output", Bass.LastError);
+            var matrix = new float[Channels, Channels];   // [out, in]
+            matrix[side, 0] = matrix[side, 1] = 0.5f;
+            if (!BassMix.ChannelSetMatrix(bus.Handle, matrix))
+                throw new AudioException("Could not split the output", Bass.LastError);
+        }
+    }
+
+    private OutputBus CreateDeviceBus(AudioDevice device)
     {
         const BassFlags flags = MixerFlags;
-
-        if (device is null)
-        {
-            Engine.UseNoSoundDevice();
-            int offline = BassMix.CreateMixerStream(SampleRate, Channels, flags | BassFlags.Decode);
-            if (offline == 0)
-                throw new AudioException("Could not create mixer", Bass.LastError);
-            return new OutputBus(offline, null);
-        }
 
         try
         {
@@ -367,6 +416,7 @@ public sealed class MixEngine : IDisposable
         foreach (Deck deck in Decks)
             deck.Dispose();
         Preview.Dispose();
+        _carrier?.Dispose();
         Main.Dispose();
         Cue.Dispose();
         Booth.Dispose();

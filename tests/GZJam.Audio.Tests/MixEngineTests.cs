@@ -630,6 +630,43 @@ public sealed class MixEngineTests : IDisposable
         Assert.False(levels.Limited);
     }
 
+    [Fact]
+    public void Split_puts_the_room_on_the_left_and_the_headphones_on_the_right_each_in_mono()
+    {
+        // A recording with its tune on the left only: in mono it's on both, at half the level.
+        string oneSided = TestWav.WriteTone(Path.Combine(_dir, "left only.wav"), TimeSpan.FromSeconds(10), amplitude: 0.4, right: 0);
+        _mix.Crossfader = 0;
+        A.Load(_tone);
+        A.Play();
+        B.Load(oneSided);
+        B.Cue = true;   // out of the room, in the headphones
+        B.Play();
+
+        int carrier = ManagedBass.Mix.BassMix.CreateMixerStream(MixEngine.SampleRate, MixEngine.Channels,
+            ManagedBass.BassFlags.Float | ManagedBass.BassFlags.Decode | ManagedBass.BassFlags.MixerNonStop);
+        try
+        {
+            MixEngine.Split(carrier, _mix.Main, _mix.Cue);
+            var buffer = new float[MixEngine.SampleRate * MixEngine.Channels / 2];   // 0.25 s
+            ManagedBass.Bass.ChannelGetData(carrier, buffer, buffer.Length * sizeof(float) | (int)ManagedBass.DataFlags.Float);
+            int bytes = ManagedBass.Bass.ChannelGetData(carrier, buffer, buffer.Length * sizeof(float) | (int)ManagedBass.DataFlags.Float);
+            Assert.True(bytes > 0);
+
+            float left = 0, right = 0;
+            for (int i = 0; i + 1 < bytes / sizeof(float); i += 2)
+            {
+                left = Math.Max(left, Math.Abs(buffer[i]));
+                right = Math.Max(right, Math.Abs(buffer[i + 1]));
+            }
+            Assert.Equal(Full, left, 0.02f);   // the room: Deck A alone
+            Assert.Equal(0.2f, right, 0.02f);  // the headphones: Deck B, its left side in mono
+        }
+        finally
+        {
+            ManagedBass.Bass.StreamFree(carrier);
+        }
+    }
+
     [Theory]
     [InlineData(0.0, 0.0)]     // fader away from the deck: silent in the room
     [InlineData(1.0, 1.0)]     // fader on the deck: full

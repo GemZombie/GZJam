@@ -1060,6 +1060,22 @@ rest of it.
 - **Not yet:** a delay for the booth, to line it up with the room's speakers far away; wait for a
   DJ to ask.
 
+### Status: speakers and headphones from one output (2026-10-24, issue #15)
+
+- **The ask:** a laptop (or later a tablet) with one output, and no USB interface: the speakers
+  in mono on its left channel and the headphones on its right, through a splitter cable (a "DJ
+  splitter": one stereo plug to two mono sockets), as djay does.
+- **Where:** Settings › Sound › Headphones › *Speakers' output, right side*. The speakers' own
+  output isn't offered as a whole for the headphones any more: that would put them in the room.
+  The top bar's chips say "…, left" and "…, right". Moving the speakers to the headphones' own
+  output turns the headphones off, with a notice, rather than splitting by surprise.
+- **How:** the speakers and headphones each keep their own mixer, volume, limiter and meter (as
+  decoding mixers), then both go into one mixer on the device, each summed to mono on its own
+  side (`MixEngine.Split`, a BASSmix matrix). Saved as headphones on the speakers' own output, so
+  it comes back at startup, and after an unplug like the speakers. It can be GZJam's alone on
+  Windows like any speaker output.
+- **Mono:** both sides are always mono in this mode, whatever the Mono switch says.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

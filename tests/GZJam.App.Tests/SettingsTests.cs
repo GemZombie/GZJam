@@ -6,6 +6,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using GZJam.App.ViewModels;
 using GZJam.App.Views;
 
 namespace GZJam.App.Tests;
@@ -121,6 +122,16 @@ public sealed class SettingsTests
         Assert.False(app.ViewModel.Mix.Booth.Mono);
         settings.Mono = true;
         Assert.True(app.ViewModel.Mix.Booth.Mono);
+    }
+
+    [AvaloniaFact]
+    public void The_headphones_can_be_the_right_side_of_the_speakers_output_but_not_the_booth()
+    {
+        using var app = new AppHarness();
+        var settings = app.ViewModel.Settings;
+        Assert.Equal([SettingsViewModel.NoDevice, SettingsViewModel.SplitChoice], settings.CueDevices.Take(2));
+        Assert.DoesNotContain(SettingsViewModel.SplitChoice, settings.BoothDevices);
+        Assert.Equal(SettingsViewModel.NoDevice, settings.CueDevice);   // offline: nothing chosen
     }
 
     [AvaloniaFact]

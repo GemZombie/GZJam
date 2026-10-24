@@ -66,7 +66,7 @@
                       <Border Classes="led on amber" VerticalAlignment="Center" />
                       <TextBlock Classes="setting" Text="Headphones" />
                     </StackPanel>
-                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room." />
+                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room. With one output, choose its right side and plug in a splitter cable." />
                   </StackPanel>
                   <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
                 </Grid>
