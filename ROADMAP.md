@@ -137,8 +137,8 @@ to one you'd use.
 
 - **Streaming services** (Spotify, Apple Music, TIDAL, Beatport): DJ streaming is only open to
   partner companies, and Spotify's terms forbid mixing its music.
-- **DJ controllers (MIDI), for now:** they're made for beatmatching and live effects, which
-  partner-dance DJing rarely needs, and GZJam aims to stay simple. A controller's own sound card
+- **DJ controllers (MIDI), for now:** they're made for beatmatching, scratching and live effects,
+  and GZJam aims to stay simple: choosing the right song and playing it well. A controller's own sound card
   works as an output already. If you'd use one with GZJam, say so in
   [Ideas](https://github.com/GemZombie/GZJam/discussions/categories/ideas).
 
