@@ -22,6 +22,11 @@ New:
   and auto-play can run it. The queue's menu and a night in History can each be saved as a
   playlist too. Import from Mixxx brings your Mixxx playlists across, in their order.
 
+Changed:
+
+- **Menus stand out from the panels behind them:** a step lighter, with a brighter edge, so on a
+  dim screen it's clear where a menu ends and the song list begins.
+
 Fixed:
 
 - **The BPM and Label menus by the search open with their choices again.** A click opened them
