@@ -26,7 +26,9 @@ public static class TestAppBuilder
 /// </summary>
 public sealed class AppHarness : IDisposable
 {
-    public static string ScreenshotDirectory { get; } = Path.Combine(Path.GetTempPath(), "gzjam-screenshots");
+    /// <summary>Where tests save pictures of the screen; made when first asked for (a fresh machine has none).</summary>
+    public static string ScreenshotDirectory { get; } =
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "gzjam-screenshots")).FullName;
 
     private readonly string _work;
 
@@ -178,7 +180,6 @@ public sealed class AppHarness : IDisposable
     public string Screenshot(string name)
     {
         Settle(200);
-        Directory.CreateDirectory(ScreenshotDirectory);
         string path = Path.Combine(ScreenshotDirectory, name + ".png");
         using var frame = Window.CaptureRenderedFrame();
         frame?.Save(path, new PngBitmapEncoderOptions());
