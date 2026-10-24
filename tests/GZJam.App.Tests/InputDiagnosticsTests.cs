@@ -189,7 +189,9 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
-        var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
+        var deck = app.Window.FindControl<DeckView>("Deck1View")!;
+        deck.HoldToPause = TimeSpan.FromMinutes(1);   // a slow machine (CI's Linux) took 0.6 s to click: a hold (#68)
+        var play = deck.FindControl<Button>("PlayButton")!;
         Point p = Centre(app, play);
 
         app.Window.MouseDown(p, MouseButton.Left);
