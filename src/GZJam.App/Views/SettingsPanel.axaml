@@ -70,6 +70,25 @@
                   </StackPanel>
                   <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
                 </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Border Classes="led on accent" VerticalAlignment="Center" />
+                      <TextBlock Classes="setting" Text="Booth" />
+                    </StackPanel>
+                    <TextBlock Classes="setting-help" Text="A speaker for you at the DJ table: what the room hears, at its own volume." />
+                  </StackPanel>
+                  <ComboBox x:Name="BoothDeviceBox" Grid.Column="1" ItemsSource="{Binding BoothDevices}" SelectedItem="{Binding BoothDevice}" />
+                </Grid>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto" IsVisible="{Binding HasBooth}">
+                  <TextBlock Classes="setting" Text="Booth volume" VerticalAlignment="Center" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                    <Button x:Name="BoothQuieterButton" Classes="hw step" Content="−" Command="{Binding BoothQuieterCommand}" />
+                    <TextBlock x:Name="BoothVolumeText" Classes="mono" Text="{Binding BoothVolumeText}" MinWidth="58" TextAlignment="Center" VerticalAlignment="Center" />
+                    <Button x:Name="BoothLouderButton" Classes="hw step" Content="+" Command="{Binding BoothLouderCommand}" />
+                  </StackPanel>
+                </Grid>
                 <Button Classes="link" Content="Plugged something in? Refresh the list" Command="{Binding RefreshDevicesCommand}"
                         HorizontalAlignment="Left" Margin="8,-6,0,6" />
                 <Border Classes="settings-rule" />
@@ -91,7 +110,7 @@
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Mono" />
                     <TextBlock Classes="setting-help"
-                               Text="Both sides play the same, in the speakers and the headphones: the whole floor hears instruments recorded on one side, and you hear what the room hears, with either ear." />
+                               Text="Both sides play the same, in the speakers, booth and headphones: the whole floor hears instruments recorded on one side, and you hear what the room hears, with either ear." />
                   </StackPanel>
                   <ToggleButton x:Name="MonoSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Mono}" />
                 </Grid>

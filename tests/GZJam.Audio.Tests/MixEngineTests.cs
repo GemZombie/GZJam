@@ -374,6 +374,55 @@ public sealed class MixEngineTests : IDisposable
         Assert.Equal(Full * 0.2f, cue, 0.02f);
     }
 
+    [Fact]
+    public void The_booth_hears_what_the_room_hears_and_follows_the_crossfader()
+    {
+        _mix.Crossfader = 0;
+        A.Load(_tone);
+        B.Load(_tone);
+        B.Cue = true;   // cued, not in the room
+        A.Play();
+        B.Play();
+        Render(0.1);
+
+        var (main, _, booth) = _mix.RenderAll(TimeSpan.FromSeconds(0.3));
+        Assert.Equal(Full, main, 0.02f);
+        Assert.Equal(Full, booth, 0.02f);   // Deck 1 alone: Deck 2's cue doesn't reach the booth
+
+        A.Pause();
+        _mix.Crossfader = 1;
+        Render(0.3);
+        (main, _, booth) = _mix.RenderAll(TimeSpan.FromSeconds(0.3));
+        Assert.Equal(Full, booth, 0.02f);   // across to Deck 2, as the room is
+        Assert.Equal(main, booth, 0.02f);
+    }
+
+    [Fact]
+    public void The_booth_never_hears_the_preview()
+    {
+        _mix.Preview.Play(_tone);
+
+        var (_, cue, booth) = _mix.RenderAll(TimeSpan.FromSeconds(0.3));
+
+        Assert.Equal(Full, cue, 0.02f);
+        Assert.InRange(booth, 0, Silent);
+    }
+
+    [Fact]
+    public void The_booth_has_its_own_volume()
+    {
+        A.Load(_tone);
+        A.Play();
+        _mix.Main.Volume = 0.5f;
+        _mix.Booth.Volume = 0.2f;
+        Render(0.1);
+
+        var (main, _, booth) = _mix.RenderAll(TimeSpan.FromSeconds(0.3));
+
+        Assert.Equal(Full * 0.5f, main, 0.02f);
+        Assert.Equal(Full * 0.2f, booth, 0.02f);
+    }
+
     [Theory]
     [InlineData(60, 0)]      // bass: the low shelf
     [InlineData(1000, 1)]    // the middle: the bell

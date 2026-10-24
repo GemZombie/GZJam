@@ -21,6 +21,9 @@ New:
   the whole playlist on the end of the queue (right-click a song for *Add to queue from here*),
   and auto-play can run it. The queue's menu and a night in History can each be saved as a
   playlist too. Import from Mixxx brings your Mixxx playlists across, in their order.
+- **A booth output:** a monitor speaker for you at the DJ table, for a big room where the
+  speakers face away from you. Choose it in Settings › Sound › Booth: it plays what the room
+  hears, at its own volume, and never the headphones' preview. Off unless you choose one.
 
 Changed:
 

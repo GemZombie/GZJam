@@ -1035,6 +1035,31 @@ rest of it.
   existed, once; after that `HiddenColumns` holds the DJ's choice.
 - **Not yet:** a bigger picture on hover or tap; covers fetched for ripped CDs (#41).
 
+### Status: a booth (monitor) output (2026-10-24, issue #8)
+
+- **The ask:** a third output for a monitor speaker at the DJ table, for big rooms where the
+  speakers face away from the DJ. Mixxx, djay Pro and VirtualDJ have one in software; with
+  rekordbox it's usually the controller's own BOOTH jack. In a laptop setup GZJam is the mixer, so
+  the booth has to come from GZJam.
+- **What it plays:** what the room hears, after the crossfader, at its own volume: never the
+  headphones' preview or a cued deck. Mono with the speakers and headphones (one switch). Its own
+  limiter, like every output; no meter.
+- **Where:** Settings › Sound › Booth (None by default), with *Booth volume* (−/+ in steps of 5,
+  shown in dB like the faders) once one is chosen. Not a fader on the mixer: it's set for the room
+  at the start of the night, and the mixer strip has no room for a third fader. A BOOTH chip joins
+  MAIN and CUE in the top bar only once a booth is chosen (amber while it isn't connected).
+- **Rules:** like the headphones, the booth never falls back to another output, and a booth that
+  won't open never stops the speakers opening (`MixEngine.BoothRefusal`, said in a notice). A
+  booth on the speakers' or headphones' own output isn't opened: it would play the room twice
+  over, or into the headphones; Settings goes back to None. A saved booth that isn't connected at
+  startup is kept for next time, with a notice.
+- **How:** each deck gets a third split stream into a booth bus, at the same level as its feed to
+  the speakers. All three splits start together with each song, so two sound cards' clocks can
+  only drift apart within one song (tens of milliseconds at most), not over a night. Another
+  output of the speakers' own sound card shares its clock and doesn't drift at all.
+- **Not yet:** a delay for the booth, to line it up with the room's speakers far away; wait for a
+  DJ to ask.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

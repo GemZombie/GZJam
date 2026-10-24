@@ -86,6 +86,48 @@ public sealed class OutputSwitchingTests : IDisposable
     }
 
     [Fact]
+    public void A_booth_on_the_speakers_output_stays_off_and_says_why()
+    {
+        var devices = _engine.GetOutputDevices();
+        Assert.SkipWhen(devices.Count < 1, "Needs an output device.");
+        try
+        {
+            _mix.SetOutputs(devices[0], null, devices[0]);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs an output device that opens.");
+        }
+
+        Assert.Equal(devices[0], _mix.Main.Device);
+        Assert.Null(_mix.Booth.Device);
+        Assert.Equal($"{devices[0].Name} is also the speaker output", _mix.BoothRefusal);
+    }
+
+    [Fact]
+    public void A_booth_opens_beside_the_speakers_and_closes_again()
+    {
+        var devices = _engine.GetOutputDevices();
+        Assert.SkipWhen(devices.Count < 2, "Needs two output devices.");
+        try
+        {
+            _mix.SetOutputs(devices[0], null, devices[1]);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs output devices that open.");
+        }
+        Assert.SkipWhen(_mix.BoothRefusal is not null, $"The second output won't open: {_mix.BoothRefusal}");
+
+        Assert.Equal(devices[1], _mix.Booth.Device);
+        Assert.True(IsOpen(devices[1]));
+
+        _mix.SetOutputs(devices[0], null, null);
+        Assert.Null(_mix.Booth.Device);
+        Assert.False(IsOpen(devices[1]));
+    }
+
+    [Fact]
     public void A_busy_output_is_explained()
     {
         string message = AudioException.Busy("Cable Creation USB Audio").Message;

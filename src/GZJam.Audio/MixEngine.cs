@@ -4,10 +4,11 @@ using ManagedBass.Mix;
 namespace GZJam.Audio;
 
 /// <summary>
-/// The DJ mixer: decks and a headphone preview player, feeding a main (speakers) bus and a cue
-/// (headphones) bus. Every deck feeds both buses at all times: the crossfader sets how loud each
-/// deck is in the room, and each deck's cue button sets whether it's in the headphones. Neither
-/// interrupts playback.
+/// The DJ mixer: decks and a headphone preview player, feeding a main (speakers) bus, a cue
+/// (headphones) bus and a booth (monitor) bus. Every deck feeds all three at all times: the
+/// crossfader sets how loud each deck is in the room (and the booth, which hears what the room
+/// hears), and each deck's cue button sets whether it's in the headphones. Neither interrupts
+/// playback.
 /// Call <see cref="Update"/> regularly (the UI does ~30 times a second) to run fades and detect
 /// tracks ending.
 /// </summary>
@@ -36,6 +37,7 @@ public sealed class MixEngine : IDisposable
         Time = time ?? TimeProvider.System;
         Main = CreateBus(null);
         Cue = CreateBus(null);
+        Booth = CreateBus(null);
         Decks = Enumerable.Range(0, deckCount).Select(i => new Deck(this, i)).ToList();
         Preview = new PreviewPlayer(this);
         ApplyRouting();
@@ -66,6 +68,12 @@ public sealed class MixEngine : IDisposable
     public string? CueRefusal { get; private set; }
 
     /// <summary>
+    /// Why the booth output couldn't be opened at the last <see cref="SetOutputs"/>, or null. Like
+    /// the headphones, it never stops the speakers opening; the booth is then silent.
+    /// </summary>
+    public string? BoothRefusal { get; private set; }
+
+    /// <summary>
     /// The speakers' exclusive output stopped by itself (unplugged, or taken by Windows). Raised
     /// once, from <see cref="Update"/>; the app opens outputs again.
     /// </summary>
@@ -80,6 +88,9 @@ public sealed class MixEngine : IDisposable
 
     public OutputBus Main { get; private set; }
     public OutputBus Cue { get; private set; }
+
+    /// <summary>A monitor speaker for the DJ: what the room hears, at its own volume. Never the headphones' preview.</summary>
+    public OutputBus Booth { get; private set; }
     public IReadOnlyList<Deck> Decks { get; }
     public PreviewPlayer Preview { get; }
 
@@ -130,14 +141,15 @@ public sealed class MixEngine : IDisposable
 
     /// <summary>
     /// Points the buses at audio devices. Decks and preview keep playing through the switch.
-    /// A null cue device leaves the headphones silent (they are never sent to the speakers).
+    /// A null cue device leaves the headphones silent (they are never sent to the speakers); a null
+    /// booth device, the booth. A booth on the speakers' or headphones' own output isn't opened.
     /// </summary>
-    public void SetOutputs(AudioDevice? main, AudioDevice? cue)
+    public void SetOutputs(AudioDevice? main, AudioDevice? cue, AudioDevice? booth = null)
     {
         if (_offline)
             throw new InvalidOperationException("An offline mix engine has no devices.");
 
-        OutputBus oldMain = Main, oldCue = Cue;
+        OutputBus oldMain = Main, oldCue = Cue, oldBooth = Booth;
         foreach (Deck deck in Decks)
             deck.Detach();
         Preview.Detach();
@@ -146,32 +158,34 @@ public sealed class MixEngine : IDisposable
         // once, and GZJam's own "Default" (through PipeWire) may be playing on the very card chosen.
         oldMain.Dispose();
         oldCue.Dispose();
+        oldBooth.Dispose();
         // An output wanted for GZJam alone is let go of too: Windows won't give it exclusively
         // while GZJam itself still has it shared.
-        Engine.ReleaseDevicesExcept(WantsExclusive(main, cue) ? null : main?.Index, cue?.Index);
+        Engine.ReleaseDevicesExcept(WantsExclusive(main, cue) ? null : main?.Index, cue?.Index, booth?.Index);
         try
         {
-            Open(main, cue, oldMain, oldCue);
+            Open(main, cue, booth, oldMain, oldCue, oldBooth);
         }
         catch (AudioException)
         {
             // Back to what was playing, so a refused output doesn't silence the room.
-            Engine.ReleaseDevicesExcept(oldMain.Device?.Index, oldCue.Device?.Index);
+            Engine.ReleaseDevicesExcept(oldMain.Device?.Index, oldCue.Device?.Index, oldBooth.Device?.Index);
             try
             {
-                Open(oldMain.Device, oldCue.Device, oldMain, oldCue);
+                Open(oldMain.Device, oldCue.Device, oldBooth.Device, oldMain, oldCue, oldBooth);
             }
             catch (AudioException)
             {
-                // The old speakers are gone too (unplugged): silent speakers, but the headphones,
-                // if they still open, carry on.
-                Open(null, oldCue.Device, oldMain, oldCue);
+                // The old speakers are gone too (unplugged): silent speakers, but the headphones
+                // and booth, if they still open, carry on.
+                Open(null, oldCue.Device, oldBooth.Device, oldMain, oldCue, oldBooth);
             }
             throw;
         }
     }
 
-    private void Open(AudioDevice? main, AudioDevice? cue, OutputBus settingsMain, OutputBus settingsCue)
+    private void Open(AudioDevice? main, AudioDevice? cue, AudioDevice? booth,
+        OutputBus settingsMain, OutputBus settingsCue, OutputBus settingsBooth)
     {
         OutputBus newMain = CreateMainBus(main, cue);
         OutputBus newCue;
@@ -187,10 +201,13 @@ public sealed class MixEngine : IDisposable
             CueRefusal = ex.Message;
             newCue = CreateBus(null);
         }
+        OutputBus newBooth = OpenBooth(booth, main, cue);
         newMain.CopySettingsFrom(settingsMain);
         newCue.CopySettingsFrom(settingsCue);
+        newBooth.CopySettingsFrom(settingsBooth);
         Main = newMain;
         Cue = newCue;
+        Booth = newBooth;
         _mainLostRaised = false;
         _dryAt = -1;
 
@@ -230,17 +247,25 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    /// <summary>Offline only: renders both buses in small interleaved chunks, returning each one's peak level.</summary>
+    /// <summary>Offline only: renders the speakers and headphones in small interleaved chunks, returning each one's peak level.</summary>
     public (float Main, float Cue) Render(TimeSpan duration)
     {
-        float main = 0, cue = 0;
+        var (main, cue, _) = RenderAll(duration);
+        return (main, cue);
+    }
+
+    /// <summary>Offline only: <see cref="Render"/>, with the booth too.</summary>
+    public (float Main, float Cue, float Booth) RenderAll(TimeSpan duration)
+    {
+        float main = 0, cue = 0, booth = 0;
         var chunk = TimeSpan.FromMilliseconds(50);
         for (var done = TimeSpan.Zero; done < duration; done += chunk)
         {
             main = Math.Max(main, Main.Render(chunk));
             cue = Math.Max(cue, Cue.Render(chunk));
+            booth = Math.Max(booth, Booth.Render(chunk));
         }
-        return (main, cue);
+        return (main, cue, booth);
     }
 
     internal void ApplyRouting()
@@ -277,6 +302,31 @@ public sealed class MixEngine : IDisposable
             }
         }
         return CreateBus(device);
+    }
+
+    /// <summary>
+    /// The booth, if it can open. Never on the speakers' or headphones' own output (it would play
+    /// the room twice over, or into the headphones); a booth that won't open is silent, saying why.
+    /// </summary>
+    private OutputBus OpenBooth(AudioDevice? booth, AudioDevice? main, AudioDevice? cue)
+    {
+        BoothRefusal = null;
+        if (booth is null)
+            return CreateBus(null);
+        if (booth.Index == main?.Index || booth.Index == cue?.Index)
+        {
+            BoothRefusal = $"{booth.Name} is also the {(booth.Index == main?.Index ? "speaker" : "headphone")} output";
+            return CreateBus(null);
+        }
+        try
+        {
+            return CreateBus(booth);
+        }
+        catch (AudioException ex)
+        {
+            BoothRefusal = ex.Message;
+            return CreateBus(null);
+        }
     }
 
     // NonStop: keep the output running through silence, so starting a track is instant.
@@ -319,5 +369,6 @@ public sealed class MixEngine : IDisposable
         Preview.Dispose();
         Main.Dispose();
         Cue.Dispose();
+        Booth.Dispose();
     }
 }
