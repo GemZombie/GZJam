@@ -76,7 +76,9 @@ Nothing yet since 0.6.0.
 
 ## Planned next
 
-**0.7.0, outputs:**
+**0.7.0, outputs and playlists:**
+- [Playlists](https://github.com/GemZombie/GZJam/issues/6): plan a set before the night, in order,
+  saved by name; open one in the library, then add it to the queue
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
 - [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
   splitter cable, for laptops and tablets
@@ -95,7 +97,6 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
-- [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 
 **Elsewhere**
