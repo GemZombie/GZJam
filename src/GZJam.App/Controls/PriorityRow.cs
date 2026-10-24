@@ -1,12 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace GZJam.App.Controls;
 
 /// <summary>
 /// Two children in a row: the first (say, a title) gets the room it needs, trimming itself only
 /// if the row is too narrow; the second (say, a song's labels) goes right after it, with what's
-/// left, cut off at the edge, or not shown if there's no useful room.
+/// left, cut off at the edge, or not shown if there's no useful room. The first sets the row's
+/// height too, so the second never makes the line taller (fonts differ by a pixel or so between
+/// Windows, macOS and Linux).
 /// </summary>
 public sealed class PriorityRow : Panel
 {
@@ -19,7 +22,6 @@ public sealed class PriorityRow : Panel
     static PriorityRow()
     {
         AffectsMeasure<PriorityRow>(SpacingProperty);
-        ClipToBoundsProperty.OverrideDefaultValue<PriorityRow>(true);
     }
 
     public double Spacing { get => GetValue(SpacingProperty); set => SetValue(SpacingProperty, value); }
@@ -42,10 +44,9 @@ public sealed class PriorityRow : Panel
             double left = Math.Max(0, availableSize.Width - width - Spacing);
             second.Measure(new Size(double.PositiveInfinity, availableSize.Height));
             if (HasSecond && left >= LeastUseful)
-            {
                 width += Spacing + Math.Min(second.DesiredSize.Width, left);
-                height = Math.Max(height, second.DesiredSize.Height);
-            }
+            if (First is null)
+                height = second.DesiredSize.Height;
         }
         return new Size(width, height);
     }
@@ -58,10 +59,13 @@ public sealed class PriorityRow : Panel
         {
             double x = firstWidth + Spacing, left = finalSize.Width - x;
             // At its full width (cut off by the clip), or out of sight if there's no useful room.
+            double y = (finalSize.Height - second.DesiredSize.Height) / 2;   // centred, even if a little taller
             second.Arrange(HasSecond && left >= LeastUseful
-                ? new Rect(x, 0, second.DesiredSize.Width, finalSize.Height)
+                ? new Rect(x, y, second.DesiredSize.Width, second.DesiredSize.Height)
                 : new Rect(finalSize.Width, 0, 0, 0));
         }
+        // Cut off at the sides only: a chip a pixel taller than the line keeps its edges.
+        Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
         return finalSize;
     }
 }
