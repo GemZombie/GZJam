@@ -17,8 +17,9 @@ namespace GZJam.App.Controls;
 /// <para>
 /// While the deck plays, it's redrawn at every frame the screen shows, the playhead worked out
 /// from the clock and the tempo and eased towards where the deck says it is (which arrives about
-/// 30 times a second, in uneven steps), so the music glides past instead of stuttering. Each bar
-/// covers a fixed stretch of the song, so bars keep their shape as they move.
+/// 30 times a second, in uneven 20 and 40 ms steps), so the music glides past instead of
+/// stuttering. Each bar covers a fixed stretch of the song, so bars keep their shape as they
+/// move; zoomed in so far that a bar is shorter than a slice, bars blend the slices either side.
 /// </para>
 /// <para>
 /// Drag it to move through the song like a record (a mouse click goes to that spot); locked, a
@@ -129,31 +130,67 @@ public sealed class CloseUpWaveform : Control
     private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
     private double _clockFrom;    // the song's position (s) at _clockAt
     private double _clockAt;      // on _clock, in seconds
-    private double _correction;   // eased towards the reported position
+    private double _correction;   // where the corrections from reports have got to (s)
+    private double _shown;        // how much of it is shown so far: it follows over CorrectionSpread
+    private double _shownAt;      // on _clock, in seconds
     private bool _animating;
+
+    /// <summary>A report's error counts for this much, so one report moves the playhead little.</summary>
+    private const double CorrectionGain = 0.1;
+
+    /// <summary>
+    /// The most a report's error counts for (s): reports come in 20 and 40 ms steps, now and then
+    /// 80, and one far out mustn't jolt the picture.
+    /// </summary>
+    private const double CorrectionCap = 0.03;
+
+    /// <summary>
+    /// Each correction is spread over about this long (s), not made in one frame: zoomed in tight,
+    /// a few milliseconds at once is a visible jerk. Measured on real reports (GZJam.DevTools
+    /// clock): the worst frame went from about 2 px off steady to 0.4 px, as close to the music.
+    /// </summary>
+    private const double CorrectionSpread = 0.15;
 
     private double Now => _clock.Elapsed.TotalSeconds;
 
     private static double Rate(double tempoPercent) => 1 + tempoPercent / 100;
 
-    private double Predicted => _clockFrom + (Now - _clockAt) * Rate(TempoPercent) + _correction;
+    private double Clock(double now) => _clockFrom + (now - _clockAt) * Rate(TempoPercent);
+
+    private double Predicted => Clock(Now) + Shown(Now);
+
+    /// <summary>The part of the correction shown by <paramref name="now"/>, catching up smoothly.</summary>
+    private double Shown(double now)
+    {
+        if (now > _shownAt)
+        {
+            _shown = _correction - (_correction - _shown) * Math.Exp(-(now - _shownAt) / CorrectionSpread);
+            _shownAt = now;
+        }
+        return _shown;
+    }
 
     /// <summary>Where the playhead is drawn, in seconds into the song.</summary>
     internal double Playhead => IsPlaying && Length > 0 ? Math.Clamp(Predicted, 0, Length) : Progress * Length;
 
     /// <summary>Starts the clock again from where the deck says it is.</summary>
-    private void Restart() => (_clockFrom, _clockAt, _correction) = (Progress * Length, Now, 0);
+    private void Restart() => (_clockFrom, _clockAt, _correction, _shown, _shownAt) = (Progress * Length, Now, 0, 0, Now);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == ProgressProperty || change.Property == LengthProperty)
         {
-            double error = Progress * Length - Predicted;
-            if (!IsPlaying || Math.Abs(error) > 0.25)
+            double now = Now, reported = Progress * Length;
+            if (!IsPlaying || Math.Abs(reported - Predicted) > 0.25)
                 Restart();               // paused, a seek, a jump, a new song
             else
-                _correction += error * 0.1;   // reports come in uneven steps: ease towards them
+            {
+                // Reports come in uneven steps: ease towards them, a little at a time.
+                Shown(now);
+                double error = reported - (Clock(now) + _correction);
+                _correction += Math.Clamp(error, -CorrectionCap, CorrectionCap) * CorrectionGain;
+            }
             Animate();
         }
         else if (change.Property == TempoPercentProperty)
@@ -283,17 +320,8 @@ public sealed class CloseUpWaveform : Control
             double from = bar * barSeconds, x = (from - start) / spp;
             if (x >= bounds.Width)
                 break;
-            int a = (int)Math.Floor(from * slicesPerSecond), b = Math.Max(a + 1, (int)Math.Floor((from + barSeconds) * slicesPerSecond));
-            if (b <= 0 || a >= waveform.Count)
+            if (BarLevels(waveform, from * slicesPerSecond, (from + barSeconds) * slicesPerSecond) is not var (low, mid, high, loud))
                 continue;
-            byte low = 0, mid = 0, high = 0, loud = 0;
-            for (int s = Math.Max(0, a); s < b && s < waveform.Count; s++)
-            {
-                low = Math.Max(low, waveform.Low[s]);
-                mid = Math.Max(mid, waveform.Mid[s]);
-                high = Math.Max(high, waveform.High[s]);
-                loud = Math.Max(loud, waveform.Loudness[s]);
-            }
             double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
             double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
             var (bright, dim, outline) = BarBrushes(SeekBar.BandColour(low, mid, high));
@@ -301,6 +329,36 @@ public sealed class CloseUpWaveform : Control
             context.DrawRectangle(played ? dim : outline, null, new Rect(x, centre - peak, BarStep, peak * 2));
             context.DrawRectangle(played ? dim : bright, null, new Rect(x, centre - body, BarStep, body * 2));
         }
+    }
+
+    /// <summary>
+    /// A bar's levels, for the stretch of the song from slice <paramref name="from"/> to
+    /// <paramref name="to"/> (fractions of slices): the loudest slice in it; or, for a bar shorter
+    /// than a slice (zoomed in tight), a blend of the two slices either side of its middle, so
+    /// neighbouring bars don't repeat one slice and the shape doesn't move in steps. Null: off the song.
+    /// </summary>
+    internal static (byte Low, byte Mid, byte High, byte Loud)? BarLevels(Waveform waveform, double from, double to)
+    {
+        if (to <= 0 || from >= waveform.Count)
+            return null;
+        if (to - from < 1)
+        {
+            double centre = Math.Clamp((from + to) / 2 - 0.5, 0, waveform.Count - 1);   // between slice middles
+            int i = (int)Math.Floor(centre), j = Math.Min(i + 1, waveform.Count - 1);
+            double t = centre - i;
+            static byte Blend(byte[] band, int i, int j, double t) => (byte)Math.Round(band[i] + (band[j] - band[i]) * t);
+            return (Blend(waveform.Low, i, j, t), Blend(waveform.Mid, i, j, t), Blend(waveform.High, i, j, t), Blend(waveform.Loudness, i, j, t));
+        }
+        int a = (int)Math.Floor(from), b = Math.Max(a + 1, (int)Math.Floor(to));
+        byte low = 0, mid = 0, high = 0, loud = 0;
+        for (int s = Math.Max(0, a); s < b && s < waveform.Count; s++)
+        {
+            low = Math.Max(low, waveform.Low[s]);
+            mid = Math.Max(mid, waveform.Mid[s]);
+            high = Math.Max(high, waveform.High[s]);
+            loud = Math.Max(loud, waveform.Loudness[s]);
+        }
+        return (low, mid, high, loud);
     }
 
     private (IBrush, IBrush, IBrush) BarBrushes(Color colour)

@@ -198,6 +198,47 @@ public sealed class CloseUpTests
     }
 
     [AvaloniaFact]
+    public void A_report_off_the_clock_is_caught_up_over_the_next_moments_not_in_one_frame()
+    {
+        var closeUp = new CloseUpWaveform { Length = 100, TempoPercent = 0 };
+        closeUp.Progress = 0.3;
+        closeUp.IsPlaying = true;
+        Thread.Sleep(100);
+
+        // Reports come in 20 and 40 ms steps: one 30 ms ahead. Before, a tenth of it showed at
+        // once, a visible jerk zoomed in tight (3 ms is most of a pixel at 2 s across).
+        // (Less the time that really passed meanwhile, as the song moved on; after one report on
+        // the clock, so nothing is still being compiled while it's timed.)
+        closeUp.Progress = closeUp.Playhead / 100;
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        double before = closeUp.Playhead;
+        closeUp.Progress = (before + 0.03) / 100;
+        double after = closeUp.Playhead;
+        Assert.InRange(after - before - clock.Elapsed.TotalSeconds, -0.0005, 0.0005);
+
+        // Over the next moments it catches up the correction (3 ms) as well as moving on.
+        clock.Restart();
+        double from = closeUp.Playhead;
+        Thread.Sleep(600);
+        double moved = closeUp.Playhead - from - clock.Elapsed.TotalSeconds;
+        Assert.InRange(moved, 0.002, 0.005);   // give or take the test's own timing
+    }
+
+    [Fact]
+    public void Zoomed_in_tight_a_bar_blends_the_slices_either_side_instead_of_repeating_one()
+    {
+        var waveform = new GZJam.Audio.Waveform([0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 100, 200, 200]);
+
+        // Bars of 0.8 slices: each one's level is between the slices around its middle.
+        var loud = Enumerable.Range(0, 3).Select(i => CloseUpWaveform.BarLevels(waveform, 0.5 + i * 0.8, 1.3 + i * 0.8)!.Value.Loud).ToList();
+        Assert.Equal([40, 120, 200], loud.Select(l => (int)l));
+
+        // A bar of a slice or more still takes its loudest slice.
+        Assert.Equal(200, CloseUpWaveform.BarLevels(waveform, 0, 3)!.Value.Loud);
+        Assert.Null(CloseUpWaveform.BarLevels(waveform, 4, 5));
+    }
+
+    [AvaloniaFact]
     public void Four_decks_show_the_whole_song_and_zoom_in_on_demand()
     {
         using var app = new AppHarness();

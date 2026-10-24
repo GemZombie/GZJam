@@ -8,6 +8,8 @@ using GZJam.Library;
 //                                    against the tagged BPMs.
 //   art <music folder> [count]       How many songs have album art (in the file, in the folder), and
 //                                    how long finding it and making the small copies takes.
+//   clock [seconds]                  How evenly a playing deck reports its position, and how
+//                                    smoothly the close-up's playhead follows (on the default output, silent).
 //   icon <repo folder>               Draw the app icon (the .ico, .png and .icns files) and the logo's
 //                                    SVG files in branding/.
 
@@ -27,6 +29,9 @@ if (args is ["tempo", var tempoFile])
 if (args is ["envelope", var envelopeFile])
     return AnalyzeBench.Envelope(envelopeFile);
 
+if (args is ["clock", ..])
+    return ClockBench.Run(args.Length > 1 ? double.Parse(args[1]) : 10);
+
 if (args is ["art", var artFolder, ..])
     return ArtBench.Run(artFolder, args.Length > 2 ? int.Parse(args[2]) : 400);
 
@@ -38,6 +43,7 @@ if (args is not ["bench", var musicFolder])
     Console.WriteLine("usage: GZJam.DevTools bench <music folder>");
     Console.WriteLine("       GZJam.DevTools analyze <music folder> [count]");
     Console.WriteLine("       GZJam.DevTools art <music folder> [count]");
+    Console.WriteLine("       GZJam.DevTools clock [seconds]");
     return 1;
 }
 

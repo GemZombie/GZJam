@@ -36,6 +36,11 @@ Changed:
   beside it while the room hears it, rather than in a coloured square beside the title. The album
   art has the corner instead, and the title and artist have more room. With four decks it's just
   the number, and ON AIR sits just before the EQ key.
+- **The close-up scrolls more smoothly zoomed in tight.** A deck reports where it is in uneven
+  steps; the close-up used to make each small correction in one frame, a visible jerk when a
+  couple of seconds fill the screen. Now each is spread over the next moments, and no single
+  report can pull it far, so the music glides past (about five times steadier, measured), and
+  it stays as close to what the room hears. Zoomed right in, the shape is smoother too.
 - **Flat** in the EQ panel now puts everything back: the bands and gain at 0 dB, the mid at
   1 kHz, and evening out off.
 
