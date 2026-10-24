@@ -83,6 +83,8 @@ For 0.7.0:
   this one out.
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8): a speaker for you at the
   DJ table, playing what the room hears at its own volume. Choose it in Settings › Sound.
+- [Renamed or moved songs keep their ratings, labels, playlists and play count](https://github.com/GemZombie/GZJam/issues/74),
+  whatever renamed them, instead of starting over as new songs.
 - [Faster searches in very large libraries](https://github.com/GemZombie/GZJam/issues/73): with
   100,000+ songs the whole library lists about a third faster, and `rating:`, `energy:` and
   `played:` are instant.
@@ -108,8 +110,6 @@ to one you'd use.
 
 **Library**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
-- [Renamed or moved songs keep their ratings, labels, playlists and play count](https://github.com/GemZombie/GZJam/issues/74)
-  (today a renamed file starts over as a new song)
 - [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs

@@ -35,6 +35,11 @@ Changed:
 
 Fixed:
 
+- **A song renamed or moved keeps its heart, energy, labels, cues and the rest.** Renaming a
+  file (or its folder), in a tag editor or anywhere else, used to make GZJam treat it as a new
+  song: its marks were lost from view, it dropped out of your playlists, and its Played column
+  started over. Now they all go with it, whether GZJam was open or not, as long as it stays in
+  the same music folder you added.
 - **The BPM and Label menus by the search open with their choices again.** A click opened them
   empty, just a thin grey line under the button. A compact deck's ⋯ menu (with four decks) had
   the same fault.

@@ -8,13 +8,21 @@ namespace GZJam.Library;
 /// <param name="FilesRead">Of those, how many are done.</param>
 public sealed record ScanProgress(string RootPath, int FilesFound, int FilesToRead, int FilesRead, bool Enumerating);
 
-public sealed record ScanResult(int Added, int Updated, int Removed, int Unchanged, TimeSpan Elapsed);
+/// <param name="Moved">
+/// Songs renamed or moved within the folder: counted here, not as added and removed. Their marks,
+/// labels, cues, playlists and plays went with them.
+/// </param>
+public sealed record ScanResult(int Added, int Updated, int Removed, int Unchanged, TimeSpan Elapsed, int Moved = 0)
+{
+    public bool ChangedAnything => Added + Updated + Removed + Moved > 0;
+}
 
 /// <summary>
 /// Brings the index in line with the folders on disk. Incremental: only new or changed files
 /// (by size and modified time) have their tags read, so rescans of a large library are quick.
 /// Songs read before GZJam got better at reading tags (<see cref="TagReader.Version"/>) are read
-/// again too.
+/// again too. A song renamed or moved within the folder keeps what the DJ gave it (see
+/// <see cref="FindMoves"/>).
 /// </summary>
 public sealed class LibraryScanner(LibraryDatabase database)
 {
@@ -53,7 +61,7 @@ public sealed class LibraryScanner(LibraryDatabase database)
         var known = database.GetFileStamps(root.Id);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var toRead = new List<FileInfo>();
-        int added = 0;
+        var added = new Dictionary<string, (long Size, long ModifiedTicks)>(StringComparer.Ordinal);
 
         if (Directory.Exists(root.Path))
         {
@@ -79,7 +87,7 @@ public sealed class LibraryScanner(LibraryDatabase database)
                 }
                 else
                 {
-                    added++;
+                    added[path] = (file.Length, file.LastWriteTimeUtc.Ticks);
                 }
                 toRead.Add(file);
 
@@ -111,10 +119,49 @@ public sealed class LibraryScanner(LibraryDatabase database)
             progress?.Report(new ScanProgress(root.Path, seen.Count, toRead.Count, read, Enumerating: false));
         }
 
-        var removed = known.Where(k => !seen.Contains(k.Key)).Select(k => k.Value.Id).ToList();
-        if (removed.Count > 0)
-            database.DeleteTracks(removed);
+        var missing = known.Where(k => !seen.Contains(k.Key)).ToDictionary(k => k.Key, k => k.Value, StringComparer.Ordinal);
+        var moves = FindMoves(missing, added);
+        if (missing.Count > 0)
+            database.RemoveTracks(missing.Values.Select(m => m.Id), moves);
 
-        return new ScanResult(added, toRead.Count - added, removed.Count, seen.Count - toRead.Count, started.Elapsed);
+        return new ScanResult(added.Count - moves.Count, toRead.Count - added.Count, missing.Count - moves.Count,
+            seen.Count - toRead.Count, started.Elapsed, moves.Count);
+    }
+
+    /// <summary>
+    /// Songs gone from one path and found at another: a rename or move keeps a file's size and
+    /// modified time, which together almost never match another file's. Where several files share
+    /// both (copies of one file), the one with the same file name is the match (its folder was
+    /// renamed); any still undecided are left as removed and added, as before.
+    /// </summary>
+    internal static IReadOnlyList<(string From, string To)> FindMoves(
+        IReadOnlyDictionary<string, LibraryDatabase.FileStamp> missing, IReadOnlyDictionary<string, (long Size, long ModifiedTicks)> added)
+    {
+        var moves = new List<(string From, string To)>();
+        if (missing.Count == 0 || added.Count == 0)
+            return moves;
+
+        var gone = missing.ToLookup(m => (m.Value.Size, m.Value.ModifiedTicks), m => m.Key);
+        foreach (var arrived in added.GroupBy(a => a.Value, a => a.Key))
+        {
+            var from = gone[arrived.Key].ToList();
+            var to = arrived.ToList();
+            if (from.Count == 0)
+                continue;
+            if (from.Count == 1 && to.Count == 1)
+            {
+                moves.Add((from[0], to[0]));
+                continue;
+            }
+            foreach (string path in to)
+            {
+                var sameName = from.Where(f => string.Equals(Path.GetFileName(f), Path.GetFileName(path), StringComparison.OrdinalIgnoreCase)).ToList();
+                bool unique = sameName.Count == 1
+                    && to.Count(t => string.Equals(Path.GetFileName(t), Path.GetFileName(path), StringComparison.OrdinalIgnoreCase)) == 1;
+                if (unique)
+                    moves.Add((sameName[0], path));
+            }
+        }
+        return moves;
     }
 }

@@ -422,7 +422,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             });
 
             ScanResult result = await _scanner.ScanAsync(root, progress, readAllTags);
-            if (result.Added + result.Updated + result.Removed > 0)
+            if (result.ChangedAnything)
             {
                 RefreshTree();
                 // A remembered folder may only exist once its root has been scanned (e.g. a fresh database).

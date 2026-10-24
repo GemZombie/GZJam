@@ -472,20 +472,63 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
-    internal void DeleteTracks(IEnumerable<long> ids)
+    /// <summary>
+    /// Takes songs whose files are gone out of the index, and moves what the DJ gave the renamed or
+    /// moved ones to their new paths (see <see cref="MoveSongData"/>), in one transaction.
+    /// </summary>
+    internal void RemoveTracks(IEnumerable<long> ids, IReadOnlyList<(string From, string To)> moves)
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
-        using var cmd = c.CreateCommand();
-        cmd.CommandText = "DELETE FROM tracks WHERE id = $id;";
-        var id = cmd.Parameters.Add(new SqliteParameter { ParameterName = "$id" });
-        foreach (long value in ids)
+        using (var cmd = c.CreateCommand())
         {
-            id.Value = value;
-            cmd.ExecuteNonQuery();
+            cmd.CommandText = "DELETE FROM tracks WHERE id = $id;";
+            var id = cmd.Parameters.Add(new SqliteParameter { ParameterName = "$id" });
+            foreach (long value in ids)
+            {
+                id.Value = value;
+                cmd.ExecuteNonQuery();
+            }
         }
+        foreach (var (from, to) in moves)
+            MoveSongData(c, from, to);
         tx.Commit();
     }
+
+    /// <summary>
+    /// Everything kept by a song's path, other than the index itself and the album art (which
+    /// depends on the folder, and is found again). Add a table here when it's keyed by path.
+    /// </summary>
+    internal static readonly string[] SongDataTables =
+        ["marks", "track_labels", "eq", "trims", "cues", "jumps", "manual_bpm", "bpm_ranges", "analysis"];
+
+    /// <summary>Of those, the ones where a song can have any number of rows: never cleared at the new path.</summary>
+    private static readonly string[] SongListTables = ["playlist_entries", "plays"];
+
+    /// <summary>
+    /// A song renamed or moved: its marks, labels, EQ, trims, cues, jumps, BPMs and analysis go
+    /// with it, replacing anything left at the new path by a file that was there before; and its
+    /// playlist entries and plays (so the Played column) point to the new path.
+    /// </summary>
+    private static void MoveSongData(SqliteConnection c, string from, string to)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.Parameters.AddWithValue("$from", from);
+        cmd.Parameters.AddWithValue("$to", to);
+        foreach (string table in SongDataTables)
+        {
+            cmd.CommandText = $"DELETE FROM {table} WHERE path = $to; UPDATE {table} SET path = $to WHERE path = $from;";
+            cmd.ExecuteNonQuery();
+        }
+        foreach (string table in SongListTables)
+        {
+            cmd.CommandText = $"UPDATE {table} SET path = $to WHERE path = $from;";
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>Every table a move updates.</summary>
+    internal static IEnumerable<string> MovedTables => SongDataTables.Concat(SongListTables);
 
     // ───────────── Queries ─────────────
 
