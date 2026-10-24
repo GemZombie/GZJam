@@ -94,27 +94,8 @@ tarball (see *Builds and releases*) and run `./install.sh`. Or, with the .NET 10
 installed there, `dotnet run --project src/GZJam.App` from a clone. Settings go in
 `~/.config/GZJam`, the library database and the activity log (`logs/`) in `~/.local/share/GZJam`.
 
-### Linux test pass
-
-Things that differ from Windows and need checking on real hardware (PipeWire, e.g. Omarchy):
-
-1. **Outputs.** Settings › Sound: which devices are listed? Typically "Default" (through
-   PipeWire), "Built-in: …" for the computer's own outputs, and USB interfaces by name. Pick the USB interface's own entry as Main rather than
-   Default: does audio play, and do desktop sounds (a notification, a browser) stay *out* of it?
-   That would mean the card is used directly, bypassing PipeWire, which is what we want for the PA.
-2. **Headphones on a second device** (the laptop's own output as Cue): both play at once, the cue
-   button and the headphone preview reach only the headphones.
-3. **Unplug and replug** the USB interface: the speakers fall back to the default, the notice
-   says so, and the interface is picked up again from Settings › Sound › Refresh the list.
-4. **Latency and dropouts:** move the crossfader and the tempo while playing; any crackles?
-5. **The library:** add a music folder; scanning, search, and the folder watcher (add or rename a
-   file while GZJam runs). Large libraries may need a higher inotify watch limit.
-6. **Window and input:** scaling on a high-DPI screen, the window under a tiling compositor
-   (Hyprland runs it through XWayland), trackpad and touch on the faders and keys.
-7. **Fonts:** the readouts fall back from Cascadia Mono to DejaVu Sans Mono; do they line up?
-
-The activity log (`~/.local/share/GZJam/logs`) records device changes and errors; attach it to
-any report.
+What to try on a real Linux computer (and on Windows and a Mac) is in
+[docs/TESTING.md](docs/TESTING.md).
 
 ## Tests
 
