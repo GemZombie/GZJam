@@ -81,6 +81,9 @@ For 0.7.0:
 - [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
   instead of closing without a word; and later versions that only add to the library won't lock
   this one out.
+- [Faster searches in very large libraries](https://github.com/GemZombie/GZJam/issues/73): with
+  100,000+ songs the whole library lists about a third faster, and `rating:`, `energy:` and
+  `played:` are instant.
 
 ## Planned next
 
@@ -104,8 +107,20 @@ to one you'd use.
 
 **Library**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+- [Renamed or moved songs keep their ratings, labels, playlists and play count](https://github.com/GemZombie/GZJam/issues/74)
+  (today a renamed file starts over as a new song)
+- [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
+  hundred thousand songs or more
+- [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
+  that are gone, and clean it up
+
+**Sound**
+- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
+  never move to the speakers, and come back by themselves when plugged in again
 
 **Elsewhere**
+- [A companion app for cleaning up tags and file names](https://github.com/GemZombie/GZJam/issues/76):
+  fill in missing titles, fix misspelled artists, rename files by rule
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
 - [An Arch Linux (AUR) package that updates itself](https://github.com/GemZombie/GZJam/issues/30)
   (waiting on the AUR)
