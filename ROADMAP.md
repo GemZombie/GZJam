@@ -5,7 +5,7 @@ what you need to play music for people, without the clutter. This page is the bi
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.6.0** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.7.0** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -18,6 +18,10 @@ release.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
+- Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
+  it, and add it to the queue. The queue or a night in History can be saved as one.
+- A song renamed or moved (in a tag editor, say) keeps its marks, labels, cues, playlists and
+  plays.
 - Album art on the decks and queue (and a library column), from the songs' files or the covers in
   their folders, to see at a glance that the right record is loaded.
 
@@ -48,7 +52,9 @@ release.
 - The crossfader only affects the room; each deck has its own cue button for the headphones.
 - Phones mix: blend the headphones from what's cued to what the room hears, to keep an ear on the
   dancers while previewing the next song.
-- Speakers and headphones on separate outputs, mono by default.
+- Speakers and headphones on separate outputs, mono by default. On a laptop with one output, a
+  splitter cable can carry both: the room on the left, your headphones on the right.
+- A booth output, for a monitor speaker at the DJ table: what the room hears, at its own volume.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level.
 - A level meter and a safety limiter for the speakers.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
@@ -65,32 +71,14 @@ release.
   and library.
 
 **Coming from Mixxx**
-- Import ratings, crates (as labels), history, locked BPMs and hot cues. Mixxx's own files are
+- Import ratings, crates (as labels), playlists, history, locked BPMs and hot cues. Mixxx's own files are
   never changed.
 
 Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and AAC on Windows and Mac.
 
 ## Finished, coming in the next release
 
-For 0.7.0:
-
-- [Playlists](https://github.com/GemZombie/GZJam/issues/6): plan a set before the night, in order,
-  saved by name. Open one in the library, drag songs onto it, reorder it, then add it to the
-  queue. The queue or a night in History can be saved as one, and Mixxx playlists come across in
-  the import.
-- [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
-  instead of closing without a word; and later versions that only add to the library won't lock
-  this one out.
-- [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8): a speaker for you at the
-  DJ table, playing what the room hears at its own volume. Choose it in Settings › Sound.
-- [Renamed or moved songs keep their ratings, labels, playlists and play count](https://github.com/GemZombie/GZJam/issues/74),
-  whatever renamed them, instead of starting over as new songs.
-- [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
-  splitter cable: the room on the left, your headphones on the right. For a laptop with one
-  output.
-- [Faster searches in very large libraries](https://github.com/GemZombie/GZJam/issues/73): with
-  100,000+ songs the whole library lists about a third faster, and `rating:`, `energy:` and
-  `played:` are instant.
+Nothing yet since 0.7.0.
 
 ## Planned next
 
