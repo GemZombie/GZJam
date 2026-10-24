@@ -319,6 +319,22 @@
   <Style Selector="TextBlock.status.air">
     <Setter Property="Foreground" Value="{StaticResource OnAirBrush}" />
   </Style>
+  <!-- The dividers between the folders, the library and the queue: a short grip in the middle of
+       the gap, so it's plain where to drag, by finger as well as mouse -->
+  <Style Selector="Border.splitter-grip">
+    <Setter Property="Width" Value="4" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{StaticResource Line2Brush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="GridSplitter.panes">
+    <Setter Property="Cursor" Value="SizeWestEast" />
+    <!-- Above the panels, which it overlaps in touch mode -->
+    <Setter Property="ZIndex" Value="1" />
+  </Style>
   <!-- A deck's name above its title, printed like a label on hardware, in the deck's colour -->
   <Style Selector="TextBlock.deck-name">
     <Setter Property="FontSize" Value="10" />

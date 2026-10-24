@@ -108,8 +108,11 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         Log.Info($"Auto-play {(value ? "on" : "off")}");
         if (value)
             Begin();
-        else
+        else if (_pending is { } pending)
+        {
+            pending.Deck.StartsIn = null;
             _pending = null;   // a song waiting out the gap doesn't start
+        }
         Changed();
     }
 
@@ -155,6 +158,10 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         }
         _pending = (next, TimeProvider.System.GetTimestamp() + (long)(_settings.GapSeconds * TimeProvider.System.TimestampFrequency));
         Log.Info($"Auto-play: Deck {next.Label} starts in {_settings.GapSeconds:0.0} s");
+        // The gap shouldn't look like nothing is happening: the crossfader slides over to the next
+        // deck through it (the room is silent, so nobody hears it move), and that deck counts down.
+        _owner.Mixer!.GlideTo(Crossfade.Side(next.Deck.Index), TimeSpan.FromSeconds(_settings.GapSeconds));
+        next.StartsIn = _settings.GapSeconds;
         Changed();
     }
 
@@ -164,13 +171,21 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         if (!IsOn)
             return;
 
-        if (_pending is { } pending && TimeProvider.System.GetTimestamp() >= pending.Due)
+        if (_pending is { } pending)
         {
-            _pending = null;
-            // The room is silent during the gap, so the crossfader can jump straight over.
-            _owner.Mixer!.SetNow(Crossfade.Side(pending.Deck.Deck.Index));
-            _current = pending.Deck;
-            pending.Deck.Start();
+            double left = (pending.Due - TimeProvider.System.GetTimestamp()) / (double)TimeProvider.System.TimestampFrequency;
+            pending.Deck.StartsIn = Math.Max(0, left);
+            if (left <= 0)
+            {
+                _pending = null;
+                pending.Deck.StartsIn = null;
+                // Over at the end of the gap, unless the DJ took the crossfader meanwhile.
+                double side = Crossfade.Side(pending.Deck.Deck.Index);
+                if (_owner.Mixer!.IsGliding || Math.Abs(_owner.Mixer.Crossfader - side) < 0.05)
+                    _owner.Mixer.SetNow(side);
+                _current = pending.Deck;
+                pending.Deck.Start();
+            }
         }
         Refill();
         OnPropertyChanged(nameof(Status));

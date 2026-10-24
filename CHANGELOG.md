@@ -30,8 +30,18 @@ New:
   time, from 200 Hz to 5 kHz, to find just the frequency that's boomy or harsh. Tap the
   frequency for 1 kHz again. Remembered for the song.
 
+- **Auto-play's gap shows what's coming.** Through the gap of silence between songs, the
+  crossfader slides over to the next deck (the room is silent, so nobody hears it move) and that
+  deck says *STARTS IN 3*, counting down, its light blinking, where ON AIR shows. Grab the
+  crossfader during the gap and it's yours: auto-play leaves it where you put it.
+- **The time readout blinks in a song's last 30 seconds,** as on CDJs: on the deck the room
+  hears, counted to where its music ends (after trimmed silence, with the tempo and armed jumps
+  taken into account). Time to have the next song ready.
+
 Changed:
 
+- **The dividers between the folders, library and queue have a grip** to show where to drag
+  them, and in touch mode a finger needn't land exactly in the gap.
 - **A deck's number is printed above its title,** as *DECK 1* in the deck's colour, with ON AIR
   beside it while the room hears it, rather than in a coloured square beside the title. The album
   art has the corner instead, and the title and artist have more room. With four decks it's just

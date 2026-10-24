@@ -18,6 +18,17 @@
     <x:Double x:Key="SmallKeyHeight">40</x:Double>
   </Styles.Resources>
 
+  <!-- The dividers between the panels: a taller grip, and a finger needn't land in the 12 px gap
+       itself (the splitter reaches 8 px into the panels either side, over their edges) -->
+  <Style Selector="Border.splitter-grip">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Height" Value="56" />
+    <Setter Property="CornerRadius" Value="3" />
+  </Style>
+  <Style Selector="GridSplitter.panes">
+    <Setter Property="Margin" Value="-8,0" />
+  </Style>
+
   <!-- Library: rows, folders, search and its filter buttons -->
   <Style Selector="DataGrid.tracks">
     <Setter Property="RowHeight" Value="44" />
