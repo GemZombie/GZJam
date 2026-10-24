@@ -75,6 +75,17 @@ For 0.6.0:
 
 ## Planned next
 
+**Also in 0.6.0:**
+- [A one-knob compressor for old recordings](https://github.com/GemZombie/GZJam/issues/5), saved
+  with the song's EQ, to even out ones with very quiet and very loud passages
+- [A sweepable mid EQ](https://github.com/GemZombie/GZJam/issues/4), kept out of the way in the EQ panel
+- [Smoother close-up scrolling when zoomed in tight](https://github.com/GemZombie/GZJam/issues/46)
+
+**0.7.0, outputs:**
+- [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
+- [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
+  splitter cable, for laptops and tablets
+
 **Before 1.0:**
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
 
@@ -88,19 +99,9 @@ crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows).
 Requests and ideas, in no particular order. Each links to its discussion; add a 👍 or a comment
 to one you'd use.
 
-**Decks**
-- [Smoother close-up scrolling when zoomed in tight](https://github.com/GemZombie/GZJam/issues/46)
-
 **Library**
 - [Ordered, saved playlists](https://github.com/GemZombie/GZJam/issues/6)
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
-
-**Sound and outputs**
-- [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
-- [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
-  splitter cable, for laptops and tablets
-- [A one-knob compressor for old recordings](https://github.com/GemZombie/GZJam/issues/5)
-- [A sweepable mid EQ](https://github.com/GemZombie/GZJam/issues/4)
 
 **Elsewhere**
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
