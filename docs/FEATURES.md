@@ -896,6 +896,23 @@ not here. This file records what was decided and built, and why.
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
+### Status: smoother close-up when zoomed in tight (2026-10-24, issue #46)
+
+- **Measured first** (`GZJam.DevTools clock`, playing silently on the default output): a deck's
+  reported position moves in 20 and 40 ms steps (now and then 80), each report on average 8 to
+  17 ms off a steady line. The close-up added a tenth of each report's error at once, so at the
+  tightest zoom (2 s across, about 4.4 px a frame) single frames moved up to 2 px more or less
+  than they should: the choppiness.
+- **Now** each report's error counts for at most 30 ms, and the correction is shown over about
+  0.15 s rather than in one frame. Fed the same real reports at 60 frames a second, the worst
+  frame went from 0.5 to 2.3 px off steady to about 0.07 to 0.4 px, and the playhead stays as
+  close to the music (worst 2 to 4 ms). Gentler still (smaller corrections, or nudging the speed
+  instead) was smoother but drifted up to 100 ms from the music, so no.
+- **Blending:** zoomed in so far that a bar is shorter than a 10 ms slice, a bar takes a blend of
+  the two slices either side of its middle, rather than neighbouring bars repeating one slice.
+- **Not done:** snapping bars to whole pixels. At 175% the strip moves about 7.6 screen pixels a
+  frame, so snapping would alternate 7 and 8, the very unevenness being removed.
+
 ### Status: evening out and a movable mid (2026-10-24, issues #5 and #4)
 
 Both asked for by the Mixxx DJ, and both kept in the EQ panel, set once per recording like the
