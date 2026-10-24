@@ -8,6 +8,8 @@
 A free DJ app for social dance nights: swing, West Coast, blues, ballroom and more. Simple,
 intuitive and useful: what you need to play music for dancers, without the clutter.
 
+![GZJam during a set: Deck 1 on air, Deck 2 cued in the headphones, a search of the library, and the queue](docs/images/main-screen.png)
+
 ## Download
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
@@ -104,7 +106,8 @@ dotnet test
 ```
 
 UI tests run headless. `ScreenshotTests` also renders the window over a real music folder
-(`C:\music`, or `GZJAM_SCREENSHOT_MUSIC`) and saves PNGs to `%TEMP%\gzjam-screenshots`.
+(`C:\music`, or `GZJAM_SCREENSHOT_MUSIC`) and saves PNGs to `%TEMP%\gzjam-screenshots`. The
+picture at the top of this page is its `readme-main-screen.png`, copied to `docs/images/main-screen.png`.
 
 ## Builds and releases
 
