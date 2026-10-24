@@ -528,8 +528,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial string? Notice { get; private set; }
 
-    public string MainOutputName => OutputName(Mix?.Main) + (Mix?.IsSplit == true ? ", left" : "");
-    public string CueOutputName => OutputName(Mix?.Cue) + (Mix?.IsSplit == true ? ", right" : "");
+    // Split, the side comes first: a long name is trimmed at its end.
+    public string MainOutputName => (Mix?.IsSplit == true ? "Left · " : "") + OutputName(Mix?.Main);
+    public string CueOutputName => (Mix?.IsSplit == true ? "Right · " : "") + OutputName(Mix?.Cue);
     public bool HasMainOutput => Mix is { } mix && (mix.IsOffline || mix.Main.Device is not null);
 
     /// <summary>Headphones are available. Offline mixes (tests) count, since nothing reaches the speakers.</summary>

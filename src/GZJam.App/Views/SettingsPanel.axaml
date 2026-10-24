@@ -41,7 +41,9 @@
                       <Border Classes="led on red" VerticalAlignment="Center" />
                       <TextBlock Classes="setting" Text="Speakers" />
                     </StackPanel>
-                    <TextBlock Classes="setting-help" Text="What the room hears." />
+                    <TextBlock Classes="setting-help" Text="What the room hears." IsVisible="{Binding !SplitOutput}" />
+                    <TextBlock x:Name="SpeakersSplitHelp" Classes="setting-help" IsVisible="{Binding SplitOutput}"
+                               Text="What the room hears: the left side of this output." />
                   </StackPanel>
                   <ComboBox x:Name="MainDeviceBox" Grid.Column="1" ItemsSource="{Binding MainDevices}" SelectedItem="{Binding MainDevice}" />
                 </Grid>
@@ -61,14 +63,27 @@
                 </StackPanel>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="One output for both (splitter cable)" />
+                    <TextBlock Classes="setting-help"
+                               Text="For a laptop with one output. Plug a splitter cable into it: the room plays from the left plug, your headphones from the right. Hearing it the wrong way round? Swap the two plugs." />
+                  </StackPanel>
+                  <ToggleButton x:Name="SplitOutputSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                                IsChecked="{Binding SplitOutput}" IsEnabled="{Binding CanSplitOutput}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <Border Classes="led on amber" VerticalAlignment="Center" />
                       <TextBlock Classes="setting" Text="Headphones" />
                     </StackPanel>
-                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room. With one output, choose its right side and plug in a splitter cable." />
+                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room." />
                   </StackPanel>
-                  <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}" />
+                  <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}"
+                            IsVisible="{Binding !SplitOutput}" />
+                  <TextBlock x:Name="CueSplitText" Grid.Column="1" Classes="setting-help" VerticalAlignment="Center" MaxWidth="260"
+                             TextAlignment="Right" IsVisible="{Binding SplitOutput}" Text="The right side of the speakers' output" />
                 </Grid>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">

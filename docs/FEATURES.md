@@ -1065,10 +1065,16 @@ rest of it.
 - **The ask:** a laptop (or later a tablet) with one output, and no USB interface: the speakers
   in mono on its left channel and the headphones on its right, through a splitter cable (a "DJ
   splitter": one stereo plug to two mono sockets), as djay does.
-- **Where:** Settings › Sound › Headphones › *Speakers' output, right side*. The speakers' own
-  output isn't offered as a whole for the headphones any more: that would put them in the room.
-  The top bar's chips say "…, left" and "…, right". Moving the speakers to the headphones' own
-  output turns the headphones off, with a notice, rather than splitting by surprise.
+- **Where:** a switch of its own in Settings › Sound, *One output for both (splitter cable)*,
+  between Speakers and Headphones, saying what to plug in. On, the Speakers row says the room is
+  the left side, and the Headphones row shows "The right side of the speakers' output" in place
+  of its list; a notice says the same. (0.7.0 had it as an entry in the Headphones list, which a
+  DJ testing it couldn't find or make sense of: nothing on the Speakers side mentioned it, and
+  the top bar's ", left" was trimmed off a long name.) The top bar puts the side first, "Left · …"
+  and "Right · …", so trimming can't hide it. The speakers' own output isn't offered whole for the
+  headphones: that would put them in the room. Moving the speakers to the headphones' own output
+  turns the headphones off, with a notice, rather than splitting by surprise. Turning the switch
+  off leaves the headphones off until chosen.
 - **How:** the speakers and headphones each keep their own mixer, volume, limiter and meter (as
   decoding mixers), then both go into one mixer on the device, each summed to mono on its own
   side (`MixEngine.Split`, a BASSmix matrix). Saved as headphones on the speakers' own output, so

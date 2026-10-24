@@ -16,12 +16,6 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Represents "no headphone output" (and no booth).</summary>
     public static readonly AudioDevice NoDevice = new(-1, "None", "none", false);   // a driver, so it isn't taken for "Default"
 
-    /// <summary>
-    /// Headphones on the right side of the speakers' output, through a splitter cable (see
-    /// <see cref="MixEngine.IsSplit"/>): for a laptop with one output.
-    /// </summary>
-    public static readonly AudioDevice SplitChoice = new(-2, "Speakers' output, right side", "split", false);
-
     private readonly MainWindowViewModel _owner;
     private readonly AppSettings _settings;
     private bool _loading;
@@ -257,16 +251,38 @@ public sealed partial class SettingsViewModel : ObservableObject
         Log.Info("Output devices: " + string.Join("; ", devices.Select(d => $"{d.Index} \"{d.Name}\"" + (d.SystemName != d.Name ? $" (\"{d.SystemName}\")" : "") + $" [{d.Driver}]")));
         MainDevices = devices;
         int? main = _owner.Mix?.Main.Device?.Index;
-        // The speakers' own output is offered as its right side, never as a whole: that would
-        // put the headphones in the room.
-        CueDevices = [NoDevice, SplitChoice, .. devices.Where(d => d.Index != main)];
+        // The speakers' own output is never offered whole for the headphones: they'd be in the
+        // room. Its right side is the "One output for both" switch.
+        CueDevices = [NoDevice, .. devices.Where(d => d.Index != main)];
         BoothDevices = devices.Prepend(NoDevice).ToList();
         MainDevice = devices.FirstOrDefault(d => d.Index == main);
-        CueDevice = _owner.Mix?.IsSplit == true ? SplitChoice
-            : devices.FirstOrDefault(d => d.Index == _owner.Mix?.Cue.Device?.Index) ?? NoDevice;
+        CueDevice = SplitOutput ? NoDevice : devices.FirstOrDefault(d => d.Index == _owner.Mix?.Cue.Device?.Index) ?? NoDevice;
         BoothDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Booth.Device?.Index) ?? NoDevice;
         _loading = false;
+        OnPropertyChanged(nameof(SplitOutput));
+        OnPropertyChanged(nameof(CanSplitOutput));
     }
+
+    /// <summary>
+    /// One output for both, through a splitter cable: the room on its left side, the headphones on
+    /// its right (see <see cref="MixEngine.IsSplit"/>). Off, the headphones are off until chosen.
+    /// </summary>
+    public bool SplitOutput
+    {
+        get => _owner.Mix?.IsSplit == true;
+        set
+        {
+            if (value == SplitOutput || _owner.Mix is not { IsOffline: false } || MainDevice is null)
+                return;
+            _owner.SetOutputs(MainDevice, value ? MainDevice : null, Chosen(BoothDevice));
+            if (value && _owner.Mix.IsSplit)
+                _owner.ShowNotice("Split: the room on the left plug, your headphones on the right.");
+            RefreshDevices();
+        }
+    }
+
+    /// <summary>Splitting needs speakers to split.</summary>
+    public bool CanSplitOutput => MainDevice is not null;
 
     partial void OnMainDeviceChanged(AudioDevice? value)
     {
@@ -275,8 +291,8 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         // Split, the headphones go with the speakers. Speakers moved to the headphones' own
         // output turn the headphones off: they'd be in the room.
-        AudioDevice? cue = CueDevice == SplitChoice ? value : Chosen(CueDevice);
-        if (CueDevice != SplitChoice && cue?.Index == value.Index)
+        AudioDevice? cue = SplitOutput ? value : Chosen(CueDevice);
+        if (!SplitOutput && cue?.Index == value.Index)
         {
             cue = null;
             _owner.ShowNotice("Headphones are off: they were on that output.");
@@ -288,14 +304,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     partial void OnCueDeviceChanged(AudioDevice? value)
     {
         if (!_loading)
-            _owner.SetOutputs(MainDevice, value == SplitChoice ? MainDevice : Chosen(value), Chosen(BoothDevice));
+            _owner.SetOutputs(MainDevice, Chosen(value), Chosen(BoothDevice));
     }
 
     partial void OnBoothDeviceChanged(AudioDevice? value)
     {
         if (_loading)
             return;
-        _owner.SetOutputs(MainDevice, CueDevice == SplitChoice ? MainDevice : Chosen(CueDevice), Chosen(value));
+        _owner.SetOutputs(MainDevice, SplitOutput ? MainDevice : Chosen(CueDevice), Chosen(value));
         if (Chosen(value) is not null && _owner.Mix?.Booth.Device is null)
             RefreshDevices();   // refused (the speakers' own output, say): back to None
     }

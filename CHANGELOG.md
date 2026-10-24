@@ -10,6 +10,15 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.8.0 (unreleased)
+
+Changed:
+
+- **One output for both is a switch of its own,** easy to find: Settings › Sound › *One output for
+  both (splitter cable)*, which says what to plug in. On, the Speakers and Headphones rows say
+  which side each is on, and the top bar starts with *Left* and *Right*, where a long output name
+  used to hide it. It used to be an entry in the Headphones list.
+
 ## 0.7.1 (2026-10-24)
 
 Changed:

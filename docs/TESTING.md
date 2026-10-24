@@ -77,9 +77,9 @@ For a release you'd use at a dance, test your real library.
 - [ ] Two loud songs blended light the **LIMIT** light, and the sound doesn't distort.
 - [ ] Moving the crossfader, the tempo and the volumes makes **no crackles**. If it does, turn on
       *Extra protection against crackles* and try again.
-- [ ] **Splitter cable:** Headphones › *Speakers' output, right side*, with the speakers and
-      headphones on the splitter. The room plays only from the speakers' plug, the preview only in
-      the headphones. The top bar says "…, left" and "…, right". If they're swapped, note which way
+- [ ] **Splitter cable:** turn on *One output for both (splitter cable)*, with the speakers and
+      headphones on the splitter. The room plays only from the left plug, the preview only from
+      the right. The top bar says "Left · …" and "Right · …". If they're swapped, note which way
       round the cable was.
 - [ ] **Booth** (Settings › Sound › Booth): it plays what the room hears, follows the crossfader,
       never plays the preview, and *Booth volume* works. Choosing the speakers' own output for it
