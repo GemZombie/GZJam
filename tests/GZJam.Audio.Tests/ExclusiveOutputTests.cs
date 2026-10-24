@@ -121,15 +121,17 @@ public sealed class ExclusiveOutputTests : IDisposable
     }
 
     [Fact]
-    public void The_same_output_for_speakers_and_headphones_is_shared_so_both_play()
+    public void The_same_output_for_speakers_and_headphones_is_split_and_still_gzjams_alone()
     {
+        // The speakers on its left, the headphones on its right, through a splitter cable (#15).
         AudioDevice device = SpareDevice();
         _mix.SetOutputs(device, device);
-        Assert.False(_mix.Main.IsExclusive);
+        Assert.True(_mix.IsSplit);
+        Assert.True(_mix.SpeakersAreExclusive);
         Assert.Equal(device, _mix.Main.Device);
         Assert.Equal(device, _mix.Cue.Device);
         Assert.Null(_mix.CueRefusal);
-        Assert.Contains("also the headphone output", _mix.ExclusiveRefusal);
+        Assert.Null(_mix.ExclusiveRefusal);
     }
 
     [Fact]
