@@ -81,7 +81,9 @@ For 0.7.0:
 
 ## Planned next
 
-**0.7.0, outputs:**
+**Also in 0.7.0:**
+- [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
+  instead of closing without a word (after going back from a test build or a newer release)
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
 - [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
   splitter cable, for laptops and tablets
