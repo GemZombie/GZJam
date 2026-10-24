@@ -70,12 +70,15 @@ Nothing yet since 0.5.0.
 ## Planned next
 
 **0.6.0:**
-- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
 - [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
   a glance that the right record is loaded
 
+**Before 1.0:**
+- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
+
 **Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
-[on a real Mac](https://github.com/GemZombie/GZJam/issues/18), and [checking for a rare dropout with extra
+[on a real Mac](https://github.com/GemZombie/GZJam/issues/18), [closing GZJam on Linux desktops that
+draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland), and [checking for a rare dropout with extra
 crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows).
 
 ## Being considered
