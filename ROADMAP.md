@@ -102,6 +102,8 @@ Nothing yet since 0.7.2.
   by ear, a very large library, and a real night
 
 *New*
+- [Bring the night back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
+  the queue and the decks as they were, paused, if the laptop dies mid-dance
 - [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
   cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
@@ -111,6 +113,12 @@ Nothing yet since 0.7.2.
   anything by itself.
 
 **After 1.0:**
+- [Import from iTunes / Apple Music](https://github.com/GemZombie/GZJam/issues/97): ratings,
+  playlists and play counts, as the Mixxx import does
+- [Fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98) in auto-play,
+  for practice nights, classes and jams
+- [Play a file from outside the library](https://github.com/GemZombie/GZJam/issues/99): drag it
+  from the file manager onto a deck, say a song a dancer brings on a USB stick
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged.
   Not something DJ apps usually do, and good free rippers exist (Exact Audio Copy, fre:ac,
@@ -127,7 +135,16 @@ to one you'd use.
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
 
+**Playing**
+- [Pause after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100),
+  for lessons and the end of the night
+- [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
+  stick, to hand a set to another DJ
+- [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
+  a sequence of dances, or so many of each
+
 **Elsewhere**
+- [GZJam in other languages](https://github.com/GemZombie/GZJam/issues/102)
 - [A companion app for cleaning up tags and file names](https://github.com/GemZombie/GZJam/issues/76):
   fill in missing titles, fix misspelled artists, rename files by rule
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
