@@ -5,8 +5,8 @@
   </picture>
 </h1>
 
-A DJ app that aims to be simple, intuitive and useful: what you need to play music for people,
-without the clutter.
+A free DJ app for social dance nights: swing, West Coast, blues, ballroom and more. Simple,
+intuitive and useful: what you need to play music for dancers, without the clutter.
 
 ## Download
 

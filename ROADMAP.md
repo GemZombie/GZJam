@@ -1,7 +1,8 @@
 # GZJam: what it does, and what's next
 
-GZJam is a free DJ app for Windows, Mac and Linux that aims to be simple, intuitive and useful:
-what you need to play music for people, without the clutter. This page is the big picture: what
+GZJam is a free DJ app for social dance nights: swing, West Coast, blues, ballroom and more, on
+Windows, Mac and Linux. Simple, intuitive and useful: what you need to play music for dancers,
+without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
