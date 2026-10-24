@@ -17,6 +17,13 @@ public static class TestWav
             i >= before && i < before + tone ? Math.Sin(2 * Math.PI * frequency * (i - before) / SampleRate) * amplitude : 0, right);
     }
 
+    /// <summary>A tone whose level changes: each section is a length and an amplitude, in turn.</summary>
+    public static string WriteSections(string path, IReadOnlyList<(TimeSpan Length, double Amplitude)> sections, double frequency = 440)
+    {
+        var amplitudes = sections.SelectMany(s => Enumerable.Repeat(s.Amplitude, Frames(s.Length))).ToArray();
+        return Write(path, amplitudes.Length, i => Math.Sin(2 * Math.PI * frequency * i / SampleRate) * amplitudes[i]);
+    }
+
     /// <summary>
     /// A drum pattern in 4/4: a kick on every beat, a snare on <paramref name="backbeat"/> beats
     /// (2 and 4), and a ride cymbal playing swung eighths (on the beat and two thirds through it).

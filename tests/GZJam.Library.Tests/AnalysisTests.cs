@@ -163,5 +163,12 @@ public sealed class AnalysisTests : IDisposable
         // The DJ's gain for the song is kept with its EQ; gain alone isn't flat.
         _lib.Database.SetEq(path, new TrackEq(0, 0, 0, Gain: -3.5));
         Assert.Equal(-3.5, _lib.Database.GetEq(path).Gain);
+
+        // Where the mid sits and how much it's evened out are kept with it; either alone isn't flat.
+        _lib.Database.SetEq(path, new TrackEq(0, -2, 0, MidHz: 400, Even: 35));
+        Assert.Equal(new TrackEq(0, -2, 0, MidHz: 400, Even: 35), _lib.Database.GetEq(path));
+        Assert.False(new TrackEq(0, 0, 0, MidHz: 2000).IsFlat);
+        Assert.False(new TrackEq(0, 0, 0, Even: 5).IsFlat);
+        Assert.True(default(TrackEq).IsFlat);   // a zero frequency means the default
     }
 }

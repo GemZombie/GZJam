@@ -28,6 +28,9 @@ public sealed class Deck : IDisposable
     private TimeSpan _start;
     private TimeSpan? _end;
     private readonly double[] _eqDb = new double[3];   // low, mid, high
+    private double _midHz = 1000;
+    private Evening _even;
+    private int _evenFx;                         // the compressor, only while evening out
     private readonly List<Jump> _jumps = [];
     private readonly SyncProcedure _jumpSync;   // kept alive: BASS holds only a pointer to it
     private volatile bool _jumped;               // set on the audio thread, reported by Update
@@ -84,6 +87,7 @@ public sealed class Deck : IDisposable
 
         _tempo = tempo;
         CreateEq();
+        ApplyEven();
         SetJumpSyncs();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
@@ -110,6 +114,7 @@ public sealed class Deck : IDisposable
         }
         _tempo = _splitMain = _splitCue = 0;
         Array.Clear(_eqFx);   // freed with the stream
+        _evenFx = 0;
         _playing = false;
         _ended = false;
         TrackPath = null;
@@ -285,18 +290,98 @@ public sealed class Deck : IDisposable
         }
     }
 
-    // EQ: shelves below 150 Hz and above 5 kHz (where record hiss lives), a bell around 1 kHz.
+    // EQ: shelves below 150 Hz and above 5 kHz (where record hiss lives), a bell around 1 kHz
+    // unless the DJ moves it.
     private static readonly (BQFType Type, float Hz)[] EqBands =
         [(BQFType.LowShelf, 150), (BQFType.PeakingEQ, 1000), (BQFType.HighShelf, 5000)];
 
     /// <summary>EQ in dB (0 = flat), heard in the room and the headphones alike. Kept across loads.</summary>
     public (double Low, double Mid, double High) Eq => (_eqDb[0], _eqDb[1], _eqDb[2]);
 
-    public void SetEq(double low, double mid, double high)
+    /// <summary>Where the mid band sits, in Hz.</summary>
+    public double MidHz => _midHz;
+
+    public void SetEq(double low, double mid, double high, double midHz = 1000)
     {
         (_eqDb[0], _eqDb[1], _eqDb[2]) = (low, mid, high);
+        _midHz = Math.Clamp(midHz, 20, 20000);
         for (int band = 0; band < EqBands.Length; band++)
             ApplyEq(band);
+    }
+
+    /// <summary>
+    /// How a recording is evened out: <paramref name="Amount"/> from 0 (off) to 1, for a song whose
+    /// integrated loudness is <paramref name="Lufs"/> (before any gain), so the compressor works
+    /// around where the song's music actually is, however loud the file.
+    /// </summary>
+    public readonly record struct Evening(double Amount, double Lufs)
+    {
+        /// <summary>
+        /// The music's typical level, as the compressor hears it: an average a few dB below the
+        /// song's integrated loudness (which weights and sums the channels).
+        /// </summary>
+        private double TypicalDb => Lufs - 3;
+
+        /// <summary>
+        /// Where compression starts: just under the song's typical level, down to 17 dB under it
+        /// at the most, so its loud passages come down and its quiet ones are left alone.
+        /// </summary>
+        public double ThresholdDb => Math.Clamp(TypicalDb - 17 * Amount, -60, 0);
+
+        /// <summary>Up to 4:1 at the most, enough to even out a recording without squashing it.</summary>
+        public double Ratio => 1 + 3 * Amount;
+
+        /// <summary>
+        /// Gain after the compressor, giving back most of what it takes from the song's typical
+        /// level: so the quiet passages come up, and loudness matching (measured on the song as it
+        /// is) still roughly holds.
+        /// </summary>
+        public double MakeUpDb => Math.Max(0, TypicalDb - ThresholdDb) * (1 - 1 / Ratio) * 0.6;
+    }
+
+    /// <summary>Evens out the recording (a compressor after the EQ); amount 0 takes it out altogether.</summary>
+    public Evening Even
+    {
+        get => _even;
+        set
+        {
+            value = value with { Amount = Math.Clamp(value.Amount, 0, 1) };
+            if (value == _even)
+                return;
+            _even = value;
+            ApplyEven();
+        }
+    }
+
+    private void ApplyEven()
+    {
+        if (_tempo == 0)
+            return;
+        if (_even.Amount <= 0)
+        {
+            if (_evenFx != 0)
+                Bass.ChannelRemoveFX(_tempo, _evenFx);
+            _evenFx = 0;
+            return;
+        }
+        if (_evenFx == 0)
+        {
+            // Priority below the EQ's (0 to 2): BASS runs higher priorities first, so this comes after it.
+            _evenFx = Bass.ChannelSetFX(_tempo, EffectType.Compressor, -1);
+            if (_evenFx == 0)
+                throw new AudioException($"Could not add evening out to Deck {Name}", Bass.LastError);
+        }
+        var parameters = new CompressorParameters
+        {
+            fGain = (float)_even.MakeUpDb,
+            fThreshold = (float)_even.ThresholdDb,
+            fRatio = (float)_even.Ratio,
+            fAttack = 30,     // ms: slow enough to keep the attack of a drum or a horn
+            fRelease = 400,   // ms: gentle, so quiet passages don't pump back up
+            lChannel = FXChannelFlags.All,
+        };
+        if (!Bass.FXSetParameters(_evenFx, parameters))
+            throw new AudioException($"Could not set Deck {Name}'s evening out", Bass.LastError);
     }
 
     private void CreateEq()
@@ -320,7 +405,7 @@ public sealed class Deck : IDisposable
         var parameters = new BQFParameters
         {
             lFilter = type,
-            fCenter = hz,
+            fCenter = type == BQFType.PeakingEQ ? (float)_midHz : hz,
             fGain = (float)_eqDb[band],
             fBandwidth = 0,
             fQ = shelf ? 0 : 0.7f,   // the bell: about two octaves wide
