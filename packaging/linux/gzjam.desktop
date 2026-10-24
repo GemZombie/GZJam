@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=GZJam
-Comment=A simple, intuitive DJ app
+Comment=A simple DJ app for social dance nights
 Exec=GZJam
 Icon=gzjam
 Terminal=false
