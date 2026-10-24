@@ -82,8 +82,10 @@ Nothing yet since 0.7.0.
 
 ## Planned next
 
-**Before 1.0:**
-- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged
+**After 1.0:**
+- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged.
+  Not something DJ apps usually do, and good free rippers exist (Exact Audio Copy, fre:ac,
+  foobar2000), whose files GZJam picks up by itself.
 
 **Any time:** [testing on Linux](https://github.com/GemZombie/GZJam/issues/19) and
 [on a real Mac](https://github.com/GemZombie/GZJam/issues/18), [closing GZJam on Linux desktops that
