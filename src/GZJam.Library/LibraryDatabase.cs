@@ -36,6 +36,15 @@ public sealed partial class LibraryDatabase
         return connection;
     }
 
+    /// <summary>
+    /// The oldest GZJam (by how many upgrades it knows) that can read a library this GZJam has
+    /// upgraded. Most upgrades only add (a table, a column with a default), and an older GZJam
+    /// reads such a library fine; raise this to <see cref="Migrations"/>' length only for an
+    /// upgrade older ones can't live with (a column renamed, data moved). 19: the first that
+    /// looks at <c>schema_compat</c> at all; GZJam 0.6 and before refuse any newer library.
+    /// </summary>
+    private const int OldestReader = 19;
+
     private void CreateSchema()
     {
         using var c = Open();
@@ -45,14 +54,49 @@ public sealed partial class LibraryDatabase
         if (version == Migrations.Length)
             return;
         if (version > Migrations.Length)
-            throw new InvalidOperationException($"Library database is from a newer version of GZJam ({version}).");
+        {
+            // A newer GZJam upgraded it. If it says this one can still read it, open it as it is.
+            if (OldestReaderOf(c) is { } oldest && oldest <= Migrations.Length)
+                return;
+            throw new LibraryTooNewException(version, Migrations.Length);
+        }
 
         // Apply each upgrade the database hasn't had yet, all or nothing.
         using var tx = c.BeginTransaction();
         for (long step = version; step < Migrations.Length; step++)
             Execute(c, Migrations[step]);
         Execute(c, $"PRAGMA user_version = {Migrations.Length};");
+        Execute(c, $"UPDATE schema_compat SET oldest_reader = max(oldest_reader, {OldestReader});");
         tx.Commit();
+    }
+
+    /// <summary>The oldest GZJam that can read this library, as the newest one to upgrade it said; null if none said.</summary>
+    private static long? OldestReaderOf(SqliteConnection c)
+    {
+        if (Scalar(c, "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'schema_compat';") is null)
+            return null;
+        return Scalar(c, "SELECT oldest_reader FROM schema_compat;") as long?;
+    }
+
+    /// <summary>
+    /// Whether this GZJam can open the library at <paramref name="databasePath"/>, looked at
+    /// without changing anything: null if it can (or there's none yet), else why not.
+    /// </summary>
+    public static LibraryTooNewException? CheckCanOpen(string databasePath)
+    {
+        if (!File.Exists(databasePath))
+            return null;
+        using var c = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = databasePath,
+            Mode = SqliteOpenMode.ReadOnly,
+            Pooling = false,
+        }.ToString());
+        c.Open();
+        long version = (long)(Scalar(c, "PRAGMA user_version;") ?? 0L);
+        if (version <= Migrations.Length || OldestReaderOf(c) is { } oldest && oldest <= Migrations.Length)
+            return null;
+        return new LibraryTooNewException(version, Migrations.Length);
     }
 
     /// <summary>
@@ -304,6 +348,14 @@ public sealed partial class LibraryDatabase
                 path        TEXT NOT NULL
             );
             CREATE INDEX ix_playlist_entries ON playlist_entries(playlist_id, position);
+            """,
+
+        // 19: Which GZJam can still read this library (see OldestReader): a newer GZJam whose
+        // upgrades only added things records that, and this one opens its library rather than
+        // refusing it.
+        """
+            CREATE TABLE schema_compat (oldest_reader INTEGER NOT NULL);
+            INSERT INTO schema_compat (oldest_reader) VALUES (19);
             """,
     ];
 

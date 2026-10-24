@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using GZJam.App.Controls;
 using GZJam.App.Views;
@@ -116,4 +117,18 @@ public sealed class StartupScreenTests
         startup.Dismiss();
         Assert.False(startup.IsVisible);
     }
+    [AvaloniaFact]
+    public void A_library_from_a_newer_gzjam_is_explained_not_a_silent_close()
+    {
+        var dialog = App.LibraryTooNewDialog();
+        dialog.Show();
+        AppHarness.Settle(200);
+        Assert.Equal("Your library is from a newer GZJam", dialog.FindControl<TextBlock>("Heading")!.Text);
+        Assert.Contains("Nothing has been changed or lost", dialog.FindControl<TextBlock>("Message")!.Text);
+        Assert.Equal("Get the newest GZJam", dialog.FindControl<Button>("ConfirmButton")!.Content);
+        var frame = dialog.CaptureRenderedFrame();
+        frame?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "library-too-new.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
+        dialog.Close();
+    }
 }
+

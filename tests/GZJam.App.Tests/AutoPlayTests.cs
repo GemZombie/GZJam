@@ -18,13 +18,23 @@ public sealed class AutoPlayTests
     }
 
     /// <summary>Plays audio in small steps with UI ticks, as the app does, until a condition holds.</summary>
-    private static TimeSpan PlayUntil(AppHarness app, Func<bool> condition, double timeoutSeconds = 10)
+    private static TimeSpan PlayUntil(AppHarness app, Func<bool> condition, double timeoutSeconds = 10) =>
+        PlayUntil(app, condition, out _, timeoutSeconds);
+
+    /// <summary>
+    /// The same, and when the step that made the condition hold began: whatever made it hold
+    /// happened at or after then. (On a slow machine a step takes a while, so the moment the
+    /// condition is seen can be well after it began to hold.)
+    /// </summary>
+    private static TimeSpan PlayUntil(AppHarness app, Func<bool> condition, out long lastStepStarted, double timeoutSeconds = 10)
     {
         var watch = Stopwatch.StartNew();
+        lastStepStarted = Stopwatch.GetTimestamp();
         while (!condition())
         {
             if (watch.Elapsed.TotalSeconds > timeoutSeconds)
                 throw new TimeoutException("Auto-play didn't get there in time.");
+            lastStepStarted = Stopwatch.GetTimestamp();
             app.Play(0.033);
             Thread.Sleep(15);
         }
@@ -70,12 +80,15 @@ public sealed class AutoPlayTests
         var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
         auto.IsOn = true;
 
-        PlayUntil(app, () => d1.IsFinished);
+        PlayUntil(app, () => d1.IsFinished, out long finishedBy);
         Assert.StartsWith("Deck 2 in", auto.Status);
         Assert.False(d2.IsPlaying);   // waiting out the gap
 
-        TimeSpan gap = PlayUntil(app, () => d2.IsPlaying);
-        Assert.InRange(gap.TotalSeconds, 0.4, 1.5);
+        // Timed from the start of the step in which Deck 1 finished (the gap began then or after),
+        // to when Deck 2 is seen playing (it started then or before): at least the gap.
+        PlayUntil(app, () => d2.IsPlaying);
+        double gap = Stopwatch.GetElapsedTime(finishedBy).TotalSeconds;
+        Assert.InRange(gap, 0.45, 1.5);
         Assert.Equal(1, app.ViewModel.Mixer!.Crossfader);
         Assert.True(d2.IsOnAir);
 

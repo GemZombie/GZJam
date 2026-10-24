@@ -896,6 +896,23 @@ not here. This file records what was decided and built, and why.
   uses the setting meanwhile rather than dropping the filter.
 - Passed to `LibraryDatabase.Search(..., nearBpm)` as a fraction; the library holds no setting.
 
+### Status: a library from a newer GZJam (2026-10-24, issue #67)
+
+Going back to an older GZJam after a newer one (or a test build) had upgraded the library made it
+close as it started, without a word in the window or the log: `CreateSchema` threw "from a newer
+version", and the startup screen's error path rethrew it unlogged.
+
+- **Said, not silent:** before the startup screen, `LibraryDatabase.CheckCanOpen` reads the
+  library's upgrade number (read-only). If this GZJam can't read it, a window says so (*Get the
+  newest GZJam* opens the releases page; *Quit*), the log records why, and nothing is opened or
+  changed. Any other failure while starting is logged too.
+- **Fewer lockouts:** most upgrades only add (a table, a column with a default), which an older
+  GZJam reads fine. Upgrade 19 adds `schema_compat (oldest_reader)`: the oldest GZJam (by
+  upgrade count) that can read the library, raised only by an upgrade older ones can't live
+  with (`LibraryDatabase.OldestReader`, 19 for now). A GZJam opening a newer library whose
+  `oldest_reader` it meets opens it as it is, without touching its upgrade number. GZJam 0.6
+  and before don't know the table and still refuse any newer library.
+
 ### Status: playlists (2026-10-24, issue #6)
 
 Asked for in the Mixxx DJ's review; built because DJs newer to it will want to plan a set before

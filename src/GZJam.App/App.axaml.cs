@@ -27,6 +27,12 @@ public partial class App : Application
             Dispatcher.UIThread.UnhandledException += (_, e) => Log.Error("Unhandled UI exception", e.Exception);
 
             var settings = AppSettings.Load(AppPaths.SettingsFile);
+            if (LibraryDatabase.CheckCanOpen(AppPaths.LibraryDatabase) is { } tooNew)
+            {
+                ExplainLibraryTooNew(desktop, tooNew);
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
             if (StartupWindow.IsShown)
             {
                 var startup = new StartupWindow(settings.Window);
@@ -77,9 +83,58 @@ public partial class App : Application
         catch (Exception ex)
         {
             // As before there was a startup screen: logged, and GZJam stops.
+            Log.Error("GZJam couldn't start", ex);
             startup.Dismiss();
             var failure = ExceptionDispatchInfo.Capture(ex);
             Dispatcher.UIThread.Post(failure.Throw);
+        }
+    }
+
+    /// <summary>
+    /// The library was upgraded by a newer GZJam, in a way this one can't read (after going back
+    /// from a newer release or a test build). Says so, rather than closing without a word, and
+    /// offers the newest GZJam. Nothing is opened or changed.
+    /// </summary>
+    private static void ExplainLibraryTooNew(IClassicDesktopStyleApplicationLifetime desktop, LibraryTooNewException tooNew)
+    {
+        Log.Error($"Not opening {AppPaths.LibraryDatabase}: {tooNew.Message}");
+        var dialog = LibraryTooNewDialog();
+        dialog.Closed += (_, _) =>
+        {
+            if (dialog.Confirmed)
+                OpenInBrowser(About.ProjectUrl + "/releases/latest");
+            desktop.Shutdown();
+        };
+        desktop.MainWindow = dialog;
+        dialog.Show();
+    }
+
+    /// <summary>What's shown when the library is from a newer GZJam.</summary>
+    internal static ConfirmDialog LibraryTooNewDialog()
+    {
+        var dialog = new ConfirmDialog(
+            "Your library is from a newer GZJam",
+            $"A newer version of GZJam has already updated your library, and this version ({About.Version}) can't read it. " +
+            "Install the newest GZJam to carry on.\n\n" +
+            "Nothing has been changed or lost: your music, History, playlists and marks are all still there for the newer version.",
+            "Get the newest GZJam", "Quit")
+        {
+            Title = "GZJam",
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+        };
+        dialog.ConfirmIsHarmless();
+        return dialog;
+    }
+
+    private static void OpenInBrowser(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            Log.Error($"Couldn't open {url}", ex);
         }
     }
 
