@@ -10,6 +10,17 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.7.1 (2026-10-24)
+
+Changed:
+
+- **GZJam says who it's for:** Settings › About, and the app menu on Linux, now call it a simple
+  DJ app for social dance nights.
+
+Nothing else a DJ would notice. This is the release to try with the new
+[testing checklist](https://github.com/GemZombie/GZJam/blob/main/docs/TESTING.md), on Windows, a
+Mac or Linux.
+
 ## 0.7.0 (2026-10-24)
 
 New:
