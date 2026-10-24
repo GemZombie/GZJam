@@ -26,6 +26,9 @@ Changed:
 
 - **Menus stand out from the panels behind them:** a step lighter, with a brighter edge, so on a
   dim screen it's clear where a menu ends and the song list begins.
+- **Faster searches in very large libraries.** With 100,000+ songs, the whole library lists about
+  a third faster, BPM searches about a third faster, and `rating:`, `energy:` and `played:` are
+  instant. Smaller libraries are a little faster too.
 
 Fixed:
 
