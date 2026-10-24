@@ -14,6 +14,9 @@
          made here says "-dev". -->
     <VersionPrefix>0.5.0</VersionPrefix>
     <VersionSuffix>dev</VersionSuffix>
+    <!-- Published packages are compiled ahead of time, so GZJam starts about a second sooner
+         (it no longer compiles its code as it starts). Only a publish for a platform can. -->
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>

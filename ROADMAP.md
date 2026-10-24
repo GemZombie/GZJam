@@ -69,6 +69,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   or for one search `~bpm:140/5`.
 - **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into
   bars like a waveform.
+- **A startup screen, and starting sooner:** the logo shows as soon as GZJam starts, while it gets
+  ready, and it's ready about a second sooner than before (Windows and Mac).
 
 ## Planned next
 
@@ -108,8 +110,6 @@ to one you'd use.
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
 - [An Arch Linux (AUR) package that updates itself](https://github.com/GemZombie/GZJam/issues/30)
   (waiting on the AUR)
-- [A startup screen with the logo](https://github.com/GemZombie/GZJam/issues/49), while GZJam gets
-  ready
 
 ## Decided against
 
