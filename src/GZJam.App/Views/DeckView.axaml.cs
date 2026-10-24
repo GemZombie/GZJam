@@ -93,7 +93,7 @@ public partial class DeckView : UserControl
             menu.Opening += (_, e) => FillTrimMenu(menu, e);
             menu.Opened += (_, _) => FillTrimMenu(menu, null);
         }
-        MoreMenu.Opening += (_, _) => FillMoreMenu();
+        FlyoutMenus.FillBeforeOpening(MoreButton, MoreMenu, FillMoreMenu);
         // Tap tempo: the pad takes the keyboard (Space taps it), and Escape puts it away.
         TapPanel.PropertyChanged += (_, e) =>
         {
