@@ -124,6 +124,7 @@ public sealed class HistoryTests : IDisposable
                 DROP TABLE playlist_entries;                  -- added by upgrade 18
                 DROP TABLE playlists;
                 DROP TABLE schema_compat;                     -- added by upgrade 19
+                DROP INDEX ix_tracks_order;                   -- added by upgrade 20
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();
@@ -151,7 +152,8 @@ public sealed class HistoryTests : IDisposable
             using var cmd = c.CreateCommand();
             cmd.CommandText = """
                 CREATE TABLE roots (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE);
-                CREATE TABLE tracks (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE, bpm REAL);
+                CREATE TABLE tracks (id INTEGER PRIMARY KEY, root_id INTEGER, path TEXT NOT NULL UNIQUE, folder TEXT,
+                                     file_name TEXT, track_number INTEGER, bpm REAL);
                 INSERT INTO roots(path) VALUES ('C:\music');
                 PRAGMA user_version = 1;
                 """;

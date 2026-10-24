@@ -79,6 +79,10 @@ public sealed class SearchQueryTests : IDisposable
     [InlineData("energy:2-3", "Corner Pocket|Jumpin' at the Woodside")]
     [InlineData("energy:none", "Basie Blues|Stompin' at the Savoy")]
     [InlineData("rating:yes energy:low", "Hootie Blues")]
+    [InlineData("energy:<2", "Basie Blues|Hootie Blues|Stompin' at the Savoy")]   // takes in songs never marked
+    [InlineData("energy:0-1", "Basie Blues|Hootie Blues|Stompin' at the Savoy")]
+    [InlineData("-energy:high", "Basie Blues|Corner Pocket|Hootie Blues|Stompin' at the Savoy")]
+    [InlineData("-rating:none", "Corner Pocket|Hootie Blues|Stompin' at the Savoy")]
     public void Rating_and_energy_filters(string query, string expected) => Assert.Equal(expected.Split('|'), Titles(query));
 
     [Theory]

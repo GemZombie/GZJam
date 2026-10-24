@@ -46,7 +46,7 @@ internal sealed class SearchQuery
 
     private SearchQuery(DateTime nowUtc, double nearBpm) => (_nowUtc, _nearBpm) = (nowUtc, nearBpm);
 
-    /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r), marks (m) and plays (lp).</summary>
+    /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r) and manual BPM (mb).</summary>
     public IReadOnlyList<string> Conditions => _conditions;
 
     public IReadOnlyDictionary<string, object> Parameters => _parameters;
@@ -152,32 +152,61 @@ internal sealed class SearchQuery
         return $"{BpmSql} BETWEEN {Parameter(bpm * (1 - near))} AND {Parameter(bpm * (1 + near))}";
     }
 
-    /// <summary>
-    /// "140", "130-150", "&gt;200", "&lt;=1945". With <paramref name="roundExact"/>, a single
-    /// number matches anything that rounds to it (a BPM of 139.6 is "140").
-    /// </summary>
-    private string? NumberCondition(string sql, string value, bool roundExact)
+    private string? NumberCondition(string sql, string value, bool roundExact) =>
+        NumberTest.Parse(value, roundExact) is { } test ? NumberSql(sql, test) : null;
+
+    private string NumberSql(string sql, NumberTest test) => test.Op switch
     {
-        foreach (string op in new[] { ">=", "<=", ">", "<" })
+        "between" => $"{sql} BETWEEN {Parameter(test.Low)} AND {Parameter(test.High)}",
+        "round" => $"({sql} >= {Parameter(test.Low)} AND {sql} < {Parameter(test.High)})",
+        var op => $"{sql} {op} {Parameter(test.Low)}",
+    };
+
+    /// <summary>
+    /// "140", "130-150", "&gt;200", "&lt;=1945". With <c>roundExact</c>, a single number matches
+    /// anything that rounds to it (a BPM of 139.6 is "140").
+    /// </summary>
+    private readonly record struct NumberTest(string Op, double Low, double High)
+    {
+        public static NumberTest? Parse(string value, bool roundExact)
         {
-            if (value.StartsWith(op, StringComparison.Ordinal))
-                return TryNumber(value[op.Length..], out double limit) ? $"{sql} {op} {Parameter(limit)}" : null;
-        }
-        int dash = value.Length > 1 ? value.IndexOf('-', 1) : -1;   // not a leading minus
-        if (dash > 0)
-        {
-            if (!TryNumber(value[..dash], out double low) || !TryNumber(value[(dash + 1)..], out double high))
+            foreach (string op in new[] { ">=", "<=", ">", "<" })
+            {
+                if (value.StartsWith(op, StringComparison.Ordinal))
+                    return TryNumber(value[op.Length..], out double limit) ? new NumberTest(op, limit, limit) : null;
+            }
+            int dash = value.Length > 1 ? value.IndexOf('-', 1) : -1;   // not a leading minus
+            if (dash > 0)
+            {
+                if (!TryNumber(value[..dash], out double low) || !TryNumber(value[(dash + 1)..], out double high))
+                    return null;
+                return low > high ? new NumberTest("between", high, low) : new NumberTest("between", low, high);
+            }
+            if (!TryNumber(value, out double exact))
                 return null;
-            if (low > high)
-                (low, high) = (high, low);
-            return $"{sql} BETWEEN {Parameter(low)} AND {Parameter(high)}";
+            return roundExact ? new NumberTest("round", exact - 0.5, exact + 0.5) : new NumberTest("=", exact, exact);
         }
-        if (!TryNumber(value, out double exact))
-            return null;
-        return roundExact
-            ? $"({sql} >= {Parameter(exact - 0.5)} AND {sql} < {Parameter(exact + 0.5)})"
-            : $"{sql} = {Parameter(exact)}";
+
+        public bool Matches(double x) => Op switch
+        {
+            ">=" => x >= Low,
+            "<=" => x <= Low,
+            ">" => x > Low,
+            "<" => x < Low,
+            "between" => x >= Low && x <= High,
+            "round" => x >= Low && x < High,
+            _ => x == Low,
+        };
     }
+
+    /// <summary>
+    /// Songs whose marks pass <paramref name="test"/> on <paramref name="column"/>. Only marked songs
+    /// have a row in marks, so a test unmarked songs (0) fail starts from those rows, which is quick
+    /// even in a huge library; one they pass leaves out the marked songs that fail it.
+    /// </summary>
+    private string MarksCondition(string column, NumberTest test) => test.Matches(0)
+        ? $"t.path NOT IN (SELECT path FROM marks WHERE NOT ({NumberSql(column, test)}))"
+        : $"t.path IN (SELECT path FROM marks WHERE {NumberSql(column, test)})";
 
     private string? RatingCondition(string value)
     {
@@ -188,7 +217,7 @@ internal sealed class SearchQuery
             "none" or "unrated" or "0" => Rating.Unrated,
             _ => null,
         };
-        return rating is null ? null : $"COALESCE(m.rating, 0) = {(int)rating}";
+        return rating is null ? null : MarksCondition("rating", new NumberTest("=", (int)rating, (int)rating));
     }
 
     private string? EnergyCondition(string value)
@@ -201,7 +230,7 @@ internal sealed class SearchQuery
             "none" or "unset" => "0",
             var other => other,
         };
-        return NumberCondition("COALESCE(m.energy, 0)", number, roundExact: false);
+        return NumberTest.Parse(number, roundExact: false) is { } test ? MarksCondition("energy", test) : null;
     }
 
     /// <summary>A label whose name starts with the value (any case), or "none" for songs without labels.</summary>
@@ -222,13 +251,13 @@ internal sealed class SearchQuery
         switch (value.ToLowerInvariant())
         {
             case "never" or "no" or "none":
-                return "lp.last_played IS NULL";
+                return "t.path NOT IN (SELECT path FROM plays)";
             case "yes" or "ever" or "y":
-                return "lp.last_played IS NOT NULL";
+                return "t.path IN (SELECT path FROM plays)";
         }
         if (!TryNumber(value, out double days) || days <= 0)
             return null;
-        return $"lp.last_played >= {Parameter((_nowUtc - TimeSpan.FromDays(days)).Ticks)}";
+        return $"t.path IN (SELECT path FROM plays WHERE played_utc >= {Parameter((_nowUtc - TimeSpan.FromDays(days)).Ticks)})";
     }
 
     private string Parameter(object value)

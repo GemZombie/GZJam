@@ -33,6 +33,9 @@ public sealed partial class LibraryDatabase
     {
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+        // For very large libraries: a bigger page cache, sorts in memory rather than a temp file, and
+        // the file read through memory mapping. Limits, not allocations: a small library uses little.
+        Execute(connection, "PRAGMA cache_size = -32768; PRAGMA temp_store = MEMORY; PRAGMA mmap_size = 268435456;");
         return connection;
     }
 
@@ -357,6 +360,12 @@ public sealed partial class LibraryDatabase
             CREATE TABLE schema_compat (oldest_reader INTEGER NOT NULL);
             INSERT INTO schema_compat (oldest_reader) VALUES (19);
             """,
+
+        // 20: The song list's order as an index, so listing a very large library walks the index
+        // rather than sorting every song first. Only adds: GZJam 19 reads it fine.
+        """
+            CREATE INDEX ix_tracks_order ON tracks(root_id, folder COLLATE NOCASE, track_number, file_name COLLATE NOCASE);
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -549,12 +558,14 @@ public sealed partial class LibraryDatabase
 
         using var r = cmd.ExecuteReader();
         var results = new List<Track>();
+        var ordinals = new TrackOrdinals(r);
+        int entryId = playlist is null ? -1 : r.GetOrdinal("entry_id"), entryPosition = playlist is null ? -1 : r.GetOrdinal("entry_position");
         while (r.Read())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Track track = ReadTrack(r);
+            Track track = ReadTrack(r, ordinals);
             if (playlist is not null)
-                track = track.InPlaylist(r.GetInt64(r.GetOrdinal("entry_id")), r.GetInt32(r.GetOrdinal("entry_position")) + 1);
+                track = track.InPlaylist(r.GetInt64(entryId), r.GetInt32(entryPosition) + 1);
             results.Add(track);
         }
         return results;
@@ -588,34 +599,50 @@ public sealed partial class LibraryDatabase
         return terms.Count == 0 ? null : string.Join(' ', terms);
     }
 
-    private static Track ReadTrack(SqliteDataReader r) => new()
+    private static Track ReadTrack(SqliteDataReader r) => ReadTrack(r, new TrackOrdinals(r));
+
+    private static Track ReadTrack(SqliteDataReader r, TrackOrdinals o) => new()
     {
-        Id = r.GetInt64(r.GetOrdinal("id")),
-        RootId = r.GetInt64(r.GetOrdinal("root_id")),
-        Path = r.GetString(r.GetOrdinal("path")),
-        Folder = r.GetString(r.GetOrdinal("folder")),
-        FileName = r.GetString(r.GetOrdinal("file_name")),
-        FileSize = r.GetInt64(r.GetOrdinal("file_size")),
-        ModifiedUtc = new DateTime(r.GetInt64(r.GetOrdinal("modified_utc")), DateTimeKind.Utc),
-        Title = GetString(r, "title"),
-        Artist = GetString(r, "artist"),
-        Album = GetString(r, "album"),
-        AlbumArtist = GetString(r, "album_artist"),
-        Genre = GetString(r, "genre"),
-        Comment = GetString(r, "comment"),
-        Year = GetInt(r, "year"),
-        TrackNumber = GetInt(r, "track_number"),
-        TagBpm = r.IsDBNull(r.GetOrdinal("bpm")) ? null : r.GetDouble(r.GetOrdinal("bpm")),
-        DetectedBpm = r.IsDBNull(r.GetOrdinal("detected_bpm")) ? null : r.GetDouble(r.GetOrdinal("detected_bpm")),
-        BpmRange = r.IsDBNull(r.GetOrdinal("range_min")) ? null : new BpmRange(r.GetInt32(r.GetOrdinal("range_min")), r.GetInt32(r.GetOrdinal("range_max"))),
-        ManualBpm = r.IsDBNull(r.GetOrdinal("manual_bpm")) ? null : r.GetDouble(r.GetOrdinal("manual_bpm")),
-        Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("duration_ms"))),
-        Rating = (Rating)(GetInt(r, "rating") ?? 0),
-        Energy = (Energy)(GetInt(r, "energy") ?? 0),
-        LastPlayedUtc = r.IsDBNull(r.GetOrdinal("last_played")) ? null : new DateTime(r.GetInt64(r.GetOrdinal("last_played")), DateTimeKind.Utc),
-        PlayCount = GetInt(r, "play_count") ?? 0,
-        Labels = ReadLabels(GetString(r, "labels")),
+        Id = r.GetInt64(o.Id),
+        RootId = r.GetInt64(o.RootId),
+        Path = r.GetString(o.Path),
+        Folder = r.GetString(o.Folder),
+        FileName = r.GetString(o.FileName),
+        FileSize = r.GetInt64(o.FileSize),
+        ModifiedUtc = new DateTime(r.GetInt64(o.ModifiedUtc), DateTimeKind.Utc),
+        Title = GetString(r, o.Title),
+        Artist = GetString(r, o.Artist),
+        Album = GetString(r, o.Album),
+        AlbumArtist = GetString(r, o.AlbumArtist),
+        Genre = GetString(r, o.Genre),
+        Comment = GetString(r, o.Comment),
+        Year = GetInt(r, o.Year),
+        TrackNumber = GetInt(r, o.TrackNumber),
+        TagBpm = GetDouble(r, o.TagBpm),
+        DetectedBpm = GetDouble(r, o.DetectedBpm),
+        BpmRange = r.IsDBNull(o.RangeMin) ? null : new BpmRange(r.GetInt32(o.RangeMin), r.GetInt32(o.RangeMax)),
+        ManualBpm = GetDouble(r, o.ManualBpm),
+        Duration = TimeSpan.FromMilliseconds(r.GetInt64(o.Duration)),
+        Rating = (Rating)(GetInt(r, o.Rating) ?? 0),
+        Energy = (Energy)(GetInt(r, o.Energy) ?? 0),
+        LastPlayedUtc = r.IsDBNull(o.LastPlayed) ? null : new DateTime(r.GetInt64(o.LastPlayed), DateTimeKind.Utc),
+        PlayCount = GetInt(r, o.PlayCount) ?? 0,
+        Labels = ReadLabels(GetString(r, o.Labels)),
     };
+
+    /// <summary>Where each of a track's columns is in a result, looked up once per query rather than once per row.</summary>
+    private sealed class TrackOrdinals(SqliteDataReader r)
+    {
+        public readonly int Id = r.GetOrdinal("id"), RootId = r.GetOrdinal("root_id"), Path = r.GetOrdinal("path"),
+            Folder = r.GetOrdinal("folder"), FileName = r.GetOrdinal("file_name"), FileSize = r.GetOrdinal("file_size"),
+            ModifiedUtc = r.GetOrdinal("modified_utc"), Title = r.GetOrdinal("title"), Artist = r.GetOrdinal("artist"),
+            Album = r.GetOrdinal("album"), AlbumArtist = r.GetOrdinal("album_artist"), Genre = r.GetOrdinal("genre"),
+            Comment = r.GetOrdinal("comment"), Year = r.GetOrdinal("year"), TrackNumber = r.GetOrdinal("track_number"),
+            TagBpm = r.GetOrdinal("bpm"), DetectedBpm = r.GetOrdinal("detected_bpm"), RangeMin = r.GetOrdinal("range_min"),
+            RangeMax = r.GetOrdinal("range_max"), ManualBpm = r.GetOrdinal("manual_bpm"), Duration = r.GetOrdinal("duration_ms"),
+            Rating = r.GetOrdinal("rating"), Energy = r.GetOrdinal("energy"), LastPlayed = r.GetOrdinal("last_played"),
+            PlayCount = r.GetOrdinal("play_count"), Labels = r.GetOrdinal("labels");
+    }
 
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
     private const string TrackColumns =
@@ -631,17 +658,15 @@ public sealed partial class LibraryDatabase
     private const string JoinAnalysis =
         "LEFT JOIN analysis a ON a.path = t.path AND a.file_size = t.file_size AND a.modified_utc = t.modified_utc";
 
-    private static string? GetString(SqliteDataReader r, string column)
-    {
-        int i = r.GetOrdinal(column);
-        return r.IsDBNull(i) ? null : r.GetString(i);
-    }
+    private static string? GetString(SqliteDataReader r, string column) => GetString(r, r.GetOrdinal(column));
 
-    private static int? GetInt(SqliteDataReader r, string column)
-    {
-        int i = r.GetOrdinal(column);
-        return r.IsDBNull(i) ? null : r.GetInt32(i);
-    }
+    private static string? GetString(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
+
+    private static int? GetInt(SqliteDataReader r, string column) => GetInt(r, r.GetOrdinal(column));
+
+    private static int? GetInt(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
+
+    private static double? GetDouble(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetDouble(i);
 
     private static object Db(string? value) => string.IsNullOrWhiteSpace(value) ? DBNull.Value : value;
 

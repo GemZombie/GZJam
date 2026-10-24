@@ -8,6 +8,8 @@ using GZJam.Library;
 //                                    against the tagged BPMs.
 //   art <music folder> [count]       How many songs have album art (in the file, in the folder), and
 //                                    how long finding it and making the small copies takes.
+//   search <library.db> [times]     How long searches take on a copy of a library, and on the copy made
+//                                    that many times bigger (default 10), for very large collections.
 //   clock [seconds]                  How evenly a playing deck reports its position, and how
 //                                    smoothly the close-up's playhead follows (on the default output, silent).
 //   icon <repo folder>               Draw the app icon (the .ico, .png and .icns files) and the logo's
@@ -35,6 +37,9 @@ if (args is ["clock", ..])
 if (args is ["art", var artFolder, ..])
     return ArtBench.Run(artFolder, args.Length > 2 ? int.Parse(args[2]) : 400);
 
+if (args is ["search", var searchLibrary, ..])
+    return SearchBench.Run(searchLibrary, args.Length > 2 ? int.Parse(args[2]) : 10);
+
 if (args is ["analyze", var analyzeFolder, ..])
     return await AnalyzeBench.RunAsync(analyzeFolder, args.Length > 2 ? int.Parse(args[2]) : 60);
 
@@ -43,6 +48,7 @@ if (args is not ["bench", var musicFolder])
     Console.WriteLine("usage: GZJam.DevTools bench <music folder>");
     Console.WriteLine("       GZJam.DevTools analyze <music folder> [count]");
     Console.WriteLine("       GZJam.DevTools art <music folder> [count]");
+    Console.WriteLine("       GZJam.DevTools search <library.db> [times]");
     Console.WriteLine("       GZJam.DevTools clock [seconds]");
     return 1;
 }
