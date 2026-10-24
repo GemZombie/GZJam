@@ -41,6 +41,7 @@ public partial class MainWindow : Window
         InitializeHistory();
         InitializeSearch();
         InitializeColumns();
+        InitializePlaylists();
         UseTopBarAsTitleBar();
     }
 
@@ -138,6 +139,9 @@ public partial class MainWindow : Window
                 break;
             case Key.Space:
                 PreviewSelected();
+                break;
+            case Key.Delete when Vm.Library.IsPlaylistOpen:
+                Vm.RemoveFromPlaylist(SelectedTracks());
                 break;
             default:
                 return;

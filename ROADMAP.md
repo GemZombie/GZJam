@@ -72,13 +72,16 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.6.0.
+For 0.7.0:
+
+- [Playlists](https://github.com/GemZombie/GZJam/issues/6): plan a set before the night, in order,
+  saved by name. Open one in the library, drag songs onto it, reorder it, then add it to the
+  queue. The queue or a night in History can be saved as one, and Mixxx playlists come across in
+  the import.
 
 ## Planned next
 
-**0.7.0, outputs and playlists:**
-- [Playlists](https://github.com/GemZombie/GZJam/issues/6): plan a set before the night, in order,
-  saved by name; open one in the library, then add it to the queue
+**0.7.0, outputs:**
 - [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
 - [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
   splitter cable, for laptops and tablets

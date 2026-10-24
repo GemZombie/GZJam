@@ -10,6 +10,9 @@ public sealed record MixxxTrack(long Id, string Path, string FileName, long? Fil
 /// <summary>A crate, by name, with its songs' Mixxx ids.</summary>
 public sealed record MixxxCrate(string Name, IReadOnlyList<long> TrackIds);
 
+/// <summary>A playlist, by name, with its songs' Mixxx ids in order (a song can be in it twice).</summary>
+public sealed record MixxxPlaylist(string Name, IReadOnlyList<long> TrackIds);
+
 /// <summary>A hot cue in Mixxx: its song, its number as Mixxx shows it (1 for the first pad), and where.</summary>
 public sealed record MixxxHotCue(long TrackId, int Number, TimeSpan At);
 
@@ -25,6 +28,7 @@ public sealed record MixxxSession(string Name, IReadOnlyList<(long TrackId, Date
 public sealed class MixxxLibrary : IDisposable
 {
     private const int SetLog = 2;   // Playlists.hidden for History (PlaylistDAO::PLHT_SET_LOG)
+    private const int NotHidden = 0;   // Playlists.hidden for the DJ's own playlists (1 is Auto DJ's queue)
 
     private readonly string _copyFolder;
     private readonly SqliteConnection _db;
@@ -142,6 +146,28 @@ public sealed class MixxxLibrary : IDisposable
             }
         }
         return crates.Values.Select(c => new MixxxCrate(c.Name, c.Tracks)).ToList();
+    }
+
+    /// <summary>The DJ's own playlists (not Auto DJ's queue, nor History), by name, each in its order.</summary>
+    public IReadOnlyList<MixxxPlaylist> Playlists()
+    {
+        var playlists = new Dictionary<long, (string Name, List<long> Tracks)>();
+        using var cmd = _db.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT p.id, p.name, pt.track_id
+            FROM Playlists p JOIN PlaylistTracks pt ON pt.playlist_id = p.id
+            WHERE p.hidden = {NotHidden} AND p.name IS NOT NULL AND trim(p.name) <> ''
+            ORDER BY p.name, p.id, pt.position, pt.id;
+            """;
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            long id = r.GetInt64(0);
+            if (!playlists.TryGetValue(id, out var playlist))
+                playlists[id] = playlist = (r.GetString(1).Trim(), []);
+            playlist.Tracks.Add(r.GetInt64(2));
+        }
+        return playlists.Values.Select(p => new MixxxPlaylist(p.Name, p.Tracks)).ToList();
     }
 
     /// <summary>History: Mixxx's set logs, oldest first, each with its songs in the order played.</summary>

@@ -10,6 +10,18 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.7.0 (unreleased)
+
+New:
+
+- **Playlists: plan a set before the night.** Under the folder tree, *+ New* makes one; drag songs
+  onto its name, or right-click songs › *Add to playlist*. Tap a playlist to open it in the song
+  list, numbered, in its order: drag rows to reorder them, and Delete (or right-click) takes a song
+  out of it, never out of your library. A song can be in a playlist twice. *Add to queue* puts
+  the whole playlist on the end of the queue (right-click a song for *Add to queue from here*),
+  and auto-play can run it. The queue's menu and a night in History can each be saved as a
+  playlist too. Import from Mixxx brings your Mixxx playlists across, in their order.
+
 ## 0.6.1 (unreleased)
 
 Fixed:

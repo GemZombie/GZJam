@@ -95,6 +95,7 @@ public partial class MainWindow
         MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
         LabelsMenu.Fill(TrackLabelsMenu, Vm, tracks);
         BpmMenu.Fill(TrackBpmMenu, Vm, tracks);
+        FillPlaylistItems(tracks);
     }
 
     private void OnQueueMenuOpening()

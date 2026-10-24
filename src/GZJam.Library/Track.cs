@@ -161,6 +161,20 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Shown as part of a playlist: which entry this row is (a song can be in a playlist twice,
+    /// each its own row), and its number in the playlist, from 1. Null in the rest of the library.
+    /// </summary>
+    public long? PlaylistEntryId { get; private set; }
+
+    public int? PlaylistNumber { get; private set; }
+
+    internal Track InPlaylist(long entryId, int number)
+    {
+        (PlaylistEntryId, PlaylistNumber) = (entryId, number);
+        return this;
+    }
+
     /// <summary>Title tag, or the file name when the tag is missing.</summary>
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
 

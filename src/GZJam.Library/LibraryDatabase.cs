@@ -289,6 +289,22 @@ public sealed partial class LibraryDatabase
             ALTER TABLE eq ADD COLUMN mid_hz REAL NOT NULL DEFAULT 1000;
             ALTER TABLE eq ADD COLUMN even REAL NOT NULL DEFAULT 0;
             """,
+
+        // 18: Playlists: a set planned in order, saved by name. Entries are by path, like the
+        // DJ's other data, numbered from 0 in order; a song can be in one more than once.
+        """
+            CREATE TABLE playlists (
+                id   INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE COLLATE NOCASE
+            );
+            CREATE TABLE playlist_entries (
+                id          INTEGER PRIMARY KEY,
+                playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+                position    INTEGER NOT NULL,
+                path        TEXT NOT NULL
+            );
+            CREATE INDEX ix_playlist_entries ON playlist_entries(playlist_id, position);
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -443,11 +459,15 @@ public sealed partial class LibraryDatabase
     /// the search says (<c>~bpm:140/5</c>).
     /// </summary>
     public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default,
-        double nearBpm = DefaultNearBpm)
+        double nearBpm = DefaultNearBpm, long? playlist = null)
     {
         var query = SearchQuery.Parse(text, nearBpm: nearBpm);
 
-        var sql = new StringBuilder($"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE 1 = 1");
+        // Within a playlist: its songs in its order, one row per entry (a song can be in it twice).
+        var sql = new StringBuilder(playlist is null
+            ? $"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE 1 = 1"
+            : $"SELECT {TrackColumns}, e.id AS entry_id, e.position AS entry_position FROM playlist_entries e " +
+              $"JOIN tracks t ON t.path = e.path {TrackJoins} WHERE e.playlist_id = $playlist");
         foreach (string condition in query.Conditions)
             sql.Append(" AND ").Append(condition);
         if (scope is not null)
@@ -456,13 +476,17 @@ public sealed partial class LibraryDatabase
             if (scope.Folder.Length > 0)
                 sql.Append(" AND (t.folder = $folder OR substr(t.folder, 1, $prefixLength) = $prefix)");
         }
-        sql.Append(" ORDER BY t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;");
+        sql.Append(playlist is null
+            ? " ORDER BY t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;"
+            : " ORDER BY e.position;");
 
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = sql.ToString();
         foreach (var (name, value) in query.Parameters)
             cmd.Parameters.AddWithValue(name, value);
+        if (playlist is not null)
+            cmd.Parameters.AddWithValue("$playlist", playlist);
         if (scope is not null)
         {
             cmd.Parameters.AddWithValue("$root", scope.RootId);
@@ -476,7 +500,10 @@ public sealed partial class LibraryDatabase
         while (r.Read())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            results.Add(ReadTrack(r));
+            Track track = ReadTrack(r);
+            if (playlist is not null)
+                track = track.InPlaylist(r.GetInt64(r.GetOrdinal("entry_id")), r.GetInt32(r.GetOrdinal("entry_position")) + 1);
+            results.Add(track);
         }
         return results;
     }
