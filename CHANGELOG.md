@@ -10,6 +10,14 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.6.1 (unreleased)
+
+Fixed:
+
+- **The BPM and Label menus by the search open with their choices again.** A click opened them
+  empty, just a thin grey line under the button. A compact deck's ⋯ menu (with four decks) had
+  the same fault.
+
 ## 0.6.0 (2026-10-24)
 
 New:

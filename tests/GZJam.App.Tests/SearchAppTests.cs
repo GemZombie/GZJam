@@ -1,6 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
 
 namespace GZJam.App.Tests;
@@ -15,6 +19,37 @@ public sealed class SearchAppTests
     [InlineData("", "bpm:60-110", "bpm:60-110")]
     public void A_bpm_filter_replaces_the_one_in_the_search_text(string text, string? filter, string expected) =>
         Assert.Equal(expected, LibraryViewModel.ReplaceBpmFilter(text, filter));
+
+    /// <summary>
+    /// Clicked, the BPM and Label buttons (and a compact deck's ⋯) open their menus with every
+    /// choice showing. Filled only as they opened, they used to open empty: a thin grey sliver
+    /// of border under the button.
+    /// </summary>
+    [AvaloniaTheory]
+    [InlineData("BpmFilterButton")]
+    [InlineData("LabelFilterButton")]
+    [InlineData("MoreButton")]
+    public void A_buttons_menu_opens_with_its_choices_showing(string name)
+    {
+        using var app = new AppHarness();
+        if (name == "MoreButton")
+            app.ViewModel.SetDeckCount(4);
+        AppHarness.Settle(200);
+        var button = name == "MoreButton"
+            ? app.Window.FindControl<GZJam.App.Views.DeckView>("Deck1View")!.FindControl<Button>(name)!
+            : app.Window.FindControl<Button>(name)!;
+        var at = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), app.Window)!.Value;
+
+        app.Window.MouseDown(at, MouseButton.Left);
+        app.Window.MouseUp(at, MouseButton.Left);
+        AppHarness.Settle(300);
+
+        var presenter = app.Window.GetVisualDescendants().OfType<MenuFlyoutPresenter>().Single();
+        Assert.Equal(((MenuFlyout)button.Flyout!).Items.Count, presenter.ItemCount);
+        Assert.True(presenter.ItemCount > 0);
+        Assert.True(presenter.Bounds.Width > 100, $"the menu is {presenter.Bounds.Width} px wide");
+        button.Flyout.Hide();
+    }
 
     [AvaloniaFact]
     public void The_bpm_button_finds_tracks_near_a_decks_tempo()

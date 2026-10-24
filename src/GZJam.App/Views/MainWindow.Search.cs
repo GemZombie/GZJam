@@ -12,8 +12,8 @@ public partial class MainWindow
 
     private void InitializeSearch()
     {
-        BpmFilterMenu.Opening += (_, _) => FillBpmFilterMenu();
-        LabelFilterMenu.Opening += (_, _) => FillLabelFilterMenu();
+        FlyoutMenus.FillBeforeOpening(BpmFilterButton, BpmFilterMenu, FillBpmFilterMenu);
+        FlyoutMenus.FillBeforeOpening(LabelFilterButton, LabelFilterMenu, FillLabelFilterMenu);
     }
 
     /// <summary>The label button: each label (with how many songs), songs without one, or any.</summary>
