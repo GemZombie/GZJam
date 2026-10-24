@@ -31,9 +31,10 @@ public sealed partial class MixerViewModel : ObservableObject
         this.owner = owner;
         this.mix = mix;
         _settings = settings;
-        mix.Main.Mono = mix.Cue.Mono = settings.Mono;
+        mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = settings.Mono;
         mix.Main.Volume = Gain(settings.MainVolume);
         mix.Cue.Volume = Gain(settings.CueVolume);
+        mix.Booth.Volume = Gain(settings.BoothVolume);
         mix.PhonesMix = settings.PhonesMix;
     }
 
@@ -73,6 +74,24 @@ public sealed partial class MixerViewModel : ObservableObject
             OnPropertyChanged(nameof(CueVolumeTip));
         }
     }
+
+    /// <summary>Booth volume, 0-100 (set in Settings › Sound, beside the booth output).</summary>
+    public double BoothVolume
+    {
+        get => _settings.BoothVolume;
+        set
+        {
+            value = Math.Clamp(Math.Round(value), 0, 100);
+            if (value == _settings.BoothVolume)
+                return;
+            _settings.BoothVolume = value;
+            mix.Booth.Volume = Gain(value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(BoothVolumeText));
+        }
+    }
+
+    public string BoothVolumeText => Db(BoothVolume);
 
     /// <summary>
     /// The phones mix: 0 = the headphones hear what's cued (the decks' cue buttons and the
@@ -116,7 +135,7 @@ public sealed partial class MixerViewModel : ObservableObject
         return Math.Abs(db) < 0.05 ? "0 dB" : $"−{-db:0.#} dB";
     }
 
-    /// <summary>Speakers and headphones play mono (a setting, on by default).</summary>
+    /// <summary>Speakers, booth and headphones play mono (a setting, on by default).</summary>
     public bool IsMono
     {
         get => mix.Main.Mono;
@@ -124,9 +143,9 @@ public sealed partial class MixerViewModel : ObservableObject
         {
             if (value == mix.Main.Mono)
                 return;
-            mix.Main.Mono = mix.Cue.Mono = value;
+            mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = value;
             _settings.Mono = value;
-            Log.Info($"Speakers and headphones: {(value ? "mono" : "stereo")}");
+            Log.Info($"Speakers, booth and headphones: {(value ? "mono" : "stereo")}");
             OnPropertyChanged();
         }
     }

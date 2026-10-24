@@ -81,6 +81,8 @@ For 0.7.0:
 - [GZJam says so when a library was last used by a newer version](https://github.com/GemZombie/GZJam/issues/67),
   instead of closing without a word; and later versions that only add to the library won't lock
   this one out.
+- [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8): a speaker for you at the
+  DJ table, playing what the room hears at its own volume. Choose it in Settings › Sound.
 - [Faster searches in very large libraries](https://github.com/GemZombie/GZJam/issues/73): with
   100,000+ songs the whole library lists about a third faster, and `rating:`, `energy:` and
   `played:` are instant.
@@ -88,7 +90,6 @@ For 0.7.0:
 ## Planned next
 
 **Also in 0.7.0:**
-- [A booth (monitor) output](https://github.com/GemZombie/GZJam/issues/8)
 - [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
   splitter cable, for laptops and tablets
 

@@ -13,7 +13,7 @@ public sealed record Choice<T>(T Value, string Label)
 /// <summary>The settings flyout: audio outputs and deck safety.</summary>
 public sealed partial class SettingsViewModel : ObservableObject
 {
-    /// <summary>Represents "no headphone output".</summary>
+    /// <summary>Represents "no headphone output" (and no booth).</summary>
     public static readonly AudioDevice NoDevice = new(-1, "None", "none", false);   // a driver, so it isn't taken for "Default"
 
     private readonly MainWindowViewModel _owner;
@@ -38,6 +38,41 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial AudioDevice? CueDevice { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<AudioDevice> BoothDevices { get; private set; } = [];
+
+    /// <summary>The booth (monitor) output, or <see cref="NoDevice"/>.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasBooth))]
+    public partial AudioDevice? BoothDevice { get; set; }
+
+    /// <summary>A booth output is chosen, so its volume shows.</summary>
+    public bool HasBooth => BoothDevice is not null && BoothDevice != NoDevice;
+
+    /// <summary>Booth volume, 0-100, in steps of 5.</summary>
+    public double BoothVolume
+    {
+        get => _owner.Mixer?.BoothVolume ?? _settings.BoothVolume;
+        set
+        {
+            value = Math.Clamp(Math.Round(value / 5) * 5, 0, 100);
+            if (_owner.Mixer is { } mixer)
+                mixer.BoothVolume = value;
+            else
+                _settings.BoothVolume = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(BoothVolumeText));
+        }
+    }
+
+    public string BoothVolumeText => _owner.Mixer?.BoothVolumeText ?? $"{BoothVolume:0}%";
+
+    [RelayCommand]
+    private void BoothQuieter() => BoothVolume -= 5;
+
+    [RelayCommand]
+    private void BoothLouder() => BoothVolume += 5;
 
     public IReadOnlyList<Choice<PlayingDeckLoad>> LoadChoices { get; } =
     [
@@ -73,7 +108,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    /// <summary>Speakers and headphones play mono.</summary>
+    /// <summary>Speakers, booth and headphones play mono.</summary>
     public bool Mono
     {
         get => _owner.Mixer?.IsMono ?? _settings.Mono;
@@ -216,8 +251,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         Log.Info("Output devices: " + string.Join("; ", devices.Select(d => $"{d.Index} \"{d.Name}\"" + (d.SystemName != d.Name ? $" (\"{d.SystemName}\")" : "") + $" [{d.Driver}]")));
         MainDevices = devices;
         CueDevices = devices.Prepend(NoDevice).ToList();
+        BoothDevices = CueDevices;
         MainDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Main.Device?.Index);
         CueDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Cue.Device?.Index) ?? NoDevice;
+        BoothDevice = devices.FirstOrDefault(d => d.Index == _owner.Mix?.Booth.Device?.Index) ?? NoDevice;
         _loading = false;
     }
 
@@ -225,12 +262,23 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SpeakersAreWindowsDefault));
         if (!_loading && value is not null)
-            _owner.SetOutputs(value, CueDevice == NoDevice ? null : CueDevice);
+            _owner.SetOutputs(value, Chosen(CueDevice), Chosen(BoothDevice));
     }
 
     partial void OnCueDeviceChanged(AudioDevice? value)
     {
         if (!_loading)
-            _owner.SetOutputs(MainDevice, value == NoDevice ? null : value);
+            _owner.SetOutputs(MainDevice, Chosen(value), Chosen(BoothDevice));
     }
+
+    partial void OnBoothDeviceChanged(AudioDevice? value)
+    {
+        if (_loading)
+            return;
+        _owner.SetOutputs(MainDevice, Chosen(CueDevice), Chosen(value));
+        if (Chosen(value) is not null && _owner.Mix?.Booth.Device is null)
+            RefreshDevices();   // refused (the speakers' own output, say): back to None
+    }
+
+    private static AudioDevice? Chosen(AudioDevice? device) => device == NoDevice ? null : device;
 }

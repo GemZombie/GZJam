@@ -54,8 +54,14 @@ public sealed class AppSettings
     public AudioDevicePreference? CueDevice { get; set; }
 
     /// <summary>
-    /// Speakers and headphones play mono, so the whole floor hears instruments recorded on one
-    /// side, and the DJ hears what the room hears, with either ear. On by default.
+    /// A monitor speaker at the DJ table: what the room hears, at its own volume. None by default.
+    /// Like the headphones, it never falls back to another output.
+    /// </summary>
+    public AudioDevicePreference? BoothDevice { get; set; }
+
+    /// <summary>
+    /// Speakers, booth and headphones play mono, so the whole floor hears instruments recorded on
+    /// one side, and the DJ hears what the room hears, with either ear. On by default.
     /// </summary>
     public bool Mono { get; set; } = true;
 
@@ -90,9 +96,10 @@ public sealed class AppSettings
     /// </summary>
     public bool MatchLoudness { get; set; } = true;
 
-    /// <summary>Speaker and headphone volume, 0-100.</summary>
+    /// <summary>Speaker, headphone and booth volume, 0-100.</summary>
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;
+    public double BoothVolume { get; set; } = 100;
 
     /// <summary>What the headphones hear: 0 = what's cued, 1 = what the room hears, between = both.</summary>
     public double PhonesMix { get; set; }

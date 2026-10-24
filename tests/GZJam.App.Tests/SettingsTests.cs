@@ -99,6 +99,31 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
+    public void The_booth_is_off_by_default_and_its_volume_and_mono_reach_it()
+    {
+        using var app = new AppHarness();
+        app.Window.OpenSettings(SettingsSection.Sound);
+        Assert.True(Panel(app).FindControl<ComboBox>("BoothDeviceBox")!.IsEffectivelyVisible);
+        Assert.False(Panel(app).FindControl<Button>("BoothLouderButton")!.IsEffectivelyVisible);   // no booth: no volume
+        Assert.False(app.Window.FindControl<Button>("BoothChip")!.IsVisible);                      // nor a chip in the top bar
+        Assert.Null(app.Settings.BoothDevice);
+
+        var settings = app.ViewModel.Settings;
+        settings.BoothQuieterCommand.Execute(null);
+        settings.BoothQuieterCommand.Execute(null);
+        Assert.Equal(90, app.Settings.BoothVolume);
+        Assert.Equal(0.81f, app.ViewModel.Mix!.Booth.Volume, 0.001f);   // the same audio taper as the faders
+        Assert.Equal("−1.8 dB", settings.BoothVolumeText);
+        settings.BoothVolume = 3;   // steps of 5
+        Assert.Equal(5, app.Settings.BoothVolume);
+
+        settings.Mono = false;
+        Assert.False(app.ViewModel.Mix.Booth.Mono);
+        settings.Mono = true;
+        Assert.True(app.ViewModel.Mix.Booth.Mono);
+    }
+
+    [AvaloniaFact]
     public void Each_section_in_pictures()
     {
         using var app = new AppHarness();
