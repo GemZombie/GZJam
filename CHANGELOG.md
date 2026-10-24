@@ -41,9 +41,14 @@ New:
 - **Choose how near `~bpm:` searches reach.** Settings › Library › *Near a BPM*: ±8% to start with
   (as far as the tempo slider goes), from ±1% to ±20%. The BPM button's *Near Deck* choices follow
   it. For one search, type `~bpm:140/5`.
+- **A startup screen.** The logo shows the moment GZJam starts, just where its window will be,
+  while it opens your library and outputs; then the decks appear. It's there only as long as that
+  takes (about a second), never longer. On Windows and Mac; on Linux GZJam starts as before, for now.
 
 Changed:
 
+- **GZJam is ready about a second sooner** from when you start it: the downloads now come
+  compiled ahead of time, rather than compiling as GZJam starts.
 - **A new logo and app icon:** a waveform wrapped into a G, and the name in letters cut into bars
   like a waveform. It's in the top bar and on Settings › About too.
 

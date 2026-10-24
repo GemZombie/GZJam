@@ -296,22 +296,28 @@ public partial class MainWindow : Window
 
     // ───────────── Window placement ─────────────
 
-    public void RestorePlacement(AppSettings.WindowPlacement? placement)
+    public void RestorePlacement(AppSettings.WindowPlacement? placement) => RestorePlacement(this, placement);
+
+    /// <summary>
+    /// Puts <paramref name="window"/> where the main window was last time: the main window itself,
+    /// and the startup screen, which opens in the same place so the one becomes the other.
+    /// </summary>
+    internal static void RestorePlacement(Window window, AppSettings.WindowPlacement? placement)
     {
-        if (placement is null || placement.Width < MinWidth || placement.Height < MinHeight)
+        if (placement is null || placement.Width < window.MinWidth || placement.Height < window.MinHeight)
             return;
 
-        Width = placement.Width;
-        Height = placement.Height;
+        window.Width = placement.Width;
+        window.Height = placement.Height;
         // Only restore the position if it's still on a connected screen (e.g. after undocking).
         var bounds = new PixelRect(placement.X, placement.Y, (int)placement.Width, (int)placement.Height);
-        if (Screens.All.Any(s => s.WorkingArea.Intersects(bounds)))
+        if (window.Screens.All.Any(s => s.WorkingArea.Intersects(bounds)))
         {
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Position = new PixelPoint(placement.X, placement.Y);
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            window.Position = new PixelPoint(placement.X, placement.Y);
         }
         if (placement.Maximized)
-            WindowState = WindowState.Maximized;
+            window.WindowState = WindowState.Maximized;
     }
 
     public AppSettings.WindowPlacement CapturePlacement()

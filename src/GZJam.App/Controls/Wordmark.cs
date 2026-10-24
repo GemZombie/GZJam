@@ -46,14 +46,19 @@ public sealed class Wordmark : Control
         using var _ = context.PushTransform(Matrix.CreateScale(scale, scale));
         double pixels = LogoShapes.CapHeight * scale * (TopLevel.GetTopLevel(this)?.RenderScaling ?? 1);
         if (pixels >= LogoShapes.WordBarsFromPixels)
-        {
-            using (context.PushGeometryClip(BarClip()))
-                DrawLetters(context, letter => letter.Played ? PlayedBrush : ToComeBrush);
-        }
+            DrawBars(context, letter => letter.Played ? PlayedBrush : ToComeBrush);
         else
-        {
             DrawLetters(context, _ => Foreground);
-        }
+    }
+
+    /// <summary>
+    /// The name in bars, <see cref="LogoShapes.CapHeight"/> tall at the origin, each letter in
+    /// <paramref name="brushOf"/>'s colour (the startup screen draws it all in one colour, then the other).
+    /// </summary>
+    internal static void DrawBars(DrawingContext context, Func<LogoShapes.Letter, IBrush?> brushOf)
+    {
+        using (context.PushGeometryClip(BarClip()))
+            DrawLetters(context, brushOf);
     }
 
     private static void DrawLetters(DrawingContext context, Func<LogoShapes.Letter, IBrush?> brushOf)
