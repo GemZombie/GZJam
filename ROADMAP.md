@@ -5,7 +5,7 @@ what you need to play music for people, without the clutter. This page is the bi
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.5.0** (23 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.6.0** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -18,13 +18,18 @@ release.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
+- Album art on the decks and queue (and a library column), from the songs' files or the covers in
+  their folders, to see at a glance that the right record is loaded.
 
 **Decks**
 - Two decks, or four in the same space.
-- Tempo with key lock, a waveform of the whole song, one-button fade-out, per-song EQ.
+- Tempo with key lock, a waveform of the whole song, one-button fade-out.
+- Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
+  passages closer together.
 - A close-up of the song around the playhead, scrolling past beat by beat, to see the end of a
   phrase coming and find the exact spot for a cue or a jump. Zoom with the mouse wheel or a pinch;
-  drag it like a record.
+  drag it like a record. It glides smoothly, even zoomed in tight.
+- The time readout blinks in the last 30 seconds of the song the room hears, as on CDJs.
 - Protection against loading a new song over one the room is hearing.
 - Songs start at their first note: silence (or applause) at either end is found automatically, or
   set by hand.
@@ -46,14 +51,16 @@ release.
 - Speakers and headphones on separate outputs, mono by default.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level.
 - A level meter and a safety limiter for the speakers.
-- Auto-play through the queue, with a gap of real silence between songs.
+- Auto-play through the queue, with a gap of real silence between songs. Through the gap the
+  crossfader slides over to the next deck, which counts down to starting.
 - On Windows the speakers can be GZJam's alone, so no notification sound reaches the room. On Linux
   a sound card can be used directly, for the same reason.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
 - GZJam asks before closing while the room is hearing music.
-- Touch: everything works by finger, with a touch mode for bigger keys and rows.
+- Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
+  dividers between panels.
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
 
@@ -65,23 +72,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-For 0.6.0:
-
-- [Album art on the decks and queue](https://github.com/GemZombie/GZJam/issues/44), small, to see at
-  a glance that the right record is loaded: the picture in the song's file, or the cover in its
-  folder. The library has an Art column too, hidden to start with.
-- Each deck's number is printed above its title (*DECK 1*), with ON AIR beside it, leaving the
-  corner for the album art.
-- [Even out a recording](https://github.com/GemZombie/GZJam/issues/5): an EVEN fader in the EQ
-  panel brings a song's quiet and loud passages closer together, remembered for the song.
-- [Move the mid band](https://github.com/GemZombie/GZJam/issues/4) from 200 Hz to 5 kHz, in the EQ panel.
-- [Smoother close-up scrolling](https://github.com/GemZombie/GZJam/issues/46) when zoomed in tight.
-- [Auto-play's gap shows what's coming](https://github.com/GemZombie/GZJam/issues/61): the
-  crossfader slides over to the next deck, which counts down to starting.
-- [The time readout blinks in a song's last 30 seconds](https://github.com/GemZombie/GZJam/issues/62),
-  as on CDJs.
-- [Grips on the dividers between panels](https://github.com/GemZombie/GZJam/issues/60), easier to
-  drag by finger.
+Nothing yet since 0.6.0.
 
 ## Planned next
 

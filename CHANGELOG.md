@@ -10,7 +10,7 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
-## 0.6.0 (unreleased)
+## 0.6.0 (2026-10-24)
 
 New:
 
@@ -29,7 +29,6 @@ New:
 - **Move the mid band.** Under the MID fader, the arrows move the band a third of an octave at a
   time, from 200 Hz to 5 kHz, to find just the frequency that's boomy or harsh. Tap the
   frequency for 1 kHz again. Remembered for the song.
-
 - **Auto-play's gap shows what's coming.** Through the gap of silence between songs, the
   crossfader slides over to the next deck (the room is silent, so nobody hears it move) and that
   deck says *STARTS IN 3*, counting down, its light blinking, where ON AIR shows. Grab the
