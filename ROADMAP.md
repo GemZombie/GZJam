@@ -85,15 +85,14 @@ For 0.7.0:
   DJ table, playing what the room hears at its own volume. Choose it in Settings › Sound.
 - [Renamed or moved songs keep their ratings, labels, playlists and play count](https://github.com/GemZombie/GZJam/issues/74),
   whatever renamed them, instead of starting over as new songs.
+- [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
+  splitter cable: the room on the left, your headphones on the right. For a laptop with one
+  output.
 - [Faster searches in very large libraries](https://github.com/GemZombie/GZJam/issues/73): with
   100,000+ songs the whole library lists about a third faster, and `rating:`, `energy:` and
   `played:` are instant.
 
 ## Planned next
-
-**Also in 0.7.0:**
-- [Speakers and headphones from one output](https://github.com/GemZombie/GZJam/issues/15), with a
-  splitter cable, for laptops and tablets
 
 **Before 1.0:**
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged

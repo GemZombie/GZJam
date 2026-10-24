@@ -45,6 +45,7 @@ public sealed class OutputChoiceTests
     [Fact]
     public void Headphones_chosen_on_the_speakers_output_on_purpose_are_kept()
     {
+        // A split output: the speakers on its left, the headphones on its right.
         var (main, cue, notice) = MainWindowViewModel.ChooseOutputs(Laptop.Preference, Laptop.Preference, Laptop, Laptop, Laptop);
         Assert.Equal(Laptop, main);
         Assert.Equal(Laptop, cue);

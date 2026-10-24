@@ -24,6 +24,9 @@ New:
 - **A booth output:** a monitor speaker for you at the DJ table, for a big room where the
   speakers face away from you. Choose it in Settings › Sound › Booth: it plays what the room
   hears, at its own volume, and never the headphones' preview. Off unless you choose one.
+- **Speakers and headphones from one output,** for a laptop with only a headphone socket: with a
+  splitter cable, the room plays from the left side and your headphones from the right, each in
+  mono. Choose it in Settings › Sound › Headphones › *Speakers' output, right side*.
 
 Changed:
 

@@ -86,6 +86,52 @@ public sealed class OutputSwitchingTests : IDisposable
     }
 
     [Fact]
+    public void Headphones_on_the_speakers_output_split_it_and_choosing_others_unsplits_it()
+    {
+        var devices = _engine.GetOutputDevices();
+        Assert.SkipWhen(devices.Count < 1, "Needs an output device.");
+        try
+        {
+            _mix.SetOutputs(devices[0], devices[0]);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs an output device that opens.");
+        }
+
+        Assert.True(_mix.IsSplit);
+        Assert.Equal(devices[0], _mix.Main.Device);
+        Assert.Equal(devices[0], _mix.Cue.Device);
+        Assert.Null(_mix.CueRefusal);
+        Assert.True(IsOpen(devices[0]));
+
+        _mix.SetOutputs(devices[0], null);
+        Assert.False(_mix.IsSplit);
+        Assert.Null(_mix.Cue.Device);
+    }
+
+    [Fact]
+    public void A_split_output_can_be_GZJams_alone()
+    {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows only.");
+        var device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
+        Assert.SkipWhen(device is null, "Needs an output device.");
+        _mix.ExclusiveSpeakers = true;
+        try
+        {
+            _mix.SetOutputs(device, device);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs an output device that opens.");
+        }
+        Assert.SkipWhen(_mix.ExclusiveRefusal is not null, $"Windows won't give it: {_mix.ExclusiveRefusal}");
+
+        Assert.True(_mix.IsSplit);
+        Assert.True(_mix.SpeakersAreExclusive);
+    }
+
+    [Fact]
     public void A_booth_on_the_speakers_output_stays_off_and_says_why()
     {
         var devices = _engine.GetOutputDevices();

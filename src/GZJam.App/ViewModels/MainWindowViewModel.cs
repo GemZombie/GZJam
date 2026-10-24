@@ -528,8 +528,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial string? Notice { get; private set; }
 
-    public string MainOutputName => OutputName(Mix?.Main);
-    public string CueOutputName => OutputName(Mix?.Cue);
+    public string MainOutputName => OutputName(Mix?.Main) + (Mix?.IsSplit == true ? ", left" : "");
+    public string CueOutputName => OutputName(Mix?.Cue) + (Mix?.IsSplit == true ? ", right" : "");
     public bool HasMainOutput => Mix is { } mix && (mix.IsOffline || mix.Main.Device is not null);
 
     /// <summary>Headphones are available. Offline mixes (tests) count, since nothing reaches the speakers.</summary>
@@ -682,7 +682,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             Mix.SetOutputs(main, cue, booth);
-            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.Main.IsExclusive ? " (GZJam's alone)" : "")}, " +
+            Log.Info($"Outputs: main = {main?.Name ?? "none"} [{main?.Driver}]{(Mix.SpeakersAreExclusive ? " (GZJam's alone)" : "")}{(Mix.IsSplit ? " (split: speakers left, headphones right)" : "")}, " +
                      $"cue = {Mix.Cue.Device?.Name ?? "none"} [{Mix.Cue.Device?.Driver}], booth = {Mix.Booth.Device?.Name ?? "none"} [{Mix.Booth.Device?.Driver}]");
             if (Mix.CueRefusal is { } cueWhy)
             {
