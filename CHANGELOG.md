@@ -10,7 +10,7 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
-## 0.7.3 (unreleased)
+## 0.7.3 (2026-10-24)
 
 New:
 

@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.7.2** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.7.3** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -23,6 +23,9 @@ release.
   it, and add it to the queue. The queue or a night in History can be saved as one.
 - A song renamed or moved (in a tag editor, say) keeps its marks, labels, cues, playlists and
   plays.
+- Songs can be dragged straight from the file manager onto a deck or into the queue, even ones
+  from outside your music folders (a song on a dancer's USB stick).
+- Start over with an empty library whenever you like; the old one is kept, not deleted.
 - Album art on the decks and queue (and a library column), from the songs' files or the covers in
   their folders, to see at a glance that the right record is loaded.
 
@@ -80,8 +83,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [Play a song straight from the file manager](https://github.com/GemZombie/GZJam/issues/99): drag a
-  file onto a deck, or files and folders into the queue, from inside your music folders or not
+Nothing yet since 0.7.3.
 
 ## Planned next
 
