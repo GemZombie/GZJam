@@ -27,6 +27,11 @@ Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJa
 
 Everything GZJam needs comes with it, .NET included. Your music is only ever read, never changed.
 
+At startup GZJam asks GitHub whether there's a newer release, and says so in the top bar before
+the music starts. That one request sends nothing about you or your music, and GZJam never
+downloads or installs anything by itself. To turn it off: Settings › About › *Tell me when a new
+version is out*. To look yourself at any time: Settings › About › *Check now*.
+
 GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless (`.m4a`) everywhere, and
 AAC (`.m4a`, `.aac`) on Windows and Mac. Linux can't play AAC yet.
 

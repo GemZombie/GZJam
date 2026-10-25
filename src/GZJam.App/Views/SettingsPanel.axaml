@@ -271,6 +271,35 @@
             <Button x:Name="ProjectLink" Classes="link" Click="OnProjectClick" Margin="-6,-2,0,0" />
           </StackPanel>
 
+          <Border DockPanel.Dock="Top" Classes="settings-card" Margin="0,12,0,0">
+            <StackPanel>
+              <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="setting" Text="Tell me when a new version is out" />
+                  <TextBlock Classes="setting-help"
+                             Text="At startup, GZJam asks GitHub for the newest release, and says so in the top bar before the music starts. Nothing about you or your music is sent, and nothing is downloaded. Off, GZJam never goes online by itself." />
+                </StackPanel>
+                <ToggleButton x:Name="CheckForNewVersionSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                              IsChecked="{Binding CheckForNewVersion}" />
+              </Grid>
+              <Border Classes="settings-rule" />
+              <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="setting" Text="Check for a new version now" />
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock x:Name="CheckResultText" Classes="setting-help" Text="{Binding CheckResult}" VerticalAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <Button x:Name="FoundReleaseLink" Classes="link" Content="What's new · Download" Click="OnFoundReleaseClick"
+                            Foreground="{StaticResource AccentBrush}" Margin="2,-3,0,-3" VerticalAlignment="Center"
+                            IsVisible="{Binding FoundRelease, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+                </StackPanel>
+                <Button x:Name="CheckNowButton" Grid.Column="1" Classes="hw" Content="CHECK NOW" VerticalAlignment="Center"
+                        Command="{Binding CheckNowCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
           <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,12,0,8">
             <TextBlock Classes="settings-group" Text="BUILT WITH" Margin="2,0,0,0" VerticalAlignment="Center" />
             <Button x:Name="NoticesButton" Grid.Column="1" Classes="hw" Content="FULL LICENCE TEXTS" Click="OnNoticesClick" />

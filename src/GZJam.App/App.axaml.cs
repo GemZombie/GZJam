@@ -45,6 +45,8 @@ public partial class App : Application
                 var viewModel = CreateViewModel(settings);
                 CreateMainWindow(desktop, settings, viewModel);
                 viewModel.Start();
+                viewModel.LatestRelease = UpdateCheck.LatestAsync;
+                _ = viewModel.CheckForNewVersionAsync();
             }
         }
         base.OnFrameworkInitializationCompleted();
@@ -109,6 +111,8 @@ public partial class App : Application
             startup.BeginStep(0.6, 0.85);
             await NextFrame(window);   // laid out and drawn, out of sight
             viewModel.Start();   // opens the outputs
+            viewModel.LatestRelease = UpdateCheck.LatestAsync;
+            _ = viewModel.CheckForNewVersionAsync();   // in the background
 
             startup.Finish();
             await Task.Delay(StartupFinish);

@@ -847,7 +847,75 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             deck.UpdateMeter();
         RefreshDecks();
         Preview?.Refresh();
+        if (!_roomHasHeardMusic && Decks.Any(d => d.IsOnAir))
+        {
+            _roomHasHeardMusic = true;
+            NewVersion = null;   // the night has started: not during a set
+        }
     }
+
+    /// <summary>A deck has played to the room this session.</summary>
+    private bool _roomHasHeardMusic;
+
+    /// <summary>
+    /// A newer GZJam than this one, said quietly in the top bar (see <see cref="UpdateCheck"/>).
+    /// Only before the room has heard anything: once a deck plays to the room it goes until the
+    /// next start. Null when there's none, it was dismissed, or the check is off.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsNewVersion), nameof(NewVersionText))]
+    public partial Release? NewVersion { get; private set; }
+
+    public string NewVersionText => NewVersion is { } release ? $"GZJam {release.Version} is out." : "";
+
+    /// <summary>The new version's line, except while a short notice has the top bar's middle.</summary>
+    public bool ShowsNewVersion => NewVersion is not null && Notice is null;
+
+    partial void OnNoticeChanged(string? value) => OnPropertyChanged(nameof(ShowsNewVersion));
+
+    /// <summary>
+    /// Where the newest release comes from: GitHub (<see cref="UpdateCheck.LatestAsync"/>, set at
+    /// startup), or a test's stand-in. Until then, no answer, so tests never go online.
+    /// </summary>
+    internal Func<Task<Release?>> LatestRelease { get; set; } = () => Task.FromResult<Release?>(null);
+
+    /// <summary>This GZJam's version, compared with the newest release; tests pretend to be older.</summary>
+    internal string CurrentVersion { get; set; } = About.Version;
+
+    /// <summary>
+    /// At startup, asks for the newest release, unless the check is turned off, and offers it if
+    /// it's newer than this GZJam and not one the DJ dismissed. Says nothing if it can't be reached.
+    /// </summary>
+    public async Task CheckForNewVersionAsync()
+    {
+        if (!_settings.CheckForNewVersion)
+            return;
+        Release? release = await LatestRelease();
+        if (release is null)
+            return;
+        if (!UpdateCheck.IsNewer(release.Version, CurrentVersion))
+        {
+            Log.Info($"GZJam {CurrentVersion} is up to date (newest release {release.Version})");
+            return;
+        }
+        Log.Info($"GZJam {release.Version} is out (this is {CurrentVersion})");
+        if (release.Version == _settings.DismissedVersion || _roomHasHeardMusic || !_settings.CheckForNewVersion)
+            return;
+        NewVersion = release;
+    }
+
+    /// <summary>The DJ closed the line: not mentioned again until a later version.</summary>
+    public void DismissNewVersion()
+    {
+        if (NewVersion is null)
+            return;
+        _settings.DismissedVersion = NewVersion.Version;
+        Log.Info($"Dismissed the news of GZJam {NewVersion.Version}");
+        NewVersion = null;
+    }
+
+    /// <summary>The check turned off in Settings: the line goes too.</summary>
+    internal void NewVersionCheckTurnedOff() => NewVersion = null;
 
     public async void ShowNotice(string text)
     {

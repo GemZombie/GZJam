@@ -10,6 +10,18 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.8.0 (unreleased)
+
+New:
+
+- **GZJam says when a new version is out.** At startup it asks GitHub for the newest release, and
+  if there's one, says so quietly in the top bar, with a link to what's new and the downloads.
+  Never during a set: it goes as soon as the room hears music. Close it and that version isn't
+  mentioned again. Nothing about you or your music is sent, and nothing is downloaded or installed
+  by itself. Don't want it? Settings › About › *Tell me when a new version is out*; off, GZJam
+  never goes online by itself. To look whenever you like, even with it off: Settings › About ›
+  *Check now*.
+
 ## 0.7.3 (2026-10-24)
 
 New:

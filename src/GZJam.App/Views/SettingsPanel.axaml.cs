@@ -77,6 +77,13 @@ public partial class SettingsPanel : UserControl
     private async void OnProjectClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.ProjectUrl));
 
+    /// <summary>The release Check now found: what's new, and the downloads.</summary>
+    private async void OnFoundReleaseClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel { FoundRelease: { } release })
+            await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(release.Url));
+    }
+
     /// <summary>Opens the notices in the computer's own text viewer: they're long.</summary>
     private async void OnNoticesClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchFileInfoAsync(new FileInfo(About.NoticesPath));

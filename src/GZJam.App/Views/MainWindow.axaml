@@ -48,6 +48,21 @@
           <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" />
         </Border>
 
+        <!-- A newer GZJam is out: only at startup, until the room hears music or it's closed -->
+        <Border x:Name="NewVersionLine" Grid.Column="2" Classes="hint" Padding="10,1,3,1" HorizontalAlignment="Center"
+                VerticalAlignment="Center" IsVisible="{Binding ShowsNewVersion}">
+          <StackPanel Orientation="Horizontal" Spacing="2">
+            <TextBlock Text="{Binding NewVersionText}" Classes="muted" FontSize="12.5" VerticalAlignment="Center" Margin="0,0,4,0" />
+            <Button x:Name="NewVersionLink" Classes="link" Content="What's new · Download" Click="OnNewVersionClick"
+                    Foreground="{StaticResource AccentBrush}" ToolTip.Tip="Opens the release page in your browser" />
+            <Button x:Name="NewVersionDismiss" Classes="link" Padding="6" Click="OnNewVersionDismissClick"
+                    ToolTip.Tip="Don't mention this version again">
+              <Path Data="{StaticResource IconClose}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.4"
+                    StrokeLineCap="Round" Stretch="Uniform" Width="8" Height="8" />
+            </Button>
+          </StackPanel>
+        </Border>
+
         <!-- Scanning, then analyzing (waveforms, silence, BPM) -->
         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
                     IsVisible="{Binding BackgroundStatus, Converter={x:Static ObjectConverters.IsNotNull}}">
