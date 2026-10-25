@@ -1167,6 +1167,22 @@ rest of it.
 - **Untested on hardware so far:** whether Windows, macOS and Linux all report "device paused"; the
   checklist (docs/TESTING.md › Unplugging) covers it.
 
+### Status: a tap during a screen freeze is still a tap (#81, 2026-10-25)
+
+- **The problem:** in two-tap mode, holding play for 0.6 s pauses an on-air deck, timed by a clock
+  started on the press. If the UI thread froze during a quick tap, the timer's callback could run
+  before the release was handled, and the tap paused the room.
+- **First, the timer waits its turn:** its callback is posted below input priority, so a release
+  already waiting after a freeze is handled first and cancels it (where the platform tells
+  Avalonia about pending input).
+- **Then, the input's own times** (`PlayHold`): the press's and release's `Timestamp`s are the
+  system's, from when they happened. If the timer paused but the release came less than 0.6 s
+  after the press, it was a tap: the pause is undone at once (`DeckViewModel.UndoHoldPause`, on
+  from the same spot, logged), and the click then asks for the second tap as usual. Both happen in
+  the same catch-up after the freeze, so the gap is milliseconds.
+- **Tests:** headless input is stamped when it's sent, so a test can't fake a freeze; the decision
+  is tested on its own (`PlayHoldTests`), and the undo on a playing deck.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

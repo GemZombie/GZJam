@@ -893,11 +893,26 @@ public sealed partial class DeckViewModel : ObservableObject
         Refresh();
     }
 
-    /// <summary>A completed press-and-hold on play/pause: always pauses.</summary>
-    public void HoldPause()
+    /// <summary>A completed press-and-hold on play/pause: always pauses. Returns whether it paused.</summary>
+    public bool HoldPause()
     {
-        if (IsPlaying)
+        bool paused = IsPlaying;
+        if (paused)
             Pause("hold");
+        Refresh();
+        return paused;
+    }
+
+    /// <summary>
+    /// The press-and-hold that just paused was a quick tap after all: the screen froze, and the
+    /// hold's timer came due before the release was seen (#81). Plays on from where it paused.
+    /// </summary>
+    public void UndoHoldPause()
+    {
+        if (IsPlaying || !HasTrack)
+            return;
+        Deck.Play();
+        Log.Info($"Deck {Label}: that was a tap during a screen freeze, not a hold: playing on");
         Refresh();
     }
 

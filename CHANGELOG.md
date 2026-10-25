@@ -28,6 +28,9 @@ Fixed:
   again, with no trip to Settings. The preview never moves to the speakers or anywhere else, and
   the room plays on untouched. A notice says so both ways, and CUE in the top bar says *Unplugged*
   meanwhile. The booth does the same.
+- **With two taps to pause, a quick tap while the screen is frozen no longer pauses the room.**
+  If the screen stalled for a moment during a tap, the tap could count as a press-and-hold and
+  pause the deck on one tap. GZJam now goes by when the tap really started and ended.
 - **Settings › Sound warns about headphones on *Default*,** which follows the computer's own choice:
   unplugged, the computer may move the preview to another output, even the room's.
 

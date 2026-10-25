@@ -201,6 +201,28 @@ public sealed class DeckTests
         Assert.False(a.IsPauseArmed);
     }
 
+    /// <summary>A tap the hold's timer paused during a screen freeze (#81): plays on, and asks for the second tap.</summary>
+    [AvaloniaFact]
+    public async Task A_hold_undone_as_a_tap_plays_on_and_asks_for_the_second_tap()
+    {
+        using var app = new AppHarness();
+        UseTwoTapPause(app);
+        DeckViewModel a = app.ViewModel.Deck1!;
+        await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
+        a.TogglePlayCommand.Execute(null);
+        app.Play(0.2);
+        TimeSpan at = a.Deck.Position;
+
+        Assert.True(a.HoldPause());
+        a.UndoHoldPause();
+        a.TogglePlayCommand.Execute(null);   // the click that follows the release
+
+        Assert.True(a.IsPlaying);
+        Assert.True(a.IsPauseArmed);
+        Assert.True(a.Deck.Position >= at);   // on from where it was, not from the start
+        Assert.True(app.Play(0.3).Main > 0.1);
+    }
+
     [AvaloniaFact]
     public async Task Two_tap_mode_also_pauses_with_a_hold()
     {
