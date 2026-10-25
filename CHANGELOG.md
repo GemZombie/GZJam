@@ -22,6 +22,14 @@ New:
   never goes online by itself. To look whenever you like, even with it off: Settings › About ›
   *Check now*.
 
+- **The night comes back after a crash.** If GZJam closes without warning, or the laptop dies or
+  restarts mid-dance, the next start puts back the queue and the decks as they were: each song
+  paused where it was, at its tempo, with its cue button. Nothing plays until you press play, and
+  auto-play stays off until you turn it on. A song that's gone since (a drive not plugged in) is
+  left out, with a note.
+- **The queue is still there the next time you open GZJam,** after a normal close too, so it can
+  be built ahead of a night. The decks start empty.
+
 Fixed:
 
 - **Headphones unplugged during a night go quiet, and come back by themselves** when plugged in

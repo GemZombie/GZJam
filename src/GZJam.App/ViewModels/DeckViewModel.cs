@@ -1068,6 +1068,24 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Brings back a deck as it was before a crash (#96): the song, paused where it was, at its
+    /// tempo, with its cue button. Never playing by itself.
+    /// </summary>
+    internal void Restore(Track track, TimeSpan position, double tempoPercent, bool cue)
+    {
+        Load(track);
+        if (position > Deck.Start && position < Deck.End)
+        {
+            Deck.Seek(position);
+            _lastPosition = Deck.Position;   // a jump isn't listening
+        }
+        TempoPercent = tempoPercent;
+        IsCueOn = cue;
+        Log.Info($"Deck {Label}: back at {Format.Duration(Deck.Position)}, tempo {TempoText}{(cue ? ", cue on" : "")}");
+        Refresh();
+    }
+
+    /// <summary>
     /// Fetches the track's analysis (instant if it's been analyzed before), then shows the
     /// waveform and trims the silence at either end.
     /// </summary>
