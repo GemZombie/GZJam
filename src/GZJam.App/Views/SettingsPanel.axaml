@@ -233,6 +233,27 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Back up my library" />
+                    <TextBlock Classes="setting-help"
+                               Text="Hearts, labels, cues, playlists, History and your Settings, in one file: keep it on a USB stick or in a cloud folder. Your music files aren't in it. GZJam also keeps a copy of the last few days it was opened, beside the library." />
+                    <TextBlock x:Name="LastBackupText" Classes="setting-help" FontWeight="SemiBold" Text="{Binding LastBackupText}" />
+                  </StackPanel>
+                  <Button x:Name="BackUpButton" Grid.Column="1" Classes="hw" Content="BACK UP…" VerticalAlignment="Center"
+                          Click="OnBackUpClick" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Restore a backup" />
+                    <TextBlock Classes="setting-help"
+                               Text="Puts a backup's library and Settings back. GZJam asks first, then opens again with it; the library it replaces is kept, not deleted." />
+                  </StackPanel>
+                  <Button x:Name="RestoreButton" Grid.Column="1" Classes="hw" Content="RESTORE…" VerticalAlignment="Center"
+                          Click="OnRestoreClick" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Start over with an empty library" />
                     <TextBlock Classes="setting-help"
                                Text="For a fresh start, or to add your music again from scratch. GZJam reopens with no music folders; the old library is kept, not deleted." />

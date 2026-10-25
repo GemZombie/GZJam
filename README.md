@@ -32,6 +32,10 @@ the music starts. That one request sends nothing about you or your music, and GZ
 downloads or installs anything by itself. To turn it off: Settings › About › *Tell me when a new
 version is out*. To look yourself at any time: Settings › About › *Check now*.
 
+Your hearts, labels, cues, playlists and History live in GZJam's library, not in your music
+files: back them up now and then with Settings › Library › *Back up…* (GZJam also keeps a copy of
+its own each day it's opened, in its data folder under `backups`).
+
 GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless (`.m4a`) everywhere, and
 AAC (`.m4a`, `.aac`) on Windows and Mac. Linux can't play AAC yet.
 

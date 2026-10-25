@@ -297,6 +297,97 @@ public sealed partial class SettingsViewModel : ObservableObject
     private void NearBpmWider() => NearBpmPercent += 1;
 
     /// <summary>
+    /// When the library was last backed up, for Settings › Library: "Last backed up 25 October
+    /// 2026." or "Not backed up yet."
+    /// </summary>
+    public string LastBackupText => _settings.LastBackupUtc is { } at
+        ? $"Last backed up {at.ToLocalTime():d MMMM yyyy}."
+        : "Not backed up yet.";
+
+    /// <summary>The backup's file name the save dialog suggests.</summary>
+    public static string SuggestedBackupName => LibraryBackup.SuggestedName(DateTime.Now);
+
+    /// <summary>
+    /// Backs the library and settings up to <paramref name="destination"/> (chosen in a save
+    /// dialog), in the background, and says how it went.
+    /// </summary>
+    public async Task BackUpAsync(string destination)
+    {
+        string settings = _owner.SettingsJson();
+        _owner.ShowNotice("Backing up the library…", seconds: 60);
+        try
+        {
+            BackupInfo info = await Task.Run(() => LibraryBackup.Create(_owner.Database, settings, destination));
+            _settings.LastBackupUtc = DateTime.UtcNow;
+            OnPropertyChanged(nameof(LastBackupText));
+            Log.Info($"Backed up the library to {destination}: {info.Songs} songs, {info.Playlists} playlists, {info.Nights} nights");
+            _owner.ShowNotice($"Library backed up: {Path.GetFileName(destination)}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
+        {
+            Log.Error($"Couldn't back up the library to {destination}", ex);
+            _owner.ShowNotice($"Couldn't back up the library: {ex.Message}", seconds: 8);
+        }
+    }
+
+    /// <summary>
+    /// Restores the backup at <paramref name="path"/> (chosen in an open dialog), after saying
+    /// what's in it and asking: GZJam closes and opens again with it, the library it replaces kept
+    /// aside. Not while the room hears music, nor a backup this GZJam can't read.
+    /// </summary>
+    public async Task RestoreAsync(string path)
+    {
+        if (_owner.WhatTheRoomIsHearing() is not null)
+        {
+            _owner.ShowNotice("Pause the music first: restoring a backup closes GZJam.");
+            return;
+        }
+        BackupInfo info;
+        try
+        {
+            info = await Task.Run(() => LibraryBackup.Read(path));
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
+        {
+            Log.Error($"Couldn't read the backup {path}", ex);
+            _owner.ShowNotice($"Couldn't restore {Path.GetFileName(path)}: {ex.Message}", seconds: 8);
+            return;
+        }
+
+        string what = $"{Count(info.Songs, "song")}, {Count(info.MarkedSongs, "with marks", "with marks")}, " +
+                      $"{Count(info.Playlists, "playlist")} and {Count(info.Nights, "night")} of History";
+        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
+                "Restore this backup?",
+                $"From {info.Created:d MMMM yyyy, HH:mm} (GZJam {info.GZJamVersion}): {what}. Its Settings come with it.\n\n" +
+                "GZJam closes and opens again with it. Your music files aren't touched. The library it replaces " +
+                $"(and anything marked since the backup) isn't deleted: it's kept in the \"{LibraryReset.PreviousLibraries}\" folder beside it.",
+                "Restore"))
+            return;
+        try
+        {
+            string data = Path.GetDirectoryName(Path.GetFullPath(_owner.Database.DatabasePath))!;
+            await Task.Run(() => LibraryBackup.Stage(path, data));
+        }
+        catch (GZJam.Library.LibraryTooNewException ex)
+        {
+            Log.Error($"Not restoring {path}: {ex.Message}");
+            _owner.ShowNotice($"That backup is from a newer GZJam ({info.GZJamVersion}). Install the newest GZJam to restore it.", seconds: 10);
+            return;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
+        {
+            Log.Error($"Couldn't restore {path}", ex);
+            _owner.ShowNotice($"Couldn't restore {Path.GetFileName(path)}: {ex.Message}", seconds: 8);
+            return;
+        }
+        Log.Info($"Restoring the backup {path} (from {info.Created:u}, GZJam {info.GZJamVersion}): GZJam opens again with it");
+        _owner.RequestRestore();
+    }
+
+    private static string Count(int n, string one, string? many = null) =>
+        many is null ? $"{n:N0} {one}{(n == 1 ? "" : "s")}" : $"{n:N0} {(n == 1 ? one : many)}";
+
+    /// <summary>
     /// Starts over with an empty library, after asking: GZJam closes and opens again with no music
     /// folders, the old library kept aside (see <see cref="LibraryReset"/>). Not while the room
     /// hears music.

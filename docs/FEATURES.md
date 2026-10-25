@@ -1220,6 +1220,28 @@ rest of it.
   a deck's song (`DeckViewModel.FollowMove`) without loading it again, so a playing deck plays on
   (Windows lets a file BASS has open be renamed). The night (#96) is kept with the new paths.
 
+### Status: backing up and restoring the library (#84, 2026-10-25)
+
+- **A backup** (`LibraryBackup`) is one `.gzjam` file, a zip: `library.db`, a consistent copy
+  made while GZJam runs (`LibraryDatabase.BackUpTo`, SQLite's `VACUUM INTO`); `settings.json`;
+  and `backup.json`, what it holds (when, which GZJam, songs, songs with marks, playlists,
+  nights, music folders). Everything is in it, waveforms and analysis too, so a restore needs
+  nothing worked out again: a 12,687-song library (76 MB) makes a 47 MB backup in about 2 s.
+  Album art copies and the music files aren't in it. Written whole or not at all.
+- **Back up** (Settings › Library): a save dialog, the work in the background, a notice, and
+  "Last backed up …" under the button (`AppSettings.LastBackupUtc`).
+- **Restore:** an open dialog; refused while the room hears music; the backup's own description
+  in the question ("Restore this backup?", with *Restore*). Then it's unpacked into `restore`
+  beside the library and checked (a newer GZJam's is refused with the version it needs, a damaged
+  one too), and GZJam closes and opens again, as starting over does. At the next start, before
+  the settings are read (`App.RestoreIfAsked`), the library, its art and the night are moved to
+  `previous libraries/library <date> (before restoring a backup)` with the settings, and the
+  backup's library and settings take their place. A notice says which backup is back.
+- **Automatic copies:** once the library has started, if none was made today, one goes to
+  `backups` beside the library, in the background; the last five are kept. Off in tests.
+- **Not yet:** restoring on a computer where the music lives somewhere else (everything is kept by
+  path), #112.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

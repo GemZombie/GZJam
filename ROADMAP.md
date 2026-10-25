@@ -92,6 +92,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   pauses the room when pausing takes two taps
 - [The night comes back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
   the queue and the decks as they were, paused; after a normal close, the queue is still there
+- [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
+  cues, playlists, History and Settings in one file, and a copy GZJam keeps by itself each day
 
 ## Planned next
 
@@ -109,12 +111,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   by ear, a very large library, and a real night
 
 *New*
-- [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
-  cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
   what each control does
 
 **After 1.0:**
+- [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
+  for a new laptop with a different drive or system
 - [Import from iTunes / Apple Music](https://github.com/GemZombie/GZJam/issues/97): ratings,
   playlists and play counts, as the Mixxx import does
 - [Fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98) in auto-play,
