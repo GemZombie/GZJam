@@ -37,7 +37,7 @@ New:
   last five beside the library.
 - **A user guide:** getting started, the outputs, the decks, the library, auto-play, History,
   Settings, a checklist for the night and what to do if the sound stops. In
-  [docs/GUIDE.md](docs/GUIDE.md), and linked from Settings › About.
+  [the user guide](https://github.com/GemZombie/GZJam/blob/main/docs/GUIDE.md), and linked from Settings › About.
 
 Fixed:
 
