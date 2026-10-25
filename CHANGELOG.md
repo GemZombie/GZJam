@@ -10,6 +10,23 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.7.3 (unreleased)
+
+New:
+
+- **Start over with an empty library:** Settings › Library › *Start over…*. GZJam closes and opens
+  again with no music folders, for a fresh start or to add your music again from scratch. Your
+  music files aren't touched and your Settings stay; the old library isn't deleted, but kept in
+  a "previous libraries" folder beside it.
+
+Fixed:
+
+- **On a Mac, the menu bar says GZJam,** not "Avalonia Application".
+- **The activity log says what the library is doing:** each scan of a music folder (songs found,
+  read, added and removed, how long it took, and any error) and each time the library's list is
+  rebuilt. On one Mac, adding a large folder left the library empty until GZJam was restarted;
+  the log will now show why, if it happens again.
+
 ## 0.7.2 (2026-10-24)
 
 Changed:

@@ -351,7 +351,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             _suppressSearch = false;
         }
         HasLoaded = true;
-        RunSearch();
+        RunSearch("startup");
 
         foreach (LibraryRoot r in _database.GetRoots())
         {
@@ -382,7 +382,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         _watcher.Unwatch(rootId);
         _database.RemoveRoot(rootId);
         RefreshTree();
-        RunSearch();
+        RunSearch("folder removed");
     }
 
     /// <param name="readAllTags">Read every song's tags again, not only changed files (see <see cref="LibraryScanner.ScanAsync"/>).</param>
@@ -398,9 +398,16 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         try
         {
             bool firstImport = _database.GetFolderCounts().All(c => c.RootId != root.Id);
+            Log.Info($"Scanning {root.Path}" + (firstImport ? " (first time)" : "") + (readAllTags ? ", reading every song's tags again" : ""));
             DateTime lastRefresh = DateTime.UtcNow;
+            bool found = false;
             var progress = new Progress<ScanProgress>(p =>
             {
+                if (!p.Enumerating && !found)
+                {
+                    found = true;
+                    Log.Info($"Scan of {root.Path}: {Format.Count(p.FilesFound)} songs found, {Format.Count(p.FilesToRead)} to read");
+                }
                 if (p.Enumerating)
                 {
                     ScanStatus = $"Looking for music… {Format.Count(p.FilesFound)}";
@@ -417,22 +424,33 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 {
                     lastRefresh = DateTime.UtcNow;
                     RefreshTree();
-                    RunSearch();
+                    RunSearch("first scan, filling in");
                 }
             });
 
             ScanResult result = await _scanner.ScanAsync(root, progress, readAllTags);
+            Log.Info($"Scanned {root.Path} in {result.Elapsed.TotalSeconds:0.0} s: {Format.Count(result.Added)} added, " +
+                     $"{Format.Count(result.Updated)} updated, {Format.Count(result.Removed)} removed, {Format.Count(result.Moved)} moved, " +
+                     $"{Format.Count(result.Unchanged)} unchanged");
             if (result.ChangedAnything)
             {
                 RefreshTree();
                 // A remembered folder may only exist once its root has been scanned (e.g. a fresh database).
                 RestorePendingSelection();
-                RunSearch();
+                RunSearch("scan finished");
                 Scanned?.Invoke();
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            Log.Error($"Couldn't scan {root.Path}", ex);
+            ScanStatus = $"Couldn't scan {root.Path}: {ex.Message}";
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+        catch (Exception ex)
+        {
+            // Never silently: the library may be left showing less than the database holds.
+            Log.Error($"Scan of {root.Path} failed", ex);
             ScanStatus = $"Couldn't scan {root.Path}: {ex.Message}";
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
@@ -454,6 +472,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         bool firstBuild = Roots.Count == 0;
 
         var tree = FolderTree.Build(_database.GetRoots(), _database.GetFolderCounts());
+        Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");
         _suppressSearch = true;
         Roots.Clear();
         foreach (FolderNode node in tree)
@@ -511,7 +530,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>A search is waiting out the typing delay or running: <see cref="Results"/> is about to change.</summary>
     internal bool IsSearching { get; private set; }
 
-    private void RunSearch()
+    /// <param name="why">For the log: searches made by GZJam itself (startup, a scan) are logged, typing isn't.</param>
+    private void RunSearch(string? why = null)
     {
         IsSearching = true;
         _searchCancel?.Cancel();
@@ -522,8 +542,16 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         long? playlist = SelectedPlaylist?.Id;
         double near = NearBpm;
 
+        var started = System.Diagnostics.Stopwatch.StartNew();
         Task.Run(() => _database.Search(text, scope, cancel.Token, near, playlist), cancel.Token).ContinueWith(t =>
         {
+            if (t.IsFaulted && t.Exception?.InnerException is not OperationCanceledException)
+                Log.Error($"Search \"{text}\" failed", t.Exception);
+            if (why is not null)
+                Log.Info(t.IsCompletedSuccessfully
+                    ? $"Library list ({why}): {Format.Count(t.Result.Count)} songs in {started.ElapsedMilliseconds} ms" +
+                      (version == _searchVersion ? "" : ", replaced by a newer search")
+                    : $"Library list ({why}): {(t.IsCanceled ? "cancelled by a newer search" : "failed")} after {started.ElapsedMilliseconds} ms");
             if (version == _searchVersion)
                 Dispatcher.UIThread.Post(() =>
                 {

@@ -729,6 +729,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ───────────── Decks ─────────────
 
+    /// <summary>Starting over with an empty library was confirmed: GZJam closes and opens again (see <see cref="LibraryReset"/>).</summary>
+    public event Action? StartOverRequested;
+
+    internal void RequestStartOver() => StartOverRequested?.Invoke();
+
     /// <summary>Asks the user to confirm something (heading, message, the confirm button's text); the window supplies the dialog.</summary>
     public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }
 
