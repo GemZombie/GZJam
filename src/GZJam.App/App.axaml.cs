@@ -27,6 +27,7 @@ public partial class App : Application
             Dispatcher.UIThread.UnhandledException += (_, e) => Log.Error("Unhandled UI exception", e.Exception);
 
             var settings = AppSettings.Load(AppPaths.SettingsFile);
+            StartOverIfAsked(settings);
             if (LibraryDatabase.CheckCanOpen(AppPaths.LibraryDatabase) is { } tooNew)
             {
                 ExplainLibraryTooNew(desktop, tooNew);
@@ -47,6 +48,40 @@ public partial class App : Application
             }
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>Starting over with an empty library, if the last GZJam asked for it (see <see cref="LibraryReset"/>).</summary>
+    private static void StartOverIfAsked(AppSettings settings)
+    {
+        try
+        {
+            if (LibraryReset.ApplyPending(AppPaths.LibraryDatabase) is not { } kept)
+                return;
+            Log.Info($"Started over with an empty library; the old one is kept in {kept}");
+            settings.SelectedRootPath = null;
+            settings.SelectedFolder = null;
+            settings.OpenPlaylist = null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Error("Couldn't start over with an empty library", ex);
+        }
+    }
+
+    /// <summary>Opens GZJam again, once this one has closed (to start over).</summary>
+    private static void Relaunch()
+    {
+        try
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();   // let go of the library before the next one moves it
+            LibraryReset.Request(AppPaths.DataDirectory);
+            Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false });
+            Log.Info("Opening GZJam again, to start over with an empty library");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            Log.Error("Couldn't open GZJam again to start over", ex);
+        }
     }
 
     /// <summary>How long the startup screen stays once everything is ready, for its sweep to reach the end.</summary>
@@ -161,6 +196,12 @@ public partial class App : Application
     {
         var window = new MainWindow { DataContext = viewModel };
         window.RestorePlacement(settings.Window);
+        bool startOver = false;
+        viewModel.StartOverRequested += () =>
+        {
+            startOver = true;
+            window.Close();   // the room hears nothing (Settings checks), so it closes without asking
+        };
         window.Opened += (_, _) =>
             Log.Info($"Window open, {SinceStart:0.00} s after starting");
         window.Closing += (_, _) =>
@@ -173,6 +214,8 @@ public partial class App : Application
         {
             Log.Info("GZJam closing");
             viewModel.Dispose();
+            if (startOver)
+                Relaunch();
         };
         desktop.MainWindow = window;
         return window;

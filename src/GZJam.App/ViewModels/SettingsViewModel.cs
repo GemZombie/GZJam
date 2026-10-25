@@ -240,6 +240,30 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void NearBpmWider() => NearBpmPercent += 1;
 
+    /// <summary>
+    /// Starts over with an empty library, after asking: GZJam closes and opens again with no music
+    /// folders, the old library kept aside (see <see cref="LibraryReset"/>). Not while the room
+    /// hears music.
+    /// </summary>
+    [RelayCommand]
+    private async Task StartOver()
+    {
+        if (_owner.WhatTheRoomIsHearing() is not null)
+        {
+            _owner.ShowNotice("Pause the music first: starting over closes GZJam.");
+            return;
+        }
+        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
+                "Start over with an empty library?",
+                "GZJam closes and opens again with no music folders, as on its first day. Your music files aren't touched, " +
+                "and your Settings stay.\n\nThe old library (marks, labels, cues, playlists and History) isn't deleted: it's kept " +
+                $"in the \"{LibraryReset.PreviousLibraries}\" folder beside it.",
+                "Start over"))
+            return;
+        Log.Info("Starting over with an empty library");
+        _owner.RequestStartOver();
+    }
+
     /// <summary>Re-lists devices, e.g. after plugging in a USB interface.</summary>
     [RelayCommand]
     public void RefreshDevices()

@@ -1099,6 +1099,26 @@ rest of it.
   paths), on all three systems; GZJam's own drags stay in-app. Tags are read off the UI thread
   (`MainWindowViewModel.TracksFromFiles`, `LibraryDatabase.TrackForFile`).
 
+### Status: starting over, and a library that says what it's doing (2026-10-24)
+
+- **Seen on the first real Mac** (Intel, macOS 15.7, 12,850 songs on the Desktop): after a folder
+  was first added, the library stayed empty (the folder didn't expand, the list showed no songs)
+  while analysis worked through all of them; a restart showed everything. Not reproduced over SSH
+  in a separate data folder, four ways (startup scan into an emptied library, with a remembered
+  selection, removing and adding the folder again, a fresh start with the Desktop permission
+  reset). The log said nothing about scans, so there was nothing to go on (#18).
+- **Logging:** each scan (start, first time or not, songs found and to read, the result and how
+  long it took, any error, now including unexpected ones), the folder tree each time it's rebuilt,
+  and each list GZJam itself asks for (startup, a scan filling in or finishing, a folder removed):
+  how many songs, how long, and whether a newer search replaced it. Typing isn't logged.
+- **Start over** (Settings › Library): asks first, never while the room hears music. GZJam
+  closes, leaving a `start-over` marker, and opens itself again; the next start moves
+  `library.db` (with its `-wal`/`-shm`) and the `art` folder into `previous libraries/library
+  <date time>` before opening anything, and forgets the selected folder and playlist. Settings
+  stay. Done at the next start rather than while running, so nothing has the library open.
+  Restoring one is by hand for now (backup and restore, #84, will cover it).
+- **Mac menu bar:** the application's `Name` is GZJam (it showed Avalonia's default).
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

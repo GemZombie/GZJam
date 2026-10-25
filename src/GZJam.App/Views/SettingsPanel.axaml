@@ -230,6 +230,16 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Start over with an empty library" />
+                    <TextBlock Classes="setting-help"
+                               Text="For a fresh start, or to add your music again from scratch. GZJam reopens with no music folders; the old library is kept, not deleted." />
+                  </StackPanel>
+                  <Button x:Name="StartOverButton" Grid.Column="1" Classes="hw" Content="START OVER…" VerticalAlignment="Center"
+                          Command="{Binding StartOverCommand}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Near a BPM" />
                     <TextBlock Classes="setting-help"
                                Text="How far ~bpm:140 searches reach either side, and the BPM button's Near Deck choices. ±8% is as far as the tempo slider goes. For one search, type ~bpm:140/5." />
