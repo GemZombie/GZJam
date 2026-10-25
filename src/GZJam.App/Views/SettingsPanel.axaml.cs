@@ -65,7 +65,6 @@ public partial class SettingsPanel : UserControl
         _aboutFilled = true;
         VersionText.Text = About.Version;
         MakerText.Text = $"A simple DJ app for social dance nights, made by {About.Maker}.";
-        ProjectLink.Content = About.ProjectUrl.Replace("https://", "");
         BuiltWithText.Text = About.BuiltWith();
         NoticesButton.IsVisible = File.Exists(About.NoticesPath);
     }
