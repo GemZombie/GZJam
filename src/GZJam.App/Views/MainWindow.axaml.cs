@@ -37,6 +37,7 @@ public partial class MainWindow : Window
         Resized += (_, _) => RememberNormalBounds();
 
         InitializeDrag();
+        InitializeFileDrop();
         InitializeDecks();
         InitializeHistory();
         InitializeSearch();

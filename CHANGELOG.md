@@ -10,6 +10,15 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.8.0 (unreleased)
+
+New:
+
+- **Play a song straight from the file manager.** Drag a file from Explorer, Finder or your Linux
+  file manager onto a deck, or any number of files and folders into the queue. A song from
+  outside your music folders, say one a dancer brings on a USB stick, plays like any other and
+  shows in History, without joining your library. A song from your library keeps its marks.
+
 ## 0.7.2 (2026-10-24)
 
 Changed:

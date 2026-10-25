@@ -761,6 +761,37 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// Loads a track onto a deck, protecting a deck that's playing as configured in Settings.
     /// Returns whether the track was loaded.
     /// </summary>
+    /// <summary>
+    /// Songs for files and folders dragged in from the file manager, in the order given (a
+    /// folder's songs in order of their paths). A song in the library comes with its marks; one
+    /// outside it plays as it is, without joining the library. Also the dropped files GZJam can't
+    /// play (a folder's other files, its pictures say, are left out quietly).
+    /// </summary>
+    public (IReadOnlyList<Track> Tracks, IReadOnlyList<string> Skipped) TracksFromFiles(IEnumerable<string> paths)
+    {
+        var tracks = new List<Track>();
+        var skipped = new List<string>();
+        foreach (string path in paths)
+        {
+            if (Directory.Exists(path))
+            {
+                var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+                foreach (string file in Directory.EnumerateFiles(path, "*", options).Where(LibraryScanner.IsAudioFile)
+                             .Order(StringComparer.OrdinalIgnoreCase))
+                    tracks.Add(_database.TrackForFile(file));
+            }
+            else if (File.Exists(path) && LibraryScanner.IsAudioFile(path))
+            {
+                tracks.Add(_database.TrackForFile(path));
+            }
+            else
+            {
+                skipped.Add(path);
+            }
+        }
+        return (tracks, skipped);
+    }
+
     public async Task<bool> LoadToDeckAsync(DeckViewModel deck, Track track)
     {
         if (deck.IsPlaying)

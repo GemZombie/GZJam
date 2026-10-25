@@ -145,6 +145,13 @@ public sealed partial class LibraryDatabase
         return r.Read() ? ReadTrack(r) : null;
     }
 
+    /// <summary>
+    /// The song in a file: the library's, with its marks, if it's in the library; otherwise read
+    /// from its tags (a file from outside the music folders), without adding it to the library.
+    /// </summary>
+    public Track TrackForFile(string path) =>
+        FindTrack(path) ?? TagReader.Read(0, System.IO.Path.GetDirectoryName(path)!, new FileInfo(path));
+
     /// <summary>Names a session; an empty name goes back to its date.</summary>
     public void RenameSession(long sessionId, string? name)
     {
