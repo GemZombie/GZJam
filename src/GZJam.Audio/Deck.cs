@@ -536,6 +536,28 @@ public sealed class Deck : IDisposable
         ApplyVolumes();
     }
 
+    /// <summary>Takes this deck's headphone or booth feed off that output, before it's opened again.</summary>
+    internal void Detach(TableOutput output)
+    {
+        if (IsLoaded)
+            BassMix.MixerRemoveChannel(output == TableOutput.Headphones ? _splitCue : _splitBooth);
+    }
+
+    /// <summary>
+    /// Puts this deck's headphone or booth feed on that output's new mixer (it was opened again
+    /// after being unplugged). The speakers' feed isn't touched.
+    /// </summary>
+    internal void Attach(TableOutput output)
+    {
+        if (!IsLoaded)
+            return;
+        var (split, bus) = output == TableOutput.Headphones ? (_splitCue, _mix.Cue) : (_splitBooth, _mix.Booth);
+        var flags = BassFlags.MixerChanDownMix | (_playing ? 0 : BassFlags.MixerChanPause);
+        if (!BassMix.MixerAddChannel(bus.Handle, split, flags))
+            throw new AudioException($"Could not route Deck {Name}", Bass.LastError);
+        ApplyVolumes();
+    }
+
     internal void Detach()
     {
         if (!IsLoaded)

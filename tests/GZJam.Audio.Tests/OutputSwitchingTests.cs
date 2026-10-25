@@ -179,4 +179,57 @@ public sealed class OutputSwitchingTests : IDisposable
         string message = AudioException.Busy("Cable Creation USB Audio").Message;
         Assert.StartsWith("Cable Creation USB Audio is in use", message);
     }
+
+    /// <summary>Unplugged and plugged back in (#72): the headphones open afresh, the speakers untouched.</summary>
+    [Fact]
+    public void Headphones_open_again_on_their_device_without_touching_the_speakers()
+    {
+        var devices = _engine.GetOutputDevices().Where(d => !d.FollowsSystemDefault).ToList();
+        Assert.SkipWhen(devices.Count < 2, "Needs two output devices.");
+        try
+        {
+            _mix.SetOutputs(devices[0], devices[1]);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs two output devices that open.");
+        }
+        Assert.SkipWhen(_mix.CueRefusal is not null, "The headphones' device won't open.");
+        OutputBus main = _mix.Main;
+
+        _mix.Reopen(TableOutput.Headphones, devices[1]);
+
+        Assert.Same(main, _mix.Main);
+        Assert.Equal(devices[1], _mix.Cue.Device);
+        Assert.True(IsOpen(devices[1]));
+        Assert.Equal(PlaybackState.Playing, Bass.ChannelIsActive(_mix.Cue.Handle));
+        Assert.Equal(PlaybackState.Playing, Bass.ChannelIsActive(main.Handle));
+    }
+
+    /// <summary>Headphones that won't open (unplugged) are waited for, and stay the choice meanwhile.</summary>
+    [Fact]
+    public void Headphones_that_wont_open_are_waited_for()
+    {
+        var devices = _engine.GetOutputDevices();
+        Assert.SkipWhen(devices.Count < 1, "Needs an output device.");
+        var unplugged = new AudioDevice(999, "Unplugged Headphones", "nowhere", false);
+        try
+        {
+            _mix.SetOutputs(devices[0], unplugged);
+        }
+        catch (AudioException)
+        {
+            Assert.Skip("Needs an output device that opens.");
+        }
+
+        Assert.NotNull(_mix.CueRefusal);
+        Assert.True(_mix.IsUnplugged(TableOutput.Headphones));
+        Assert.Equal(unplugged, _mix.WaitingFor(TableOutput.Headphones));
+        Assert.Equal(devices[0], _mix.Main.Device);   // the room plays
+        _mix.Update();   // not back: nothing listed by that name
+
+        Assert.True(_mix.IsUnplugged(TableOutput.Headphones));
+        _mix.SetOutputs(devices[0], null);
+        Assert.False(_mix.IsUnplugged(TableOutput.Headphones));   // none chosen: nothing to wait for
+    }
 }

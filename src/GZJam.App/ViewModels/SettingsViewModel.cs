@@ -354,7 +354,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             if (value == SplitOutput || _owner.Mix is not { IsOffline: false } || MainDevice is null)
                 return;
-            _owner.SetOutputs(MainDevice, value ? MainDevice : null, Chosen(BoothDevice));
+            _owner.SetOutputs(MainDevice, value ? MainDevice : null, ChosenBooth);
             if (value && _owner.Mix.IsSplit)
                 _owner.ShowNotice("Split: the room on the left plug, your headphones on the right.");
             RefreshDevices();
@@ -371,30 +371,46 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         // Split, the headphones go with the speakers. Speakers moved to the headphones' own
         // output turn the headphones off: they'd be in the room.
-        AudioDevice? cue = SplitOutput ? value : Chosen(CueDevice);
+        AudioDevice? cue = SplitOutput ? value : ChosenHeadphones;
         if (!SplitOutput && cue?.Index == value.Index)
         {
             cue = null;
             _owner.ShowNotice("Headphones are off: they were on that output.");
         }
-        _owner.SetOutputs(value, cue, Chosen(BoothDevice));
+        _owner.SetOutputs(value, cue, ChosenBooth);
         RefreshDevices();   // the headphones' list leaves out the speakers' own output
     }
 
+    /// <summary>
+    /// The headphones are on "Default", which follows the computer's own choice of output: unplug
+    /// them and the computer may send the preview somewhere else, even to the room.
+    /// </summary>
+    public bool HeadphonesFollowDefault => !SplitOutput && CueDevice is { FollowsSystemDefault: true };
+
     partial void OnCueDeviceChanged(AudioDevice? value)
     {
+        OnPropertyChanged(nameof(HeadphonesFollowDefault));
         if (!_loading)
-            _owner.SetOutputs(MainDevice, Chosen(value), Chosen(BoothDevice));
+            _owner.SetOutputs(MainDevice, Chosen(value), ChosenBooth);
     }
 
     partial void OnBoothDeviceChanged(AudioDevice? value)
     {
         if (_loading)
             return;
-        _owner.SetOutputs(MainDevice, SplitOutput ? MainDevice : Chosen(CueDevice), Chosen(value));
+        _owner.SetOutputs(MainDevice, SplitOutput ? MainDevice : ChosenHeadphones, Chosen(value));
         if (Chosen(value) is not null && _owner.Mix?.Booth.Device is null)
             RefreshDevices();   // refused (the speakers' own output, say): back to None
     }
 
     private static AudioDevice? Chosen(AudioDevice? device) => device == NoDevice ? null : device;
+
+    /// <summary>
+    /// The headphones as chosen, for a change to another output: while they're unplugged (so not
+    /// in the list, shown as None) they stay the choice, and are still waited for.
+    /// </summary>
+    private AudioDevice? ChosenHeadphones => Chosen(CueDevice) ?? _owner.Mix?.WaitingFor(TableOutput.Headphones);
+
+    /// <summary>The booth as chosen, the same way.</summary>
+    private AudioDevice? ChosenBooth => Chosen(BoothDevice) ?? _owner.Mix?.WaitingFor(TableOutput.Booth);
 }

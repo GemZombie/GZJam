@@ -78,7 +78,10 @@
                       <Border Classes="led on amber" VerticalAlignment="Center" />
                       <TextBlock Classes="setting" Text="Headphones" />
                     </StackPanel>
-                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room." />
+                    <TextBlock Classes="setting-help" Text="Only you hear this. It never goes to the room. Unplugged, they go quiet, and come back when plugged in." />
+                    <TextBlock x:Name="HeadphonesDefaultHint" Classes="setting-help" FontWeight="SemiBold" Margin="0,4,0,0"
+                               IsVisible="{Binding HeadphonesFollowDefault}" TextWrapping="Wrap"
+                               Text="Default follows the computer's own choice: unplug the headphones and it may move the preview to another output, even the room's. Choose them by name." />
                   </StackPanel>
                   <ComboBox x:Name="CueDeviceBox" Grid.Column="1" ItemsSource="{Binding CueDevices}" SelectedItem="{Binding CueDevice}"
                             IsVisible="{Binding !SplitOutput}" />
