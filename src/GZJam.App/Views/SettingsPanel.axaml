@@ -292,7 +292,10 @@
               <TextBlock x:Name="VersionText" Classes="muted mono" FontSize="13" VerticalAlignment="Center" Margin="2,4,0,0" />
             </StackPanel>
             <TextBlock x:Name="MakerText" TextWrapping="Wrap" Margin="0,6,0,0" />
-            <Button x:Name="ProjectLink" Classes="link" Click="OnProjectClick" Margin="-6,-2,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="-6,-2,0,0">
+              <Button x:Name="GuideLink" Classes="link" Content="User guide" Click="OnGuideClick" Foreground="{StaticResource AccentBrush}" />
+              <Button x:Name="ProjectLink" Classes="link" Click="OnProjectClick" />
+            </StackPanel>
           </StackPanel>
 
           <Border DockPanel.Dock="Top" Classes="settings-card" Margin="0,12,0,0">

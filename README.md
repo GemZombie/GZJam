@@ -13,7 +13,8 @@ intuitive and useful: what you need to play music for dancers, without the clutt
 ## Download
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
-the file for your computer. What changed in each release is in [CHANGELOG.md](CHANGELOG.md);
+the file for your computer. How to use it, from your first song to a night's checklist, is in
+the [user guide](docs/GUIDE.md). What changed in each release is in [CHANGELOG.md](CHANGELOG.md);
 what GZJam does and what's coming is in [ROADMAP.md](ROADMAP.md).
 Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions).
 
@@ -138,7 +139,9 @@ GitHub Actions, in `.github/workflows`:
   last release. It becomes the release's notes (with download instructions added by
   `tools/release-notes.sh`), and a tag without one fails straight away. Bring
   [ROADMAP.md](ROADMAP.md) up to date too: the release's features move into "What GZJam does
-  today", and "Up to date as of" gets the new version. Then push a version tag to draft a GitHub
+  today", and "Up to date as of" gets the new version. And the [user guide](docs/GUIDE.md): what's
+  new is in it, in the app's own words. Its pictures come from `ScreenshotTests` (see *Tests*),
+  copied to `docs/images/guide/`. Then push a version tag to draft a GitHub
   release with the packages attached, and publish the draft by hand:
 
   ```

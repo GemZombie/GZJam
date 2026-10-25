@@ -8,6 +8,9 @@ internal static class About
     public const string Maker = "Jesse Gearhart";
     public const string ProjectUrl = "https://github.com/GemZombie/GZJam";
 
+    /// <summary>The user guide: getting started, the outputs, and what each control does.</summary>
+    public const string GuideUrl = ProjectUrl + "/blob/main/docs/GUIDE.md";
+
     /// <summary>The build's version, e.g. "0.1.0" (a release) or "0.1.0-dev" (built here).</summary>
     public static string Version { get; } =
         typeof(About).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
