@@ -109,7 +109,7 @@ public sealed partial class MixxxImport
         {
             if (!matches.TryGetValue(song.Id, out Track? track))
                 continue;
-            Rating rating = song.Stars switch { >= 4 => Rating.Loved, 1 or 2 => Rating.Rejected, _ => Rating.Unrated };
+            Rating rating = FileRatings.RatingFromStars(song.Stars);
             if (rating != Rating.Unrated && track.Rating == Rating.Unrated)
                 import._ratings.Add((track.Path, rating));
             if (song.BpmLocked && song.Bpm is { } bpm && track.ManualBpm is null)

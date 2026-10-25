@@ -634,6 +634,27 @@ not here. This file records what was decided and built, and why.
   BPM wins over the tag and detection, in the BPM column, on the deck and in `bpm:` searches
   (`manual_bpm`, schema upgrade 12). *Automatic* or a range forgets it.
 
+### Status: import from other players built (2026-10-25, issue #116)
+
+For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input plays with both,
+50-60k songs): a cheap bridge before a full iTunes / Apple Music import (#97).
+
+- **Settings › Library › Import playlists (M3U).** Pick one or more `.m3u` / `.m3u8` files; each
+  becomes a playlist named after its file, in order (`PlaylistFile`, `PlaylistImport`). Absolute
+  paths, paths relative to the playlist, and `file://` addresses; `#` lines and web addresses are
+  skipped. UTF-8 (with or without a BOM), else the computer's code page (Windows players often
+  write plain `.m3u` that way). Songs are matched by path (any case on Windows); the rest are
+  counted, with the folders most of them are in. A name GZJam has already is skipped, so
+  importing again adds nothing twice. GZJam asks first, saying what comes over and what doesn't.
+- **Settings › Library › Ratings in the song files.** A one-time import, not part of every scan:
+  a dialog reads the files of the unrated songs (four at a time, with progress), shows what they'd
+  become, then gives the hearts (`FileRatings`). ID3 `POPM` (0-255: Windows Media Player and
+  MediaMonkey write 1 / 64 / 128 / 196 / 255; read in bands, so evenly spread steps work too),
+  `TXXX:RATING` / `TXXX:FMPS_Rating`; Vorbis `RATING` (1-5, 0-100 or 0.0-1.0) / `FMPS_RATING`
+  (0.0-1.0). Mapped as the Mixxx import does: 4-5 stars ♥, 1-2 a broken heart, 3 unrated. A song
+  rated in GZJam meanwhile keeps its rating. AAC / ALAC: iTunes doesn't write ratings to files.
+- Nothing is written to the playlist or music files.
+
 ### Status: About built (2026-10-22)
 
 - **Settings › About:** the version (from the release tag; "-dev" when built locally), who made

@@ -234,6 +234,26 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Import playlists (M3U)" />
+                    <TextBlock Classes="setting-help"
+                               Text="Playlists saved from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other players, as .m3u or .m3u8 files. Each becomes a playlist of the same name, in order." />
+                  </StackPanel>
+                  <Button x:Name="PlaylistImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
+                          Click="OnPlaylistImportClick" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Ratings in the song files" />
+                    <TextBlock Classes="setting-help"
+                               Text="Star ratings that MediaMonkey, foobar2000 and other players save in the files, for songs that are unrated in GZJam. The files aren't changed." />
+                  </StackPanel>
+                  <Button x:Name="FileRatingsButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
+                          Click="OnFileRatingsClick" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Back up my library" />
                     <TextBlock Classes="setting-help"
                                Text="Hearts, labels, cues, playlists, History and your Settings, in one file: keep it on a USB stick or in a cloud folder. Your music files aren't in it. GZJam also keeps a copy of the last few days it was opened, beside the library." />
