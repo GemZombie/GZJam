@@ -88,14 +88,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   turn it off in Settings › About. GZJam never downloads or installs anything by itself.
 - [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
   never move to the speakers, and come back by themselves when plugged in again (the booth too)
+- [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
+  pauses the room when pausing takes two taps
 
 ## Planned next
 
 **Before 1.0:** a reliable night, everywhere.
 
 *Fixes*
-- [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
-  pauses the room when pausing takes two taps
 - [A renamed song in the queue or on a deck, or moved to another music folder](https://github.com/GemZombie/GZJam/issues/87),
   keeps track of itself too
 - [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
