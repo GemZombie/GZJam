@@ -123,6 +123,16 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - [Fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98) in auto-play,
   for practice nights, classes and jams
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+- [Choose the loudness target](https://github.com/GemZombie/GZJam/issues/122) (-16, -18 or -20 LUFS),
+  for more headroom on a mixer or PA that clips easily
+- [The user guide: connecting to a venue's mixer or PA](https://github.com/GemZombie/GZJam/issues/125),
+  and setting the levels so nothing clips
+- [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
+  only the usual ones (a dance in a custom tag, the composer, the grouping)
+- [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
+  laptop plugged straight into a PA with no mixer
+- [Hints for new DJs](https://github.com/GemZombie/GZJam/issues/123), quiet and optional: the same
+  tempo for too long, a repeat, the limiter held on
 - [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged.
   Not something DJ apps usually do, and good free rippers exist (Exact Audio Copy, fre:ac,
   foobar2000), whose files GZJam picks up by itself.
@@ -141,12 +151,16 @@ to one you'd use.
 **Playing**
 - [Pause after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100),
   for lessons and the end of the night
+- [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
+  label, or any search
 - [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
   stick, to hand a set to another DJ
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
   a sequence of dances, or so many of each
 
 **Elsewhere**
+- [Two rooms](https://github.com/GemZombie/GZJam/issues/120): two GZJams on the same network, for
+  schools with two floors, either one controlling the other
 - [GZJam in other languages](https://github.com/GemZombie/GZJam/issues/102)
 - [A companion app for cleaning up tags and file names](https://github.com/GemZombie/GZJam/issues/76):
   fill in missing titles, fix misspelled artists, rename files by rule
