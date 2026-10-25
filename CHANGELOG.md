@@ -29,6 +29,12 @@ New:
   left out, with a note.
 - **The queue is still there the next time you open GZJam,** after a normal close too, so it can
   be built ahead of a night. The decks start empty.
+- **Back up your library, and restore it** (Settings › Library): hearts, labels, cues, trims,
+  EQ, BPMs, playlists, History and your Settings, in one file to keep on a USB stick or in a
+  cloud folder (your music files aren't in it). Restoring says what's in the backup and asks
+  first, then GZJam opens again with it; the library it replaces is kept, not deleted. A backup
+  from a newer GZJam is refused. GZJam also keeps a copy of its own, once a day it's opened, the
+  last five beside the library.
 
 Fixed:
 

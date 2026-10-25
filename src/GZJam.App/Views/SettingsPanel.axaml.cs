@@ -77,6 +77,40 @@ public partial class SettingsPanel : UserControl
     private async void OnProjectClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.ProjectUrl));
 
+    private static readonly FilePickerFileType BackupFiles = new("GZJam backup") { Patterns = ["*" + LibraryBackup.Extension] };
+
+    /// <summary>Backs up the library to a file the DJ picks.</summary>
+    private async void OnBackUpClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.SettingsViewModel vm)
+            return;
+        var file = await TopLevel.GetTopLevel(this)!.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Back up my library",
+            SuggestedFileName = ViewModels.SettingsViewModel.SuggestedBackupName,
+            DefaultExtension = LibraryBackup.Extension.TrimStart('.'),
+            ShowOverwritePrompt = true,
+            FileTypeChoices = [BackupFiles],
+        });
+        if (file?.TryGetLocalPath() is { } path)
+            await vm.BackUpAsync(path);
+    }
+
+    /// <summary>Restores a backup the DJ picks, after asking.</summary>
+    private async void OnRestoreClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.SettingsViewModel vm)
+            return;
+        var files = await TopLevel.GetTopLevel(this)!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Restore a backup",
+            AllowMultiple = false,
+            FileTypeFilter = [BackupFiles],
+        });
+        if (files.Count == 1 && files[0].TryGetLocalPath() is { } path)
+            await vm.RestoreAsync(path);
+    }
+
     /// <summary>The release Check now found: what's new, and the downloads.</summary>
     private async void OnFoundReleaseClick(object? sender, RoutedEventArgs e)
     {

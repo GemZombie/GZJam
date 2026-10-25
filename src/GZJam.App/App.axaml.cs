@@ -26,6 +26,7 @@ public partial class App : Application
             TaskScheduler.UnobservedTaskException += (_, e) => Log.Error("Unobserved task exception", e.Exception);
             Dispatcher.UIThread.UnhandledException += (_, e) => Log.Error("Unhandled UI exception", e.Exception);
 
+            RestoreIfAsked();   // before the settings are read: a backup brings its own
             var settings = AppSettings.Load(AppPaths.SettingsFile);
             StartOverIfAsked(settings);
             if (LibraryDatabase.CheckCanOpen(AppPaths.LibraryDatabase) is { } tooNew)
@@ -45,6 +46,7 @@ public partial class App : Application
                 var viewModel = CreateViewModel(settings);
                 CreateMainWindow(desktop, settings, viewModel);
                 viewModel.Start();
+                AfterStart(viewModel);
                 viewModel.LatestRelease = UpdateCheck.LatestAsync;
                 _ = viewModel.CheckForNewVersionAsync();
             }
@@ -70,19 +72,48 @@ public partial class App : Application
         }
     }
 
-    /// <summary>Opens GZJam again, once this one has closed (to start over).</summary>
-    private static void Relaunch()
+    /// <summary>The backup restored as this GZJam started, if one was, to say so once it's open.</summary>
+    private static BackupInfo? s_restored;
+
+    /// <summary>Restoring a backup, if the last GZJam readied one (see <see cref="LibraryBackup"/>).</summary>
+    private static void RestoreIfAsked()
+    {
+        try
+        {
+            if (LibraryBackup.ApplyPending(AppPaths.LibraryDatabase, AppPaths.SettingsFile) is not { } restore)
+                return;
+            s_restored = restore.Restored;
+            Log.Info($"Restored the backup from {restore.Restored.Created:u} (GZJam {restore.Restored.GZJamVersion}); " +
+                     $"the library it replaced is kept in {restore.Kept}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            Log.Error("Couldn't restore the backup", ex);
+        }
+    }
+
+    /// <summary>Once the main window is up: the automatic backup, and saying a backup was restored.</summary>
+    private static void AfterStart(MainWindowViewModel viewModel)
+    {
+        viewModel.KeepsAutomaticBackups = true;
+        if (s_restored is { } info)
+            viewModel.ShowNotice($"The backup from {info.Created:d MMMM yyyy} is restored.", seconds: 10);
+    }
+
+    /// <summary>Opens GZJam again, once this one has closed (to start over, or restore a backup).</summary>
+    private static void Relaunch(bool startOver)
     {
         try
         {
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();   // let go of the library before the next one moves it
-            LibraryReset.Request(AppPaths.DataDirectory);
+            if (startOver)
+                LibraryReset.Request(AppPaths.DataDirectory);
             Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false });
-            Log.Info("Opening GZJam again, to start over with an empty library");
+            Log.Info(startOver ? "Opening GZJam again, to start over with an empty library" : "Opening GZJam again, to restore a backup");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
         {
-            Log.Error("Couldn't open GZJam again to start over", ex);
+            Log.Error("Couldn't open GZJam again", ex);
         }
     }
 
@@ -111,6 +142,7 @@ public partial class App : Application
             startup.BeginStep(0.6, 0.85);
             await NextFrame(window);   // laid out and drawn, out of sight
             viewModel.Start();   // opens the outputs
+            AfterStart(viewModel);
             viewModel.LatestRelease = UpdateCheck.LatestAsync;
             _ = viewModel.CheckForNewVersionAsync();   // in the background
 
@@ -200,11 +232,16 @@ public partial class App : Application
     {
         var window = new MainWindow { DataContext = viewModel };
         window.RestorePlacement(settings.Window);
-        bool startOver = false;
+        bool? startOver = null;   // set: open again afterwards (true: starting over; false: restoring)
         viewModel.StartOverRequested += () =>
         {
             startOver = true;
             window.Close();   // the room hears nothing (Settings checks), so it closes without asking
+        };
+        viewModel.RestoreRequested += () =>
+        {
+            startOver = false;
+            window.Close();
         };
         window.Opened += (_, _) =>
             Log.Info($"Window open, {SinceStart:0.00} s after starting");
@@ -219,8 +256,8 @@ public partial class App : Application
             Log.Info("GZJam closing");
             viewModel.CloseNight();
             viewModel.Dispose();
-            if (startOver)
-                Relaunch();
+            if (startOver is { } reset)
+                Relaunch(reset);
         };
         desktop.MainWindow = window;
         return window;

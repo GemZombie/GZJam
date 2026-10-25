@@ -605,6 +605,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
+        await KeepAutomaticBackupAsync();
     }
 
     /// <summary>
@@ -796,6 +797,44 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public event Action? StartOverRequested;
 
     internal void RequestStartOver() => StartOverRequested?.Invoke();
+
+    /// <summary>A backup is readied to be restored: GZJam closes and opens again with it (see <see cref="LibraryBackup"/>).</summary>
+    public event Action? RestoreRequested;
+
+    internal void RequestRestore() => RestoreRequested?.Invoke();
+
+    /// <summary>The library, for backing it up.</summary>
+    internal LibraryDatabase Database => _database;
+
+    /// <summary>The settings as they stand, for a backup.</summary>
+    internal string SettingsJson()
+    {
+        SaveState();
+        return _settings.ToJson();
+    }
+
+    /// <summary>
+    /// Keep the automatic daily copy of the library (set as GZJam starts; tests leave it off, so
+    /// their throwaway libraries aren't copied).
+    /// </summary>
+    internal bool KeepsAutomaticBackups { get; set; }
+
+    /// <summary>The automatic copy, once the library has started: in the background, never in the way.</summary>
+    private async Task KeepAutomaticBackupAsync()
+    {
+        if (!KeepsAutomaticBackups)
+            return;
+        string settings = SettingsJson();
+        try
+        {
+            if (await Task.Run(() => LibraryBackup.KeepAutomatic(_database, settings, DateTime.Now)) is { } path)
+                Log.Info($"Automatic backup: {path}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Couldn't make the automatic backup", ex);
+        }
+    }
 
     /// <summary>Asks the user to confirm something (heading, message, the confirm button's text); the window supplies the dialog.</summary>
     public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }

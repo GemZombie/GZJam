@@ -52,6 +52,10 @@ For a release you'd use at a dance, test your real library.
       up within a few seconds. Delete it: it goes.
 - [ ] **A rename:** give a song a ♥, a label and a cue, and add it to a playlist. Rename the file
       in the file manager. After a few seconds it still has all of them.
+- [ ] **Back up and restore** (Settings › Library): *Back up…* to a USB stick; it says when.
+      Then change something (a heart, a playlist), *Restore…* the backup: it says what's in it and
+      asks, GZJam opens again, and the change is undone. The library it replaced is in the
+      "previous libraries" folder beside it. The next day, an automatic copy is in `backups`.
 - [ ] Album art shows on the decks and queue for songs that have it.
 - [ ] Every format plays: MP3, FLAC, WAV, OGG, M4A (AAC; on Linux an AAC song says why it can't).
 - [ ] Optional: **Import from Mixxx** (Settings › Library) brings ratings, crates as labels,

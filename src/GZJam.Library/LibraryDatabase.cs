@@ -103,6 +103,19 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
+    /// Copies the whole library to <paramref name="path"/> (a new file), consistently, while it
+    /// may be in use: what a scan writes meanwhile is in the copy or not, never half of it.
+    /// </summary>
+    public void BackUpTo(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "VACUUM INTO $path;";
+        cmd.Parameters.AddWithValue("$path", path);
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
     /// Schema upgrades in order; the database's user_version says how many have been applied.
     /// Only ever append: existing databases depend on the earlier steps staying as they are.
     /// </summary>

@@ -143,6 +143,9 @@ public sealed class AppSettings
     /// <summary>The newer version the DJ dismissed ("0.8.0"); not mentioned again, only a later one.</summary>
     public string? DismissedVersion { get; set; }
 
+    /// <summary>When the DJ last backed up the library (Settings › Library), for saying so there.</summary>
+    public DateTime? LastBackupUtc { get; set; }
+
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 
@@ -192,6 +195,13 @@ public sealed class AppSettings
             settings.SeenColumns.Add(column);
         }
         return settings;
+    }
+
+    /// <summary>These settings as they'd be saved, for a backup.</summary>
+    public string ToJson()
+    {
+        SeenColumns ??= [.. NewHiddenColumns];
+        return JsonSerializer.Serialize(this, JsonOptions);
     }
 
     public void Save(string path)

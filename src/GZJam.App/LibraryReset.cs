@@ -28,7 +28,20 @@ internal static class LibraryReset
         if (!File.Exists(marker))
             return null;
 
-        string kept = Path.Combine(dataDirectory, PreviousLibraries, $"library {DateTime.Now:yyyy-MM-dd HHmmss}");
+        string kept = MoveAside(databasePath);
+        File.Delete(marker);
+        return kept;
+    }
+
+    /// <summary>
+    /// Moves the library (with its album art copies and the night kept beside it) into "previous
+    /// libraries", never deleting it, and returns the folder it went to. Nothing has it open yet:
+    /// called as GZJam starts, before the library is opened.
+    /// </summary>
+    internal static string MoveAside(string databasePath, string? why = null)
+    {
+        string dataDirectory = Path.GetDirectoryName(Path.GetFullPath(databasePath))!;
+        string kept = Path.Combine(dataDirectory, PreviousLibraries, $"library {DateTime.Now:yyyy-MM-dd HHmmss}{(why is null ? "" : $" ({why})")}");
         Directory.CreateDirectory(kept);
         // The GZJam that asked may still be closing: give it a few seconds to let go of the files.
         for (int attempt = 0; ; attempt++)
@@ -47,14 +60,12 @@ internal static class LibraryReset
                 string art = Path.Combine(dataDirectory, "art");
                 if (Directory.Exists(art))
                     Directory.Move(art, Path.Combine(kept, "art"));
-                break;
+                return kept;
             }
             catch (IOException) when (attempt < 20)
             {
                 Thread.Sleep(250);
             }
         }
-        File.Delete(marker);
-        return kept;
     }
 }
