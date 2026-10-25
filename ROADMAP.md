@@ -86,14 +86,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - [GZJam says when a new version is out](https://github.com/GemZombie/GZJam/issues/86): a quiet
   line in the top bar at startup, gone once the room hears music, with *Check now* and a switch to
   turn it off in Settings › About. GZJam never downloads or installs anything by itself.
+- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
+  never move to the speakers, and come back by themselves when plugged in again (the booth too)
 
 ## Planned next
 
 **Before 1.0:** a reliable night, everywhere.
 
 *Fixes*
-- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
-  never move to the speakers, and come back by themselves when plugged in again
 - [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
   pauses the room when pausing takes two taps
 - [A renamed song in the queue or on a deck, or moved to another music folder](https://github.com/GemZombie/GZJam/issues/87),
