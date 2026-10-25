@@ -31,19 +31,25 @@ public sealed class AppHarness : IDisposable
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "gzjam-screenshots")).FullName;
 
     private readonly string _work;
+    private readonly bool _ownsWork;
 
     /// <summary>The harness a test is using (UI tests run one at a time, on Avalonia's thread).</summary>
     private static AppHarness? _current;
 
     /// <param name="realOutputs">Play on this computer's sound devices (silence, unless a test plays) rather than offline.</param>
-    public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true, bool realOutputs = false)
+    /// <param name="workDirectory">
+    /// Another run's data folder, to start GZJam again on its library (kept: the test deletes it).
+    /// </param>
+    public AppHarness(string? musicFolder = null, AppSettings? settings = null, bool start = true, bool realOutputs = false,
+        string? workDirectory = null)
     {
-        _work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
+        _ownsWork = workDirectory is null;
+        _work = workDirectory ?? Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
         MusicPath = musicFolder ?? Path.Combine(_work, "Music");
         Database = new LibraryDatabase(Path.Combine(_work, "library.db"));
         // Loudness matching off unless a test asks for it: level checks expect tones at their own level.
         Settings = settings ?? new AppSettings { MatchLoudness = false };
-        if (musicFolder is null)
+        if (musicFolder is null && !Directory.Exists(MusicPath))   // another run's music stays as it was
             GenerateMusic(MusicPath);
         Database.AddRoot(MusicPath);
 
@@ -225,7 +231,10 @@ public sealed class AppHarness : IDisposable
         ViewModel.Dispose();   // also disposes the mix
         Audio.Dispose();
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-        try { Directory.Delete(_work, recursive: true); }
-        catch (IOException) { /* best effort */ }
+        if (_ownsWork)
+        {
+            try { Directory.Delete(_work, recursive: true); }
+            catch (IOException) { /* best effort */ }
+        }
     }
 }

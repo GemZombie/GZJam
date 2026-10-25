@@ -40,6 +40,10 @@ internal static class LibraryReset
                     if (File.Exists(file))
                         File.Move(file, Path.Combine(kept, Path.GetFileName(file)));
                 }
+                // The queue kept from last time is the old library's too.
+                string night = Path.Combine(dataDirectory, NightState.FileName);
+                if (File.Exists(night))
+                    File.Move(night, Path.Combine(kept, NightState.FileName));
                 string art = Path.Combine(dataDirectory, "art");
                 if (Directory.Exists(art))
                     Directory.Move(art, Path.Combine(kept, "art"));

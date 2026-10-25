@@ -1183,6 +1183,29 @@ rest of it.
 - **Tests:** headless input is stamped when it's sent, so a test can't fake a freeze; the decision
   is tested on its own (`PlayHoldTests`), and the undo on a playing deck.
 
+### Status: the night comes back after a crash (#96, 2026-10-25)
+
+- **Kept** in `night.json` beside the library (`NightState`): the queue's songs by file, in order;
+  each deck's song, position, tempo and cue button; whether auto-play was on; and whether GZJam
+  closed normally. Written from the playback tick (`MainWindowViewModel.KeepNight`) within a second
+  of a change (the decks are compared, since they report changes every tick), and every 5 s while
+  a deck plays, for its position. Written in the background, each after the last, crash-safely: a
+  temporary file flushed to the disk, then swapped in.
+- **Closing normally** (`CloseNight`, as GZJam exits) writes it once more, marked so, and waits
+  for it. A crash, a forced quit or the power going leaves the last one, marked as running.
+- **At the next start** (`RestoreNightAsync`), before anything is written: after a crash, the queue
+  and the decks come back, paused where they were (`DeckViewModel.Restore`: never playing by
+  itself; a position before the song's start is left at the start), with a 12 s notice, "GZJam
+  didn't close normally: the queue and decks are back as they were, paused.", and "Auto-play is off
+  until you turn it on." if it was on. After a normal close, the queue alone (the user's choice:
+  it can be built ahead of a night), with a short notice saying how many songs. Files are read off
+  the UI thread, as for dropped files; a song that's gone since is left out with a note, and its
+  path logged. A deck loaded meanwhile isn't replaced; restored songs go before anything queued
+  meanwhile.
+- **Starting over** with an empty library moves `night.json` aside with the library.
+- **Tests** run GZJam twice on one data folder: a "crash" (no normal close), a normal close, and a
+  song deleted in between.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to
@@ -1192,6 +1215,5 @@ rest of it.
   isn't useful without streaming. Revisit only if the streaming landscape changes.
 
 ## Open questions
-
 
 - What worked well in BPM Studio that should carry over?

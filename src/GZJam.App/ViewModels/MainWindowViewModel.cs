@@ -564,6 +564,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (Mix is not null)
             _playbackTimer.Start();
         _ = StartLibraryAsync();
+        _ = RestoreNightAsync();
     }
 
     private async Task StartLibraryAsync()
@@ -875,6 +876,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             deck.UpdateMeter();
         RefreshDecks();
         Preview?.Refresh();
+        KeepNight();
         if (!_roomHasHeardMusic && Decks.Any(d => d.IsOnAir))
         {
             _roomHasHeardMusic = true;
@@ -945,10 +947,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The check turned off in Settings: the line goes too.</summary>
     internal void NewVersionCheckTurnedOff() => NewVersion = null;
 
-    public async void ShowNotice(string text)
+    /// <param name="seconds">How long it stays: longer for one the DJ mustn't miss.</param>
+    public async void ShowNotice(string text, double seconds = 4)
     {
         Notice = text;
-        await Task.Delay(TimeSpan.FromSeconds(4));
+        await Task.Delay(TimeSpan.FromSeconds(seconds));
         if (Notice == text)
             Notice = null;
     }

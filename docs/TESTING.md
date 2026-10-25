@@ -111,7 +111,12 @@ Do each while a song is playing to the room.
       reaching the speakers.
 - [ ] **History** shows the night as a session; export the set list as text and as a spreadsheet.
 - [ ] Closing GZJam while the room hears music asks first, with *Keep playing* as the default.
-- [ ] Reopen: the night continues as the same session if it's within three hours.
+- [ ] Reopen: the night continues as the same session if it's within three hours, and the queue
+      is back as it was (the decks start empty).
+- [ ] **A crash:** with songs queued and a deck playing to the room, end GZJam without closing it
+      (Windows: Task Manager › End task; Mac: Activity Monitor › Force Quit; Linux: `kill -9`).
+      Open it again: "GZJam didn't close normally", the queue as it was, and the decks with their
+      songs, paused where they were, at their tempo and cue. Nothing plays until you press play.
 - [ ] Afterwards, read the activity log for `ERROR` lines.
 
 ### Screen and input
