@@ -83,7 +83,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.7.3.
+- [GZJam says when a new version is out](https://github.com/GemZombie/GZJam/issues/86): a quiet
+  line in the top bar at startup, gone once the room hears music, with *Check now* and a switch to
+  turn it off in Settings › About. GZJam never downloads or installs anything by itself.
 
 ## Planned next
 
@@ -111,9 +113,6 @@ Nothing yet since 0.7.3.
   cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
   what each control does
-- [Say when a new version is out](https://github.com/GemZombie/GZJam/issues/86): a quiet line at
-  startup, never during a set, with a switch to turn it off. GZJam never downloads or installs
-  anything by itself.
 
 **After 1.0:**
 - [Import from iTunes / Apple Music](https://github.com/GemZombie/GZJam/issues/97): ratings,
