@@ -1197,9 +1197,11 @@ rest of it.
   and the decks come back, paused where they were (`DeckViewModel.Restore`: never playing by
   itself; a position before the song's start is left at the start), with a 12 s notice, "GZJam
   didn't close normally: the queue and decks are back as they were, paused.", and "Auto-play is off
-  until you turn it on." if it was on. After a normal close, the queue alone (the user's choice:
-  it can be built ahead of a night), with a short notice saying how many songs. Files are read off
-  the UI thread, as for dropped files; a song that's gone since is left out with a note, and its
+  until you turn it on." if it was on. After a normal close, the queue and the decks too (#117,
+  2026-10-25; at first the queue alone, but in use empty decks felt like losing something), each
+  deck at the start of its song (one played to its end or halfway isn't left there), with its
+  tempo and cue button, and a short notice: "The decks and queue from last time are back (5 songs
+  queued)." Files are read off the UI thread, as for dropped files; a song that's gone since is left out with a note, and its
   path logged. A deck loaded meanwhile isn't replaced; restored songs go before anything queued
   meanwhile.
 - **Starting over** with an empty library moves `night.json` aside with the library.

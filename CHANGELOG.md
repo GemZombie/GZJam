@@ -12,6 +12,12 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 ## 0.8.1 (unreleased)
 
+Changed:
+
+- **The decks come back after a normal close too,** not just the queue: each with its song, tempo
+  and cue button, paused at the start of the song. Closing GZJam no longer loses what was loaded.
+  After a crash they still come back exactly where they were.
+
 Fixed:
 
 - **Settings › About's links say where they go:** *User guide · GZJam on GitHub*. The project's

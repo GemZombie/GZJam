@@ -1078,8 +1078,9 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Brings back a deck as it was before a crash (#96): the song, paused where it was, at its
-    /// tempo, with its cue button. Never playing by itself.
+    /// Brings back a deck as it was before a crash or a close (#96, #117): the song, paused at
+    /// <paramref name="position"/> (zero for its start), at its tempo, with its cue button. Never
+    /// playing by itself.
     /// </summary>
     internal void Restore(Track track, TimeSpan position, double tempoPercent, bool cue)
     {

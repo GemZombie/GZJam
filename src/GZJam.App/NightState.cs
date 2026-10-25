@@ -5,7 +5,7 @@ namespace GZJam.App;
 /// <summary>
 /// The night so far: the queue and what's on the decks, kept beside the library as they change,
 /// so a crash, or a laptop that dies or restarts mid-dance, can bring them back (#96). After a
-/// normal close only the queue comes back.
+/// normal close they come back too, the decks at the start of their songs (#117).
 /// </summary>
 public sealed class NightState
 {

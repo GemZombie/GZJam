@@ -405,6 +405,8 @@ under `backups`.
 - A notice at the top says what GZJam just did (an output reopened, a load refused, a song that
   couldn't be found).
 - Closing GZJam while the room hears music asks first; *Keep playing* is the default.
+- Open GZJam again and the queue and decks are as you left them, each deck paused at the start of
+  its song.
 
 **If the sound stops**
 

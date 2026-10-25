@@ -75,7 +75,7 @@ release.
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
 - GZJam asks before closing while the room is hearing music.
 - If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
-  as they were, paused. After a normal close, the queue is still there.
+  as they were, paused. After a normal close they come back too, each deck at the start of its song.
 - With two taps to pause the deck the room hears, a stray tap (even while the screen is frozen)
   never stops the music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
