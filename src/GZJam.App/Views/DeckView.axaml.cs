@@ -46,6 +46,9 @@ public partial class DeckView : UserControl
     private CancellationTokenSource? _hold;
     private bool _holdCompleted;
 
+    /// <summary>The press being timed, by the input's own times (see <see cref="PlayHold"/>).</summary>
+    private PlayHold? _gesture;
+
     public DeckView()
     {
         InitializeComponent();
@@ -337,21 +340,38 @@ public partial class DeckView : UserControl
         if (Vm is not { PauseNeedsConfirm: true })
             return;
         PlayButton.Classes.Add("holding");
+        _gesture = new PlayHold(HoldToPause);
+        _gesture.Press(e.Timestamp);
         var hold = _hold = new CancellationTokenSource();
+        // Below input: after a freeze, a release already waiting is handled first, and cancels this.
         Task.Delay(HoldToPause, hold.Token).ContinueWith(_ => Dispatcher.UIThread.Post(() =>
         {
             if (!hold.IsCancellationRequested)
                 CompleteHold();
-        }), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+        }, DispatcherPriority.Background), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
     }
 
-    private void OnPlayReleased(object? sender, PointerReleasedEventArgs e) => CancelHold();
+    private void OnPlayReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        CancelHold();
+        if (_gesture is not { } gesture)
+            return;
+        _gesture = null;
+        if (gesture.Released(e.Timestamp) == PlayHold.Release.TapAfterFreeze)
+        {
+            // The release's own time says it was a quick tap: the screen froze, and the timer
+            // paused first. Play on; the click then does what a tap does (asks for a second).
+            _holdCompleted = false;
+            Vm?.UndoHoldPause();
+        }
+    }
 
     private void CompleteHold()
     {
         CancelHold();
         _holdCompleted = true;
-        Vm?.HoldPause();
+        if (Vm?.HoldPause() == true)
+            _gesture?.Paused();
     }
 
     private void CancelHold()
