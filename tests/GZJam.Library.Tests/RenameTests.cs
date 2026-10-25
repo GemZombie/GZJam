@@ -135,6 +135,95 @@ public sealed class RenameTests : IDisposable
         Assert.Empty(Db.GetCues(target));
     }
 
+    /// <summary>A second music folder beside the first, for moves between them (#87).</summary>
+    private LibraryRoot OtherFolder()
+    {
+        string path = Path.Combine(_lib.Directory, "Other Music");
+        Directory.CreateDirectory(path);
+        LibraryRoot root = Db.AddRoot(path);
+        _lib.Scanner.Scan(root);
+        return root;
+    }
+
+    [Fact]
+    public void A_song_moved_to_another_music_folder_keeps_its_marks_whichever_folder_is_scanned_first()
+    {
+        foreach (bool oldFolderFirst in new[] { true, false })
+        {
+            using var lib = new TempLibrary();
+            string old = lib.AddMp3("Swing/Splanky.mp3", new TestMp3.Tags(Title: "Splanky"));
+            LibraryRoot music = lib.AddRootAndScan();
+            string otherPath = Path.Combine(lib.Directory, "Other Music");
+            Directory.CreateDirectory(otherPath);
+            LibraryRoot other = lib.Database.AddRoot(otherPath);
+            lib.Scanner.Scan(other);
+            lib.Database.SetRating([old], Rating.Loved);
+            lib.Database.AddLabel([old], "Lindy");
+
+            string moved = Path.Combine(otherPath, "Basie", "Splanky.mp3");
+            Directory.CreateDirectory(Path.GetDirectoryName(moved)!);
+            File.Move(old, moved);
+            var (first, second) = oldFolderFirst ? (music, other) : (other, music);
+            ScanResult a = lib.Scanner.Scan(first);
+            ScanResult b = lib.Scanner.Scan(second);
+
+            // The first folder scanned can't know yet where it went (or came from); the second pairs it.
+            Assert.Empty(a.Moves);
+            Assert.Equal([(old, moved)], b.Moves);
+            Assert.Equal((1, 0, 0), (b.Moved, b.Added, b.Removed));
+            Track t = lib.Database.Search(null).Single();
+            Assert.Equal(moved, t.Path);
+            Assert.Equal(Rating.Loved, t.Rating);
+            Assert.Equal(["Lindy"], t.Labels);
+        }
+    }
+
+    [Fact]
+    public void A_rename_reports_its_old_and_new_paths()
+    {
+        string old = _lib.AddMp3("Swing/a.mp3", new TestMp3.Tags(Title: "Splanky"));
+        LibraryRoot root = _lib.AddRootAndScan();
+        string renamed = PathOf("Swing/Splanky.mp3");
+        File.Move(old, renamed);
+        Assert.Equal([(old, renamed)], _lib.Scanner.Scan(root).Moves);
+    }
+
+    [Fact]
+    public void A_song_copied_to_another_folder_leaves_the_original_its_marks()
+    {
+        string original = _lib.AddMp3("Swing/a.mp3", new TestMp3.Tags(Title: "Splanky"));
+        LibraryRoot music = _lib.AddRootAndScan();
+        LibraryRoot other = OtherFolder();
+        Db.SetRating([original], Rating.Loved);
+
+        string copy = Path.Combine(other.Path, "a.mp3");
+        File.Copy(original, copy);
+        File.SetLastWriteTimeUtc(copy, File.GetLastWriteTimeUtc(original));
+        Assert.Equal(0, _lib.Scanner.Scan(other).Moved);
+        Assert.Equal(0, _lib.Scanner.Scan(music).Moved);
+
+        Assert.Equal(Rating.Loved, Find(original).Rating);
+        Assert.Equal(Rating.Unrated, Find(copy).Rating);
+    }
+
+    [Fact]
+    public void A_song_gone_from_a_folder_and_back_again_isnt_taken_for_a_move()
+    {
+        string path = _lib.AddMp3("Swing/a.mp3", new TestMp3.Tags(Title: "Splanky"));
+        LibraryRoot music = _lib.AddRootAndScan();
+        OtherFolder();
+        Db.SetRating([path], Rating.Loved);
+        string aside = Path.Combine(_lib.Directory, "a.mp3");
+
+        File.Move(path, aside);   // out of every music folder for a moment
+        _lib.Scanner.Scan(music);
+        File.Move(aside, path);
+        ScanResult back = _lib.Scanner.Scan(music);
+
+        Assert.Equal(0, back.Moved);
+        Assert.Equal(Rating.Loved, Find(path).Rating);   // still there, by path
+    }
+
     [Fact]
     public void Every_table_kept_by_path_moves_with_the_song()
     {

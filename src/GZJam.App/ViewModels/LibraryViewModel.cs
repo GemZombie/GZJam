@@ -35,6 +35,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>A scan added, changed or removed tracks.</summary>
     public event Action? Scanned;
 
+    /// <summary>
+    /// A scan found songs renamed or moved (old path, new path), within a music folder or to
+    /// another one, so what's holding an old path (the queue, a deck) can follow.
+    /// </summary>
+    public event Action<IReadOnlyList<(string From, string To)>>? SongsMoved;
+
     [ObservableProperty]
     public partial FolderNodeViewModel? SelectedFolder { get; set; }
 
@@ -438,6 +444,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 // A remembered folder may only exist once its root has been scanned (e.g. a fresh database).
                 RestorePendingSelection();
                 RunSearch("scan finished");
+                if (result.Moves.Count > 0)
+                    SongsMoved?.Invoke(result.Moves);
                 Scanned?.Invoke();
             }
         }
