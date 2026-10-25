@@ -162,11 +162,17 @@ public partial class MainWindow
         if (_dragTag is not null)
             DragLayer.Children.Remove(_dragTag);
         _dragTag = null;
+        HideDropTarget();
+        EndPlaylistDrop();
+    }
+
+    /// <summary>Lights nothing: no deck outlined, no line in the queue.</summary>
+    private void HideDropTarget()
+    {
         foreach (DeckView view in DeckViews)
             view.SetDropState(null);
         QueueDropLine.IsVisible = false;
         SetQueueScroll(0);
-        EndPlaylistDrop();
     }
 
     private void UpdateDrag(Point at)
@@ -184,8 +190,19 @@ public partial class MainWindow
         Canvas.SetLeft(tag, Math.Clamp(left, 0, Math.Max(0, Bounds.Width - size.Width)));
         Canvas.SetTop(tag, Math.Clamp(top, 0, Math.Max(0, Bounds.Height - size.Height)));
 
+        ShowDropTarget(at, drag.Tracks.Count, out bool blocked);
+        tag.Classes.Set("blocked", blocked);
+        UpdatePlaylistDrop(at);
+    }
+
+    /// <summary>
+    /// Lights what <paramref name="songs"/> would land on at <paramref name="at"/>: a deck (or shows
+    /// it won't take them), or the line in the queue where they'd go. Returns that target, if any.
+    /// </summary>
+    private object? ShowDropTarget(Point at, int songs, out bool blocked)
+    {
         object? target = DropTargetAt(at);
-        bool blocked = false;
+        blocked = false;
         foreach (DeckView view in DeckViews)
         {
             if (view != target)
@@ -194,15 +211,13 @@ public partial class MainWindow
                 continue;
             }
             // A deck takes exactly one track, and not while protection refuses it.
-            bool allowed = drag.Tracks.Count == 1 && view.DataContext is DeckViewModel deck && Vm.CanLoad(deck);
+            bool allowed = songs == 1 && view.DataContext is DeckViewModel deck && Vm.CanLoad(deck);
             view.SetDropState(allowed);
             blocked = !allowed;
         }
-        tag.Classes.Set("blocked", blocked);
 
         if (Vm.ShowHistory && IsOver(QueueTab, at))
             Vm.ShowHistory = false;
-        UpdatePlaylistDrop(at);
 
         if (target == QueueArea && this.TranslatePoint(at, QueueArea) is { } queuePoint)
         {
@@ -216,6 +231,7 @@ public partial class MainWindow
             QueueDropLine.IsVisible = false;
             SetQueueScroll(0);
         }
+        return target;
     }
 
     /// <summary>The deck view or the queue under <paramref name="at"/> (window coordinates), if any.</summary>

@@ -14,6 +14,10 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 New:
 
+- **Play a song straight from the file manager.** Drag a file from Explorer, Finder or your Linux
+  file manager onto a deck, or any number of files and folders into the queue. A song from
+  outside your music folders, say one a dancer brings on a USB stick, plays like any other and
+  shows in History, without joining your library. A song from your library keeps its marks.
 - **Start over with an empty library:** Settings › Library › *Start over…*. GZJam closes and opens
   again with no music folders, for a fresh start or to add your music again from scratch. Your
   music files aren't touched and your Settings stay; the old library isn't deleted, but kept in

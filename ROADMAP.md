@@ -80,7 +80,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.7.2.
+- [Play a song straight from the file manager](https://github.com/GemZombie/GZJam/issues/99): drag a
+  file onto a deck, or files and folders into the queue, from inside your music folders or not
 
 ## Planned next
 
@@ -104,8 +105,6 @@ Nothing yet since 0.7.2.
 *New*
 - [Bring the night back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
   the queue and the decks as they were, paused, if the laptop dies mid-dance
-- [Play a file from outside the library](https://github.com/GemZombie/GZJam/issues/99): drag it
-  from the file manager onto a deck, say a song a dancer brings on a USB stick
 - [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
   cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
