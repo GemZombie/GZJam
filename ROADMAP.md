@@ -93,7 +93,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.8.0.
+- Settings › About's links say where they go: *User guide · GZJam on GitHub*.
 
 ## Planned next
 
@@ -103,10 +103,17 @@ Nothing yet since 0.8.0.
 - [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
 
+*New*
+- [Import M3U playlists, and star ratings saved in the song files](https://github.com/GemZombie/GZJam/issues/116),
+  for DJs coming from MediaMonkey, foobar2000 and most other players
+
 *Testing*
-- Test passes with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19) and
-  [on a real Mac](https://github.com/GemZombie/GZJam/issues/18), the booth and the splitter cable
-  by ear, a very large library, and a real night
+- A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
+  with a sound card used directly, as at a dance
+- The booth and the splitter cable by ear, a library of 50-60 thousand songs, and a real night
+  with dancers
+- Done: [the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18), and an hour's
+  mock night on Windows and on Mac
 
 **After 1.0:**
 - [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
