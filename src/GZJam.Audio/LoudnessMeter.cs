@@ -113,7 +113,7 @@ public sealed class LoudnessMeter
 /// <summary>How loudness matching turns a track up or down.</summary>
 public static class LoudnessMatch
 {
-    /// <summary>Everything is brought towards this (Apple Music and many DJ apps use about the same).</summary>
+    /// <summary>Everything is brought toward this (Apple Music and many DJ apps use about the same).</summary>
     public const double TargetLufs = -16;
 
     /// <summary>The most a quiet track is turned up, however quiet.</summary>

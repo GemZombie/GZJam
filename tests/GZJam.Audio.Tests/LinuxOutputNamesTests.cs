@@ -60,7 +60,7 @@ public class LinuxOutputNamesTests
     }
 
     [Fact]
-    public void Anything_unrecognised_keeps_its_name()
+    public void Anything_unrecognized_keeps_its_name()
     {
         (int, int, Output)[] pi =
         [

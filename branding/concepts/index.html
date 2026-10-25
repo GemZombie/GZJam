@@ -39,7 +39,7 @@ const letters = (word, xs, extra = "") =>
 const C = { bg: "#0E1116", ink: "#E6EAF0", accent: "#7FA3CF", deck1: "#36C2DC", deck2: "#EEA23A", onAir: "#F04444" };
 
 // Concept B: the app's waveform wrapped into a G.
-// Bars are mirrored around the ring, like a deck's waveform around its centre line.
+// Bars are mirrored around the ring, like a deck's waveform around its center line.
 function waveG() {
   const cx = 32, cy = 32, R = 18, step = 9, last = 306;
   let s = "";
@@ -51,7 +51,7 @@ function waveG() {
     const col = deg <= 160 ? C.deck1 : "#C3CBD6";
     s += `<line x1="${(cx + (R - h) * cos).toFixed(2)}" y1="${(cy + (R - h) * sin).toFixed(2)}" x2="${(cx + (R + h) * cos).toFixed(2)}" y2="${(cy + (R + h) * sin).toFixed(2)}" stroke="${col}" stroke-width="1.9"/>`;
   }
-  // The G's bar: from the ring's end, in towards the middle.
+  // The G's bar: from the ring's end, in toward the middle.
   s += `<line x1="33" y1="32" x2="${cx + R + 5}" y2="32" stroke="${C.deck1}" stroke-width="3.4"/>`;
   return s;
 }
@@ -123,8 +123,8 @@ const wordmark = h => `<svg class="wm" height="${h}" width="${h * 104 / 20}" vie
 
 const concepts = [
   { id: "platter", name: "A · Platter", text: "Today's icon, made precise: the record, its cue mark, and the progress ring every deck shows. The safe choice: it already means GZJam to anyone who's used it." },
-  { id: "waveg", name: "B · Waveform G", text: "The deck's waveform wrapped into a ring that opens into a G. The coloured part is what's been played. It reads as a G at icon sizes and as music up close." },
-  { id: "xfader", name: "C · Crossfader", text: "A crossfader cap between Deck 1's and Deck 2's colours, on a ladder scale. Says DJ in one shape; the most hardware-like." },
+  { id: "waveg", name: "B · Waveform G", text: "The deck's waveform wrapped into a ring that opens into a G. The colored part is what's been played. It reads as a G at icon sizes and as music up close." },
+  { id: "xfader", name: "C · Crossfader", text: "A crossfader cap between Deck 1's and Deck 2's colors, on a ladder scale. Says DJ in one shape; the most hardware-like." },
   { id: "key", name: "D · GZ key", text: "A raised hardware key with the GZ initials and a red on-air LED, like a button on a mixer. Typographic, so the name does the work." },
 ];
 

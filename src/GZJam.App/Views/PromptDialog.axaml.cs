@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace GZJam.App.Views;
 
-/// <summary>Asks for a short piece of text. Returns it trimmed, or null if cancelled or left empty.</summary>
+/// <summary>Asks for a short piece of text. Returns it trimmed, or null if canceled or left empty.</summary>
 public partial class PromptDialog : Window
 {
     public PromptDialog() : this("", "", "OK")

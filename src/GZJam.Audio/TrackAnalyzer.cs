@@ -53,7 +53,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     /// <summary>Kept after the last audible window, so the final note rings out.</summary>
     private static readonly TimeSpan Tail = TimeSpan.FromMilliseconds(250);
 
-    // Band split points for the waveform colours.
+    // Band split points for the waveform colors.
     private const double BassBelowHz = 250;
     private const double HighsAboveHz = 2500;
 
@@ -177,7 +177,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         double windowSum = 0;
         int windowCount = 0;
 
-        // Two cascaded one-pole low-passes per split point: soft, but plenty for colouring.
+        // Two cascaded one-pole low-passes per split point: soft, but plenty for coloring.
         float aLow = OnePole(BassBelowHz, rate), aHigh = OnePole(HighsAboveHz, rate);
         float low1 = 0, low2 = 0, high1 = 0, high2 = 0;
 

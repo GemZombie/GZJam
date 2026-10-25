@@ -42,7 +42,7 @@ public sealed class AutoPlayTests
     }
 
     [AvaloniaFact]
-    public void The_switch_is_greyed_out_until_there_is_something_to_play()
+    public void The_switch_is_grayed_out_until_there_is_something_to_play()
     {
         using var app = new AppHarness();
         AutoPlayViewModel auto = app.ViewModel.AutoPlay!;

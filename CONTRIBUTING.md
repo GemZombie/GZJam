@@ -26,8 +26,8 @@ Windows, `~/.local/share/GZJam` on Linux, `~/Library/Application Support/GZJam` 
 - **Run the tests** before you send it: `dotnet test` (see the README).
 - **Keep to what's there:** every feature works on all three systems and by touch, nothing is
   hover-only, and GZJam never writes to anyone's music files.
-- **Licence:** by sending a pull request you agree your change is published under the
-  [MIT licence](LICENSE), like the rest of GZJam's own code.
+- **License:** by sending a pull request you agree your change is published under the
+  [MIT license](LICENSE), like the rest of GZJam's own code.
 
 Security problems: please report them privately, from the repository's **Security** tab
 (*Report a vulnerability*), not in a public issue.

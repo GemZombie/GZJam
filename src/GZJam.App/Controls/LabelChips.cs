@@ -6,7 +6,7 @@ using Avalonia.Layout;
 namespace GZJam.App.Controls;
 
 /// <summary>
-/// A song's labels as small grey chips in a row (style <c>Border.label-chip</c>), for the library,
+/// A song's labels as small gray chips in a row (style <c>Border.label-chip</c>), for the library,
 /// the queue and the decks. Only shows them: labels are set from the Labels menu.
 /// </summary>
 public sealed class LabelChips : ItemsControl

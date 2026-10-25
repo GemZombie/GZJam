@@ -232,7 +232,7 @@ public partial class App : Application
     {
         var window = new MainWindow { DataContext = viewModel };
         window.RestorePlacement(settings.Window);
-        bool? startOver = null;   // set: open again afterwards (true: starting over; false: restoring)
+        bool? startOver = null;   // set: open again afterward (true: starting over; false: restoring)
         viewModel.StartOverRequested += () =>
         {
             startOver = true;

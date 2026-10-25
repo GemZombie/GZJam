@@ -95,7 +95,7 @@ public sealed partial class MixerViewModel : ObservableObject
 
     /// <summary>
     /// The phones mix: 0 = the headphones hear what's cued (the decks' cue buttons and the
-    /// preview), 1 = what the room hears; between, both (at the centre both at full).
+    /// preview), 1 = what the room hears; between, both (at the center both at full).
     /// </summary>
     public double PhonesMix
     {
@@ -114,7 +114,7 @@ public sealed partial class MixerViewModel : ObservableObject
 
     public string PhonesMixTip => PhonesMix switch
     {
-        <= 0 => "Phones mix: what's cued. Slide towards MAIN to hear the room too, as the speakers play it.",
+        <= 0 => "Phones mix: what's cued. Slide toward MAIN to hear the room too, as the speakers play it.",
         >= 1 => "Phones mix: the room only, as the speakers play it (no cued decks or preview)",
         < 0.5 => "Phones mix: what's cued, with some of the room",
         0.5 => "Phones mix: what's cued and the room, both at full",

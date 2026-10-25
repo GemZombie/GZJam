@@ -11,7 +11,7 @@ public sealed class LayoutStabilityTests
 {
     /// <summary>
     /// What may change: the play key's icon (play or pause), the words ON AIR / OFF AIR, and the
-    /// mixer's centred LIVE / BLEND label. Their surroundings must stay put.
+    /// mixer's centerd LIVE / BLEND label. Their surroundings must stay put.
     /// </summary>
     private static readonly string[] AllowedToChange = ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel"];
 

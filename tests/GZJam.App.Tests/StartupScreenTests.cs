@@ -79,7 +79,7 @@ public sealed class StartupScreenTests
     [MemberData(nameof(Placements))]
     public void It_opens_exactly_where_the_main_window_will(AppSettings.WindowPlacement placement) => OpensWhereTheMainWindowWill(placement);
 
-    /// <summary>The first start: no placement saved, so centred, at the main window's own size.</summary>
+    /// <summary>The first start: no placement saved, so centerd, at the main window's own size.</summary>
     [AvaloniaFact]
     public void On_the_first_start_it_opens_where_the_main_window_will() => OpensWhereTheMainWindowWill(null);
 

@@ -8,7 +8,7 @@ namespace GZJam.App.Controls;
 
 /// <summary>
 /// A deck's tempo, drawn like a turntable's pitch fader: a tick every 1%, longer ones at 0 and
-/// ±4%, labels underneath if there's room, and a centre notch that lights when the tempo is
+/// ±4%, labels underneath if there's room, and a center notch that lights when the tempo is
 /// exactly 0. Dragging is relative: pressing beside the cap never jumps the tempo (the room may
 /// be dancing to it). Double-tap for 0; arrow keys and the mouse wheel move it 0.1%.
 /// </summary>
@@ -28,12 +28,12 @@ public sealed class PitchFader : Control
 
     private static readonly IBrush TickBrush = new SolidColorBrush(Color.Parse("#2A303B"));
     private static readonly IBrush MajorTickBrush = new SolidColorBrush(Color.Parse("#4A5160"));
-    private static readonly IBrush CentreTickBrush = new SolidColorBrush(Color.Parse("#7A8292"));
+    private static readonly IBrush CenterTickBrush = new SolidColorBrush(Color.Parse("#7A8292"));
     private static readonly IBrush SlotBrush = new SolidColorBrush(Color.Parse("#050608"));
     private static readonly IBrush SlotEdgeBrush = new SolidColorBrush(Color.Parse("#262B34"));
-    private static readonly IBrush CentreLitBrush = new SolidColorBrush(Color.Parse("#34D399"));
+    private static readonly IBrush CenterLitBrush = new SolidColorBrush(Color.Parse("#34D399"));
     private static readonly IBrush LabelBrush = new SolidColorBrush(Color.Parse("#5D6574"));
-    private static readonly IBrush CentreLabelBrush = new SolidColorBrush(Color.Parse("#8B94A5"));
+    private static readonly IBrush CenterLabelBrush = new SolidColorBrush(Color.Parse("#8B94A5"));
     private static readonly IBrush ShadowBrush = new SolidColorBrush(Color.FromArgb(120, 0, 0, 0));
     private static readonly IPen CapPen = new Pen(new SolidColorBrush(Color.Parse("#4E535C")), 1);
     private static readonly IBrush IndexBrush = new SolidColorBrush(Color.Parse("#F2F4F8"));
@@ -94,9 +94,9 @@ public sealed class PitchFader : Control
         for (int p = -range; p <= range; p++)
         {
             double x = Math.Round(XOf(p)) + 0.5;
-            bool centre = p == 0, major = p % 4 == 0;
-            double half = centre || major ? reach : reach * 0.6;
-            IBrush brush = centre ? CentreTickBrush : major ? MajorTickBrush : TickBrush;
+            bool center = p == 0, major = p % 4 == 0;
+            double half = center || major ? reach : reach * 0.6;
+            IBrush brush = center ? CenterTickBrush : major ? MajorTickBrush : TickBrush;
             context.DrawRectangle(brush, null, new Rect(x - 0.5, slotY - half, 1, half * 2));
         }
         if (ShowLabels)
@@ -106,17 +106,17 @@ public sealed class PitchFader : Control
             {
                 string text = p > 0 ? $"+{p}" : p < 0 ? $"−{-p}" : "0";
                 var label = new FormattedText(text, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                    typeface, 9.5, p == 0 ? CentreLabelBrush : LabelBrush);
+                    typeface, 9.5, p == 0 ? CenterLabelBrush : LabelBrush);
                 context.DrawText(label, new Point(XOf(p) - label.Width / 2, Bounds.Height - label.Height));
             }
         }
 
-        // The slot, with the centre notch lit while the tempo is exactly 0.
+        // The slot, with the center notch lit while the tempo is exactly 0.
         var slot = new Rect(2, slotY - SlotHeight / 2, Bounds.Width - 4, SlotHeight);
         context.DrawRectangle(SlotEdgeBrush, null, slot.Translate(new Vector(0, 1)), SlotHeight / 2, SlotHeight / 2);
         context.DrawRectangle(SlotBrush, null, slot, SlotHeight / 2, SlotHeight / 2);
         if (Math.Abs(Value) < Step / 2)
-            context.DrawRectangle(CentreLitBrush, null, new Rect(XOf(0) - 1, slotY - SlotHeight / 2, 2, SlotHeight));
+            context.DrawRectangle(CenterLitBrush, null, new Rect(XOf(0) - 1, slotY - SlotHeight / 2, 2, SlotHeight));
 
         // The cap.
         double capX = XOf(Value), capHeight = Math.Min(reach * 2 + 4, 30);

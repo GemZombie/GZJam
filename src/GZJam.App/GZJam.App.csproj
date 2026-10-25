@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- The licences of everything GZJam ships with; About shows its opening list. -->
+    <!-- The licenses of everything GZJam ships with; About shows its opening list. -->
     <None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="THIRD-PARTY-NOTICES.txt"
           CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

@@ -19,7 +19,7 @@ public sealed class CloseUpTests
         return (view, view.FindControl<CloseUpWaveform>("CloseUp")!, view.FindControl<SeekBar>("Seek")!);
     }
 
-    private static Point Centre(AppHarness app, Control control, double dx = 0) =>
+    private static Point Center(AppHarness app, Control control, double dx = 0) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2 + dx, control.Bounds.Height / 2), app.Window)!.Value;
 
     [AvaloniaFact]
@@ -50,14 +50,14 @@ public sealed class CloseUpTests
         vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
         var (_, closeUp, _) = Deck(app);
 
-        app.Window.MouseWheel(Centre(app, closeUp), new Vector(0, 1));   // away: closer in
+        app.Window.MouseWheel(Center(app, closeUp), new Vector(0, 1));   // away: closer in
         AppHarness.Settle(50);
         Assert.Equal(8 / 1.25, closeUp.WindowSeconds, 3);
         Assert.Equal(8 / 1.25, app.Settings.CloseUpSeconds, 3);
         Assert.Equal(8 / 1.25, vm.Deck2!.CloseUpSeconds, 3);
 
         for (int i = 0; i < 30; i++)
-            app.Window.MouseWheel(Centre(app, closeUp), new Vector(0, -1));
+            app.Window.MouseWheel(Center(app, closeUp), new Vector(0, -1));
         AppHarness.Settle(50);
         Assert.Equal(CloseUpWaveform.MaxWindowSeconds, closeUp.WindowSeconds);
     }
@@ -74,7 +74,7 @@ public sealed class CloseUpTests
         double secondsPerPixel = closeUp.WindowSeconds / closeUp.Bounds.Width;
 
         // Dragged left by 100 px: the song moves left, so the playhead goes forward.
-        Point from = Centre(app, closeUp);
+        Point from = Center(app, closeUp);
         app.Window.MouseDown(from, MouseButton.Left, RawInputModifiers.None);
         app.Window.MouseMove(from - new Vector(50, 0), RawInputModifiers.LeftMouseButton);
         app.Window.MouseMove(from - new Vector(100, 0), RawInputModifiers.LeftMouseButton);
@@ -83,8 +83,8 @@ public sealed class CloseUpTests
         Assert.Equal(30 + 100 * secondsPerPixel, deck.Deck.Position.TotalSeconds, 1);
 
         // A click goes to that spot.
-        app.Window.MouseDown(Centre(app, closeUp, -80), MouseButton.Left, RawInputModifiers.None);
-        app.Window.MouseUp(Centre(app, closeUp, -80), MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseDown(Center(app, closeUp, -80), MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseUp(Center(app, closeUp, -80), MouseButton.Left, RawInputModifiers.None);
         AppHarness.Settle(50);
         Assert.Equal(30 + 20 * secondsPerPixel, deck.Deck.Position.TotalSeconds, 1);
 
@@ -93,9 +93,9 @@ public sealed class CloseUpTests
         deck.TogglePlayCommand.Execute(null);
         app.Play(0.2);
         double before = deck.Deck.Position.TotalSeconds;
-        app.Window.MouseDown(Centre(app, closeUp), MouseButton.Left, RawInputModifiers.None);
-        app.Window.MouseMove(Centre(app, closeUp, -100), RawInputModifiers.LeftMouseButton);
-        app.Window.MouseUp(Centre(app, closeUp, -100), MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseDown(Center(app, closeUp), MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseMove(Center(app, closeUp, -100), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseUp(Center(app, closeUp, -100), MouseButton.Left, RawInputModifiers.None);
         AppHarness.Settle(50);
         Assert.InRange(deck.Deck.Position.TotalSeconds, before, before + 0.5);
         Assert.Equal("Move the crossfader off Deck 1 to jump around in it", deck.Hint);
@@ -112,7 +112,7 @@ public sealed class CloseUpTests
         var (view, closeUp, _) = Deck(app);
         double secondsPerPixel = closeUp.WindowSeconds / closeUp.Bounds.Width;
 
-        Point at = Centre(app, closeUp, 100);   // 100 px after the playhead
+        Point at = Center(app, closeUp, 100);   // 100 px after the playhead
         app.Window.MouseDown(at, MouseButton.Right, RawInputModifiers.None);
         app.Window.MouseUp(at, MouseButton.Right, RawInputModifiers.None);
         AppHarness.Settle(200);
@@ -177,7 +177,7 @@ public sealed class CloseUpTests
     }
 
     [AvaloniaFact]
-    public void While_playing_the_playhead_moves_on_between_reports_and_eases_towards_them()
+    public void While_playing_the_playhead_moves_on_between_reports_and_eases_toward_them()
     {
         var closeUp = new CloseUpWaveform { Length = 100, TempoPercent = 0 };
         closeUp.Progress = 0.3;   // 30 s
@@ -251,7 +251,7 @@ public sealed class CloseUpTests
         Assert.False(closeUp.IsEffectivelyVisible);
         Assert.False(whole.ShowCloseUp);
 
-        app.Window.MouseWheel(Centre(app, whole), new Vector(0, 1));   // the wheel away from you: zoom in
+        app.Window.MouseWheel(Center(app, whole), new Vector(0, 1));   // the wheel away from you: zoom in
         AppHarness.Settle(100);
         Assert.True(view.IsZoomed);
         Assert.True(closeUp.IsEffectivelyVisible);
@@ -259,7 +259,7 @@ public sealed class CloseUpTests
         Assert.Equal(height, view.Bounds.Height, 1);
 
         closeUp.WindowSeconds = CloseUpWaveform.MaxWindowSeconds;
-        app.Window.MouseWheel(Centre(app, closeUp), new Vector(0, -1));   // out past the widest: the whole song again
+        app.Window.MouseWheel(Center(app, closeUp), new Vector(0, -1));   // out past the widest: the whole song again
         AppHarness.Settle(100);
         Assert.False(view.IsZoomed);
         Assert.True(whole.IsEffectivelyVisible);

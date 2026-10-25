@@ -41,7 +41,7 @@ public partial class ConfirmDialog : Window
     public bool Confirmed { get; private set; }
 
     /// <summary>
-    /// The confirm button in the app's accent colour rather than red: for a choice that loses
+    /// The confirm button in the app's accent color rather than red: for a choice that loses
     /// nothing and stops nothing (red says "careful": delete, stop the music).
     /// </summary>
     public void ConfirmIsHarmless()

@@ -91,7 +91,7 @@ public sealed class AppSettings
     public bool TouchMode { get; set; }
 
     /// <summary>
-    /// Turn each track up or down towards the same loudness (measured when it's analyzed), so a
+    /// Turn each track up or down toward the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
     /// </summary>
     public bool MatchLoudness { get; set; } = true;

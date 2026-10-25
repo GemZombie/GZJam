@@ -40,7 +40,7 @@ public sealed class Fader : Control
     public static readonly StyledProperty<double?> ResetValueProperty =
         AvaloniaProperty.Register<Fader, double?>(nameof(ResetValue));
 
-    /// <summary>The colour of the lit slot, and of the ladder lines it passes (if <see cref="LightLines"/>).</summary>
+    /// <summary>The color of the lit slot, and of the ladder lines it passes (if <see cref="LightLines"/>).</summary>
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<Fader, IBrush?>(nameof(Accent));
 
@@ -71,7 +71,7 @@ public sealed class Fader : Control
         },
     };
 
-    /// <summary>Where the pointer grabbed the cap, relative to its centre, while dragging.</summary>
+    /// <summary>Where the pointer grabbed the cap, relative to its center, while dragging.</summary>
     private double _grabOffset;
 
     static Fader()
@@ -136,7 +136,7 @@ public sealed class Fader : Control
         set => SetValue(LightLinesProperty, value);
     }
 
-    // The cap's centre travels between half a cap-height from the top and bottom.
+    // The cap's center travels between half a cap-height from the top and bottom.
     private const double TravelTop = CapHeight / 2 + 2;
     private double TravelLength => Math.Max(1, Bounds.Height - CapHeight - 4);
 
@@ -162,8 +162,8 @@ public sealed class Fader : Control
         return Math.Clamp(Math.Round(value / step) * step, Minimum, Maximum);
     }
 
-    /// <summary>The cap's centre in this control's coordinates (also used by tests to grab it).</summary>
-    internal Point CapCentre => new(Bounds.Width / 2, YOf(Value));
+    /// <summary>The cap's center in this control's coordinates (also used by tests to grab it).</summary>
+    internal Point CapCenter => new(Bounds.Width / 2, YOf(Value));
 
     protected override Size MeasureOverride(Size availableSize) => new(44, 120);
 
@@ -222,7 +222,7 @@ public sealed class Fader : Control
         if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
         Point p = e.GetPosition(this);
-        double capY = CapCentre.Y;
+        double capY = CapCenter.Y;
         // Grabbing the cap keeps it under the pointer; a mouse click elsewhere jumps it there. A
         // finger or pen never jumps it (a slightly missed cap mustn't swing the level): it moves
         // the cap from where it is, by as much as the finger moves.

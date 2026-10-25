@@ -4,7 +4,7 @@ using System.Text;
 namespace GZJam.Library;
 
 /// <summary>
-/// A session's songs written out to share: a readable list (for the organisers, a Facebook post,
+/// A session's songs written out to share: a readable list (for the organizers, a Facebook post,
 /// the DJ's notes) or CSV for a spreadsheet. Times are local; BPMs are as the room heard them,
 /// with the tempo change applied.
 /// </summary>

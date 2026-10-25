@@ -89,7 +89,7 @@ internal static class IconArt
         }
         else
         {
-            float r = (float)LogoShapes.Ring, c = (float)LogoShapes.Centre, half = (float)LogoShapes.BarStep / 2;
+            float r = (float)LogoShapes.Ring, c = (float)LogoShapes.Center, half = (float)LogoShapes.BarStep / 2;
             var ring = new SKRect(c - r, c - r, c + r, c + r);
             float start = (float)LogoShapes.RingStart - half, split = (float)LogoShapes.PlayedTo + half, end = (float)LogoShapes.RingEnd + half;
             paint.StrokeWidth = (float)LogoShapes.SolidRingWidth;
@@ -100,7 +100,7 @@ internal static class IconArt
             paint.StrokeWidth = (float)LogoShapes.SolidGBarWidth;
         }
         paint.Color = Played;
-        canvas.DrawLine((float)LogoShapes.GBarFrom, (float)LogoShapes.Centre, (float)LogoShapes.GBarTo, (float)LogoShapes.Centre, paint);
+        canvas.DrawLine((float)LogoShapes.GBarFrom, (float)LogoShapes.Center, (float)LogoShapes.GBarTo, (float)LogoShapes.Center, paint);
         canvas.Restore();
     }
 

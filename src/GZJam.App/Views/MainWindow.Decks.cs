@@ -86,7 +86,7 @@ public partial class MainWindow
 
     // ───────────── Menus ─────────────
 
-    /// <summary>Greys out "Load to Deck X" when protection would refuse it, and says why.</summary>
+    /// <summary>Grays out "Load to Deck X" when protection would refuse it, and says why.</summary>
     private void OnTrackMenuOpening()
     {
         UpdateLoadMenuItems([TrackLoad1, TrackLoad2, TrackLoad3, TrackLoad4], SelectedTracks().Count == 1);

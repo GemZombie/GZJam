@@ -9,7 +9,7 @@ namespace GZJam.App.Controls;
 /// <summary>
 /// GZJam's name in the logo's drawn letters (<see cref="LogoShapes"/>), as tall as the control
 /// (the letters have no descenders) and as wide as that needs. With the pixels for it, the letters
-/// are cut into bars, GZ in Deck 1's cyan; smaller, they're solid, in the text colour.
+/// are cut into bars, GZ in Deck 1's cyan; smaller, they're solid, in the text color.
 /// </summary>
 public sealed class Wordmark : Control
 {
@@ -53,7 +53,7 @@ public sealed class Wordmark : Control
 
     /// <summary>
     /// The name in bars, <see cref="LogoShapes.CapHeight"/> tall at the origin, each letter in
-    /// <paramref name="brushOf"/>'s colour (the startup screen draws it all in one colour, then the other).
+    /// <paramref name="brushOf"/>'s color (the startup screen draws it all in one color, then the other).
     /// </summary>
     internal static void DrawBars(DrawingContext context, Func<LogoShapes.Letter, IBrush?> brushOf)
     {

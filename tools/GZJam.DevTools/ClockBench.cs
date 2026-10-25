@@ -82,7 +82,7 @@ internal static class ClockBench
     }
 
     /// <summary>
-    /// CloseUpWaveform's playhead: a clock, eased towards each report by <paramref name="gain"/> of
+    /// CloseUpWaveform's playhead: a clock, eased toward each report by <paramref name="gain"/> of
     /// its error (at most <paramref name="cap"/> s), shown over <paramref name="spread"/> s (0: at once).
     /// </summary>
     private sealed class SpreadEasing(double gain, double cap, double spread) : IFollower

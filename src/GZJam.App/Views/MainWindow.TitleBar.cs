@@ -9,12 +9,12 @@ namespace GZJam.App.Views;
 /// <summary>
 /// GZJam's top bar is also the window's title bar on Windows and macOS (issue #32): one bar instead
 /// of the system's plus GZJam's, giving the decks and library the difference. Its empty space moves
-/// the window (a double-click maximises), its keys stay keys, and the system's own buttons sit at its
+/// the window (a double-click maximizes), its keys stay keys, and the system's own buttons sit at its
 /// end. Linux keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
 /// </summary>
 public partial class MainWindow
 {
-    /// <summary>macOS's close, minimise and zoom buttons, on the left.</summary>
+    /// <summary>macOS's close, minimize and zoom buttons, on the left.</summary>
     private const double MacTrafficLights = 80;
 
     /// <summary>Whether the top bar is the window's title bar here.</summary>
@@ -49,7 +49,7 @@ public partial class MainWindow
         foreach (Button button in TopBar.GetLogicalDescendants().OfType<Button>())   // toggle buttons too
             WindowDecorationProperties.SetElementRole(button, WindowDecorationsElementRole.User);
 
-        // Maximised on Windows, the window's edge sits off screen: keep everything on it.
+        // Maximized on Windows, the window's edge sits off screen: keep everything on it.
         PropertyChanged += (_, e) =>
         {
             if (e.Property == OffScreenMarginProperty)
@@ -59,15 +59,15 @@ public partial class MainWindow
         };
 
         // The three are ordinary keys handled here, like the bar's others. Marked as Windows' own
-        // buttons, Windows recognises them (and would show snap layouts on maximise) but, with
+        // buttons, Windows recognizes them (and would show snap layouts on maximize) but, with
         // border-only decorations, neither it nor Avalonia acts on a click: they'd do nothing.
     }
 
-    /// <summary>The middle button shows maximise, or restore when the window is maximised.</summary>
+    /// <summary>The middle button shows maximize, or restore when the window is maximized.</summary>
     private void ShowMaximizeOrRestore()
     {
         bool maximized = WindowState == WindowState.Maximized;
         MaximizeButton.Content = maximized ? "\uE923" : "\uE922";
-        Avalonia.Automation.AutomationProperties.SetName(MaximizeButton, maximized ? "Restore" : "Maximise");
+        Avalonia.Automation.AutomationProperties.SetName(MaximizeButton, maximized ? "Restore" : "Maximize");
     }
 }

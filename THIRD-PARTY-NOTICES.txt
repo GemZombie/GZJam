@@ -1,24 +1,24 @@
 GZJam is built with the software below, and thanks the people who make it.
-Their licences, in full, are in THIRD-PARTY-NOTICES.txt beside GZJam.
+Their licenses, in full, are in THIRD-PARTY-NOTICES.txt beside GZJam.
 
 BASS, BASS_FX and BASSmix: playback, tempo and mixing
 BASSFLAC, BASSOPUS and BASSALAC: FLAC, Opus and Apple Lossless
 BASSWASAPI: on Windows, the speakers for GZJam alone
   Copyright (c) Un4seen Developments Ltd. https://www.un4seen.com
-  Free for non-commercial software, under Un4seen's own licence.
-  BASSFLAC includes libFLAC (BSD licence), BASSOPUS libopus (BSD), and BASSALAC Apple's
+  Free for non-commercial software, under Un4seen's own license.
+  BASSFLAC includes libFLAC (BSD license), BASSOPUS libopus (BSD), and BASSALAC Apple's
   ALAC decoder (Apache License 2.0) and David Hammerton's (MIT).
 
 .NET: the runtime GZJam runs on, included in every package
-  Copyright (c) .NET Foundation and Contributors. MIT licence. https://dot.net
+  Copyright (c) .NET Foundation and Contributors. MIT license. https://dot.net
 
 Avalonia: the window, controls and drawing
-  Copyright (c) 2013-2026 The AvaloniaUI Project. MIT licence. https://avaloniaui.net
-  With ANGLE on Windows (BSD licence), MicroCom.Runtime (MIT) and Tmds.DBus.Protocol on Linux (MIT).
+  Copyright (c) 2013-2026 The AvaloniaUI Project. MIT license. https://avaloniaui.net
+  With ANGLE on Windows (BSD license), MicroCom.Runtime (MIT) and Tmds.DBus.Protocol on Linux (MIT).
 
 SkiaSharp and HarfBuzzSharp: graphics and text
-  Copyright (c) 2015-2016 Xamarin, Inc. and (c) 2017-2018 Microsoft Corporation. MIT licence.
-  They include Skia, HarfBuzz and other libraries, each under its own licence.
+  Copyright (c) 2015-2016 Xamarin, Inc. and (c) 2017-2018 Microsoft Corporation. MIT license.
+  They include Skia, HarfBuzz and other libraries, each under its own license.
 
 TagLib# (TagLibSharp): reading song tags
   Copyright (c) 2006-2007 Brian Nickel and (c) 2009-2020 other contributors.
@@ -26,18 +26,18 @@ TagLib# (TagLibSharp): reading song tags
   its own file (TagLibSharp.dll), which can be replaced with another build of it.
 
 Microsoft.Data.Sqlite and SQLitePCLRaw: the library database
-  Microsoft.Data.Sqlite: Copyright (c) Microsoft Corporation. MIT licence.
+  Microsoft.Data.Sqlite: Copyright (c) Microsoft Corporation. MIT license.
   SQLitePCLRaw: Copyright 2014-2024 SourceGear, LLC. Apache License 2.0.
   SQLite itself is in the public domain. https://sqlite.org
 
 ManagedBass: BASS for .NET
-  Copyright (c) 2016 Mathew Sachin. MIT licence. https://github.com/ManagedBass/ManagedBass
+  Copyright (c) 2016 Mathew Sachin. MIT license. https://github.com/ManagedBass/ManagedBass
 
 CommunityToolkit.Mvvm: view models
-  Copyright (c) .NET Foundation and Contributors. MIT licence.
+  Copyright (c) .NET Foundation and Contributors. MIT license.
 
 ################################################################################################
-LICENCE TEXTS
+LICENSE TEXTS
 ################################################################################################
 
 ================================================================================================

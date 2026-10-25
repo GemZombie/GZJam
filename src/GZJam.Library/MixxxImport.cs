@@ -7,7 +7,7 @@ public sealed record MixxxImportOptions(bool Ratings = true, bool Crates = true,
     bool Playlists = true);
 
 /// <summary>What an import brought over.</summary>
-public sealed record MixxxImportResult(int Ratings, int Labels, int LabelledSongs, int Sessions, int Plays, int Bpms, int CuedSongs = 0,
+public sealed record MixxxImportResult(int Ratings, int Labels, int LabeledSongs, int Sessions, int Plays, int Bpms, int CuedSongs = 0,
     int Playlists = 0);
 
 /// <summary>
@@ -167,7 +167,7 @@ public sealed partial class MixxxImport
     /// <summary>Brings over what was planned and chosen. Safe to repeat: what's there already is skipped.</summary>
     public MixxxImportResult Apply(LibraryDatabase gz, MixxxImportOptions options)
     {
-        int ratings = 0, labelledSongs = 0, sessions = 0, plays = 0, bpms = 0, cuedSongs = 0, playlists = 0;
+        int ratings = 0, labeledSongs = 0, sessions = 0, plays = 0, bpms = 0, cuedSongs = 0, playlists = 0;
         if (options.Ratings)
         {
             foreach (var group in _ratings.GroupBy(r => r.Rating))
@@ -178,7 +178,7 @@ public sealed partial class MixxxImport
         {
             foreach (var (name, paths) in _crates)
                 gz.AddLabel(paths, name);
-            labelledSongs = CrateSongCount;
+            labeledSongs = CrateSongCount;
         }
         if (options.Playlists)
         {
@@ -216,7 +216,7 @@ public sealed partial class MixxxImport
                 cuedSongs++;
             }
         }
-        return new MixxxImportResult(ratings, options.Crates ? _crates.Count : 0, labelledSongs, sessions, plays, bpms, cuedSongs, playlists);
+        return new MixxxImportResult(ratings, options.Crates ? _crates.Count : 0, labeledSongs, sessions, plays, bpms, cuedSongs, playlists);
     }
 
     /// <summary>A song GZJam doesn't have, as Mixxx knew it, for History.</summary>

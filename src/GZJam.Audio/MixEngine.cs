@@ -174,7 +174,7 @@ public sealed class MixEngine : IDisposable
 
     /// <summary>
     /// What the headphones hear: 0 = what's cued (the decks' cue buttons and the preview), 1 = what
-    /// the room hears. In between, both; at the centre both at full, like a DJ mixer's cue/master knob.
+    /// the room hears. In between, both; at the center both at full, like a DJ mixer's cue/master knob.
     /// </summary>
     public double PhonesMix
     {
@@ -194,11 +194,11 @@ public sealed class MixEngine : IDisposable
     /// <summary>How much of what the room hears the headphones get, from <see cref="PhonesMix"/>.</summary>
     internal double PhonesRoomLevel => Math.Min(1, 2 * _phonesMix);
 
-    /// <summary>The side the crossfader leans towards: 0 = left, 1 = right (left at dead centre).</summary>
+    /// <summary>The side the crossfader leans toward: 0 = left, 1 = right (left at dead center).</summary>
     public int LiveSide => _crossfader <= 0.5 ? 0 : 1;
 
     /// <summary>
-    /// The deck the crossfader leans towards: the one playing on that side, else the first deck
+    /// The deck the crossfader leans toward: the one playing on that side, else the first deck
     /// on it. Both sides may be audible in a blend.
     /// </summary>
     public Deck LiveDeck =>

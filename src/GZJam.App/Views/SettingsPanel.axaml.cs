@@ -57,7 +57,7 @@ public partial class SettingsPanel : UserControl
             FillAbout();
     }
 
-    /// <summary>The About section reads the licence notices, so only when it's first shown.</summary>
+    /// <summary>The About section reads the license notices, so only when it's first shown.</summary>
     private void FillAbout()
     {
         if (_aboutFilled)

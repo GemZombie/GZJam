@@ -1,7 +1,7 @@
 # GZJam logo
 
 The logo is a waveform wrapped into a G, beside the name, whose letters are cut into bars like a
-waveform. GZ is coloured as the part of a song already played, JAM as the part still to come.
+waveform. GZ is colored as the part of a song already played, JAM as the part still to come.
 
 Every file here is drawn by the developer tool, from the same shapes the app draws
 (`src/GZJam.App/Controls/LogoShapes.cs`). After changing them, run
@@ -17,11 +17,11 @@ Every file here is drawn by the developer tool, from the same shapes the app dra
 
 The `-light` files are for light backgrounds.
 
-**Colours**
+**Colors**
 
 | | On dark | On light |
 |---|---|---|
-| Played (GZ, the G's first half) | `#36C2DC`, Deck 1's colour in the app | `#1597B0` |
+| Played (GZ, the G's first half) | `#36C2DC`, Deck 1's color in the app | `#1597B0` |
 | Still to come (JAM, the rest) | `#C3CBD6` | `#2A303B` |
 | Solid letters | `#E8ECF2` | `#151920` |
 | Tile | `#1E232C` to `#0C0F14` | |

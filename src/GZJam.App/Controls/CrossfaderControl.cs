@@ -7,7 +7,7 @@ using Avalonia.Media;
 namespace GZJam.App.Controls;
 
 /// <summary>
-/// A crossfader drawn like the one on a DJ mixer: tick marks, a dark slot, and a grey cap.
+/// A crossfader drawn like the one on a DJ mixer: tick marks, a dark slot, and a gray cap.
 /// Drag the cap, or press anywhere on the track to jump there and keep dragging. Arrow keys
 /// nudge it when focused. Works the same with mouse, trackpad, touch and pen.
 /// </summary>
@@ -21,7 +21,7 @@ public sealed class CrossfaderControl : Control
     public static readonly StyledProperty<int> TickCountProperty =
         AvaloniaProperty.Register<CrossfaderControl, int>(nameof(TickCount), 7);
 
-    /// <summary>The line across the cap (the phones mix's is amber: the headphones' colour).</summary>
+    /// <summary>The line across the cap (the phones mix's is amber: the headphones' color).</summary>
     public static readonly StyledProperty<IBrush> IndexBrushProperty =
         AvaloniaProperty.Register<CrossfaderControl, IBrush>(nameof(IndexBrush), new SolidColorBrush(Color.Parse("#F2F4F8")));
 
@@ -30,7 +30,7 @@ public sealed class CrossfaderControl : Control
     private const double KeyStep = 0.05;
 
     private static readonly IBrush TickBrush = new SolidColorBrush(Color.Parse("#343A45"));
-    private static readonly IBrush CentreTickBrush = new SolidColorBrush(Color.Parse("#4A5160"));
+    private static readonly IBrush CenterTickBrush = new SolidColorBrush(Color.Parse("#4A5160"));
     private static readonly IBrush SlotBrush = new SolidColorBrush(Color.Parse("#050608"));
     private static readonly IBrush SlotEdgeBrush = new SolidColorBrush(Color.Parse("#262B34"));
     private static readonly IBrush ShadowBrush = new SolidColorBrush(Color.FromArgb(110, 0, 0, 0));
@@ -48,7 +48,7 @@ public sealed class CrossfaderControl : Control
         },
     };
 
-    /// <summary>Where the pointer grabbed the cap, relative to its centre, while dragging.</summary>
+    /// <summary>Where the pointer grabbed the cap, relative to its center, while dragging.</summary>
     private double _grabOffset;
 
     static CrossfaderControl()
@@ -76,13 +76,13 @@ public sealed class CrossfaderControl : Control
         set => SetValue(IndexBrushProperty, value);
     }
 
-    // The cap's centre travels between half a cap-width from each edge.
+    // The cap's center travels between half a cap-width from each edge.
     private double TravelStart => CapWidth / 2 + 2;
     private double TravelLength => Math.Max(1, Bounds.Width - CapWidth - 4);
     private double SlotY => Bounds.Height * 0.55;
 
-    /// <summary>The cap's centre in this control's coordinates (also used by tests to grab it).</summary>
-    internal Point CapCentre => new(TravelStart + Value * TravelLength, SlotY);
+    /// <summary>The cap's center in this control's coordinates (also used by tests to grab it).</summary>
+    internal Point CapCenter => new(TravelStart + Value * TravelLength, SlotY);
 
     private double CapHeight => Math.Min(Bounds.Height - 6, 60);
 
@@ -98,13 +98,13 @@ public sealed class CrossfaderControl : Control
         // Invisible, but makes the whole area respond to touch and clicks, not just the drawn lines.
         context.DrawRectangle(Brushes.Transparent, null, new Rect(Bounds.Size));
 
-        // Tick marks across the travel, the centre one slightly brighter.
+        // Tick marks across the travel, the center one slightly brighter.
         int ticks = Math.Max(2, TickCount);
         double tickTop = 3, tickBottom = Bounds.Height - 3;
         for (int i = 0; i < ticks; i++)
         {
             double x = Math.Round(TravelStart + TravelLength * i / (ticks - 1)) + 0.5;
-            IBrush brush = i == ticks / 2 && ticks % 2 == 1 ? CentreTickBrush : TickBrush;
+            IBrush brush = i == ticks / 2 && ticks % 2 == 1 ? CenterTickBrush : TickBrush;
             context.DrawRectangle(brush, null, new Rect(x - 0.5, tickTop, 1, tickBottom - tickTop));
         }
 
@@ -114,9 +114,9 @@ public sealed class CrossfaderControl : Control
         context.DrawRectangle(SlotBrush, null, slot, SlotHeight / 2, SlotHeight / 2);
 
         // The cap: soft shadow, metal-look body, and a grip line across the middle.
-        Point centre = CapCentre;
+        Point center = CapCenter;
         double capHeight = CapHeight;
-        var cap = new Rect(centre.X - CapWidth / 2, centre.Y - capHeight / 2 - 3, CapWidth, capHeight);
+        var cap = new Rect(center.X - CapWidth / 2, center.Y - capHeight / 2 - 3, CapWidth, capHeight);
         using (context.PushOpacity(IsEnabled ? 1 : 0.4))
         {
             context.DrawRectangle(ShadowBrush, null, cap.Translate(new Vector(0, 2)), 3, 3);
@@ -132,12 +132,12 @@ public sealed class CrossfaderControl : Control
             return;
 
         Point p = e.GetPosition(this);
-        Point centre = CapCentre;
+        Point center = CapCenter;
         // Grabbing the cap keeps it under the pointer; a mouse click on the track jumps the cap
         // there. A finger or pen never jumps it (a slightly missed cap mustn't cut the room): it
         // moves the cap from where it is, by as much as the finger moves.
-        bool onCap = e.Pointer.Type != PointerType.Mouse || Math.Abs(p.X - centre.X) <= CapWidth / 2 + 6;
-        _grabOffset = onCap ? p.X - centre.X : 0;
+        bool onCap = e.Pointer.Type != PointerType.Mouse || Math.Abs(p.X - center.X) <= CapWidth / 2 + 6;
+        _grabOffset = onCap ? p.X - center.X : 0;
         if (!onCap)
             Value = ValueAt(p.X);
 
