@@ -1119,6 +1119,27 @@ rest of it.
   Restoring one is by hand for now (backup and restore, #84, will cover it).
 - **Mac menu bar:** the application's `Name` is GZJam (it showed Avalonia's default).
 
+### Status: saying when a new version is out (2026-10-24)
+
+- **At startup,** in the background after the outputs open, one request to
+  `api.github.com/repos/GemZombie/GZJam/releases/latest` (`UpdateCheck`), with a 10 s timeout. It
+  sends GZJam's version as the User-Agent and nothing else; offline, slow, rate-limited or an odd
+  answer, it says nothing (the log notes why). GitHub's "latest" leaves out drafts and
+  pre-releases, and they're refused again if they come back anyway.
+- **Newer:** by version numbers; a build made here (`0.8.0-dev`) counts as older than 0.8.0.
+- **The line** sits in the top bar's middle, where short notices go (a notice takes the spot while
+  it lasts): "GZJam 0.9.0 is out. What's new · Download", the link opening the release page.
+  Gone for the session the first time a deck plays to the room, and an answer that arrives later
+  says nothing; it isn't a dismissal, so the next start says it again.
+- **Closing it** remembers the version (`DismissedVersion` in the settings); only a later one is
+  mentioned.
+- **Settings › About › Tell me when a new version is out,** on by default. Off, GitHub isn't
+  asked, and a line on screen goes. GZJam never downloads or installs anything itself.
+- **Check now** (Settings › About, under the switch): asks GitHub straight away, even with the
+  switch off (the DJ asked), and says what it found beside the button: "GZJam 0.9.0 is out." with
+  the same link, "GZJam 0.7.3 is the newest version.", or that GitHub couldn't be reached. A
+  version dismissed from the top bar is still shown here; nothing appears in the top bar.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

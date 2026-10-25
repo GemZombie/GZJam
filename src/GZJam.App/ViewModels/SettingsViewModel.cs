@@ -175,6 +175,62 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Saying when a new version is out (see <see cref="AppSettings.CheckForNewVersion"/>).</summary>
+    public bool CheckForNewVersion
+    {
+        get => _settings.CheckForNewVersion;
+        set
+        {
+            if (value == _settings.CheckForNewVersion)
+                return;
+            _settings.CheckForNewVersion = value;
+            Log.Info($"New version check {(value ? "on" : "off")}");
+            if (!value)
+                _owner.NewVersionCheckTurnedOff();
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// What Check now found: "Checking…", up to date, a newer version (with <see cref="FoundRelease"/>),
+    /// or that GitHub couldn't be reached. Until it's pressed, what it does.
+    /// </summary>
+    [ObservableProperty]
+    public partial string CheckResult { get; private set; } = "Asks GitHub straight away, even with the switch above off.";
+
+    /// <summary>The newer release Check now found, for its link; null otherwise.</summary>
+    [ObservableProperty]
+    public partial Release? FoundRelease { get; private set; }
+
+    /// <summary>
+    /// Settings › About › Check now: asks GitHub straight away, even with the startup check off
+    /// (the DJ asked), and says what it found here, including a version the DJ dismissed before.
+    /// </summary>
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task CheckNowAsync()
+    {
+        FoundRelease = null;
+        CheckResult = "Checking…";
+        Log.Info("Checking for a new version (asked in Settings)");
+        Release? release = await _owner.LatestRelease();
+        string current = _owner.CurrentVersion;
+        if (release is null)
+        {
+            CheckResult = "Couldn't reach GitHub. Check the internet connection, and try again later.";
+        }
+        else if (UpdateCheck.IsNewer(release.Version, current))
+        {
+            Log.Info($"GZJam {release.Version} is out (this is {current})");
+            FoundRelease = release;
+            CheckResult = $"GZJam {release.Version} is out.";
+        }
+        else
+        {
+            Log.Info($"GZJam {current} is up to date (newest release {release.Version})");
+            CheckResult = $"GZJam {current} is the newest version.";
+        }
+    }
+
     /// <summary>Touch mode (see <see cref="AppSettings.TouchMode"/>).</summary>
     public bool TouchMode
     {

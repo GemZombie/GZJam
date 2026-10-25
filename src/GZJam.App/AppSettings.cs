@@ -134,6 +134,15 @@ public sealed class AppSettings
     /// <summary>Columns added later that start hidden; settings saved before one was added get it hidden.</summary>
     private static readonly string[] NewHiddenColumns = ["Art"];
 
+    /// <summary>
+    /// At startup, ask GitHub whether there's a newer GZJam, and say so (see <see cref="UpdateCheck"/>).
+    /// On by default; off, GZJam never contacts the internet by itself.
+    /// </summary>
+    public bool CheckForNewVersion { get; set; } = true;
+
+    /// <summary>The newer version the DJ dismissed ("0.8.0"); not mentioned again, only a later one.</summary>
+    public string? DismissedVersion { get; set; }
+
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 

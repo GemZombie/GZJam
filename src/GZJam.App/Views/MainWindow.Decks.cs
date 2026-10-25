@@ -202,6 +202,15 @@ public partial class MainWindow
 
     private void OnSettingsClick(object? sender, RoutedEventArgs e) => OpenSettings();
 
+    /// <summary>The new version's release page: what's new, and the downloads.</summary>
+    private async void OnNewVersionClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.NewVersion is { } release)
+            await Launcher.LaunchUriAsync(new Uri(release.Url));
+    }
+
+    private void OnNewVersionDismissClick(object? sender, RoutedEventArgs e) => Vm.DismissNewVersion();
+
     /// <summary>MAIN and CUE at the top open Settings on the outputs.</summary>
     private void OnOutputChipClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Sound);
 
