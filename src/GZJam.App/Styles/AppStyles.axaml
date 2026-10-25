@@ -260,7 +260,7 @@
   </Style>
 
   <!-- Hardware-style keys: dark, square-ish, bold small caps; state is shown by an LED, not by
-       filling the key with colour. Works for Button and ToggleButton. -->
+       filling the key with color. Works for Button and ToggleButton. -->
   <Style Selector=":is(Button).hw">
     <Setter Property="Background" Value="{StaticResource KeyBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
@@ -323,7 +323,7 @@
     <Setter Property="Opacity" Value="0.92" />
   </Style>
 
-  <!-- LEDs: dark when off; lit with a soft glow. Colour by meaning: red = the room, amber = the
+  <!-- LEDs: dark when off; lit with a soft glow. Color by meaning: red = the room, amber = the
        headphones, green = running, accent = something you set. -->
   <Style Selector="Border.led">
     <Setter Property="Width" Value="7" />
@@ -381,7 +381,7 @@
     <!-- Above the panels, which it overlaps in touch mode -->
     <Setter Property="ZIndex" Value="1" />
   </Style>
-  <!-- A deck's name above its title, printed like a label on hardware, in the deck's colour -->
+  <!-- A deck's name above its title, printed like a label on hardware, in the deck's color -->
   <Style Selector="TextBlock.deck-name">
     <Setter Property="FontSize" Value="10" />
     <Setter Property="FontWeight" Value="Bold" />
@@ -470,7 +470,7 @@
   </Style>
 
   <!-- Main and phones faders: 0-100 on the audio taper, with lines at the dB marks
-       (0, -6, -12, -18, -24, -30, -40 dB, off); the slot lit grey up to the cap. -->
+       (0, -6, -12, -18, -24, -30, -40 dB, off); the slot lit gray up to the cap. -->
   <Style Selector="c|Fader.volume">
     <Setter Property="Minimum" Value="0" />
     <Setter Property="Maximum" Value="100" />
@@ -623,7 +623,7 @@
     <Setter Property="Padding" Value="10,6" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <!-- Windows' minimise, maximise and close, in the top bar (MainWindow.TitleBar.cs) -->
+  <!-- Windows' minimize, maximize and close, in the top bar (MainWindow.TitleBar.cs) -->
   <Style Selector="Button.caption">
     <Setter Property="Width" Value="46" />
     <Setter Property="Height" Value="NaN" />
@@ -813,7 +813,7 @@
   <Style Selector="Button.row-icon:pointerover">
     <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
   </Style>
-  <!-- The EQ panel's frame: the app's panel colours rather than the stock flyout grey -->
+  <!-- The EQ panel's frame: the app's panel colors rather than the stock flyout gray -->
   <Style Selector="FlyoutPresenter.eq, FlyoutPresenter.panel">
     <Setter Property="Background" Value="{StaticResource PanelBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />

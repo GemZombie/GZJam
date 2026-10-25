@@ -30,13 +30,13 @@ public sealed class InputDiagnosticsTests
         return app;
     }
 
-    private static Point Centre(AppHarness app, Visual control) =>
+    private static Point Center(AppHarness app, Visual control) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), app.Window)!.Value;
 
     private static CrossfaderControl Fader(AppHarness app) => app.Window.FindControl<CrossfaderControl>("Crossfader")!;
 
     /// <summary>The middle of the crossfader's cap, in window coordinates.</summary>
-    private static Point CapCentre(AppHarness app) => Fader(app).TranslatePoint(Fader(app).CapCentre, app.Window)!.Value;
+    private static Point CapCenter(AppHarness app) => Fader(app).TranslatePoint(Fader(app).CapCenter, app.Window)!.Value;
 
     /// <summary>Runs playback ticks for a while, as the app's 30 fps timer would.</summary>
     private static void RunTicks(AppHarness app, int milliseconds)
@@ -54,7 +54,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var slider = Fader(app);
-        Point thumb = CapCentre(app);
+        Point thumb = CapCenter(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
 
         app.Window.MouseDown(thumb, MouseButton.Left);
@@ -65,7 +65,7 @@ public sealed class InputDiagnosticsTests
         Assert.Equal(1, app.ViewModel.Mixer!.Crossfader, 1);
 
         Point left = slider.TranslatePoint(new Point(2, slider.Bounds.Height / 2), app.Window)!.Value;
-        thumb = CapCentre(app);
+        thumb = CapCenter(app);
         app.Window.MouseDown(thumb, MouseButton.Left);
         app.Window.MouseMove(left);
         app.Window.MouseUp(left, MouseButton.Left);
@@ -88,10 +88,10 @@ public sealed class InputDiagnosticsTests
     }
 
     [AvaloniaFact]
-    public async Task Grabbing_the_cap_off_centre_does_not_make_it_jump()
+    public async Task Grabbing_the_cap_off_center_does_not_make_it_jump()
     {
         using var app = await TwoDecksPlaying();
-        Point grab = CapCentre(app) + new Point(8, 0);   // the right edge of the cap
+        Point grab = CapCenter(app) + new Point(8, 0);   // the right edge of the cap
 
         app.Window.MouseDown(grab, MouseButton.Left);
         app.Window.MouseMove(grab + new Point(1, 0));
@@ -137,7 +137,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var b = app.Window.FindControl<Button>("RightSideButton")!;
-        Point p = Centre(app, b);
+        Point p = Center(app, b);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
@@ -151,7 +151,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var slider = Fader(app);
-        Point thumb = CapCentre(app);
+        Point thumb = CapCenter(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
 
         var touch = app.Window.TouchBegin(thumb, RawInputModifiers.None);
@@ -174,7 +174,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
         Assert.True(app.ViewModel.Deck1!.IsOnAir);
 
         app.Window.MouseDown(p, MouseButton.Left);
@@ -192,7 +192,7 @@ public sealed class InputDiagnosticsTests
         var deck = app.Window.FindControl<DeckView>("Deck1View")!;
         deck.HoldToPause = TimeSpan.FromMinutes(1);   // a slow machine (CI's Linux) took 0.6 s to click: a hold (#68)
         var play = deck.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
@@ -211,7 +211,7 @@ public sealed class InputDiagnosticsTests
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
         var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
         Assert.True(app.ViewModel.Deck1!.PauseNeedsConfirm);
 
         app.Window.MouseDown(p, MouseButton.Left);
@@ -228,7 +228,7 @@ public sealed class InputDiagnosticsTests
         using var app = await TwoDecksPlaying();
         UseTwoTapPause(app);
         var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
 
         var touch = app.Window.TouchBegin(p, RawInputModifiers.None);
         RunTicks(app, 800);
@@ -243,7 +243,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var play = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
 
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
@@ -258,7 +258,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var slider = Fader(app);
-        Point thumb = CapCentre(app);
+        Point thumb = CapCenter(app);
         Point right = slider.TranslatePoint(new Point(slider.Bounds.Width - 2, slider.Bounds.Height / 2), app.Window)!.Value;
         app.Window.MouseDown(thumb, MouseButton.Left);
         app.Window.MouseMove(right);
@@ -266,7 +266,7 @@ public sealed class InputDiagnosticsTests
         RunTicks(app, 200);
 
         var playA = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, playA);
+        Point p = Center(app, playA);
         app.Window.MouseMove(p);
         app.Window.MouseDown(p, MouseButton.Left);
         app.Window.MouseUp(p, MouseButton.Left);
@@ -305,7 +305,7 @@ public sealed class InputDiagnosticsTests
     {
         using var app = await TwoDecksPlaying();
         var play = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Button>("PlayButton")!;
-        Point p = Centre(app, play);
+        Point p = Center(app, play);
 
         var touch = app.Window.TouchBegin(p, RawInputModifiers.None);
         app.Window.TouchEnd(touch, p, RawInputModifiers.None);

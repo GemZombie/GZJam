@@ -274,7 +274,7 @@ public sealed partial class DeckViewModel : ObservableObject
     private const double OnAirRampDbPerSecond = 3;
 
     private double? _lufs, _peakDb;
-    private double _matchDb;         // what matching applies now (eases towards the target on air)
+    private double _matchDb;         // what matching applies now (eases toward the target on air)
     private long _matchMovedAt;
 
     /// <summary>What loudness matching would apply to this song: 0 if it's off or not measured yet.</summary>
@@ -304,7 +304,7 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Moves matching towards its target: at once if the room isn't hearing this deck, gently if
+    /// Moves matching toward its target: at once if the room isn't hearing this deck, gently if
     /// it is (e.g. the analysis arrived while the song was already on air), so nothing jumps.
     /// </summary>
     private void UpdateMatch(bool force = false)
@@ -375,7 +375,7 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         bool arm = !IsJumpArmed;
         Deck.ArmJumps(arm);
-        Log.Info($"Deck {Label}: jumps {(arm ? "armed" : "cancelled")}");
+        Log.Info($"Deck {Label}: jumps {(arm ? "armed" : "canceled")}");
         OnJumpsChanged();
     }
 

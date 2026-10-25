@@ -29,7 +29,7 @@ public sealed class TitleBarTests
     }
 
     [AvaloniaFact]
-    public void On_windows_gzjam_draws_and_handles_minimise_maximise_and_close()
+    public void On_windows_gzjam_draws_and_handles_minimize_maximize_and_close()
     {
         Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows only: macOS draws its own.");
         using var app = new AppHarness();

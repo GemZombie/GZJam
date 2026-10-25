@@ -6,7 +6,7 @@ using GZJam.Library;
 
 namespace GZJam.App.Views;
 
-/// <summary>Settings › Import from Mixxx. Closes with what was imported, or null if cancelled.</summary>
+/// <summary>Settings › Import from Mixxx. Closes with what was imported, or null if canceled.</summary>
 public partial class MixxxImportDialog : Window
 {
     public MixxxImportDialog()

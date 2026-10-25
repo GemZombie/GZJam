@@ -59,7 +59,7 @@ public sealed class PriorityRow : Panel
         {
             double x = firstWidth + Spacing, left = finalSize.Width - x;
             // At its full width (cut off by the clip), or out of sight if there's no useful room.
-            double y = (finalSize.Height - second.DesiredSize.Height) / 2;   // centred, even if a little taller
+            double y = (finalSize.Height - second.DesiredSize.Height) / 2;   // centerd, even if a little taller
             second.Arrange(HasSecond && left >= LeastUseful
                 ? new Rect(x, y, second.DesiredSize.Width, second.DesiredSize.Height)
                 : new Rect(finalSize.Width, 0, 0, 0));

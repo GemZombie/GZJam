@@ -11,12 +11,12 @@ namespace GZJam.App.Controls;
 /// <summary>
 /// A close-up of the song around the playhead: a few seconds (<see cref="WindowSeconds"/>), the
 /// playhead fixed in the middle and the music scrolling past it, for seeing the end of a phrase
-/// coming and setting points precisely. Drawn like <see cref="SeekBar"/> (bars coloured by
+/// coming and setting points precisely. Drawn like <see cref="SeekBar"/> (bars colored by
 /// frequency, what's played dimmed, trimmed silence shaded, jumps and cues marked), from a close-up
 /// waveform (10 ms a slice) or, until that's ready, the overview.
 /// <para>
 /// While the deck plays, it's redrawn at every frame the screen shows, the playhead worked out
-/// from the clock and the tempo and eased towards where the deck says it is (which arrives about
+/// from the clock and the tempo and eased toward where the deck says it is (which arrives about
 /// 30 times a second, in uneven 20 and 40 ms steps), so the music glides past instead of
 /// stuttering. Each bar covers a fixed stretch of the song, so bars keep their shape as they
 /// move; zoomed in so far that a bar is shorter than a slice, bars blend the slices either side.
@@ -72,7 +72,7 @@ public sealed class CloseUpWaveform : Control
     public static readonly StyledProperty<bool> IsLockedProperty =
         AvaloniaProperty.Register<CloseUpWaveform, bool>(nameof(IsLocked));
 
-    /// <summary>The deck's colour, for the playhead while locked (as on the whole-song view).</summary>
+    /// <summary>The deck's color, for the playhead while locked (as on the whole-song view).</summary>
     public static readonly StyledProperty<IBrush?> FillProperty =
         AvaloniaProperty.Register<CloseUpWaveform, IBrush?>(nameof(Fill), Brushes.White);
 
@@ -186,7 +186,7 @@ public sealed class CloseUpWaveform : Control
                 Restart();               // paused, a seek, a jump, a new song
             else
             {
-                // Reports come in uneven steps: ease towards them, a little at a time.
+                // Reports come in uneven steps: ease toward them, a little at a time.
                 Shown(now);
                 double error = reported - (Clock(now) + _correction);
                 _correction += Math.Clamp(error, -CorrectionCap, CorrectionCap) * CorrectionGain;
@@ -279,7 +279,7 @@ public sealed class CloseUpWaveform : Control
 
     private const double BarStep = 2;
     private static readonly IBrush Background = new ImmutableSolidColorBrush(Color.Parse("#0E1116"));
-    private static readonly IBrush CentreLine = new ImmutableSolidColorBrush(Colors.White, 0.08);
+    private static readonly IBrush CenterLine = new ImmutableSolidColorBrush(Colors.White, 0.08);
     private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
     private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
     private readonly Dictionary<Color, (IBrush Bright, IBrush Dim, IBrush Outline)> _brushes = [];
@@ -298,7 +298,7 @@ public sealed class CloseUpWaveform : Control
                 if (Waveform is { Count: > 0, Peak: > 0, LoudnessPeak: > 0 } waveform)
                     DrawBars(context, waveform, bounds, middle);
                 else
-                    context.DrawRectangle(CentreLine, null, new Rect(0, bounds.Height / 2 - 0.5, bounds.Width, 1));
+                    context.DrawRectangle(CenterLine, null, new Rect(0, bounds.Height / 2 - 0.5, bounds.Width, 1));
                 DrawTrim(context, bounds);
                 DrawJumps(context, bounds);
                 DrawCues(context, bounds);
@@ -309,7 +309,7 @@ public sealed class CloseUpWaveform : Control
 
     private void DrawBars(DrawingContext context, Waveform waveform, Rect bounds, double playhead)
     {
-        double centre = bounds.Height / 2, reach = centre - 3;
+        double center = bounds.Height / 2, reach = center - 3;
         double maxPeak = Waveform.Decode(waveform.Peak), maxLoudness = Waveform.Decode(waveform.LoudnessPeak);
         double slicesPerSecond = waveform.Count / Length, start = WindowStart, spp = SecondsPerPixel;
         // Each bar is a fixed stretch of the song (not of the screen), so it keeps its shape as it
@@ -324,10 +324,10 @@ public sealed class CloseUpWaveform : Control
                 continue;
             double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
             double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
-            var (bright, dim, outline) = BarBrushes(SeekBar.BandColour(low, mid, high));
+            var (bright, dim, outline) = BarBrushes(SeekBar.BandColor(low, mid, high));
             bool played = x + BarStep <= playhead;
-            context.DrawRectangle(played ? dim : outline, null, new Rect(x, centre - peak, BarStep, peak * 2));
-            context.DrawRectangle(played ? dim : bright, null, new Rect(x, centre - body, BarStep, body * 2));
+            context.DrawRectangle(played ? dim : outline, null, new Rect(x, center - peak, BarStep, peak * 2));
+            context.DrawRectangle(played ? dim : bright, null, new Rect(x, center - body, BarStep, body * 2));
         }
     }
 
@@ -335,7 +335,7 @@ public sealed class CloseUpWaveform : Control
     /// A bar's levels, for the stretch of the song from slice <paramref name="from"/> to
     /// <paramref name="to"/> (fractions of slices): the loudest slice in it; or, for a bar shorter
     /// than a slice (zoomed in tight), a blend of the two slices either side of its middle, so
-    /// neighbouring bars don't repeat one slice and the shape doesn't move in steps. Null: off the song.
+    /// neighboring bars don't repeat one slice and the shape doesn't move in steps. Null: off the song.
     /// </summary>
     internal static (byte Low, byte Mid, byte High, byte Loud)? BarLevels(Waveform waveform, double from, double to)
     {
@@ -343,9 +343,9 @@ public sealed class CloseUpWaveform : Control
             return null;
         if (to - from < 1)
         {
-            double centre = Math.Clamp((from + to) / 2 - 0.5, 0, waveform.Count - 1);   // between slice middles
-            int i = (int)Math.Floor(centre), j = Math.Min(i + 1, waveform.Count - 1);
-            double t = centre - i;
+            double center = Math.Clamp((from + to) / 2 - 0.5, 0, waveform.Count - 1);   // between slice middles
+            int i = (int)Math.Floor(center), j = Math.Min(i + 1, waveform.Count - 1);
+            double t = center - i;
             static byte Blend(byte[] band, int i, int j, double t) => (byte)Math.Round(band[i] + (band[j] - band[i]) * t);
             return (Blend(waveform.Low, i, j, t), Blend(waveform.Mid, i, j, t), Blend(waveform.High, i, j, t), Blend(waveform.Loudness, i, j, t));
         }
@@ -361,13 +361,13 @@ public sealed class CloseUpWaveform : Control
         return (low, mid, high, loud);
     }
 
-    private (IBrush, IBrush, IBrush) BarBrushes(Color colour)
+    private (IBrush, IBrush, IBrush) BarBrushes(Color color)
     {
-        if (!_brushes.TryGetValue(colour, out var brushes))
+        if (!_brushes.TryGetValue(color, out var brushes))
         {
-            brushes = (new ImmutableSolidColorBrush(colour), new ImmutableSolidColorBrush(colour, 0.3), new ImmutableSolidColorBrush(colour, 0.22));
+            brushes = (new ImmutableSolidColorBrush(color), new ImmutableSolidColorBrush(color, 0.3), new ImmutableSolidColorBrush(color, 0.22));
             if (_brushes.Count < 4096)
-                _brushes[colour] = brushes;
+                _brushes[color] = brushes;
         }
         return brushes;
     }

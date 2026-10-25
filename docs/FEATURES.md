@@ -125,7 +125,7 @@ is out of scope until it earns a place.
   that kept the raw value (a rescan skips unchanged files): schema upgrade 13 corrects them once,
   in the library and History (issue #26).
 - **Waveform:** 1,000 slices per track; bars show loudness (RMS, solid) with peaks as a faint
-  outline, coloured by frequency (red bass, green mids, blue highs). The played part is dimmed.
+  outline, colored by frequency (red bass, green mids, blue highs). The played part is dimmed.
 - Not yet: typing or tapping a BPM, per-folder BPM ranges,
   a zoomed scrolling waveform, loudness matching.
 
@@ -159,7 +159,7 @@ is out of scope until it earns a place.
 
 - **A playing deck is protected.** By default, loading a track onto a deck that is playing is
   blocked, whether by drag or by right-click. A paused or stopped deck accepts loads normally.
-- Blocked loads are visible, not silent: the right-click item is greyed out ("playing"), and
+- Blocked loads are visible, not silent: the right-click item is grayed out ("playing"), and
   dragging over the deck shows a "not allowed" outline and cursor.
 - **Setting: "Loading onto a playing deck"**: *Block* (default), *Ask to confirm*, or *Allow*.
 
@@ -178,7 +178,7 @@ is out of scope until it earns a place.
   is hearing. Seeking is blocked while the room is hearing the deck.
 - Crossfader with one-tap A / B switches (a 300 ms glide); shows "BLEND" when the room hears both.
 - A daily activity log (`logs/` next to the library database) records plays, pauses, crossfader
-  switches, output changes and errors, so problems at a gig can be traced afterwards.
+  switches, output changes and errors, so problems at a gig can be traced afterward.
 
 ### Status: auto-play built (part of step 3)
 
@@ -270,7 +270,7 @@ is out of scope until it earns a place.
 
 - **Every action works by touch.** Long-press acts as right-click (opens the context menu).
 - **Swipes don't fight scrolling** *(built)*. In the library list a vertical swipe scrolls and a
-  sideways swipe (towards the queue and decks) drags the track. In the queue, reorder by dragging
+  sideways swipe (toward the queue and decks) drags the track. In the queue, reorder by dragging
   the ⋮⋮ handle; swiping elsewhere scrolls. With a mouse, dragging works from anywhere.
 - **No hover-only features.** Anything needed during a set is visible without a mouse;
   tooltips are extras, never the only way to discover something.
@@ -328,8 +328,8 @@ is out of scope until it earns a place.
 - Building for iPad needs a Mac with Xcode and an Apple Developer account ($99/year) to install
   beyond 7-day test builds.
 - BASS licensing: free as long as GZJam makes no money (no sales, no ads), on iPad too. If it
-  is ever sold, licences are per platform (e.g. iOS single commercial €475, or the €125 shareware
-  licence for low-priced apps). Checked against un4seen.com, October 2026.
+  is ever sold, licenses are per platform (e.g. iOS single commercial €475, or the €125 shareware
+  license for low-priced apps). Checked against un4seen.com, October 2026.
 
 - Avalonia runs on iPad and Android, and BASS has iOS and Android builds, so the engine and most
   of the UI could be shared.
@@ -436,7 +436,7 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
 
 - Settings › *Four decks* (off by default; remembered). Deck 3 sits under Deck 1 and Deck 4 under
   Deck 2, each half height (two compact decks plus the gap are exactly one full deck, 268 px).
-  New colours: Deck 3 pink, Deck 4 lime.
+  New colors: Deck 3 pink, Deck 4 lime.
 - **Compact deck:** number, ON AIR, title and artist on one line, with time left beside them; a
   shorter waveform (trim menu still on right-click); play, cue, fade out, tempo (tap the % to
   reset) and BPM. Eject, rating, energy and *BPM* move to a ⋯ menu.
@@ -475,19 +475,19 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
 
 The UI read as generic ("AI-looking"): stock sliders and switches beside drawn controls, purple on
 everything, big rounded cards and pills. The direction: draw controls like the hardware they
-stand for, colour only where it means something, tighter corners. Pass 1 (decks and mixer):
+stand for, color only where it means something, tighter corners. Pass 1 (decks and mixer):
 
 - **Tempo:** a pitch fader (`PitchFader`): a tick every 1%, longer at 0 and ±4, labels under it
-  on a full deck, a centre notch lit green at exactly 0, the crossfader's cap. Dragging is
+  on a full deck, a center notch lit green at exactly 0, the crossfader's cap. Dragging is
   relative: pressing beside the cap never jumps the tempo of a song the room may be dancing to.
   Double-tap for 0, wheel or arrow keys for 0.1%.
 - **Keys with LEDs** (`Button.hw`, `Border.led`): CUE, FADE OUT and the mixer's side buttons are
-  dark keys; state is an LED, not a key filled with colour. LED colours by meaning: red = the
+  dark keys; state is an LED, not a key filled with color. LED colors by meaning: red = the
   room (on air, the live side, limit), amber = headphones, green = running, accent = set by you
   (EQ).
 - **ON AIR:** a red LED and small caps, and a red bar along the deck's top edge, instead of a
   filled pill and a red outline. Number badges smaller and squarer.
-- **Play:** a dark round key with a ring in the deck's colour.
+- **Play:** a dark round key with a ring in the deck's color.
 - **Waveform:** solid (bars touching), as on DJ decks; tighter corners.
 - **Mixer strip:** an upright LED meter (one column in mono, two in stereo) with a dB scale and a
   peak marker that holds 1.2 s; LIMIT is an LED under it; main and phones are upright faders
@@ -496,12 +496,12 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
 - Crossfader cap: square corners and a white index line, matching the other faders.
 - An empty deck's readout is dimmed rather than showing a bright "-0:00".
 
-### Look, pass 2: colour and corners (2026-10-21)
+### Look, pass 2: color and corners (2026-10-21)
 
 - **Purple retired.** The accent is now a muted steel blue (#7FA3CF), used sparingly: selected
   rows and folders (a faint tint), focus, the active BPM filter, "set by you" (the EQ LED and lit
-  fader slot, hand-set start/end markers). Energy bars are light grey; the loved heart a muted
-  red rather than pink. Deck colours a little less candy-bright (cyan, amber, rose, olive);
+  fader slot, hand-set start/end markers). Energy bars are light gray; the loved heart a muted
+  red rather than pink. Deck colors a little less candy-bright (cyan, amber, rose, olive);
   the green a little less minty.
 - **Corners:** panels 6 px (were 10), buttons and search box 4, chips 3. The EQ panel and its
   well follow.
@@ -509,19 +509,19 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   takes next has a thin bar at its left edge.
 - **Auto-play:** a key with a green LED instead of a switch in a glowing green box; the gap is a
   small readout window between − and + keys. The Queue/History tab underline is white, not green.
-- **Waveform** colours toned down (a quarter of the way to grey, slightly darker): easier on the
+- **Waveform** colors toned down (a quarter of the way to gray, slightly darker): easier on the
   eye now that it's solid.
 - An empty compact deck's "No track loaded" is dimmed.
 
 ### Look, pass 3: settings, menus, top bar (2026-10-21)
 
-- **Settings** in the panel colours (like the EQ panel), grouped with dividers. On/off settings
+- **Settings** in the panel colors (like the EQ panel), grouped with dividers. On/off settings
   are keys with a green LED and ON/OFF (`ToggleButton.switch`), not phone-style switches.
   Fade-out length is − / readout / +, like the gap, instead of a number box. Setting names are
   semibold, explanations muted beneath.
-- **Menus, drop-downs and text boxes** everywhere take the app's colours and 4-6 px corners via
+- **Menus, drop-downs and text boxes** everywhere take the app's colors and 4-6 px corners via
   Fluent theme overrides (`ControlCornerRadius`, `MenuFlyoutPresenterBackground`,
-  `ComboBox*`, `TextControl*`), instead of the stock grey.
+  `ComboBox*`, `TextControl*`), instead of the stock gray.
 - **Top bar:** a plain monochrome GZ mark instead of the gradient tile; the clock in a small
   readout window; the outputs as square indicators with an LED (green connected, red/amber not)
   and MAIN / CUE in small caps.
@@ -536,7 +536,7 @@ stand for, colour only where it means something, tighter corners. Pass 1 (decks 
   sample peak. Mono files count as dual mono, since both speakers play them. Stored with the
   analysis (schema upgrade 8); the analyzer version went to 2, so the library is re-analyzed once
   in the background (about 50 minutes for 12,686 tracks; a track loaded onto a deck jumps the queue).
-- **Matched** (`LoudnessMatch`): each deck is turned towards **-16 LUFS**. Cuts are unlimited;
+- **Matched** (`LoudnessMatch`): each deck is turned toward **-16 LUFS**. Cuts are unlimited;
   boosts stop at +9 dB and where the track's peaks would go more than 1.5 dB over full scale (the
   limiter absorbs that much without its light coming on). On a 228-track sample of the real
   library: median -15.9 LUFS (so a typical song barely moves), 80% between -19.4 and -11.8;
@@ -628,7 +628,7 @@ not here. This file records what was decided and built, and why.
 - **Only fills gaps:** GZJam's own ratings and typed BPMs stand, labels are added to, and a night
   already imported is skipped, so importing again is safe.
 - **Not brought over: intro and outro markers.** Mixxx places them automatically when it
-  analyses a song; GZJam finds where songs start and end itself (and the DJ's own trims stay).
+  analyzes a song; GZJam finds where songs start and end itself (and the DJ's own trims stay).
   Hot cues do come over, since cue keys (issue #36, below).
 - **Typing a BPM** came with it: the BPM menu (library, queue and deck) has *Type the BPM…*; a typed
   BPM wins over the tag and detection, in the BPM column, on the deck and in `bpm:` searches
@@ -637,15 +637,15 @@ not here. This file records what was decided and built, and why.
 ### Status: About built (2026-10-22)
 
 - **Settings › About:** the version (from the release tag; "-dev" when built locally), who made
-  GZJam, the GitHub page, and the list of the software it's built with and their licences.
-  *Full licence texts* opens `THIRD-PARTY-NOTICES.txt` in the computer's text viewer.
+  GZJam, the GitHub page, and the list of the software it's built with and their licenses.
+  *Full license texts* opens `THIRD-PARTY-NOTICES.txt` in the computer's text viewer.
 - `THIRD-PARTY-NOTICES.txt` (repo root) ships beside the program in every package: the list, then
-  each licence in full, including the notices of what SkiaSharp and .NET carry inside them. A test
+  each license in full, including the notices of what SkiaSharp and .NET carry inside them. A test
   fails if a library is added without being named in its list.
 
 ### Status: settings redesigned (2026-10-22)
 
-- **Settings opens over the main screen**, which dims behind it, in a lighter, bluer grey than
+- **Settings opens over the main screen**, which dims behind it, in a lighter, bluer gray than
   the decks with its own title bar, so it can't be mistaken for part of the set. It's inside the
   main window rather than a window of its own, so it looks the same everywhere (a tiling desktop
   like Hyprland would place a separate window beside GZJam). Music keeps playing. DONE, Escape
@@ -659,7 +659,7 @@ not here. This file records what was decided and built, and why.
 - **Linux output names** say what they are: "Built-in: Headphones / Speakers", "Built-in: HDMI 1",
   "Cable Creation (USB)", from what the kernel reports for any card (USB or not; HDMI, digital or
   analog), never one driver's naming. The sound server's own entry (the same as Default) and
-  Intel SOF's second copy of the headphone jack are left out; anything unrecognised keeps ALSA's
+  Intel SOF's second copy of the headphone jack are left out; anything unrecognized keeps ALSA's
   name. The log keeps both names.
 
 ### Status: speakers for GZJam alone on Windows (2026-10-22, issue #10)
@@ -713,7 +713,7 @@ not here. This file records what was decided and built, and why.
 
 - Closing GZJam (the close button, Alt+F4, Cmd+Q) while the room is hearing a deck asks
   "Stop the music and close GZJam?", naming the deck and song. *Keep playing* is the default:
-  Enter and Escape choose it, so a reflex keypress can't quit. *Close GZJam* is red, the room's colour.
+  Enter and Escape choose it, so a reflex keypress can't quit. *Close GZJam* is red, the room's color.
 - Only the room counts (the DJ's decision): music only in the headphones (the preview, or a cued
   deck off air) closes straight away, as does an idle GZJam.
 - Never when the computer is shutting down (`WindowCloseReason.OSShutdown`), so GZJam doesn't hold
@@ -726,15 +726,15 @@ not here. This file records what was decided and built, and why.
   (`MainWindow.TitleBar.cs`): 44 px instead of the system's 32 px plus GZJam's own 72, about 50 px
   more for the decks and library. Touch mode makes it 54 px, and the title bar follows.
 - The bar is marked as the title bar for Windows' hit-testing, so its empty space moves the window
-  and a double-click maximises; every key in it is marked as a key.
+  and a double-click maximizes; every key in it is marked as a key.
 - **Windows:** Avalonia 12 would draw Windows' title bar itself, the window's title included,
   over the left of the bar, so the decorations are border-only and GZJam draws and handles
-  minimise, maximise (restore when maximised) and close in Windows' style. First tried marking
-  them as Windows' own buttons: Windows recognised them (and would show snap layouts on hover) but
+  minimize, maximize (restore when maximized) and close in Windows' style. First tried marking
+  them as Windows' own buttons: Windows recognized them (and would show snap layouts on hover) but
   with border-only decorations neither it nor Avalonia acted on a click, so they did nothing (the
   maintainer found it). Snap layouts on hover would need Windows' messages handled directly; drag
   to a screen edge and Win+Z still snap. Checked by asking a real window (WM_NCHITTEST) about each
-  spot. When maximised, the window's off-screen edge is kept clear of the bar.
+  spot. When maximized, the window's off-screen edge is kept clear of the bar.
 - **macOS:** the bar leaves room on the left for the window's own buttons. Not yet seen on a Mac
   (issue #18).
 - **Linux** keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
@@ -747,7 +747,7 @@ not here. This file records what was decided and built, and why.
 - Measured like a mixer's channel meter: after the deck's gain (loudness matching and the DJ's)
   and EQ, before the crossfader. A deck the room can't hear still shows its level, which is the
   point when cueing. A DSP on the deck's split to the speakers' mix (`Deck.TakePeak`), where BASS
-  hasn't yet applied the crossfader's volume. Same segments and colours as the speakers' meter;
+  hasn't yet applied the crossfader's volume. Same segments and colors as the speakers' meter;
   the top (red) light is the limiter's ceiling, so a deck lighting it would make the speakers'
   limiter work at full crossfader.
 
@@ -791,8 +791,8 @@ not here. This file records what was decided and built, and why.
   with a knob to balance the two (a DJ mixer's cue/master knob). Before, the only way was to cue
   the live deck too, at the same level as the preview.
 - **PHONES MIX**, a small crossfader under MAIN and PHONES (CUE at the left, MAIN at the right; its
-  cap's line amber, the headphones' colour). At CUE, where it starts, the headphones are as before:
-  the cued decks and the preview. At MAIN, what the room hears and nothing else. At the centre,
+  cap's line amber, the headphones' color). At CUE, where it starts, the headphones are as before:
+  the cued decks and the preview. At MAIN, what the room hears and nothing else. At the center,
   both at full; between, one turned down as the other comes up. Saved in the settings.
 - **How:** no new audio path. Each deck's headphone feed is set to the louder of "cued" and "as
   much as the room hears of it" (the crossfader, the deck's level, a fade-out), each scaled by the
@@ -825,7 +825,7 @@ not here. This file records what was decided and built, and why.
   song. On air it's locked, like the whole-song view, and says why. Right-click or long-press: the
   waveform's menu, with "here" where it was pressed.
 - **Nothing grows:** the hint, the "Analyzing…" label and the JUMP key sit in an `OverlayPanel`,
-  which lays them over the waveform without asking for room. Before, the analysing label (27 px)
+  which lays them over the waveform without asking for room. Before, the analyzing label (27 px)
   and a hint made a 24 px four-deck waveform, and so its deck, taller while they showed: a test
   checks a hint no longer does.
 - Next: dragging the start, end, jump and cue markers on it (issue #12, below).
@@ -873,7 +873,7 @@ not here. This file records what was decided and built, and why.
 
 ### Status: labels on the decks and queue, and renaming (2026-10-23, issue #13)
 
-- **Shown:** the same grey chips as the library's (`LabelChips`): on a deck after the artist (four
+- **Shown:** the same gray chips as the library's (`LabelChips`): on a deck after the artist (four
   decks: after the artist on the title line), and on a queue row after the artist (a size smaller
   there, so a row with labels is no taller: a test checks). `PriorityRow` lays them out: the title
   or artist takes the room it needs, the chips go straight after it in what's left, cut off at the
@@ -961,7 +961,7 @@ felt as if GZJam had stopped, and the panel dividers were hard to find by finger
   Turning auto-play off in the gap clears the countdown.
 - **The end of a song (#62):** as on CDJs, the big readout (whatever it shows) blinks slowly,
   dimmed for half of each second, in the last 30 s of the song the room hears, to
-  `Deck.Remaining` (which counts the trim, the tempo and armed jumps). Only on air; no colour
+  `Deck.Remaining` (which counts the trim, the tempo and armed jumps). Only on air; no color
   change. Could become a setting if it's found distracting.
 - **The dividers (#60):** a short grip in the middle of each 12 px gap (taller in touch mode), and
   in touch mode the splitter reaches 8 px into the panels either side (above them), so a finger
@@ -979,7 +979,7 @@ felt as if GZJam had stopped, and the panel dividers were hard to find by finger
   close to the music (worst 2 to 4 ms). Gentler still (smaller corrections, or nudging the speed
   instead) was smoother but drifted up to 100 ms from the music, so no.
 - **Blending:** zoomed in so far that a bar is shorter than a 10 ms slice, a bar takes a blend of
-  the two slices either side of its middle, rather than neighbouring bars repeating one slice.
+  the two slices either side of its middle, rather than neighboring bars repeating one slice.
 - **Not done:** snapping bars to whole pixels. At 175% the strip moves about 7.6 screen pixels a
   frame, so snapping would alternate 7 and 8, the very unevenness being removed.
 
@@ -1001,8 +1001,8 @@ rest of it.
     up and loudness matching (measured on the song as it is) roughly holds; GAIN covers the rest.
   - In the test, a tone with passages 20 dB apart ends up 6.9 dB apart at 100.
 - **The mid band's frequency** (`TrackEq.MidHz`): ◀ ▶ under the MID fader step through the
-  third-octave centres from 200 Hz to 5 kHz (a graphic EQ's bands), so it's precise and works by
-  touch; the frequency shows in the accent colour when moved, and tapping it goes back to 1 kHz.
+  third-octave centers from 200 Hz to 5 kHz (a graphic EQ's bands), so it's precise and works by
+  touch; the frequency shows in the accent color when moved, and tapping it goes back to 1 kHz.
   Moving it alone counts as EQ set (the chip lights), so it's saved.
 - Saved in the `eq` table (upgrade 17: `mid_hz`, `even`). *Flat* resets all of it.
 
@@ -1011,8 +1011,8 @@ rest of it.
 - **Where:** decks (64 px in the corner, before the title and artist; 24 px with four decks),
   queue rows (30 px), and a library Art column (22 px), hidden to start with. The deck's square
   is always there, so nothing moves when a picture appears. No picture (or no song): a dim record
-  in the deck's colour (neutral grey in the queue and library); never a made-up picture, a blurred
-  background or colours taken from the art.
+  in the deck's color (neutral gray in the queue and library); never a made-up picture, a blurred
+  background or colors taken from the art.
 - **Which picture** (`AlbumArtFinder`): the file's own (the front cover if marked, else the
   first), since it can differ per song; else the folder's `cover.*`, `folder.*`, `front.*` (also
   within a longer name like "Album - Front.jpg"), else its only image that isn't plainly the back,
@@ -1025,10 +1025,10 @@ rest of it.
   finding takes about 1 ms a song and a small copy about 2 ms, and 88% have a picture (55% in the
   file, 34% in the folder). Up to 300 pictures stay in memory. `GZJam.DevTools art <folder>`
   measures a library.
-- **The deck's number moved for it:** the coloured number square and the art were two squares
+- **The deck's number moved for it:** the colored number square and the art were two squares
   competing for one corner. The number is still needed (Load to Deck N, the mixer's 1/2 and 1+3
   / 2+4 keys, auto-play's "Next: Deck 2", History), so it's printed above the title as `DECK 1`
-  in the deck's colour, like a label on hardware, with ON AIR beside it. Four decks: just the
+  in the deck's color, like a label on hardware, with ON AIR beside it. Four decks: just the
   number before the art, and ON AIR's kept space at the end of the line, before EQ, rather than
   a gap between the number and the art.
 - **Settings:** `SeenColumns` makes a column added later start hidden in settings saved before it

@@ -41,7 +41,7 @@ public sealed class TouchDragTests
 
     /// <summary>
     /// A real finger: moves arrive a couple of pixels at a time and wobble up and down, so the
-    /// list starts reacting (its touch scrolling starts after 5 px) before a drag is recognised.
+    /// list starts reacting (its touch scrolling starts after 5 px) before a drag is recognized.
     /// </summary>
     private static void RealSwipe(MainWindow window, Point from, Point to, int holdMs = 0, Action? over = null)
     {
@@ -126,7 +126,7 @@ public sealed class TouchDragTests
         Point queue = queueArea.TranslatePoint(new Point(queueArea.Bounds.Width / 2, 40), app.Window)!.Value;
         Point from = RowPoint(app, song);
 
-        // Sideways, towards the queue: a drag. The tag rides above the finger.
+        // Sideways, toward the queue: a drag. The tag rides above the finger.
         new Finger(app.Window).Swipe(from, new Point(queue.X, from.Y + (queue.Y - from.Y) * 0.2), over: null);
         Assert.Equal([song], app.ViewModel.Queue.Items.Select(i => i.Track));
         Assert.False(app.Window.IsDragging);

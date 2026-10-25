@@ -17,10 +17,10 @@ internal static class About
             .Split('+')[0]   // leave out the commit the build adds
         ?? "?";
 
-    /// <summary>The licences of everything GZJam ships with, beside the program.</summary>
+    /// <summary>The licenses of everything GZJam ships with, beside the program.</summary>
     public static string NoticesPath => Path.Combine(AppContext.BaseDirectory, "THIRD-PARTY-NOTICES.txt");
 
-    /// <summary>The notices' opening list (who made what, under which licence), without the full texts.</summary>
+    /// <summary>The notices' opening list (who made what, under which license), without the full texts.</summary>
     public static string BuiltWith()
     {
         try

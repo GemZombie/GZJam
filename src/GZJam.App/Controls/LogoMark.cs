@@ -38,14 +38,14 @@ public sealed class LogoMark : Control
         {
             foreach (var bar in LogoShapes.Bars)
                 context.DrawLine(bar.Played ? PlayedBar : ToComeBar, new Point(bar.X1, bar.Y1), new Point(bar.X2, bar.Y2));
-            context.DrawLine(GBar, new Point(LogoShapes.GBarFrom, LogoShapes.Centre), new Point(LogoShapes.GBarTo, LogoShapes.Centre));
+            context.DrawLine(GBar, new Point(LogoShapes.GBarFrom, LogoShapes.Center), new Point(LogoShapes.GBarTo, LogoShapes.Center));
         }
         else
         {
             double half = LogoShapes.BarStep / 2;
             context.DrawGeometry(null, SolidPlayed, Arc(LogoShapes.RingStart - half, LogoShapes.PlayedTo + half));
             context.DrawGeometry(null, SolidToCome, Arc(LogoShapes.PlayedTo + half, LogoShapes.RingEnd + half));
-            context.DrawLine(SolidGBar, new Point(LogoShapes.GBarFrom, LogoShapes.Centre), new Point(LogoShapes.GBarTo, LogoShapes.Centre));
+            context.DrawLine(SolidGBar, new Point(LogoShapes.GBarFrom, LogoShapes.Center), new Point(LogoShapes.GBarTo, LogoShapes.Center));
         }
     }
 
@@ -53,8 +53,8 @@ public sealed class LogoMark : Control
     private static StreamGeometry Arc(double fromDegrees, double toDegrees)
     {
         static Point At(double degrees) => new(
-            LogoShapes.Centre + LogoShapes.Ring * Math.Cos(degrees * Math.PI / 180),
-            LogoShapes.Centre + LogoShapes.Ring * Math.Sin(degrees * Math.PI / 180));
+            LogoShapes.Center + LogoShapes.Ring * Math.Cos(degrees * Math.PI / 180),
+            LogoShapes.Center + LogoShapes.Ring * Math.Sin(degrees * Math.PI / 180));
 
         var geometry = new StreamGeometry();
         using (var g = geometry.Open())

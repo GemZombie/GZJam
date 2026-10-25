@@ -106,7 +106,7 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
-    public void Centre_crossfader_blends_at_equal_power()
+    public void Center_crossfader_blends_at_equal_power()
     {
         _mix.Crossfader = 0.5;
         A.Load(_tone);

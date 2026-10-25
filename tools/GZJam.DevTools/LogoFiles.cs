@@ -50,7 +50,7 @@ internal static class LogoFiles
         var s = new StringBuilder("<g>");
         foreach (var bar in LogoShapes.Bars)
             s.Append($"""<line x1="{N(bar.X1)}" y1="{N(bar.Y1)}" x2="{N(bar.X2)}" y2="{N(bar.Y2)}" stroke="{(bar.Played ? theme.Played : theme.ToCome)}" stroke-width="{N(LogoShapes.BarWidth)}"/>""");
-        s.Append($"""<line x1="{N(LogoShapes.GBarFrom)}" y1="{N(LogoShapes.Centre)}" x2="{N(LogoShapes.GBarTo)}" y2="{N(LogoShapes.Centre)}" stroke="{theme.Played}" stroke-width="{N(LogoShapes.GBarWidth)}"/>""");
+        s.Append($"""<line x1="{N(LogoShapes.GBarFrom)}" y1="{N(LogoShapes.Center)}" x2="{N(LogoShapes.GBarTo)}" y2="{N(LogoShapes.Center)}" stroke="{theme.Played}" stroke-width="{N(LogoShapes.GBarWidth)}"/>""");
         return s.Append("</g>").ToString();
     }
 
@@ -59,10 +59,10 @@ internal static class LogoFiles
         var s = new StringBuilder();
         foreach (var letter in LogoShapes.Letters)
         {
-            string colour = solid ? theme.Ink : letter.Played ? theme.Played : theme.ToCome;
+            string color = solid ? theme.Ink : letter.Played ? theme.Played : theme.ToCome;
             string paint = letter.Filled
-                ? $"""fill="{colour}" """
-                : $"""fill="none" stroke="{colour}" stroke-width="{N(LogoShapes.LetterStroke)}" """;
+                ? $"""fill="{color}" """
+                : $"""fill="none" stroke="{color}" stroke-width="{N(LogoShapes.LetterStroke)}" """;
             s.Append($"""<path transform="translate({N(letter.X)} 0)" d="{letter.Path}" {paint}/>""");
         }
         return s.ToString();
@@ -101,7 +101,7 @@ internal static class LogoFiles
         return Svg(-1, -1, LogoShapes.WordWidth + 2, LogoShapes.CapHeight + 2, body, defs);
     }
 
-    /// <summary>The icon beside the name: the name's cap height is 0.41 of the icon, centred on it.</summary>
+    /// <summary>The icon beside the name: the name's cap height is 0.41 of the icon, centerd on it.</summary>
     private static string Logo(Theme theme)
     {
         const double Cap = 26, Gap = 19;

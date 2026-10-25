@@ -79,7 +79,7 @@ public sealed class SessionMenuTests
         };
         var delete = app.Window.FindControl<MenuItem>("DeleteSessionItem")!;
 
-        // Cancelled: nothing changes.
+        // Canceled: nothing changes.
         delete.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         AppHarness.Settle(100);
         Assert.StartsWith("Delete \"Sat Oct 17, 2026", asked);

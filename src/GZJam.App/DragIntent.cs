@@ -6,7 +6,7 @@ namespace GZJam.App;
 /// <summary>
 /// Decides when a press-and-move becomes a drag. With a mouse, any movement past a few pixels
 /// drags. With touch (or pen), a vertical swipe must stay a scroll, so lists only drag on a
-/// mostly sideways swipe (towards the queue and decks), or when started from a drag handle.
+/// mostly sideways swipe (toward the queue and decks), or when started from a drag handle.
 /// </summary>
 public static class DragIntent
 {

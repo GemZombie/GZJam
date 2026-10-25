@@ -17,7 +17,7 @@ public sealed class DragIntentTests
     [InlineData(5, 8, Decision.Wait)]      // not far enough to tell yet
     [InlineData(2, 30, Decision.Cancel)]   // vertical swipe = scroll the list
     [InlineData(20, 18, Decision.Cancel)]  // diagonal is ambiguous; prefer scrolling
-    [InlineData(40, 6, Decision.Drag)]     // sideways swipe towards the queue = drag
+    [InlineData(40, 6, Decision.Drag)]     // sideways swipe toward the queue = drag
     public void Touch_scrolls_vertically_and_drags_sideways(double dx, double dy, Decision expected) =>
         Assert.Equal(expected, Evaluate(PointerType.Touch, new Vector(dx, dy), fromHandle: false));
 

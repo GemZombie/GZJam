@@ -22,7 +22,7 @@ public partial class TouchStyles : Avalonia.Styling.Styles
         {
             app.Styles.Add(_instance);
             // The app's own resources are found before a style's, so the sizes in App.axaml are
-            // swapped for touch mode's and put back afterwards.
+            // swapped for touch mode's and put back afterward.
             foreach (var (key, value) in _instance.Resources)
             {
                 _usualSizes[key] = app.Resources.TryGetValue(key, out object? usual) ? usual : null;

@@ -79,7 +79,7 @@ For a release you'd use at a dance, test your real library.
 - [ ] **Speakers and headphones on separate outputs:** the room hears only the deck the crossfader
       is on; the headphones hear only cued decks and the preview. A preview is *never* heard in
       the speakers.
-- [ ] **Phones mix:** turning it towards MAIN brings the room into the headphones.
+- [ ] **Phones mix:** turning it toward MAIN brings the room into the headphones.
 - [ ] **Mono** (on by default): a song with an instrument on one side plays it on both.
 - [ ] Two loud songs blended light the **LIMIT** light, and the sound doesn't distort.
 - [ ] Moving the crossfader, the tempo and the volumes makes **no crackles**. If it does, turn on
@@ -121,7 +121,7 @@ Do each while a song is playing to the room.
       (Windows: Task Manager › End task; Mac: Activity Monitor › Force Quit; Linux: `kill -9`).
       Open it again: "GZJam didn't close normally", the queue as it was, and the decks with their
       songs, paused where they were, at their tempo and cue. Nothing plays until you press play.
-- [ ] Afterwards, read the activity log for `ERROR` lines.
+- [ ] Afterward, read the activity log for `ERROR` lines.
 
 ### Screen and input
 - [ ] At the computer's usual scaling (and at 150% or more on a high-resolution screen), nothing
@@ -143,8 +143,8 @@ Do each while a song is playing to the room.
 - [ ] With the speakers also Windows' default output, Settings › Sound says other programs may
       refuse to play while GZJam is open; check that's what happens, and that choosing another
       default in Windows' Sound settings lets them play again.
-- [ ] The title bar: GZJam's own top bar moves the window, double-click maximises, and the
-      minimise, maximise and close keys work.
+- [ ] The title bar: GZJam's own top bar moves the window, double-click maximizes, and the
+      minimize, maximize and close keys work.
 - [ ] **Uninstall** (Settings › Apps): GZJam goes, and reinstalling finds your library still there.
 
 ## macOS

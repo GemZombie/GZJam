@@ -10,7 +10,7 @@ namespace GZJam.App.Controls;
 
 /// <summary>
 /// The startup screen's logo (issue #49): the waveform G's bars rise into place, then the played
-/// colour sweeps round the ring and on along the name as GZJam gets ready (<see cref="BeginStep"/>,
+/// color sweeps round the ring and on along the name as GZJam gets ready (<see cref="BeginStep"/>,
 /// <see cref="Finish"/>). It's drawn on Avalonia's render thread, which keeps going while the UI
 /// thread is busy building the main window, so it moves when nothing else can.
 /// </summary>
@@ -58,7 +58,7 @@ public sealed class StartupLogo : Control
     }
 
     /// <summary>
-    /// The name in bars, all in one colour, as an image for the render thread (which can draw
+    /// The name in bars, all in one color, as an image for the render thread (which can draw
     /// images, but not the letters' shapes). Copied out of the render target, so nothing draws on
     /// it again.
     /// </summary>
@@ -183,7 +183,7 @@ internal sealed class StartupLogoHandler : CompositionCustomVisualHandler
         {
             var pen = new ImmutablePen(ring > 0 ? PlayedBrush : ToComeBrush, LogoShapes.GBarWidth * k);
             double from = LogoShapes.GBarTo - (LogoShapes.GBarTo - LogoShapes.GBarFrom) * slide;
-            context.DrawLine(pen, Map(from, LogoShapes.Centre), Map(LogoShapes.GBarTo, LogoShapes.Centre));
+            context.DrawLine(pen, Map(from, LogoShapes.Center), Map(LogoShapes.GBarTo, LogoShapes.Center));
         }
     }
 

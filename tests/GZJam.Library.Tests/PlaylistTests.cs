@@ -85,7 +85,7 @@ public sealed class PlaylistTests : IDisposable
         var second = _lib.Database.CreatePlaylist("saturday");
         Assert.Equal(("Saturday", "saturday 2"), (first.Name, second.Name));
         Assert.Equal("Saturday 2", _lib.Database.RenamePlaylist(second.Id, "Saturday"));   // taken: the next number
-        Assert.Equal("saturday", _lib.Database.RenamePlaylist(first.Id, "saturday"));      // its own name, recapitalised
+        Assert.Equal("saturday", _lib.Database.RenamePlaylist(first.Id, "saturday"));      // its own name, recapitalized
         Assert.Throws<ArgumentException>(() => _lib.Database.CreatePlaylist("  "));
 
         _lib.Database.AddToPlaylist(first.Id, [a]);

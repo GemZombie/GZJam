@@ -16,7 +16,7 @@ public readonly record struct CueMarker(double At, int Number);
 /// <summary>
 /// A track's overview waveform with a playhead; press or drag to seek (mouse, touch or pen).
 /// Each bar's solid body is how loud that moment is, with its peaks as a faint outline; bars are
-/// coloured by frequency (red bass, green mids, blue highs, blending between). The part already
+/// colored by frequency (red bass, green mids, blue highs, blending between). The part already
 /// played is dimmed, and the silence trimmed off either end is shaded. Until the waveform is
 /// ready it's a plain position bar. Its markers (the start and end, jumps, cues) can be dragged.
 /// </summary>
@@ -203,7 +203,7 @@ public sealed class SeekBar : Control
             return;
 
         double x = Math.Clamp(Progress, 0, 1) * bounds.Width;
-        double centre = bounds.Height / 2;
+        double center = bounds.Height / 2;
 
         if (Waveform is { } waveform)
         {
@@ -211,8 +211,8 @@ public sealed class SeekBar : Control
         }
         else
         {
-            // Not analyzed yet. Unplayed: a thin centre line. Played: a softer filled band.
-            context.DrawRectangle(new SolidColorBrush(Colors.White, 0.08), null, new Rect(10, centre - 0.5, Math.Max(0, bounds.Width - 20), 1));
+            // Not analyzed yet. Unplayed: a thin center line. Played: a softer filled band.
+            context.DrawRectangle(new SolidColorBrush(Colors.White, 0.08), null, new Rect(10, center - 0.5, Math.Max(0, bounds.Width - 20), 1));
             if (x > 0)
             {
                 using (context.PushOpacity(CanSeek ? 0.28 : 0.18))
@@ -238,7 +238,7 @@ public sealed class SeekBar : Control
     internal static readonly IBrush RepeatShade = new ImmutableSolidColorBrush(Color.FromArgb(40, 0x9D, 0xBE, 0xE6));
 
     /// <summary>
-    /// Each jump: a marker where it leaves (with an arrow towards where it lands) and where it lands.
+    /// Each jump: a marker where it leaves (with an arrow toward where it lands) and where it lands.
     /// An armed forward jump shades the part it skips; an armed backward one tints the part it repeats.
     /// </summary>
     private void DrawJumps(DrawingContext context, Rect bounds)
@@ -369,7 +369,7 @@ public sealed class SeekBar : Control
         int count = (int)(bounds.Width / BarStep);
         if (count == 0 || waveform.Count == 0 || waveform.Peak == 0 || waveform.LoudnessPeak == 0)
             return [];
-        double centre = bounds.Height / 2, reach = centre - 3;
+        double center = bounds.Height / 2, reach = center - 3;
         double maxPeak = Waveform.Decode(waveform.Peak), maxLoudness = Waveform.Decode(waveform.LoudnessPeak);
         var bars = new (Rect, Rect, IBrush, IBrush, IBrush)[count];
         for (int i = 0; i < count; i++)
@@ -386,22 +386,22 @@ public sealed class SeekBar : Control
             // The body: loudness, with the loudest moment filling the height. The outline: peaks.
             double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
             double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
-            Color colour = BandColour(low, mid, high);
+            Color color = BandColor(low, mid, high);
             double x = i * BarStep;
-            bars[i] = (new Rect(x, centre - body, BarWidth, body * 2),
-                new Rect(x, centre - peak, BarWidth, peak * 2),
-                new ImmutableSolidColorBrush(colour),
-                new ImmutableSolidColorBrush(colour, 0.3),
-                new ImmutableSolidColorBrush(colour, 0.22));
+            bars[i] = (new Rect(x, center - body, BarWidth, body * 2),
+                new Rect(x, center - peak, BarWidth, peak * 2),
+                new ImmutableSolidColorBrush(color),
+                new ImmutableSolidColorBrush(color, 0.3),
+                new ImmutableSolidColorBrush(color, 0.22));
         }
         return bars;
     }
 
     /// <summary>Red for bass, green for mids, blue for highs, mixed by how strong each band is.</summary>
-    internal static Color BandColour(byte low, byte mid, byte high)
+    internal static Color BandColor(byte low, byte mid, byte high)
     {
         // Stored values are square roots of the level, so the 4th power is the level squared,
-        // which lets the strongest band dominate the colour.
+        // which lets the strongest band dominate the color.
         static double Weight(byte b) => Math.Pow(b / 255.0, 4);
         double l = Weight(low), m = Weight(mid), h = Weight(high);
         double r = 1.00 * l + 0.25 * m + 0.30 * h;
@@ -411,10 +411,10 @@ public sealed class SeekBar : Control
         if (max <= 0)
             return Color.FromRgb(120, 120, 120);
         (r, g, b) = (r / max, g / max, b / max);
-        // Less saturated and a little darker than pure band colours: easier on the eye in a dark room.
-        double grey = 0.3 * r + 0.55 * g + 0.15 * b;
-        static byte Tone(double c, double grey) => (byte)(255 * 0.9 * (0.72 * c + 0.28 * grey));
-        return Color.FromRgb(Tone(r, grey), Tone(g, grey), Tone(b, grey));
+        // Less saturated and a little darker than pure band colors: easier on the eye in a dark room.
+        double gray = 0.3 * r + 0.55 * g + 0.15 * b;
+        static byte Tone(double c, double gray) => (byte)(255 * 0.9 * (0.72 * c + 0.28 * gray));
+        return Color.FromRgb(Tone(r, gray), Tone(g, gray), Tone(b, gray));
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

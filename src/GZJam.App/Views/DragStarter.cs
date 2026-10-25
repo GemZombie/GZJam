@@ -13,14 +13,14 @@ namespace GZJam.App.Views;
 /// turns into one:
 /// <list type="bullet">
 /// <item>A mouse drags as soon as it moves a few pixels.</item>
-/// <item>A finger or pen drags on a mostly sideways swipe (towards the queue and decks), or from a
+/// <item>A finger or pen drags on a mostly sideways swipe (toward the queue and decks), or from a
 /// drag handle; an up-and-down swipe scrolls the list.</item>
 /// <item>A finger held still for a moment picks the song up: it then drags in any direction (up
 /// to a deck, say). Lifted without moving, it opens the list's menu instead, as a right-click
 /// would.</item>
 /// </list>
 /// Found by driving GZJam with real Windows touch input: the list's own touch scrolling took the
-/// finger after 5 px, before a drag could be recognised (see <see cref="LetDragsDecideFirst"/>),
+/// finger after 5 px, before a drag could be recognized (see <see cref="LetDragsDecideFirst"/>),
 /// and a finger's press didn't always select its row, so the drag now carries the row under the
 /// finger (with the rest of the selection if that row is selected).
 /// </summary>
@@ -85,7 +85,7 @@ internal sealed class DragStarter
 
     /// <summary>
     /// The list's touch scrolling starts after 5 px of movement, either way, and from then on keeps
-    /// the finger's moves to itself: a drag could never be recognised (it takes 14 px). So the
+    /// the finger's moves to itself: a drag could never be recognized (it takes 14 px). So the
     /// list's scrolling waits a little longer than the drag decision does: a sideways swipe becomes
     /// a drag first, and an up-and-down one is handed to the list to scroll.
     /// </summary>

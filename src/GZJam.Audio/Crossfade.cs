@@ -3,7 +3,7 @@ namespace GZJam.Audio;
 /// <summary>
 /// How the crossfader fades the room between the decks. It only affects the main (speaker)
 /// output; what goes to the headphones is chosen per deck with its cue button.
-/// "Audibility" is how far the fader leans towards a deck: 1 = all the way to it, 0 = away.
+/// "Audibility" is how far the fader leans toward a deck: 1 = all the way to it, 0 = away.
 /// Equal-power curve, so a blend in the middle doesn't dip in volume.
 /// </summary>
 public static class Crossfade

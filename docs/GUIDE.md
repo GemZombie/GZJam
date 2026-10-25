@@ -149,7 +149,7 @@ hearing it blinks slowly. When auto-play is about to start this deck, the status
 - **Moving around:** off air, click or tap the whole song to go there, or drag the close-up like a
   record. **On air it's locked**, so a stray touch can't jump the music; tapping it says how to
   unlock it (move the crossfader off that deck). Cue keys and jumps still work on air.
-- **The colours:** red is bass, green mids, blue highs. The shaded parts at either end are silence
+- **The colors:** red is bass, green mids, blue highs. The shaded parts at either end are silence
   GZJam skips.
 
 ### Where a song starts and ends
@@ -360,7 +360,7 @@ The gear in the top bar. Music keeps playing while it's open; DONE, Escape or a 
 
 - **Sound:** Speakers, Headphones, *One output for both*, Booth and *Booth volume*, *Speakers for
   GZJam alone* (Windows), **Mono** (on: the room and headphones play mono, so the whole floor hears
-  instruments recorded on one side), **Match loudness** (on: songs are turned towards the same
+  instruments recorded on one side), **Match loudness** (on: songs are turned toward the same
   loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), and **Extra
   protection against crackles**.
 - **Decks:** *Four decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
@@ -475,7 +475,7 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 | **Mouse wheel** or **pinch** on a waveform | zoom |
 | **Double-tap** the tempo or an EQ fader | back to 0 |
 
-**By touch:** everything works by finger. In the song list, swipe sideways (towards the queue and
+**By touch:** everything works by finger. In the song list, swipe sideways (toward the queue and
 decks) to drag a song, up and down to scroll; press and hold to pick one up and drag it anywhere,
 or lift without moving for its menu. In the queue, drag by the ⋮⋮ grip. Faders move by as much as
 your finger does, so a slightly missed cap never jumps.

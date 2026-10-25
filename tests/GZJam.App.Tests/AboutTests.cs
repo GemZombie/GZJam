@@ -6,7 +6,7 @@ using GZJam.App.Views;
 
 namespace GZJam.App.Tests;
 
-/// <summary>Settings › About, and the licence notices every package carries.</summary>
+/// <summary>Settings › About, and the license notices every package carries.</summary>
 public sealed class AboutTests
 {
     [AvaloniaFact]
@@ -93,7 +93,7 @@ public sealed class AboutTests
     }
 
     /// <summary>
-    /// A library added to GZJam needs its licence in THIRD-PARTY-NOTICES.txt: this fails until its
+    /// A library added to GZJam needs its license in THIRD-PARTY-NOTICES.txt: this fails until its
     /// name (or its family's, like Avalonia for Avalonia.Win32) is in the opening list.
     /// </summary>
     [Fact]

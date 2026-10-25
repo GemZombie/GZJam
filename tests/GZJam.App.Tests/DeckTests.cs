@@ -13,7 +13,7 @@ namespace GZJam.App.Tests;
 /// <summary>Decks, crossfader, deck protection and headphone preview, through the real window and an offline mixer.</summary>
 public sealed class DeckTests
 {
-    private static Point Centre(AppHarness app, string deckView)
+    private static Point Center(AppHarness app, string deckView)
     {
         var view = app.Window.FindControl<DeckView>(deckView)!;
         return view.TranslatePoint(new Point(view.Bounds.Width / 2, view.Bounds.Height / 2), app.Window)!.Value;
@@ -21,7 +21,7 @@ public sealed class DeckTests
 
     /// <summary>Drags a track onto a deck and lets go (or only holds it over the deck).</summary>
     private static void Drop(AppHarness app, string deckView, Track track, bool release = true) =>
-        app.DragTracks(new MainWindow.TrackDrag([track], null), Centre(app, deckView), release);
+        app.DragTracks(new MainWindow.TrackDrag([track], null), Center(app, deckView), release);
 
     [AvaloniaFact]
     public void Dropping_a_track_on_a_deck_loads_it()
@@ -341,7 +341,7 @@ public sealed class DeckTests
         // With the mouse, from the song's row in the queue to the deck.
         var row = (Control)app.Window.FindControl<ListBox>("QueueList")!.ContainerFromIndex(1)!;
         Point from = row.TranslatePoint(new Point(80, row.Bounds.Height / 2), app.Window)!.Value;
-        app.MouseDrag(from, Centre(app, "Deck2View"));
+        app.MouseDrag(from, Center(app, "Deck2View"));
 
         Assert.Equal(second, app.ViewModel.Deck2!.Track);
         Assert.Equal([first], queue.Items.Select(i => i.Track));

@@ -22,7 +22,7 @@ public sealed class SearchAppTests
 
     /// <summary>
     /// Clicked, the BPM and Label buttons (and a compact deck's ⋯) open their menus with every
-    /// choice showing. Filled only as they opened, they used to open empty: a thin grey sliver
+    /// choice showing. Filled only as they opened, they used to open empty: a thin gray sliver
     /// of border under the button.
     /// </summary>
     [AvaloniaTheory]

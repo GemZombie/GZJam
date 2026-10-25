@@ -74,8 +74,8 @@ const wordmarks = {
       <mask id="m-bars-${t.key}"><rect x="-1" y="-1" width="${W + 2}" height="22" fill="url(#stripes-${t.key})"/></mask></defs>
       <g mask="url(#m-bars-${t.key})">${word("GZJAM", c => "GZ".includes(c) ? t.lit : t.unlit)}</g></svg>`,
 
-  // 2: every letter split along the centre line, as a waveform is mirrored around it; the G's bar
-  // sits in the cut and carries the colour.
+  // 2: every letter split along the center line, as a waveform is mirrored around it; the G's bar
+  // sits in the cut and carries the color.
   line: t => `<svg viewBox="-1 -1 ${W + 2} 22"><defs>
       <mask id="m-line-${t.key}"><rect x="-1" y="-1" width="${W + 2}" height="22" fill="#fff"/><rect x="-1" y="9.15" width="${W + 2}" height="1.7" fill="#000"/></mask></defs>
       <g mask="url(#m-line-${t.key})">${word("GZJAM", () => t.ink, { bar: false })}</g>
@@ -96,8 +96,8 @@ document.getElementById("defs").innerHTML = `<defs>
   <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E232C"/><stop offset="1" stop-color="#0C0F14"/></linearGradient></defs>`;
 
 const concepts = [
-  { id: "bars", name: "1 · Waveform letters", text: "Every letter is cut into bars, like the icon's waveform. GZ is coloured as the played part, JAM is still to come. The most distinctive, and it animates naturally: the colour can sweep along the word as a song plays or as GZJam loads." },
-  { id: "line", name: "2 · Split", text: "Every letter is split along its centre line, the way a waveform is mirrored around one, and the G's bar carries the colour. Solid letters, so it stays readable at any size." },
+  { id: "bars", name: "1 · Waveform letters", text: "Every letter is cut into bars, like the icon's waveform. GZ is colored as the played part, JAM is still to come. The most distinctive, and it animates naturally: the color can sweep along the word as a song plays or as GZJam loads." },
+  { id: "line", name: "2 · Split", text: "Every letter is split along its center line, the way a waveform is mirrored around one, and the G's bar carries the color. Solid letters, so it stays readable at any size." },
   { id: "icon", name: "3 · The icon is the G", text: "The waveform G replaces the first letter, so the logo and the name are one thing. Works best large: on the website, in videos, on the startup screen." },
 ];
 

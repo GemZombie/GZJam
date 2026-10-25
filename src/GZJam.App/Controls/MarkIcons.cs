@@ -7,7 +7,7 @@ using GZJam.Library;
 namespace GZJam.App.Controls;
 
 /// <summary>
-/// A track's rating: a red heart (I'd play it), a grey broken heart (I wouldn't), or a faint
+/// A track's rating: a red heart (I'd play it), a gray broken heart (I wouldn't), or a faint
 /// outline when unrated, so there's always something to tap. Drawn rather than an emoji, which
 /// not every system's fonts have.
 /// </summary>

@@ -21,7 +21,7 @@ public sealed class AlbumArt : Control
     public static readonly StyledProperty<string?> SongPathProperty =
         AvaloniaProperty.Register<AlbumArt, string?>(nameof(SongPath));
 
-    /// <summary>The colour of the record drawn when there's no art (the deck's colour).</summary>
+    /// <summary>The color of the record drawn when there's no art (the deck's color).</summary>
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<AlbumArt, IBrush?>(nameof(Accent));
 
@@ -135,25 +135,25 @@ public sealed class AlbumArt : Control
             return;
         }
 
-        // No art: a dim record in the deck's colour.
+        // No art: a dim record in the deck's color.
         context.DrawRectangle(Well, Edge, new RoundedRect(square.Deflate(0.5), radius));
         IBrush ink = Accent ?? Neutral;
-        Point centre = square.Center;
+        Point center = square.Center;
         double r = size * 0.38;
         using (context.PushOpacity(0.16))
-            context.DrawEllipse(ink, null, centre, r, r);
+            context.DrawEllipse(ink, null, center, r, r);
         if (size >= 32)
         {
             // Grooves, only where there's room to see them.
             var groove = new Pen(ink, 0.8);
             using (context.PushOpacity(0.22))
             {
-                context.DrawEllipse(null, groove, centre, r * 0.8, r * 0.8);
-                context.DrawEllipse(null, groove, centre, r * 0.6, r * 0.6);
+                context.DrawEllipse(null, groove, center, r * 0.8, r * 0.8);
+                context.DrawEllipse(null, groove, center, r * 0.6, r * 0.6);
             }
         }
         using (context.PushOpacity(0.45))
-            context.DrawEllipse(ink, null, centre, r * 0.36, r * 0.36);
-        context.DrawEllipse(Well, null, centre, Math.Max(1, r * 0.08), Math.Max(1, r * 0.08));
+            context.DrawEllipse(ink, null, center, r * 0.36, r * 0.36);
+        context.DrawEllipse(Well, null, center, Math.Max(1, r * 0.08), Math.Max(1, r * 0.08));
     }
 }

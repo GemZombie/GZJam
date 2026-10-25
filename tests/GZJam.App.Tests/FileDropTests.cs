@@ -28,13 +28,13 @@ public sealed class FileDropTests
         return data;
     }
 
-    private static Point Centre(AppHarness app, Control control) =>
+    private static Point Center(AppHarness app, Control control) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), app.Window)!.Value;
 
     private static Point DeckPoint(AppHarness app, string name = "Deck1View") =>
-        Centre(app, app.Window.FindControl<DeckView>(name)!);
+        Center(app, app.Window.FindControl<DeckView>(name)!);
 
-    private static Point QueuePoint(AppHarness app) => Centre(app, app.Window.FindControl<Panel>("QueueArea")!);
+    private static Point QueuePoint(AppHarness app) => Center(app, app.Window.FindControl<Panel>("QueueArea")!);
 
     /// <summary>Drags <paramref name="data"/> in from outside the window, over <paramref name="at"/>, as the system does.</summary>
     private static void DragOver(AppHarness app, Point at, DataTransfer data)

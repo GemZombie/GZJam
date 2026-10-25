@@ -14,7 +14,7 @@ public readonly record struct TrackEq(double Low, double Mid, double High, doubl
     /// <summary>Where the mid band sits unless the DJ moves it.</summary>
     public const double DefaultMidHz = 1000;
 
-    /// <summary>Where the mid band can go: the third-octave centres a graphic EQ uses, 200 Hz to 5 kHz.</summary>
+    /// <summary>Where the mid band can go: the third-octave centers a graphic EQ uses, 200 Hz to 5 kHz.</summary>
     public static readonly IReadOnlyList<double> MidFrequencies =
         [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000];
 

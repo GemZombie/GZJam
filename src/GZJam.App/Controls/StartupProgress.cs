@@ -3,7 +3,7 @@ namespace GZJam.App.Controls;
 /// <summary>
 /// How far the startup screen's sweep has got, 0 to 1. Startup reports each step as it begins,
 /// with the share of the sweep it covers. How long a step will take isn't known, so within one the
-/// sweep creeps on towards the step's end, slowing and never quite reaching it: a slow step shows
+/// sweep creeps on toward the step's end, slowing and never quite reaching it: a slow step shows
 /// as a slow sweep, not a frozen one. The value shown follows smoothly and never goes back.
 /// </summary>
 internal sealed class StartupProgress

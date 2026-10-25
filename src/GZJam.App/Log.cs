@@ -4,7 +4,7 @@ namespace GZJam.App;
 
 /// <summary>
 /// A plain-text activity log (one file per day, two weeks kept) so problems at a gig can be
-/// traced afterwards: what was pressed, what the decks did, and any errors.
+/// traced afterward: what was pressed, what the decks did, and any errors.
 /// Lives next to the library database, in a "logs" folder.
 /// </summary>
 internal static class Log

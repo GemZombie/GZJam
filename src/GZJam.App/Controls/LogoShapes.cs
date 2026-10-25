@@ -2,7 +2,7 @@ namespace GZJam.App.Controls;
 
 /// <summary>
 /// The shapes of GZJam's logo: a waveform wrapped into a G, and the name, GZJAM, in drawn letters
-/// cut into bars like a waveform (GZ coloured as the part of a song already played, JAM as the part
+/// cut into bars like a waveform (GZ colored as the part of a song already played, JAM as the part
 /// still to come). The app draws them (<see cref="LogoMark"/>, <see cref="Wordmark"/>), and so does
 /// the developer tool that writes the app icons and the SVG files in branding/
 /// (tools/GZJam.DevTools/LogoFiles.cs links this file), so every copy of the logo is the same.
@@ -10,7 +10,7 @@ namespace GZJam.App.Controls;
 /// </summary>
 public static class LogoShapes
 {
-    // ---- Colours ----
+    // ---- Colors ----
 
     /// <summary>The played part: Deck 1's cyan.</summary>
     public const string Played = "#36C2DC";
@@ -25,14 +25,14 @@ public static class LogoShapes
 
     // ---- The waveform G, in a 64-unit square ----
 
-    public const double Centre = 32, Ring = 18;
+    public const double Center = 32, Ring = 18;
     public const double BarWidth = 1.9;
 
     /// <summary>Where the bars reach, with a little room: the mark without its tile.</summary>
     public const double MarkLeft = 6.2, MarkSize = 51.6;
 
     /// <summary>The G's own bar, from the middle out to the ring's opening.</summary>
-    public const double GBarFrom = 33, GBarTo = Centre + Ring + 5, GBarWidth = 3.4;
+    public const double GBarFrom = 33, GBarTo = Center + Ring + 5, GBarWidth = 3.4;
 
     /// <summary>The ring runs clockwise from <see cref="RingStart"/>° (0° is 3 o'clock) to <see cref="RingEnd"/>°, opening at the top right.</summary>
     public const double RingStart = 18, RingEnd = 306, BarStep = 9, PlayedTo = 160;
@@ -54,8 +54,8 @@ public static class LogoShapes
             double envelope = 0.55 + 0.45 * Math.Pow(Math.Sin(i * 0.42 + 0.6), 2);
             double h = 1.6 + 5.2 * envelope * Accents[i % 4];
             double a = deg * Math.PI / 180, cos = Math.Cos(a), sin = Math.Sin(a);
-            bars.Add(new Bar(Centre + (Ring - h) * cos, Centre + (Ring - h) * sin,
-                             Centre + (Ring + h) * cos, Centre + (Ring + h) * sin, deg <= PlayedTo));
+            bars.Add(new Bar(Center + (Ring - h) * cos, Center + (Ring - h) * sin,
+                             Center + (Ring + h) * cos, Center + (Ring + h) * sin, deg <= PlayedTo));
         }
         return [.. bars];
     }

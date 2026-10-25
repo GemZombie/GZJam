@@ -21,7 +21,7 @@ public sealed class LabelsAppTests
         Assert.Equal(expected, LibraryViewModel.ReplaceLabelFilter(text, label));
 
     [AvaloniaFact]
-    public void Labelling_songs_shows_on_every_copy_and_the_button_filters_by_it()
+    public void Labeling_songs_shows_on_every_copy_and_the_button_filters_by_it()
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;

@@ -190,7 +190,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// The ranges offered when a tempo was detected wrongly. Each is under double, so there's
-    /// only one choice between half and double time; neighbours overlap.
+    /// only one choice between half and double time; neighbors overlap.
     /// </summary>
     public static IReadOnlyList<(BpmRange Range, string Label)> BpmRanges { get; } =
     [
@@ -250,7 +250,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Log.Info($"BPM for {what}: {(bpm is { } b ? Format.Bpm(b) + " (typed)" : "automatic")}");
     }
 
-    /// <summary>Settings › Import from Mixxx; afterwards, the library, labels and History show what came over.</summary>
+    /// <summary>Settings › Import from Mixxx; afterward, the library, labels and History show what came over.</summary>
     public MixxxImportViewModel CreateMixxxImport() => new(_database, _ =>
     {
         Library.LabelsChanged();

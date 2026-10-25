@@ -72,14 +72,14 @@ reporting problems and sharing ideas help just as much.
 - TagLib# — tag reading (GZJam never writes to music files)
 - SQLite — library, play history, notes
 
-## Licence
+## License
 
-GZJam's own code is under the [MIT licence](LICENSE). It's built with other people's software,
-each under its own licence, listed in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). BASS
+GZJam's own code is under the [MIT license](LICENSE). It's built with other people's software,
+each under its own license, listed in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). BASS
 (in `lib/bass/`) isn't open source: it's free for software that isn't sold, which is how GZJam
 uses it. Donations are asked for here and on GitHub only, never inside GZJam, and donors get
 nothing extra, which un4seen says keeps BASS free to use. Selling GZJam, or asking for money inside
-it, would need a licence from [un4seen](https://www.un4seen.com/).
+it, would need a license from [un4seen](https://www.un4seen.com/).
 
 ## Running from source
 

@@ -559,7 +559,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 Log.Info(t.IsCompletedSuccessfully
                     ? $"Library list ({why}): {Format.Count(t.Result.Count)} songs in {started.ElapsedMilliseconds} ms" +
                       (version == _searchVersion ? "" : ", replaced by a newer search")
-                    : $"Library list ({why}): {(t.IsCanceled ? "cancelled by a newer search" : "failed")} after {started.ElapsedMilliseconds} ms");
+                    : $"Library list ({why}): {(t.IsCanceled ? "canceled by a newer search" : "failed")} after {started.ElapsedMilliseconds} ms");
             if (version == _searchVersion)
                 Dispatcher.UIThread.Post(() =>
                 {

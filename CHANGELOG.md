@@ -17,6 +17,11 @@ Fixed:
 - **Settings › About's links say where they go:** *User guide · GZJam on GitHub*. The project's
   address beside *User guide* read as the guide's own address, so it was clicked instead.
 
+Changed:
+
+- **American spelling throughout:** *color*, *center*, *gray*, *license* and the rest, in GZJam
+  itself (*Full license texts*, *Maximize*) and in the guide.
+
 ## 0.8.0 (2026-10-25)
 
 New:
@@ -137,7 +142,7 @@ Fixed:
   started over. Now they all go with it, whether GZJam was open or not, as long as it stays in
   the same music folder you added.
 - **The BPM and Label menus by the search open with their choices again.** A click opened them
-  empty, just a thin grey line under the button. A compact deck's ⋯ menu (with four decks) had
+  empty, just a thin gray line under the button. A compact deck's ⋯ menu (with four decks) had
   the same fault.
 - **A library a newer GZJam has updated no longer makes GZJam close without a word.** Going back
   to an older GZJam (or from a test build) used to make it vanish as it started; now it says
@@ -152,7 +157,7 @@ New:
 - **Album art on the decks and queue,** small, to see at a glance that the right record is on the
   right deck. It's the picture in the song's file, or failing that the cover in its folder
   (`cover.jpg`, `folder.jpg`, `front.jpg`, or the folder's only picture). A song without one shows
-  a dim record in the deck's colour. The library has an Art column too, hidden to start with
+  a dim record in the deck's color. The library has an Art column too, hidden to start with
   (right-click a column heading to show it): an album's songs all share one picture, so in a long
   list it doesn't tell them apart. GZJam keeps small copies of the pictures in its own folder;
   your music files are never changed, and nothing is downloaded.
@@ -176,8 +181,8 @@ Changed:
 
 - **The dividers between the folders, library and queue have a grip** to show where to drag
   them, and in touch mode a finger needn't land exactly in the gap.
-- **A deck's number is printed above its title,** as *DECK 1* in the deck's colour, with ON AIR
-  beside it while the room hears it, rather than in a coloured square beside the title. The album
+- **A deck's number is printed above its title,** as *DECK 1* in the deck's color, with ON AIR
+  beside it while the room hears it, rather than in a colored square beside the title. The album
   art has the corner instead, and the title and artist have more room. With four decks it's just
   the number, and ON AIR sits just before the EQ key.
 - **The close-up scrolls more smoothly zoomed in tight.** A deck reports where it is in uneven
@@ -258,7 +263,7 @@ Changed:
 
 - **One bar at the top on Windows and Mac:** GZJam's top bar is now also the window's title bar,
   giving the decks and library about 50 more pixels. Drag its empty space to move the window, and
-  double-click it to maximise; minimise, maximise and close sit at its end. Linux keeps its own
+  double-click it to maximize; minimize, maximize and close sit at its end. Linux keeps its own
   title bar where it has one.
 
 Fixed:
