@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="GZJam.Audio.Tests" />
+    <InternalsVisibleTo Include="GZJam.App.Tests" />
     <InternalsVisibleTo Include="GZJam.DevTools" />
   </ItemGroup>
 

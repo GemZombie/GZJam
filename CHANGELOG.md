@@ -22,6 +22,15 @@ New:
   never goes online by itself. To look whenever you like, even with it off: Settings › About ›
   *Check now*.
 
+Fixed:
+
+- **Headphones unplugged during a night go quiet, and come back by themselves** when plugged in
+  again, with no trip to Settings. The preview never moves to the speakers or anywhere else, and
+  the room plays on untouched. A notice says so both ways, and CUE in the top bar says *Unplugged*
+  meanwhile. The booth does the same.
+- **Settings › Sound warns about headphones on *Default*,** which follows the computer's own choice:
+  unplugged, the computer may move the preview to another output, even the room's.
+
 ## 0.7.3 (2026-10-24)
 
 New:

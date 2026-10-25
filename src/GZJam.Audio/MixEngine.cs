@@ -4,6 +4,16 @@ using ManagedBass.Mix;
 namespace GZJam.Audio;
 
 /// <summary>
+/// An output at the DJ table, not the room's: unplugged during a night, it goes quiet and comes
+/// back when plugged in again, without touching the speakers.
+/// </summary>
+public enum TableOutput
+{
+    Headphones,
+    Booth,
+}
+
+/// <summary>
 /// The DJ mixer: decks and a headphone preview player, feeding a main (speakers) bus, a cue
 /// (headphones) bus and a booth (monitor) bus. Every deck feeds all three at all times: the
 /// crossfader sets how loud each deck is in the room (and the booth, which hears what the room
@@ -40,6 +50,7 @@ public sealed class MixEngine : IDisposable
         Booth = CreateBus(null);
         Decks = Enumerable.Range(0, deckCount).Select(i => new Deck(this, i)).ToList();
         Preview = new PreviewPlayer(this);
+        Reconnect = TryReconnect;
         ApplyRouting();
     }
 
@@ -85,6 +96,44 @@ public sealed class MixEngine : IDisposable
     /// turned out to be unplugged, and at most every 10 seconds; the app logs it.
     /// </summary>
     public event EventHandler? MainDropout;
+
+    /// <summary>
+    /// The headphones' or booth's output stopped by itself: unplugged. It stays quiet (nothing
+    /// moves to another output) and is tried again every couple of seconds. Raised from <see cref="Update"/>.
+    /// </summary>
+    public event EventHandler<TableOutput>? OutputUnplugged;
+
+    /// <summary>An unplugged headphone or booth output plays again. Raised from <see cref="Update"/>.</summary>
+    public event EventHandler<TableOutput>? OutputBack;
+
+    /// <summary>The headphones or booth are unplugged (or wouldn't open), waiting to come back.</summary>
+    public bool IsUnplugged(TableOutput output) => _unplugged[(int)output];
+
+    /// <summary>
+    /// The device the headphones or booth are waiting for, while unplugged: still the DJ's choice
+    /// (Settings lists only what's plugged in).
+    /// </summary>
+    public AudioDevice? WaitingFor(TableOutput output) => _waiting[(int)output];
+
+    private readonly bool[] _unplugged = new bool[2];
+    private readonly AudioDevice?[] _waiting = new AudioDevice?[2];
+    private readonly long[] _nextReconnect = new long[2];
+
+    /// <summary>How often an unplugged output is looked for again.</summary>
+    private const int ReconnectMilliseconds = 2000;
+
+    /// <summary>
+    /// Whether an output's device has stopped by itself (BASS: "the channel's device is paused",
+    /// e.g. a USB card disconnected). Tests stand in for a real unplugging.
+    /// </summary>
+    internal Func<OutputBus, bool> DeviceStopped { get; set; } = bus =>
+        !bus.IsOffline && Bass.ChannelIsActive(bus.Handle) == PausedDevice;
+
+    /// <summary>BASS_ACTIVE_PAUSED_DEVICE, newer than ManagedBass's list.</summary>
+    private const PlaybackState PausedDevice = (PlaybackState)4;
+
+    /// <summary>Tries to bring an unplugged output back; true if it plays. Tests stand in for the device.</summary>
+    internal Func<TableOutput, bool> Reconnect { get; set; }
 
     public OutputBus Main { get; private set; }
     public OutputBus Cue { get; private set; }
@@ -227,8 +276,8 @@ public sealed class MixEngine : IDisposable
             }
             catch (AudioException ex)
             {
-                // The room comes first: the speakers play on, the headphones are silent, and the
-                // app says why.
+                // The room comes first: the speakers play on, the headphones are silent (until
+                // they open), and the app says why.
                 CueRefusal = ex.Message;
                 newCue = CreateBus(null);
             }
@@ -242,6 +291,14 @@ public sealed class MixEngine : IDisposable
         Booth = newBooth;
         _mainLostRaised = false;
         _dryAt = -1;
+        Array.Clear(_unplugged);
+        Array.Clear(_waiting);
+        // Headphones or a booth that wouldn't open (unplugged, say): waited for, as if unplugged
+        // while playing, so they still come back by themselves.
+        if (CueRefusal is not null)
+            Wait(TableOutput.Headphones, cue);
+        if (_boothFailed)
+            Wait(TableOutput.Booth, booth);
 
         foreach (Deck deck in Decks)
             deck.Attach();
@@ -266,6 +323,7 @@ public sealed class MixEngine : IDisposable
         {
             _dryAt = now;
         }
+        WatchTableOutputs(now);
         // A card being unplugged runs dry a moment before Windows says it's gone: only a dry
         // buffer that isn't followed by the card going within half a second is a dropout.
         if (_dryAt >= 0 && now - _dryAt >= 500)
@@ -277,6 +335,113 @@ public sealed class MixEngine : IDisposable
                 MainDropout?.Invoke(this, EventArgs.Empty);
             }
         }
+    }
+
+    private OutputBus BusFor(TableOutput output) => output == TableOutput.Headphones ? Cue : Booth;
+
+    /// <summary>
+    /// Notices the headphones or booth stopping by themselves, and brings them back once they're
+    /// plugged in again. Split headphones are on the speakers' output, which has its own watch.
+    /// </summary>
+    private void WatchTableOutputs(long now)
+    {
+        foreach (TableOutput output in (TableOutput[])[TableOutput.Headphones, TableOutput.Booth])
+        {
+            if (output == TableOutput.Headphones && IsSplit)
+                continue;
+            int i = (int)output;
+            if (!_unplugged[i])
+            {
+                if (!DeviceStopped(BusFor(output)))
+                    continue;
+                Wait(output, BusFor(output).Device);
+                OutputUnplugged?.Invoke(this, output);
+            }
+            else if (now >= _nextReconnect[i])
+            {
+                _nextReconnect[i] = now + ReconnectMilliseconds;
+                if (Reconnect(output))
+                {
+                    _unplugged[i] = false;
+                    _waiting[i] = null;
+                    OutputBack?.Invoke(this, output);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Once the output is listed again: starts its device again, or if that isn't enough (or it
+    /// came back as a different device, as Linux may number it), opens it afresh.
+    /// </summary>
+    private bool TryReconnect(TableOutput output)
+    {
+        OutputBus bus = BusFor(output);
+        if (_waiting[(int)output] is not { } was || Engine.FindDevice(was.Preference) is not { } device)
+            return false;   // not back yet
+        if (device.Index == bus.Device?.Index)
+        {
+            Bass.CurrentDevice = device.Index;
+            if (Bass.Start() && Bass.ChannelIsActive(bus.Handle) == PlaybackState.Playing)
+                return true;
+        }
+        try
+        {
+            Reopen(output, device, waitIfBusy: false);
+            return true;
+        }
+        catch (AudioException)
+        {
+            return false;   // tried again in a moment
+        }
+    }
+
+    /// <summary>
+    /// Opens the headphones or booth again on <paramref name="device"/> (null: offline, for tests),
+    /// moving the decks' feeds (and the preview, for the headphones) to it. The speakers play on
+    /// untouched. If it won't open, that output is left silent and the error thrown.
+    /// </summary>
+    internal void Reopen(TableOutput output, AudioDevice? device, bool waitIfBusy = true)
+    {
+        OutputBus old = BusFor(output);
+        foreach (Deck deck in Decks)
+            deck.Detach(output);
+        if (output == TableOutput.Headphones)
+            Preview.Detach();
+        old.Dispose();
+        if (old.Device is { } was)
+            Engine.ReleaseDevice(was.Index);
+        OutputBus bus;
+        AudioException? failed = null;
+        try
+        {
+            bus = CreateBus(device, waitIfBusy);
+        }
+        catch (AudioException ex)
+        {
+            failed = ex;
+            bus = CreateBus(null);
+        }
+        bus.CopySettingsFrom(old);
+        if (output == TableOutput.Headphones)
+            Cue = bus;
+        else
+            Booth = bus;
+        foreach (Deck deck in Decks)
+            deck.Attach(output);
+        if (output == TableOutput.Headphones)
+            Preview.Attach();
+        if (failed is not null)
+            throw failed;
+    }
+
+    /// <summary>Waits for the headphones or booth to be plugged in again, trying every couple of seconds.</summary>
+    private void Wait(TableOutput output, AudioDevice? device)
+    {
+        int i = (int)output;
+        _unplugged[i] = true;
+        _waiting[i] = device;
+        _nextReconnect[i] = Environment.TickCount64 + ReconnectMilliseconds;
     }
 
     /// <summary>Offline only: renders the speakers and headphones in small interleaved chunks, returning each one's peak level.</summary>
@@ -338,6 +503,7 @@ public sealed class MixEngine : IDisposable
     private OutputBus OpenBooth(AudioDevice? booth, AudioDevice? main, AudioDevice? cue)
     {
         BoothRefusal = null;
+        _boothFailed = false;
         if (booth is null)
             return CreateBus(null);
         if (booth.Index == main?.Index || booth.Index == cue?.Index)
@@ -352,16 +518,20 @@ public sealed class MixEngine : IDisposable
         catch (AudioException ex)
         {
             BoothRefusal = ex.Message;
+            _boothFailed = true;
             return CreateBus(null);
         }
     }
+
+    /// <summary>The booth's device wouldn't open at the last <see cref="SetOutputs"/> (not refused for being another output's).</summary>
+    private bool _boothFailed;
 
     // NonStop: keep the output running through silence, so starting a track is instant.
     private const BassFlags MixerFlags = BassFlags.Float | BassFlags.MixerNonStop;
 
     /// <summary>A mixer playing on the device, or with none, one that tests pull (offline).</summary>
-    private OutputBus CreateBus(AudioDevice? device) =>
-        device is null ? new OutputBus(CreateMixer(BassFlags.Decode), null) : CreateDeviceBus(device);
+    private OutputBus CreateBus(AudioDevice? device, bool waitIfBusy = true) =>
+        device is null ? new OutputBus(CreateMixer(BassFlags.Decode), null) : CreateDeviceBus(device, waitIfBusy);
 
     /// <summary>A mixer on no device: pulled by tests, or by another mixer.</summary>
     private int CreateMixer(BassFlags extra)
@@ -390,13 +560,13 @@ public sealed class MixEngine : IDisposable
         }
     }
 
-    private OutputBus CreateDeviceBus(AudioDevice device)
+    private OutputBus CreateDeviceBus(AudioDevice device, bool waitIfBusy)
     {
         const BassFlags flags = MixerFlags;
 
         try
         {
-            Engine.EnsureInitialized(device.Index);
+            Engine.EnsureInitialized(device.Index, waitIfBusy);
         }
         catch (AudioException ex) when (ex.Error == Errors.Busy)
         {

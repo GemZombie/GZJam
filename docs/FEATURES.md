@@ -1140,6 +1140,33 @@ rest of it.
   the same link, "GZJam 0.7.3 is the newest version.", or that GitHub couldn't be reached. A
   version dismissed from the top bar is still shown here; nothing appears in the top bar.
 
+### Status: headphones and booth unplugged during a night (#72, 2026-10-25)
+
+- **Noticed** from the playback tick (`MixEngine.Update` → `WatchTableOutputs`): BASS reports a
+  shared output whose device stopped by itself as "device paused" (`BASS_ACTIVE_PAUSED_DEVICE`,
+  e.g. a USB card disconnected). Headphones and booth only; split headphones ride on the speakers'
+  output, which has its own watch. Raised once (`OutputUnplugged`).
+- **Quiet meanwhile:** nothing is moved. The decks' feeds to that output are split streams; BASS
+  drops a lagging split's data rather than hold the others up, so the room plays on.
+- **Back:** every 2 s, once the device is listed again (`AudioEngine.FindDevice`, by name and
+  driver), `BASS_Start` on it; if that doesn't bring it back, or it came back as another device,
+  the output is opened afresh (`MixEngine.Reopen`), moving only that output's feeds (and the
+  preview) to the new mixer, at the same volume. The speakers aren't touched. `OutputBack`.
+- **Still the choice meanwhile:** Settings lists only what's plugged in, so it shows the headphones
+  as None; changing the speakers or booth meanwhile keeps them (`MixEngine.WaitingFor`), and
+  headphones or a booth that won't open at a change of outputs are waited for the same way. Trying
+  again never waits on a busy Linux card (that would freeze the screen; see `AudioEngine.BusyWait`).
+- **On screen:** a notice each way ("Headphones unplugged. They'll come back by themselves when
+  plugged in." / "Headphones are back."), and the top bar's CUE (or BOOTH) chip says *Unplugged*
+  with an amber light meanwhile. Logged with the device's name.
+- **Headphones on Default** (Settings › Sound): a warning, since Default follows the computer's own
+  choice and the computer may move it anywhere when they're unplugged. Choose them by name.
+- **Not covered:** a laptop whose jack shares one output with its built-in speakers (common with
+  Realtek): the sound chip switches between them by itself, invisible to GZJam. Speakers on a
+  shared (not exclusive) output still aren't watched for unplugging.
+- **Untested on hardware so far:** whether Windows, macOS and Linux all report "device paused"; the
+  checklist (docs/TESTING.md › Unplugging) covers it.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

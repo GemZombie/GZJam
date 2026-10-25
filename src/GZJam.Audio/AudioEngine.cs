@@ -168,7 +168,11 @@ public sealed class AudioEngine : IDisposable
     }
 
     /// <summary>Initializes a device for output if it isn't already.</summary>
-    internal void EnsureInitialized(int deviceIndex)
+    /// <param name="waitIfBusy">
+    /// Linux: wait for a busy card (see <see cref="BusyWait"/>). Not when GZJam is only trying an
+    /// unplugged output again: that runs on the UI thread, during a night.
+    /// </param>
+    internal void EnsureInitialized(int deviceIndex, bool waitIfBusy = true)
     {
         lock (_lock)
         {
@@ -177,7 +181,7 @@ public sealed class AudioEngine : IDisposable
 
             // Linux: the desktop's sound server (PipeWire) holds a card for a few seconds after the
             // last sound through it, even GZJam's own through "Default", so a busy card is retried.
-            var giveUp = DateTime.UtcNow + (OperatingSystem.IsLinux() ? BusyWait : TimeSpan.Zero);
+            var giveUp = DateTime.UtcNow + (OperatingSystem.IsLinux() && waitIfBusy ? BusyWait : TimeSpan.Zero);
             while (!Bass.Init(deviceIndex) && Bass.LastError != Errors.Already)
             {
                 if (Bass.LastError != Errors.Busy || DateTime.UtcNow >= giveUp)
@@ -210,6 +214,18 @@ public sealed class AudioEngine : IDisposable
                 Bass.Free();
                 _initializedDevices.Remove(device);
             }
+        }
+    }
+
+    /// <summary>Closes one output device, so it can be opened afresh (after being unplugged).</summary>
+    internal void ReleaseDevice(int deviceIndex)
+    {
+        lock (_lock)
+        {
+            if (deviceIndex == NoSoundDevice || !_initializedDevices.Remove(deviceIndex))
+                return;
+            Bass.CurrentDevice = deviceIndex;
+            Bass.Free();
         }
     }
 

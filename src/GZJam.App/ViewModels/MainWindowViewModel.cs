@@ -61,6 +61,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             mix.ExclusiveSpeakers = settings.ExclusiveSpeakers;
             mix.MainOutputLost += (_, _) => OnMainOutputLost();
+            mix.OutputUnplugged += (_, output) => OnTableOutputChanged(output, unplugged: true);
+            mix.OutputBack += (_, output) => OnTableOutputChanged(output, unplugged: false);
             mix.MainDropout += (_, _) => Log.Info(
                 $"Speakers: the sound buffer ran dry (a dropout may have been heard){(settings.ExtraBuffering ? "" : "; Settings › Sound › Extra protection against crackles may help")}");
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
@@ -530,16 +532,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // Split, the side comes first: a long name is trimmed at its end.
     public string MainOutputName => (Mix?.IsSplit == true ? "Left · " : "") + OutputName(Mix?.Main);
-    public string CueOutputName => (Mix?.IsSplit == true ? "Right · " : "") + OutputName(Mix?.Cue);
+    public string CueOutputName => Mix?.IsUnplugged(TableOutput.Headphones) == true ? "Unplugged"
+        : (Mix?.IsSplit == true ? "Right · " : "") + OutputName(Mix?.Cue);
     public bool HasMainOutput => Mix is { } mix && (mix.IsOffline || mix.Main.Device is not null);
 
-    /// <summary>Headphones are available. Offline mixes (tests) count, since nothing reaches the speakers.</summary>
-    public bool HasCueOutput => Mix is { } mix && (mix.IsOffline || mix.Cue.Device is not null);
+    /// <summary>
+    /// Headphones are available (not unplugged). Offline mixes (tests) count, since nothing reaches
+    /// the speakers.
+    /// </summary>
+    public bool HasCueOutput => Mix is { } mix && !mix.IsUnplugged(TableOutput.Headphones) && (mix.IsOffline || mix.Cue.Device is not null);
 
-    public string BoothOutputName => Mix?.Booth.Device?.Name ?? _settings.BoothDevice?.Name ?? "Not set";
+    public string BoothOutputName => Mix?.IsUnplugged(TableOutput.Booth) == true ? "Unplugged"
+        : Mix?.Booth.Device?.Name ?? _settings.BoothDevice?.Name ?? "Not set";
 
-    /// <summary>The booth is playing.</summary>
-    public bool HasBoothOutput => Mix?.Booth.Device is not null;
+    /// <summary>The booth is playing (not unplugged).</summary>
+    public bool HasBoothOutput => Mix is { } mix && !mix.IsUnplugged(TableOutput.Booth) && mix.Booth.Device is not null;
 
     /// <summary>A booth output has been chosen (it may not be connected right now): the top bar shows it.</summary>
     public bool ShowsBoothOutput => HasBoothOutput || _settings.BoothDevice is not null;
@@ -645,6 +652,27 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Log.Info(notice);
             ShowNotice(notice);
         }
+        Settings.RefreshDevices();
+    }
+
+    /// <summary>
+    /// The headphones or booth were unplugged (they go quiet: nothing moves to another output), or
+    /// came back by themselves once plugged in again.
+    /// </summary>
+    private void OnTableOutputChanged(TableOutput output, bool unplugged)
+    {
+        OutputBus bus = output == TableOutput.Headphones ? Mix!.Cue : Mix!.Booth;
+        string what = output == TableOutput.Headphones ? "Headphones" : "Booth";
+        string notice = unplugged
+            ? $"{what} unplugged. {(output == TableOutput.Headphones ? "They'll" : "It'll")} come back by {(output == TableOutput.Headphones ? "themselves" : "itself")} when plugged in."
+            : output == TableOutput.Headphones ? "Headphones are back." : "The booth is back.";
+        if (unplugged)
+            Log.Error($"{what} output stopped (unplugged?): {bus.Device?.Name}; waiting for it to come back");
+        else
+            Log.Info($"{what} output back: {bus.Device?.Name}");
+        ShowNotice(notice);
+        OnPropertyChanged(output == TableOutput.Headphones ? nameof(CueOutputName) : nameof(BoothOutputName));
+        OnPropertyChanged(output == TableOutput.Headphones ? nameof(HasCueOutput) : nameof(HasBoothOutput));
         Settings.RefreshDevices();
     }
 

@@ -92,8 +92,14 @@ For a release you'd use at a dance, test your real library.
 Do each while a song is playing to the room.
 - [ ] **The speakers' sound card:** GZJam says so and falls back to another output (never the
       headphones' own). Plug it back in, *Refresh the list* in Settings › Sound, choose it again.
-- [ ] **The headphones:** note what happens to the preview (#72 will change this).
-- [ ] **The booth:** the room keeps playing.
+- [ ] **The headphones,** while previewing a song: a notice says they're unplugged, CUE in the
+      top bar says *Unplugged* with an amber light, and the preview is heard nowhere else (not the
+      room, not the laptop's speakers). Plug them back in: within a few seconds "Headphones are
+      back." and the preview plays in them again, with no trip to Settings. Once with a laptop
+      whose jack is its own output, and once with one whose jack shares the built-in speakers, if
+      there's one to hand (there the sound chip may move it to the speakers by itself: note it).
+- [ ] **The booth:** the room keeps playing; the booth says *Unplugged*, and comes back by itself
+      when plugged in again.
 - [ ] Start GZJam with the speakers' sound card unplugged: it says so and uses another output.
       Plugged in again before the next start, it's used again.
 
