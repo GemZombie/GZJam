@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.7.3** (24 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.8.0** (25 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -21,10 +21,12 @@ release.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
 - Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
   it, and add it to the queue. The queue or a night in History can be saved as one.
-- A song renamed or moved (in a tag editor, say) keeps its marks, labels, cues, playlists and
-  plays.
+- A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
+  marks, labels, cues, playlists and plays; one in the queue or on a deck follows it.
 - Songs can be dragged straight from the file manager onto a deck or into the queue, even ones
   from outside your music folders (a song on a dancer's USB stick).
+- Back up your library (hearts, labels, cues, playlists, History and Settings) to one file, and
+  restore it; GZJam also keeps a copy of its own each day it's opened.
 - Start over with an empty library whenever you like; the old one is kept, not deleted.
 - Album art on the decks and queue (and a library column), from the songs' files or the covers in
   their folders, to see at a glance that the right record is loaded.
@@ -66,14 +68,22 @@ release.
   crossfader slides over to the next deck, which counts down to starting.
 - On Windows the speakers can be GZJam's alone, so no notification sound reaches the room. On Linux
   a sound card can be used directly, for the same reason.
+- Headphones (or the booth) unplugged during a night go quiet, never move to the speakers, and come
+  back by themselves when plugged in again.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
 - GZJam asks before closing while the room is hearing music.
+- If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
+  as they were, paused. After a normal close, the queue is still there.
+- With two taps to pause the deck the room hears, a stray tap (even while the screen is frozen)
+  never stops the music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
   dividers between panels.
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
+- GZJam says quietly, at startup, when a new version is out (never during a set), and a
+  [user guide](docs/GUIDE.md) covers everything, from your first song to a checklist for the night.
 
 **Coming from Mixxx**
 - Import ratings, crates (as labels), playlists, history, locked BPMs and hot cues. Mixxx's own files are
@@ -83,21 +93,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [GZJam says when a new version is out](https://github.com/GemZombie/GZJam/issues/86): a quiet
-  line in the top bar at startup, gone once the room hears music, with *Check now* and a switch to
-  turn it off in Settings › About. GZJam never downloads or installs anything by itself.
-- [Headphones unplugged during the night](https://github.com/GemZombie/GZJam/issues/72) go quiet,
-  never move to the speakers, and come back by themselves when plugged in again (the booth too)
-- [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
-  pauses the room when pausing takes two taps
-- [A song moved to another music folder, or renamed while it's queued or on a deck](https://github.com/GemZombie/GZJam/issues/87),
-  keeps its marks and still loads
-- [The night comes back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
-  the queue and the decks as they were, paused; after a normal close, the queue is still there
-- [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
-  cues, playlists, History and Settings in one file, and a copy GZJam keeps by itself each day
-- [A user guide](docs/GUIDE.md) (#85): getting started, the outputs, what each control does, and
-  a checklist for the night, linked from Settings › About
+Nothing yet since 0.8.0.
 
 ## Planned next
 
