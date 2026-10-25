@@ -90,18 +90,20 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   never move to the speakers, and come back by themselves when plugged in again (the booth too)
 - [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
   pauses the room when pausing takes two taps
+- [A song moved to another music folder, or renamed while it's queued or on a deck](https://github.com/GemZombie/GZJam/issues/87),
+  keeps its marks and still loads
 - [The night comes back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
   the queue and the decks as they were, paused; after a normal close, the queue is still there
 - [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
   cues, playlists, History and Settings in one file, and a copy GZJam keeps by itself each day
+- [A user guide](docs/GUIDE.md) (#85): getting started, the outputs, what each control does, and
+  a checklist for the night, linked from Settings › About
 
 ## Planned next
 
 **Before 1.0:** a reliable night, everywhere.
 
 *Fixes*
-- [A renamed song in the queue or on a deck, or moved to another music folder](https://github.com/GemZombie/GZJam/issues/87),
-  keeps track of itself too
 - [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
 
@@ -109,10 +111,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - Test passes with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19) and
   [on a real Mac](https://github.com/GemZombie/GZJam/issues/18), the booth and the splitter cable
   by ear, a very large library, and a real night
-
-*New*
-- [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
-  what each control does
 
 **After 1.0:**
 - [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),

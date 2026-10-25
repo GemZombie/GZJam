@@ -35,6 +35,9 @@ New:
   first, then GZJam opens again with it; the library it replaces is kept, not deleted. A backup
   from a newer GZJam is refused. GZJam also keeps a copy of its own, once a day it's opened, the
   last five beside the library.
+- **A user guide:** getting started, the outputs, the decks, the library, auto-play, History,
+  Settings, a checklist for the night and what to do if the sound stops. In
+  [docs/GUIDE.md](docs/GUIDE.md), and linked from Settings › About.
 
 Fixed:
 

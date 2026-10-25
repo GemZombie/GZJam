@@ -74,6 +74,9 @@ public partial class SettingsPanel : UserControl
 
     private void OnMixxxImportClick(object? sender, RoutedEventArgs e) => MixxxImportRequested?.Invoke(this, EventArgs.Empty);
 
+    private async void OnGuideClick(object? sender, RoutedEventArgs e) =>
+        await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.GuideUrl));
+
     private async void OnProjectClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.ProjectUrl));
 

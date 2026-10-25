@@ -26,6 +26,24 @@ public sealed class AboutTests
         Assert.Contains("BASS", builtWith);
         Assert.DoesNotContain("GNU LESSER GENERAL PUBLIC LICENSE", builtWith);   // the full texts open separately
         Assert.True(about.FindControl<Button>("NoticesButton")!.IsVisible);
+        Assert.True(about.FindControl<Button>("GuideLink")!.IsVisible);
+    }
+
+    /// <summary>The guide Settings › About links to is in the repository, where the link says.</summary>
+    [Fact]
+    public void The_user_guide_is_where_about_links_to()
+    {
+        string repo = AppContext.BaseDirectory;
+        while (!File.Exists(Path.Combine(repo, "GZJam.slnx")))
+            repo = Path.GetDirectoryName(repo)!;
+        Assert.StartsWith(About.ProjectUrl + "/blob/main/", About.GuideUrl);
+        string relative = About.GuideUrl[(About.ProjectUrl + "/blob/main/").Length..];
+        string guide = Path.Combine(repo, relative.Replace('/', Path.DirectorySeparatorChar));
+        Assert.True(File.Exists(guide), guide);
+
+        // Every picture it shows is there too.
+        foreach (System.Text.RegularExpressions.Match image in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(guide), @"!\[[^\]]*\]\(([^)]+)\)"))
+            Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(guide)!, image.Groups[1].Value)), image.Groups[1].Value);
     }
 
     /// <summary>
