@@ -10,6 +10,13 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.8.1 (unreleased)
+
+Fixed:
+
+- **Settings › About's links say where they go:** *User guide · GZJam on GitHub*. The project's
+  address beside *User guide* read as the guide's own address, so it was clicked instead.
+
 ## 0.8.0 (2026-10-25)
 
 New:

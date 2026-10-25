@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:GZJam.App"
              xmlns:vm="using:GZJam.App.ViewModels"
              xmlns:c="using:GZJam.App.Controls"
              x:Class="GZJam.App.Views.SettingsPanel"
@@ -293,8 +294,12 @@
             </StackPanel>
             <TextBlock x:Name="MakerText" TextWrapping="Wrap" Margin="0,6,0,0" />
             <StackPanel Orientation="Horizontal" Spacing="4" Margin="-6,-2,0,0">
-              <Button x:Name="GuideLink" Classes="link" Content="User guide" Click="OnGuideClick" Foreground="{StaticResource AccentBrush}" />
-              <Button x:Name="ProjectLink" Classes="link" Click="OnProjectClick" />
+              <!-- Each link says where it goes: an address beside "User guide" read as its destination -->
+              <Button x:Name="GuideLink" Classes="link" Content="User guide" Click="OnGuideClick" Foreground="{StaticResource AccentBrush}"
+                      ToolTip.Tip="{x:Static app:About.GuideUrl}" />
+              <TextBlock Classes="muted" Text="·" VerticalAlignment="Center" />
+              <Button x:Name="ProjectLink" Classes="link" Content="GZJam on GitHub" Click="OnProjectClick" Foreground="{StaticResource AccentBrush}"
+                      ToolTip.Tip="{x:Static app:About.ProjectUrl}" />
             </StackPanel>
           </StackPanel>
 
