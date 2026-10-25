@@ -90,6 +90,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   never move to the speakers, and come back by themselves when plugged in again (the booth too)
 - [A quick tap while the screen is frozen](https://github.com/GemZombie/GZJam/issues/81) never
   pauses the room when pausing takes two taps
+- [The night comes back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
+  the queue and the decks as they were, paused; after a normal close, the queue is still there
 
 ## Planned next
 
@@ -107,8 +109,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   by ear, a very large library, and a real night
 
 *New*
-- [Bring the night back after a crash or restart](https://github.com/GemZombie/GZJam/issues/96):
-  the queue and the decks as they were, paused, if the laptop dies mid-dance
 - [Back up and restore your library](https://github.com/GemZombie/GZJam/issues/84): hearts, labels,
   cues, playlists and history in one file, for a new laptop or a lost one
 - [A user guide](https://github.com/GemZombie/GZJam/issues/85): getting started, the outputs, and
