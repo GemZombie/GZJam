@@ -1068,6 +1068,16 @@ public sealed partial class DeckViewModel : ObservableObject
     }
 
     /// <summary>
+    /// The song on this deck was renamed or moved on disk (#87): it's the same song at its new
+    /// path, kept as it is (playing, paused, its marks), and loaded from there next time.
+    /// </summary>
+    internal void FollowMove(Track track)
+    {
+        Track = track;
+        Log.Info($"Deck {Label}: \"{track.DisplayTitle}\" is now at {track.Path}");
+    }
+
+    /// <summary>
     /// Brings back a deck as it was before a crash (#96): the song, paused where it was, at its
     /// tempo, with its cue button. Never playing by itself.
     /// </summary>

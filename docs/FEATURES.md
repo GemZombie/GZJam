@@ -1206,6 +1206,20 @@ rest of it.
 - **Tests** run GZJam twice on one data folder: a "crash" (no normal close), a normal close, and a
   song deleted in between.
 
+### Status: songs moved between music folders, and the queue and decks following (#87, 2026-10-25)
+
+- **Between music folders:** each folder is scanned on its own, in either order, so the scanner
+  (`LibraryScanner.PairWithOtherFolders`) remembers, for the session, what's gone from one folder
+  and what's new in another, unmatched, and pairs them as `FindMoves` does within a folder (size
+  and modified time; the file name where several match). The first folder scanned counts the song
+  as removed (or added); the second counts the move and carries the marks over. A song's marks
+  are kept by path even after it's gone, so the move finds them. Moved from a folder and back,
+  or copied, isn't a move.
+- **The queue and the decks follow:** a scan reports its moves (`ScanResult.Moves`, old path to
+  new); `LibraryViewModel.SongsMoved` swaps the queue's entries for the song at its new path, and
+  a deck's song (`DeckViewModel.FollowMove`) without loading it again, so a playing deck plays on
+  (Windows lets a file BASS has open be renamed). The night (#96) is kept with the new paths.
+
 ## Decided against
 
 - **Streaming from Spotify (or Apple Music, TIDAL, Beatport).** DJ streaming is only available to

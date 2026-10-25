@@ -51,6 +51,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     Analysis.Prioritize(e.NewItems.Cast<QueueItem>().Select(i => i.Track));
             };
         }
+        Library.SongsMoved += OnSongsMoved;
         Library.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(LibraryViewModel.ScanStatus) or nameof(LibraryViewModel.ScanPercent))
@@ -125,6 +126,39 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(BackgroundStatus));
         OnPropertyChanged(nameof(BackgroundPercent));
+    }
+
+    /// <summary>
+    /// Songs renamed or moved on disk (#87): the queue and the decks follow them to their new
+    /// paths, so they load (or load again) from there. A deck that's playing plays on.
+    /// </summary>
+    private void OnSongsMoved(IReadOnlyList<(string From, string To)> moves)
+    {
+        var to = moves.GroupBy(m => m.From, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First().To, StringComparer.Ordinal);
+        var moved = new Dictionary<string, Track>(StringComparer.Ordinal);
+        Track Moved(Track old)
+        {
+            if (!moved.TryGetValue(old.Path, out Track? track))
+            {
+                track = _database.TrackForFile(to[old.Path]);
+                track.IsPlayedTonight = old.IsPlayedTonight;
+                moved[old.Path] = track;
+            }
+            return track;
+        }
+
+        for (int i = 0; i < Queue.Items.Count; i++)
+        {
+            if (to.ContainsKey(Queue.Items[i].Track.Path))
+                Queue.Items[i] = new QueueItem(Moved(Queue.Items[i].Track));
+        }
+        foreach (DeckViewModel deck in Decks)
+        {
+            if (deck.Track is { } track && to.ContainsKey(track.Path))
+                deck.FollowMove(Moved(track));
+        }
+        foreach (var (from, track) in moved)
+            Log.Info($"Moved on disk, followed in the queue and decks: {from} -> {track.Path}");
     }
 
     /// <summary>Every copy of a file's track on screen: in the library results, the queue and on the decks.</summary>

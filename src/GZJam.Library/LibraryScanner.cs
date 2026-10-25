@@ -9,12 +9,18 @@ namespace GZJam.Library;
 public sealed record ScanProgress(string RootPath, int FilesFound, int FilesToRead, int FilesRead, bool Enumerating);
 
 /// <param name="Moved">
-/// Songs renamed or moved within the folder: counted here, not as added and removed. Their marks,
-/// labels, cues, playlists and plays went with them.
+/// Songs renamed or moved (within the folder, or to or from another music folder): counted here,
+/// not as added and removed. Their marks, labels, cues, playlists and plays went with them.
 /// </param>
 public sealed record ScanResult(int Added, int Updated, int Removed, int Unchanged, TimeSpan Elapsed, int Moved = 0)
 {
     public bool ChangedAnything => Added + Updated + Removed + Moved > 0;
+
+    /// <summary>
+    /// The songs renamed or moved, old path to new, so what's holding the old path (the queue, a
+    /// deck) can follow.
+    /// </summary>
+    public IReadOnlyList<(string From, string To)> Moves { get; init; } = [];
 }
 
 /// <summary>
@@ -22,10 +28,20 @@ public sealed record ScanResult(int Added, int Updated, int Removed, int Unchang
 /// (by size and modified time) have their tags read, so rescans of a large library are quick.
 /// Songs read before GZJam got better at reading tags (<see cref="TagReader.Version"/>) are read
 /// again too. A song renamed or moved within the folder keeps what the DJ gave it (see
-/// <see cref="FindMoves"/>).
+/// <see cref="FindMoves"/>), and so does one moved to another music folder: each folder is scanned
+/// on its own, in either order, so what's gone from one and what's new in another are remembered
+/// between scans and paired the same way.
 /// </summary>
 public sealed class LibraryScanner(LibraryDatabase database)
 {
+    /// <summary>Songs gone from a music folder, unmatched, which may turn up in another (by path).</summary>
+    private readonly Dictionary<string, (long RootId, LibraryDatabase.FileStamp Stamp)> _gone = new(StringComparer.Ordinal);
+
+    /// <summary>Songs new in a music folder, unmatched, which may have come from another (by path).</summary>
+    private readonly Dictionary<string, (long RootId, (long Size, long ModifiedTicks) Stamp)> _arrived = new(StringComparer.Ordinal);
+
+    private readonly Lock _elsewhere = new();
+
     /// <summary>
     /// What GZJam plays: BASS's own formats (MP3, MP2, OGG Vorbis, WAV, AIFF), then FLAC, Opus and
     /// .m4a/.aac (AAC or Apple Lossless) from add-ons and the computer's decoders. Linux can't play
@@ -120,12 +136,60 @@ public sealed class LibraryScanner(LibraryDatabase database)
         }
 
         var missing = known.Where(k => !seen.Contains(k.Key)).ToDictionary(k => k.Key, k => k.Value, StringComparer.Ordinal);
-        var moves = FindMoves(missing, added);
-        if (missing.Count > 0)
-            database.RemoveTracks(missing.Values.Select(m => m.Id), moves);
+        var moves = FindMoves(missing, added).ToList();
+        var (fromElsewhere, toElsewhere) = PairWithOtherFolders(root.Id, seen,
+            missing.Where(m => !moves.Any(x => x.From == m.Key)).ToDictionary(StringComparer.Ordinal),
+            added.Where(a => !moves.Any(x => x.To == a.Key)).ToDictionary(StringComparer.Ordinal));
+        if (missing.Count > 0 || fromElsewhere.Count > 0)
+            database.RemoveTracks(missing.Values.Select(m => m.Id), [.. moves, .. toElsewhere, .. fromElsewhere]);
 
-        return new ScanResult(added.Count - moves.Count, toRead.Count - added.Count, missing.Count - moves.Count,
-            seen.Count - toRead.Count, started.Elapsed, moves.Count);
+        int movedIn = moves.Count + fromElsewhere.Count, movedOut = moves.Count + toElsewhere.Count;
+        return new ScanResult(added.Count - movedIn, toRead.Count - added.Count, missing.Count - movedOut,
+            seen.Count - toRead.Count, started.Elapsed, moves.Count + fromElsewhere.Count + toElsewhere.Count)
+        {
+            Moves = [.. moves, .. fromElsewhere, .. toElsewhere],
+        };
+    }
+
+    /// <summary>
+    /// Pairs this folder's unmatched songs with what other folders' scans left unmatched: a song
+    /// new here that went missing from another folder (scanned earlier), and a song gone from here
+    /// that turned up in another. Whatever's still unmatched is remembered for the next scans.
+    /// </summary>
+    private (List<(string From, string To)> FromElsewhere, List<(string From, string To)> ToElsewhere) PairWithOtherFolders(
+        long rootId, HashSet<string> seen, Dictionary<string, LibraryDatabase.FileStamp> missing,
+        Dictionary<string, (long Size, long ModifiedTicks)> added)
+    {
+        lock (_elsewhere)
+        {
+            // Since the last scans: a song back where it was isn't gone, and one gone again from
+            // here didn't arrive.
+            foreach (string path in _gone.Keys.Where(seen.Contains).ToList())
+                _gone.Remove(path);
+            foreach (string path in _arrived.Where(a => a.Value.RootId == rootId && !seen.Contains(a.Key)).Select(a => a.Key).ToList())
+                _arrived.Remove(path);
+
+            var fromElsewhere = FindMoves(_gone.ToDictionary(g => g.Key, g => g.Value.Stamp, StringComparer.Ordinal), added)
+                .Where(m => m.From != m.To).ToList();
+            var toElsewhere = FindMoves(missing, _arrived.ToDictionary(a => a.Key, a => a.Value.Stamp, StringComparer.Ordinal))
+                .Where(m => m.From != m.To && !File.Exists(m.From)).ToList();
+
+            foreach (var (from, to) in fromElsewhere)
+            {
+                _gone.Remove(from);
+                added.Remove(to);
+            }
+            foreach (var (from, to) in toElsewhere)
+            {
+                _arrived.Remove(to);
+                missing.Remove(from);
+            }
+            foreach (var (path, stamp) in missing)
+                _gone[path] = (rootId, stamp);
+            foreach (var (path, stamp) in added)
+                _arrived[path] = (rootId, stamp);
+            return (fromElsewhere, toElsewhere);
+        }
     }
 
     /// <summary>
