@@ -6,7 +6,8 @@ namespace GZJam.App.ViewModels;
 
 /// <summary>
 /// Bringing the night back (#96): the queue and the decks are kept in night.json as they change.
-/// After a crash they come back as they were, paused; after a normal close, the queue alone.
+/// After a crash they come back as they were, paused; after a normal close too, with each deck at
+/// the start of its song (#117).
 /// </summary>
 public sealed partial class MainWindowViewModel
 {
@@ -29,7 +30,8 @@ public sealed partial class MainWindowViewModel
     internal string NightPath => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(_database.DatabasePath))!, NightState.FileName);
 
     /// <summary>
-    /// At startup: brings back what was saved (the queue; after a crash, the decks too, paused),
+    /// At startup: brings back what was saved (the queue, and the decks, paused: where they were
+    /// after a crash, at the start of their songs after a normal close),
     /// then keeps the night from here on.
     /// </summary>
     internal async Task RestoreNightAsync()
@@ -53,7 +55,7 @@ public sealed partial class MainWindowViewModel
     private async Task RestoreAsync(NightState saved)
     {
         bool crashed = !saved.ClosedNormally;
-        var decks = crashed ? saved.Decks.Where(d => d.Deck >= 0 && d.Deck < Decks.Count).ToList() : [];
+        var decks = saved.Decks.Where(d => d.Deck >= 0 && d.Deck < Decks.Count).ToList();
         var paths = saved.Queue.Concat(decks.Select(d => d.Path)).Distinct().ToList();
         if (paths.Count == 0)
             return;
@@ -73,7 +75,10 @@ public sealed partial class MainWindowViewModel
                 continue;
             try
             {
-                deck.Restore(track, TimeSpan.FromSeconds(state.PositionSeconds), state.TempoPercent, state.Cue);
+                // After a normal close, the start: a song played to its end (or halfway) isn't
+                // left there for the next press of play.
+                var position = crashed ? TimeSpan.FromSeconds(state.PositionSeconds) : TimeSpan.Zero;
+                deck.Restore(track, position, state.TempoPercent, state.Cue);
                 onDecks++;
             }
             catch (GZJam.Audio.AudioException ex)
@@ -83,9 +88,11 @@ public sealed partial class MainWindowViewModel
             }
         }
 
-        string what = crashed
-            ? "GZJam didn't close normally: the queue and decks are back as they were, paused."
-            : queued.Count == 1 ? "The queue from last time is back (1 song)." : $"The queue from last time is back ({queued.Count} songs).";
+        string songs = queued.Count == 1 ? "1 song" : $"{queued.Count} songs";
+        string what = crashed ? "GZJam didn't close normally: the queue and decks are back as they were, paused."
+            : onDecks == 0 ? $"The queue from last time is back ({songs})."
+            : queued.Count == 0 ? "The decks from last time are back."
+            : $"The decks and queue from last time are back ({songs} queued).";
         if (crashed && saved.AutoPlay)
             what += " Auto-play is off until you turn it on.";
         if (missing > 0)
@@ -94,7 +101,7 @@ public sealed partial class MainWindowViewModel
         Log.Info($"Night back ({(crashed ? "after a crash" : "after a normal close")}, saved {saved.SavedUtc:u}): " +
                  $"{queued.Count} queued, {onDecks} on decks, {missing} not found" +
                  string.Concat(paths.Where(p => !found.ContainsKey(p)).Select(p => $"; missing: {p}")));
-        if (crashed || queued.Count > 0 || missing > 0)
+        if (crashed || queued.Count > 0 || onDecks > 0 || missing > 0)
             ShowNotice(what, seconds: crashed ? 12 : 6);
     }
 
@@ -153,7 +160,7 @@ public sealed partial class MainWindowViewModel
 
     /// <summary>
     /// GZJam is closing as it should: the night is written once more, marked so, and waited for.
-    /// The next start brings back the queue alone.
+    /// The next start brings back the queue, and the decks at the start of their songs.
     /// </summary>
     public void CloseNight()
     {
