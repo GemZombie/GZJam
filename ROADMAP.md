@@ -108,6 +108,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   the top bar says so, with Undo.
 - [MAIN and PHONES volume from the keyboard](https://github.com/GemZombie/GZJam/issues/132): Ctrl+↑/↓
   (Cmd on a Mac), with Shift for PHONES.
+- [Choose the loudness target](https://github.com/GemZombie/GZJam/issues/122) (-16, -18, -20 or
+  -23 LUFS), for more headroom on a mixer or PA that clips easily.
 
 ## Planned next
 
@@ -135,8 +137,6 @@ ran dry, it's reopened.
 - [Fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98) in auto-play,
   for practice nights, classes and jams
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
-- [Choose the loudness target](https://github.com/GemZombie/GZJam/issues/122) (-16, -18 or -20 LUFS),
-  for more headroom on a mixer or PA that clips easily
 - [The user guide: connecting to a venue's mixer or PA](https://github.com/GemZombie/GZJam/issues/125),
   and setting the levels so nothing clips
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library

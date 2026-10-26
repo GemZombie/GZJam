@@ -402,8 +402,10 @@ no title bar (and so no close button), or a touch screen. It asks first while th
 - **Sound:** Speakers, Headphones, *One output for both*, Booth and *Booth volume*, *Speakers for
   GZJam alone* (Windows), **Mono** (on: the room and headphones play mono, so the whole floor hears
   instruments recorded on one side), **Match loudness** (on: songs are turned toward the same
-  loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), and **Extra
-  protection against crackles**.
+  loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), **Loudness
+  target** (what matching aims at: -16 LUFS usually; -18, -20 or -23 leave more headroom for a
+  mixer or PA that clips easily, so turn its channel up to make up for it), and **Extra protection
+  against crackles**.
 - **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works

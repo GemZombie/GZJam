@@ -86,6 +86,13 @@ public sealed class LoudnessTests : IDisposable
     public void Matching_brings_tracks_to_the_target_without_pushing_peaks_into_the_limiter(double lufs, double peak, double gain) =>
         Assert.Equal(gain, LoudnessMatch.GainDb(lufs, peak), 1);
 
+    [Theory]
+    [InlineData(-10, -0.5, -10)]    // loud remaster: turned down further
+    [InlineData(-20, -10, 0)]       // already there
+    [InlineData(-26, -8, 6)]        // a quiet, peaky 78 comes up all the way: the headroom is there
+    public void A_lower_target_turns_everything_down_and_lets_quiet_songs_come_up(double lufs, double peak, double gain) =>
+        Assert.Equal(gain, LoudnessMatch.GainDb(lufs, peak, targetLufs: -20), 1);
+
     [Fact]
     public void The_analyzer_measures_loudness_and_peak()
     {

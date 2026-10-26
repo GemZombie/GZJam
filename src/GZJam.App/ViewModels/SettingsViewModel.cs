@@ -175,6 +175,26 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    public IReadOnlyList<Choice<double>> LoudnessTargetChoices { get; } = LoudnessMatch.Targets
+        .Select(t => new Choice<double>(t, $"−{-t:0} LUFS" + (t == LoudnessMatch.TargetLufs ? " (usual)" : t == LoudnessMatch.Targets[^1] ? " (most headroom)" : "")))
+        .ToList();
+
+    /// <summary>What matching aims at (see <see cref="AppSettings.LoudnessTarget"/>).</summary>
+    public Choice<double> LoudnessTargetChoice
+    {
+        get => LoudnessTargetChoices.FirstOrDefault(c => c.Value == _settings.LoudnessTarget) ?? LoudnessTargetChoices[0];
+        set
+        {
+            if (value is null || value.Value == _settings.LoudnessTarget)
+                return;
+            _settings.LoudnessTarget = value.Value;
+            Log.Info($"Loudness target {value.Value:0} LUFS");
+            foreach (DeckViewModel deck in _owner.Decks)
+                deck.LoudnessSettingChanged();
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Saying when a new version is out (see <see cref="AppSettings.CheckForNewVersion"/>).</summary>
     public bool CheckForNewVersion
     {

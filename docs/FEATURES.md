@@ -561,6 +561,12 @@ stand for, color only where it means something, tighter corners. Pass 1 (decks a
   arrives while the room is hearing it, or matching is switched on or off mid-song, the level eases
   over at 3 dB a second rather than jumping; off air it changes at once.
 - **Settings › Match loudness**, on by default.
+- **Settings › Loudness target** (#122, 0.9.1): -16 LUFS (the default), -18, -20 or -23, for more
+  headroom on a venue's mixer or PA that clips easily. Matching aims at it (`AppSettings.LoudnessTarget`,
+  snapped to one of `LoudnessMatch.Targets` on load); with a lower target the peak limit on boosts
+  holds back fewer quiet songs. Changing it eases an on-air deck over at 3 dB a second like the
+  switch does. The row dims while matching is off. The meters stay in dBFS: they show how close to
+  the limiter the room is, which is what a lower target changes.
 - **GAIN** fader in the deck's EQ panel: the DJ's adjustment for a song on top of matching, saved
   with its EQ (same -24..+6 dB range as the bands, so every fader's 0 dB lines up with the scale).
   Under the faders: the song's loudness and what matching does ("-19.5 LUFS · matching +3.5 dB").

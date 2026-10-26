@@ -820,6 +820,10 @@
     <Setter Property="ColumnSpacing" Value="16" />
     <Setter Property="Margin" Value="14,11" />
   </Style>
+  <!-- A setting that only matters while another is on: dimmed, the whole row, while it's off. -->
+  <Style Selector="Grid.settings-row:disabled">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
   <Style Selector="Border.settings-rule">
     <Setter Property="Height" Value="1" />
     <Setter Property="Background" Value="{StaticResource SettingsLineBrush}" />

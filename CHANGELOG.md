@@ -22,6 +22,9 @@ New:
   again.
 - **MAIN and PHONES volume from the keyboard:** Ctrl+↑ and Ctrl+↓ (Cmd on a Mac) turn MAIN up or
   down a little each press; with Shift, PHONES. They work from anywhere, the search box too.
+- **Choose the loudness target:** Settings › Sound › *Loudness target*, under *Match loudness*.
+  -16 LUFS as before, or -18, -20 or -23 for more headroom on a mixer or PA that clips easily (turn
+  its channel up to make up for it). Quiet, peaky old transfers also come up closer to the rest.
 
 Changed:
 
