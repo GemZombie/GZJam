@@ -15,14 +15,16 @@ public enum PlayingDeckLoad
     Allow,
 }
 
-/// <summary>How the play button pauses a deck the room is hearing.</summary>
+/// <summary>How the play and FADE OUT keys stop a deck the room is hearing.</summary>
 public enum OnAirPause
 {
-    /// <summary>A tap pauses, like any other deck. The default.</summary>
+    /// <summary>A tap pauses or fades, like any other deck.</summary>
     Tap,
     /// <summary>
     /// Tap twice (or press and hold), so a stray touch can't stop the music. Works with trackpad
-    /// tap-to-click, where holding is awkward.
+    /// tap-to-click, where holding is awkward. The default since 0.9.1: the first tap says "Tap
+    /// again to pause" (or "to fade out") and lights the key red, so nobody is left wondering why
+    /// the music didn't stop (what made hold-to-pause a poor default, 2026-10-20).
     /// </summary>
     TapTwice,
 }
@@ -114,7 +116,7 @@ public sealed class AppSettings
     public double CloseUpSeconds { get; set; } = 8;
 
     public PlayingDeckLoad LoadOntoPlayingDeck { get; set; } = PlayingDeckLoad.Block;
-    public OnAirPause OnAirPause { get; set; } = OnAirPause.Tap;
+    public OnAirPause OnAirPause { get; set; } = OnAirPause.TapTwice;
     public double FadeOutSeconds { get; set; } = 5;
 
     /// <summary>How far <c>~bpm:</c> searches reach either side, in percent (the tempo slider's ±8% to start with).</summary>

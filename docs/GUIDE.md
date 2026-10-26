@@ -228,11 +228,12 @@ the song ending: auto-play waits the gap and starts the next one.
 
 ### Pausing or fading out a deck the room hears
 
-A tap pauses, like any deck, and a tap on FADE OUT fades it. If you'd rather a stray touch couldn't
-stop the music, choose **Tap twice (or press and hold)** in Settings › Decks › *Pausing or fading
-out the live deck*: the first tap on the play key says *Tap again to pause*, and the first on FADE
-OUT says *Tap again to fade out* (the key turns red until then, for a few seconds). A deck the room
-can't hear pauses and fades on one tap.
+So a stray touch or click can't stop the dance, the deck the room hears takes **two taps** to pause
+or fade out: the first tap on the play key says *Tap again to pause*, and the first on FADE OUT
+says *Tap again to fade out*; the key turns red for a few seconds, waiting for the second. Pressing
+and holding the play key pauses too. A deck the room can't hear pauses and fades on one tap. To
+pause and fade the live deck on one tap as well, choose **Tap** in Settings › Decks › *Pausing or
+fading out the live deck*.
 
 ---
 
