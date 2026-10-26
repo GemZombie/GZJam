@@ -260,11 +260,40 @@ public partial class MainWindow : Window
 
     private void OnQueueKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key is Key.Delete or Key.Back)
+        switch (e.Key)
         {
-            Vm.Queue.Remove(SelectedQueueItems());
-            e.Handled = true;
+            case Key.Delete or Key.Back:
+                RemoveSelectedFromQueue();
+                break;
+            case Key.Space when SelectedQueueItems().FirstOrDefault() is { } item:
+                Vm.Preview?.Toggle(item.Track);   // as in the library (#134)
+                break;
+            default:
+                return;
         }
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// Takes the selected songs out of the queue and selects the one that took their place (or
+    /// the last), keeping the keyboard in the queue, so ↑ ↓ and Delete go on working (#133).
+    /// </summary>
+    private void RemoveSelectedFromQueue()
+    {
+        var items = SelectedQueueItems();
+        if (items.Count == 0)
+            return;
+        int first = items.Min(i => Vm.Queue.Items.IndexOf(i));
+        Vm.Queue.Remove(items);
+        if (Vm.Queue.Items.Count == 0)
+            return;
+        int next = Math.Min(first, Vm.Queue.Items.Count - 1);
+        QueueList.SelectedIndex = next;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (QueueList.ContainerFromIndex(next) is ListBoxItem row)
+                row.Focus(NavigationMethod.Directional);
+        }, DispatcherPriority.Loaded);
     }
 
     /// <summary>Where a drop at <paramref name="position"/> would insert, and where to draw the insertion line.</summary>

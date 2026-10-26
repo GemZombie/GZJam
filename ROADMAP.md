@@ -98,6 +98,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   for DJs coming from MediaMonkey, foobar2000 and most other players
 - [Compact decks](https://github.com/GemZombie/GZJam/issues/128), to see more songs on a laptop: a
   key, a button and a grip switch them, as often as you like during a night
+- [Fade out on air takes two taps](https://github.com/GemZombie/GZJam/issues/130), like pause, when
+  you've chosen two taps
+- In the queue, [Space previews](https://github.com/GemZombie/GZJam/issues/134) and
+  [Delete keeps your place](https://github.com/GemZombie/GZJam/issues/133)
 
 ## Planned next
 
@@ -106,12 +110,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 *Fixes*
 - [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
-- [Delete in the queue loses the keyboard](https://github.com/GemZombie/GZJam/issues/133): nothing
-  is selected afterward
-
-*New*
-- [Fade out on air takes two taps](https://github.com/GemZombie/GZJam/issues/130), like pause
-- [Space previews the selected song in the queue too](https://github.com/GemZombie/GZJam/issues/134)
 
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),

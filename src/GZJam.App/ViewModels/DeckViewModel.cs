@@ -704,6 +704,10 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsPauseArmed { get; private set; }
 
+    /// <summary>The first of two taps needed to fade out an on-air deck has happened (#130).</summary>
+    [ObservableProperty]
+    public partial bool IsFadeArmed { get; private set; }
+
     public bool HasTrack => Track is not null;
 
     /// <summary>The track played to its end or was faded out; it's done for this set.</summary>
@@ -882,7 +886,7 @@ public sealed partial class DeckViewModel : ObservableObject
         }
         else if (PauseNeedsConfirm && !IsPauseArmed)
         {
-            Arm();
+            Arm(fade: false);
             Log.Info($"Deck {Label}: pause armed (needs a second tap)");
             return;
         }
@@ -923,11 +927,15 @@ public sealed partial class DeckViewModel : ObservableObject
         Log.Info($"Deck {Label}: pause ({how}){(Deck.IsPlaying ? " -- STILL PLAYING" : "")}");
     }
 
-    private async void Arm()
+    private async void Arm(bool fade = false)
     {
+        Disarm();   // one key armed at a time: the second tap must be on the same key
         var armed = _armed = new CancellationTokenSource();
-        IsPauseArmed = true;
-        ShowHint("Tap again to pause");
+        if (fade)
+            IsFadeArmed = true;
+        else
+            IsPauseArmed = true;
+        ShowHint(fade ? FadeHint : PauseHint);
         try
         {
             await Task.Delay(ArmedFor, armed.Token);
@@ -940,18 +948,33 @@ public sealed partial class DeckViewModel : ObservableObject
             Disarm();
     }
 
+    private const string PauseHint = "Tap again to pause", FadeHint = "Tap again to fade out";
+
     private void Disarm()
     {
         _armed?.Cancel();
         _armed = null;
-        IsPauseArmed = false;
-        if (Hint == "Tap again to pause")
+        IsPauseArmed = IsFadeArmed = false;
+        if (Hint is PauseHint or FadeHint)
             Hint = null;
     }
 
+    /// <summary>
+    /// FADE OUT. On the deck the room hears, with two taps to pause (Settings), it takes two taps
+    /// too: a fade ends the dance as surely as a pause (#130).
+    /// </summary>
     [RelayCommand]
     private void FadeOut()
     {
+        if (!IsPlaying)
+            return;
+        if (PauseNeedsConfirm && !IsFadeArmed)
+        {
+            Arm(fade: true);
+            Log.Info($"Deck {Label}: fade out armed (needs a second tap)");
+            return;
+        }
+        Disarm();
         Deck.FadeOut(TimeSpan.FromSeconds(_settings.FadeOutSeconds));
         Log.Info($"Deck {Label}: fade out over {_settings.FadeOutSeconds:0} s");
         Refresh();
@@ -1264,8 +1287,8 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         TrackListening();
         UpdateMatch();
-        if (IsPauseArmed && !PauseNeedsConfirm)
-            Disarm();   // no longer on air (or the setting changed): a single tap pauses again
+        if ((IsPauseArmed || IsFadeArmed) && !PauseNeedsConfirm)
+            Disarm();   // no longer on air (or the setting changed): a single tap pauses or fades again
         OnPropertyChanged(nameof(IsPlaying));
         OnPropertyChanged(nameof(IsInRoom));
         OnPropertyChanged(nameof(IsOnAir));

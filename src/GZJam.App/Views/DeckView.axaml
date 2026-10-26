@@ -403,8 +403,8 @@
             <TextBlock Text="CUE" />
           </StackPanel>
         </ToggleButton>
-        <Button Grid.Column="2" Classes="hw" Command="{Binding FadeOutCommand}" IsEnabled="{Binding IsPlaying}"
-                ToolTip.Tip="Fade out and stop (length in Settings)">
+        <Button x:Name="FadeOutButton" Grid.Column="2" Classes="hw" Classes.armed="{Binding IsFadeArmed}" Command="{Binding FadeOutCommand}"
+                IsEnabled="{Binding IsPlaying}" ToolTip.Tip="Fade out and stop (length in Settings)">
           <TextBlock Text="FADE OUT" />
         </Button>
         <Panel Grid.Column="3" Classes="full-only">
