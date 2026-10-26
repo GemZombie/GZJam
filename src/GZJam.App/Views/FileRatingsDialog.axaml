@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        x:Class="GZJam.App.Views.FileRatingsDialog"
+        x:DataType="vm:FileRatingsImportViewModel"
+        Width="520" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        Title="Ratings in the song files">
+  <!-- Settings › Ratings in the song files: read them, show what they'd become, then import -->
+  <StackPanel Margin="20" Spacing="12">
+    <TextBlock Classes="label" Text="RATINGS IN THE SONG FILES" />
+    <TextBlock x:Name="StatusText" Text="{Binding Status}" TextWrapping="Wrap" />
+    <TextBlock Classes="setting-help" Text="{Binding Mapping}" TextWrapping="Wrap"
+               IsVisible="{Binding Mapping, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    <TextBlock Classes="setting-help" TextWrapping="Wrap"
+               Text="Star ratings that MediaMonkey, foobar2000, Windows Media Player and other players save in the files, for the songs that are unrated in GZJam: 4 and 5 stars become ♥, 1 and 2 stars a broken heart. The files are only read, never changed." />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
+      <Button x:Name="CancelButton" Classes="hw" Content="CANCEL" IsCancel="True" MinWidth="88" Click="OnCancelClick" />
+      <Button x:Name="ImportButton" Classes="hw" Content="IMPORT" IsDefault="True" MinWidth="88"
+              IsEnabled="{Binding CanImport}" Click="OnImportClick" />
+    </StackPanel>
+  </StackPanel>
+</Window>

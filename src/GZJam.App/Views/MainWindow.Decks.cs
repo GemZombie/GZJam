@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using GZJam.App.ViewModels;
 using GZJam.Library;
 
@@ -19,6 +20,8 @@ public partial class MainWindow
         QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
         SettingsPanel.CloseRequested += (_, _) => CloseSettings();
         SettingsPanel.MixxxImportRequested += (_, _) => ImportFromMixxx();
+        SettingsPanel.PlaylistImportRequested += (_, _) => ImportPlaylists();
+        SettingsPanel.FileRatingsRequested += (_, _) => ImportFileRatings();
         // Touch mode's sizes are app-wide; take them away with the window (tests open many windows).
         Closed += (_, _) => GZJam.App.Styles.TouchStyles.Apply(false);
 
@@ -29,6 +32,12 @@ public partial class MainWindow
             vm.ConfirmAsync = (heading, message, confirm) => new ConfirmDialog(heading, message, confirm).ShowDialog<bool>(this);
             vm.ConfirmCloseAsync = playing => new ConfirmDialog("Stop the music and close GZJam?", playing, "Close GZJam",
                 cancelText: "Keep playing", cancelIsDefault: true).ShowDialog<bool>(this);
+            vm.ConfirmImportAsync = (heading, message, confirm) =>
+            {
+                var dialog = new ConfirmDialog(heading, message, confirm);
+                dialog.ConfirmIsHarmless();
+                return dialog.ShowDialog<bool>(this);
+            };
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {
@@ -82,6 +91,26 @@ public partial class MainWindow
         var result = await new MixxxImportDialog(Vm.CreateMixxxImport()).ShowDialog<GZJam.Library.MixxxImportResult?>(this);
         if (result is not null)
             Vm.ShowNotice(MixxxImportViewModel.Summary(result));
+    }
+
+    // ───────────── Import from other players ─────────────
+
+    private async void ImportPlaylists()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Import playlists (M3U)",
+            AllowMultiple = true,
+            FileTypeFilter = [new FilePickerFileType("Playlists") { Patterns = PlaylistFile.Patterns }],
+        });
+        var paths = files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
+        await Vm.ImportPlaylistsAsync(paths);
+    }
+
+    private async void ImportFileRatings()
+    {
+        if (await new FileRatingsDialog(Vm.CreateFileRatingsImport()).ShowDialog<int?>(this) is int rated)
+            Vm.ShowNotice(FileRatingsImportViewModel.Summary(rated));
     }
 
     // ───────────── Menus ─────────────

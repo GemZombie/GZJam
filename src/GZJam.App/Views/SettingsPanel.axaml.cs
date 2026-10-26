@@ -36,6 +36,12 @@ public partial class SettingsPanel : UserControl
     /// <summary>Library › IMPORT… was pressed.</summary>
     public event EventHandler? MixxxImportRequested;
 
+    /// <summary>Library › Import playlists (M3U) was pressed.</summary>
+    public event EventHandler? PlaylistImportRequested;
+
+    /// <summary>Library › Ratings in the song files was pressed.</summary>
+    public event EventHandler? FileRatingsRequested;
+
     private (RadioButton Nav, Control Page)[] Sections =>
         [(NavSound, SoundPage), (NavDecks, DecksPage), (NavScreen, ScreenPage), (NavLibrary, LibraryPage), (NavAbout, AboutPage)];
 
@@ -72,6 +78,10 @@ public partial class SettingsPanel : UserControl
     private void OnDoneClick(object? sender, RoutedEventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnMixxxImportClick(object? sender, RoutedEventArgs e) => MixxxImportRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnPlaylistImportClick(object? sender, RoutedEventArgs e) => PlaylistImportRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnFileRatingsClick(object? sender, RoutedEventArgs e) => FileRatingsRequested?.Invoke(this, EventArgs.Empty);
 
     private async void OnGuideClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.GuideUrl));
