@@ -48,6 +48,8 @@ public partial class MainWindow
         WindowDecorationProperties.SetElementRole(TopBar, WindowDecorationsElementRole.TitleBar);
         foreach (Button button in TopBar.GetLogicalDescendants().OfType<Button>())   // toggle buttons too
             WindowDecorationProperties.SetElementRole(button, WindowDecorationsElementRole.User);
+        // So is the scan and analysis progress, for its tooltip: over the title bar, no tooltip shows.
+        WindowDecorationProperties.SetElementRole(BackgroundStatusPanel, WindowDecorationsElementRole.User);
 
         // Maximized on Windows, the window's edge sits off screen: keep everything on it.
         PropertyChanged += (_, e) =>

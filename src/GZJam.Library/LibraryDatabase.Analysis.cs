@@ -29,8 +29,11 @@ public readonly record struct ManualTrim(TimeSpan? Start, TimeSpan? End)
     public bool IsEmpty => Start is null && End is null;
 }
 
-/// <summary>A library track still waiting for analysis.</summary>
-public sealed record PendingAnalysis(string Path, FileVersion Version, bool HasTagBpm);
+/// <summary>
+/// A library track still waiting for analysis. <paramref name="Update"/>: it was analyzed before,
+/// by an older version of the analyzer (a new GZJam re-analyzes the library), not a new song.
+/// </summary>
+public sealed record PendingAnalysis(string Path, FileVersion Version, bool HasTagBpm, bool Update = false);
 
 public sealed partial class LibraryDatabase
 {
@@ -187,7 +190,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = $"""
-            SELECT t.path, t.file_size, t.modified_utc, t.bpm IS NOT NULL FROM tracks t {JoinAnalysis}
+            SELECT t.path, t.file_size, t.modified_utc, t.bpm IS NOT NULL, a.path IS NOT NULL FROM tracks t {JoinAnalysis}
             WHERE a.path IS NULL OR a.version < $version
             ORDER BY t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;
             """;
@@ -195,7 +198,7 @@ public sealed partial class LibraryDatabase
         using var r = cmd.ExecuteReader();
         var pending = new List<PendingAnalysis>();
         while (r.Read())
-            pending.Add(new PendingAnalysis(r.GetString(0), new FileVersion(r.GetInt64(1), r.GetInt64(2)), r.GetBoolean(3)));
+            pending.Add(new PendingAnalysis(r.GetString(0), new FileVersion(r.GetInt64(1), r.GetInt64(2)), r.GetBoolean(3), r.GetBoolean(4)));
         return pending;
     }
 }

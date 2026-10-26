@@ -97,7 +97,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.0.
+- New installs: two taps to pause or fade out the deck the room hears.
+- [The top bar says the analysis of your songs is a one-time job](https://github.com/GemZombie/GZJam/issues/139),
+  and roughly how long is left.
 
 ## Planned next
 

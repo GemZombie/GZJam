@@ -32,8 +32,7 @@ public sealed class ScreenshotTests
             name.SetValue(TextBlock.TextProperty, names[i], Avalonia.Data.BindingPriority.Animation);
             overridden.Add(name);
         }
-        var status = app.Window.GetVisualDescendants().OfType<TextBlock>()
-            .First(t => t.Text?.StartsWith("Analyzing", StringComparison.Ordinal) == true).Parent as Visual;
+        Visual? status = app.Window.FindControl<StackPanel>("BackgroundStatusPanel");
         status?.SetValue(Visual.IsVisibleProperty, false, Avalonia.Data.BindingPriority.Animation);
 
         app.Screenshot("readme-main-screen");

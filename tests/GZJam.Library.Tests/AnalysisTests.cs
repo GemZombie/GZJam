@@ -81,6 +81,8 @@ public sealed class AnalysisTests : IDisposable
 
         Assert.Equal(["new.mp3", "old.mp3"], pending.Select(p => Path.GetFileName(p.Path)));
         Assert.True(pending[0].HasTagBpm);
+        Assert.False(pending[0].Update);   // never analyzed: a new song
+        Assert.True(pending[1].Update);    // analyzed by an older version
     }
 
     [Fact]
