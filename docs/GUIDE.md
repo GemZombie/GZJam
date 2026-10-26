@@ -373,6 +373,12 @@ and cue it in the headphones.
 
 - **The gap** (− and + beside it, 0 to 15 seconds) is real silence between songs, whatever silence
   each file starts or ends with.
+- **Fade after** (under the gap: *Off*, or 1:00 to 5:00 in 15-second steps), for practice nights,
+  classes and jams: each song the room hears fades out after that long, from where its music
+  starts, over the *Fade-out length* in Settings › Decks. Then the gap, and the next song. A song
+  shorter than that plays to its end. The deck's time counts down to the end of the fade, and
+  under it says where the fade comes (*0:42 / fade 1:30*). Move a song on past that point and it
+  plays on; turn auto-play off and every song plays to its end again.
 - **Turning auto-play off** never touches the song that's playing: it only stops the next one
   starting. It turns itself off, with a notice, when the queue runs out.
 - During the gap, grabbing the crossfader stops its glide; the next song still starts.

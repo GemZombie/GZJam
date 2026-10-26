@@ -132,6 +132,12 @@ public sealed class AppSettings
     public double GapSeconds { get; set; } = 3;
 
     /// <summary>
+    /// Auto-play fades each song out after this many seconds of it, for practice nights and
+    /// classes (#98); 0 = off, songs play to their end.
+    /// </summary>
+    public double AutoFadeAfterSeconds { get; set; }
+
+    /// <summary>
     /// Library columns the DJ has hidden, by header. Genre starts hidden: the folder tree already
     /// sorts music by genre and style, and a laptop can't fit every column. Art too: an album's
     /// songs all share one picture, so in a long list it doesn't tell them apart.

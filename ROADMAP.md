@@ -112,6 +112,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   -23 LUFS), for more headroom on a mixer or PA that clips easily.
 - [The user guide: plugging into a venue's mixer or PA](docs/GUIDE.md#plugging-into-the-venues-sound):
   which input and cable, mono, setting the levels so nothing distorts or hisses, and hum.
+- [Auto-play fades each song out after a set time](https://github.com/GemZombie/GZJam/issues/98)
+  (1:00 to 5:00), for practice nights, classes and jams.
 
 ## Planned next
 
@@ -136,8 +138,6 @@ ran dry, it's reopened.
   for a new laptop with a different drive or system
 - [Import from iTunes / Apple Music](https://github.com/GemZombie/GZJam/issues/97): ratings,
   playlists and play counts, as the Mixxx import does
-- [Fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98) in auto-play,
-  for practice nights, classes and jams
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
