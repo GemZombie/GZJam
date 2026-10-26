@@ -51,6 +51,17 @@ public sealed class MovedSongAppTests
         File.Move(song.Path, moved);
         foreach (LibraryRoot root in app.Database.GetRoots())
             app.ViewModel.Library.RescanRoot(root.Id);
-        AppHarness.WaitFor(() => app.ViewModel.Queue.Items[0].Track.Path == moved, TimeSpan.FromSeconds(10));
+        try
+        {
+            AppHarness.WaitFor(() => app.ViewModel.Queue.Items[0].Track.Path == moved, TimeSpan.FromSeconds(20));
+        }
+        catch (TimeoutException)
+        {
+            // Failed once in a full local run and never since (15+ runs, some under load): say
+            // where the move was lost, so the next failure can be fixed rather than guessed at.
+            var inLibrary = app.Database.Search(null).Where(t => Path.GetFileName(t.Path) == Path.GetFileName(song.Path)).Select(t => t.Path);
+            Assert.Fail($"The queue didn't follow the move. Queue: {app.ViewModel.Queue.Items[0].Track.Path}; moved to: {moved} " +
+                        $"(exists: {File.Exists(moved)}); in the library: [{string.Join(" | ", inLibrary)}]; scan: {app.ViewModel.Library.ScanStatus ?? "none"}");
+        }
     }
 }

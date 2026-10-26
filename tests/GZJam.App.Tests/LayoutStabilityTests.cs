@@ -13,7 +13,11 @@ public sealed class LayoutStabilityTests
     /// What may change: the play key's icon (play or pause), the words ON AIR / OFF AIR, and the
     /// mixer's centerd LIVE / BLEND label. Their surroundings must stay put.
     /// </summary>
-    private static readonly string[] AllowedToChange = ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel"];
+    /// <summary>
+    /// What may change: a deck's own status, and the top bar's background progress (the library
+    /// being scanned or analyzed goes on by itself, and on a slow machine it's still going here).
+    /// </summary>
+    private static readonly string[] AllowedToChange = ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel", "#BackgroundStatusPanel"];
 
     /// <summary>Where every visible control is, by its place in the visual tree.</summary>
     private static Dictionary<string, Rect> Layout(AppHarness app)
