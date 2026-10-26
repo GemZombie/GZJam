@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.0** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.1** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -65,10 +65,14 @@ release.
   splitter cable can carry both (*One output for both* in Settings): the room on the left, your
   headphones on the right.
 - A booth output, for a monitor speaker at the DJ table: what the room hears, at its own volume.
-- Loudness matching, so quiet old transfers and loud remasters play at about the same level.
+- Loudness matching, so quiet old transfers and loud remasters play at about the same level, at a
+  level you choose: lower leaves more headroom for a mixer or PA that distorts easily.
+- MAIN and PHONES volume from the keyboard too: Ctrl+↑/↓ (Cmd on a Mac), with Shift for PHONES.
 - A level meter and a safety limiter for the speakers.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
-  crossfader slides over to the next deck, which counts down to starting.
+  crossfader slides over to the next deck, which counts down to starting. For classes and practice
+  nights it can fade each song out after a set time, or wait for you between songs; and it can
+  stop at a set time, so the night ends on time.
 - On Windows the speakers can be GZJam's alone, so no notification sound reaches the room. On Linux
   a sound card can be used directly, for the same reason.
 - Headphones (or the booth) unplugged during a night go quiet, never move to the speakers, and come
@@ -87,7 +91,8 @@ release.
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
 - GZJam says quietly, at startup, when a new version is out (never during a set), and a
-  [user guide](docs/GUIDE.md) covers everything, from your first song to a checklist for the night.
+  [user guide](docs/GUIDE.md) covers everything, from your first song to plugging into the venue's
+  mixer or PA and a checklist for the night.
 
 **Coming from other players**
 - From Mixxx: ratings, crates (as labels), playlists, history, locked BPMs and hot cues.
@@ -99,22 +104,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- New installs: two taps to pause or fade out the deck the room hears.
-- [The top bar says the analysis of your songs is a one-time job](https://github.com/GemZombie/GZJam/issues/139),
-  and roughly how long is left.
-- [A Quit key in Settings](https://github.com/GemZombie/GZJam/issues/55), for Linux desktops that draw
-  no title bar (Hyprland), so no close button.
-- [A song added to the queue or a playlist it's in already](https://github.com/GemZombie/GZJam/issues/136):
-  the top bar says so, with Undo.
-- [MAIN and PHONES volume from the keyboard](https://github.com/GemZombie/GZJam/issues/132): Ctrl+↑/↓
-  (Cmd on a Mac), with Shift for PHONES.
-- [Choose the loudness target](https://github.com/GemZombie/GZJam/issues/122) (-16, -18, -20 or
-  -23 LUFS), for more headroom on a mixer or PA that clips easily.
-- [The user guide: plugging into a venue's mixer or PA](docs/GUIDE.md#plugging-into-the-venues-sound):
-  which input and cable, mono, setting the levels so nothing distorts or hisses, and hum.
-- Auto-play options, for classes, practice nights and the end of the night:
-  [fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98),
-  [wait for you after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100).
+Nothing yet since 0.9.1.
 
 ## Planned next
 
