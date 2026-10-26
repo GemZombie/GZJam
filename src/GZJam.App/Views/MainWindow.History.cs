@@ -149,7 +149,7 @@ public partial class MainWindow
     }
 
     private void OnHistoryAddToQueueClick(object? sender, RoutedEventArgs e) =>
-        Vm.Queue.Add(SelectedPlays().Select(p => p.Track));
+        Vm.AddToQueue(SelectedPlays().Select(p => p.Track).ToList());
 
     private async void OnHistoryLoadToDeckClick(object? sender, RoutedEventArgs e)
     {

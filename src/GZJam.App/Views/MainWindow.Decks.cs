@@ -325,6 +325,8 @@ public partial class MainWindow
 
     private void OnNewVersionDismissClick(object? sender, RoutedEventArgs e) => Vm.DismissNewVersion();
 
+    private void OnNoticeUndoClick(object? sender, RoutedEventArgs e) => Vm.UndoNotice();
+
     /// <summary>MAIN and CUE at the top open Settings on the outputs.</summary>
     private void OnOutputChipClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Sound);
 

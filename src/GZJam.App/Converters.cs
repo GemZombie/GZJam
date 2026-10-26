@@ -19,6 +19,15 @@ public static class Format
 
     public static string Count(int n) => n.ToString("N0", CultureInfo.CurrentCulture);
 
+    /// <summary>"1st", "2nd", "3rd", "4th", "11th", "22nd".</summary>
+    public static string Ordinal(int n) => Count(n) + ((n % 100) is 11 or 12 or 13 ? "th" : (n % 10) switch
+    {
+        1 => "st",
+        2 => "nd",
+        3 => "rd",
+        _ => "th",
+    });
+
     /// <summary>How long ago, briefly: "Today", "3 days", "2 wk", "5 mo", "2 yr"; "" for never.</summary>
     public static string Ago(DateTime? utc, DateTime? nowUtc = null)
     {

@@ -395,12 +395,71 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (songs.Count == 0)
             return;
+        var before = _database.GetPlaylistEntries(playlist.Id);
         _database.AddToPlaylist(playlist.Id, songs.Select(t => t.Path), index);
         Log.Info($"Added {(songs.Count == 1 ? $"\"{songs[0].DisplayTitle}\"" : $"{songs.Count} songs")} to playlist \"{playlist.Name}\"");
         Library.RefreshPlaylists();
-        if (Library.SelectedPlaylist?.Id != playlist.Id)
+
+        // Already in it (#136): still added, but said, and Undo takes the new copies out again.
+        var earlier = FirstPositions(before.Select(e => e.Path));
+        var oldIds = before.Select(e => e.EntryId).ToHashSet();
+        var repeats = _database.GetPlaylistEntries(playlist.Id).Where(e => !oldIds.Contains(e.EntryId) && earlier.ContainsKey(e.Path)).ToList();
+        if (repeats.Count > 0)
+        {
+            Track first = songs.First(t => t.Path == repeats[0].Path);
+            ShowNotice(AlreadyIn(playlist.Name, repeats.Count, songs.Count, first, earlier[first.Path]), 6, undo: () =>
+            {
+                _database.RemoveFromPlaylist(playlist.Id, repeats.Select(e => e.EntryId));
+                Log.Info($"Took {repeats.Count} repeated songs back out of playlist \"{playlist.Name}\"");
+                Library.RefreshPlaylists();
+            });
+        }
+        else if (Library.SelectedPlaylist?.Id != playlist.Id)
+        {
             ShowNotice(songs.Count == 1 ? $"Added to {playlist.Name}" : $"{songs.Count} songs added to {playlist.Name}");
+        }
     }
+
+    /// <summary>
+    /// Adds songs to the queue (before row <paramref name="index"/>, or at the end). Songs in it
+    /// already are still added, but a quiet notice says so, with an Undo key that takes the new
+    /// copies out again (#136): it's easy to add one twice while building a set.
+    /// </summary>
+    public void AddToQueue(IReadOnlyList<Track> tracks, int? index = null)
+    {
+        if (tracks.Count == 0)
+            return;
+        var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
+        var repeats = Queue.Add(tracks, index).Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
+        if (repeats.Count > 0)
+            NoticeRepeatsInQueue(repeats, tracks.Count, earlier);
+    }
+
+    private void NoticeRepeatsInQueue(IReadOnlyList<QueueItem> repeats, int added, Dictionary<string, int> earlier)
+    {
+        Track first = repeats[0].Track;
+        ShowNotice(AlreadyIn("the queue", repeats.Count, added, first, earlier[first.Path]), 6, undo: () =>
+        {
+            Queue.Remove(repeats);
+            Log.Info($"Took {repeats.Count} repeated songs back out of the queue");
+        });
+    }
+
+    /// <summary>Each file's first place in a list, from 1.</summary>
+    private static Dictionary<string, int> FirstPositions(IEnumerable<string> paths)
+    {
+        var first = new Dictionary<string, int>(StringComparer.Ordinal);
+        int n = 0;
+        foreach (string path in paths)
+            first.TryAdd(path, ++n);
+        return first;
+    }
+
+    /// <summary>"\"Shiny Stockings\" is in the queue already (5th)", or "3 of these songs are in Tuesday already".</summary>
+    internal static string AlreadyIn(string where, int repeats, int added, Track first, int position) =>
+        repeats == 1 ? $"\"{first.DisplayTitle}\" is in {where} already ({Format.Ordinal(position)})"
+        : repeats == added ? $"These {Format.Count(repeats)} songs are in {where} already"
+        : $"{Format.Count(repeats)} of these songs are in {where} already";
 
     /// <summary>Takes rows of the open playlist out of it. The files are untouched.</summary>
     public void RemoveFromPlaylist(IReadOnlyList<Track> rows)
@@ -462,9 +521,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             foreach (Track track in shown)
                 track.IsPlayedTonight = track.LastPlayedUtc >= since;
         }
-        Queue.Add(shown);
+        var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
+        var repeats = Queue.Add(shown).Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
         Log.Info($"Playlist \"{playlist.Name}\" added to the queue: {shown.Count} songs{(from is null ? "" : $" from number {from.PlaylistNumber}")}");
-        ShowNotice(shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue");
+        if (repeats.Count > 0)
+            NoticeRepeatsInQueue(repeats, shown.Count, earlier);
+        else
+            ShowNotice(shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue");
     }
 
     private DateTime? TonightSince() => History.CurrentSessionStartUtc;
@@ -593,6 +656,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>A short message in the top bar, e.g. why a load was refused. Clears itself.</summary>
     [ObservableProperty]
     public partial string? Notice { get; private set; }
+
+    /// <summary>What the notice's Undo key does; null when it has none.</summary>
+    [ObservableProperty]
+    public partial Action? NoticeUndo { get; private set; }
 
     // Split, the side comes first: a long name is trimmed at its end.
     public string MainOutputName => (Mix?.IsSplit == true ? "Left · " : "") + OutputName(Mix?.Main);
@@ -1051,12 +1118,26 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     internal void NewVersionCheckTurnedOff() => NewVersion = null;
 
     /// <param name="seconds">How long it stays: longer for one the DJ mustn't miss.</param>
-    public async void ShowNotice(string text, double seconds = 4)
+    /// <param name="undo">Takes back what the notice reports, from an Undo key beside it.</param>
+    public async void ShowNotice(string text, double seconds = 4, Action? undo = null)
     {
         Notice = text;
+        NoticeUndo = undo;
         await Task.Delay(TimeSpan.FromSeconds(seconds));
         if (Notice == text)
+        {
             Notice = null;
+            NoticeUndo = null;
+        }
+    }
+
+    /// <summary>The notice's Undo key was pressed.</summary>
+    public void UndoNotice()
+    {
+        Action? undo = NoticeUndo;
+        Notice = null;
+        NoticeUndo = null;
+        undo?.Invoke();
     }
 
     /// <summary>Library columns the DJ has hidden (by header); changed by the column menu, saved with the settings.</summary>

@@ -17,6 +17,9 @@ New:
 - **QUIT GZJAM in Settings,** at the bottom of the side column: a way to close GZJam on Linux
   desktops that draw no title bar (Hyprland), so no close button. It asks first while the room hears
   music.
+- **A song added to the queue or a playlist it's in already** still goes in, but the top bar says
+  so (*"Shiny Stockings" is in the queue already (5th)*), with **Undo** to take the new copy out
+  again.
 
 Changed:
 

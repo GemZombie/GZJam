@@ -143,7 +143,7 @@ public partial class MainWindow
                 if (drag.FromQueue is { } items)
                     Vm.Queue.Move(items, index);
                 else
-                    Vm.Queue.Add(drag.Tracks, index);
+                    Vm.AddToQueue(drag.Tracks, index);
                 break;
         }
     }

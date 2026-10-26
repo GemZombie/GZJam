@@ -45,7 +45,14 @@
         <!-- Short-lived messages, e.g. why a load was refused -->
         <Border Grid.Column="2" Classes="hint" HorizontalAlignment="Center" VerticalAlignment="Center"
                 BorderBrush="#66F5A524" IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
-          <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" />
+          <!-- Narrow, a long notice is trimmed rather than pushing its Undo out of sight -->
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBlock Text="{Binding Notice}" Foreground="{StaticResource Deck2Brush}" FontSize="12.5" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Notice}" />
+            <Button x:Name="NoticeUndoButton" Grid.Column="1" Classes="link" Content="Undo" Click="OnNoticeUndoClick" Margin="0,-3"
+                    Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"
+                    IsVisible="{Binding NoticeUndo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </Grid>
         </Border>
 
         <!-- A newer GZJam is out: only at startup, until the room hears music or it's closed -->

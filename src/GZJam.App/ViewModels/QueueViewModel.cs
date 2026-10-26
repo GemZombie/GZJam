@@ -56,12 +56,18 @@ public sealed partial class QueueViewModel : ObservableObject
         }
     }
 
-    /// <summary>Adds tracks at <paramref name="index"/>, or at the end.</summary>
-    public void Add(IEnumerable<Track> tracks, int? index = null)
+    /// <summary>Adds tracks at <paramref name="index"/>, or at the end. Returns the new rows.</summary>
+    public IReadOnlyList<QueueItem> Add(IEnumerable<Track> tracks, int? index = null)
     {
         int at = Math.Clamp(index ?? Items.Count, 0, Items.Count);
+        var added = new List<QueueItem>();
         foreach (Track track in tracks)
-            Items.Insert(at++, new QueueItem(track));
+        {
+            var item = new QueueItem(track);
+            Items.Insert(at++, item);
+            added.Add(item);
+        }
+        return added;
     }
 
     public void PlayNext(IEnumerable<Track> tracks) => Add(tracks, 0);

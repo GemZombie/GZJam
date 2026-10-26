@@ -206,6 +206,20 @@ is out of scope until it earns a place.
 - Auto-play, the gap, silence trimming, BPM detection and waveforms have since been built (see
   Track prep).
 
+## Songs added twice (2026-10-26, issue #136)
+
+- A song added to the queue (or a playlist) that's in it already is still added: playing a song
+  twice in a night can be on purpose. The top bar says so quietly, never with a dialog:
+  *"Shiny Stockings" is in the queue already (5th)*, the earlier copy's place; several at once are
+  one notice (*2 of these songs are in the queue already*).
+- The notice has an **Undo** key, for a few seconds longer than other notices (6 s), that takes out
+  only the new copies of the repeated songs, not the rest of what was added.
+- Every way of adding goes through it: Enter, Shift+Enter, the menus, dragging, files from the
+  file manager, History's *Add to queue*, a playlist added to the queue, and adding to a playlist.
+  Restoring the queue after a restart doesn't.
+- Notices trim with an ellipsis when the window is narrow (the full text is their tooltip), so the
+  Undo key never goes out of sight.
+
 ## Queue as a crate
 
 - In manual DJing the queue is a "box" of songs being considered. Tracks can be dragged (or
