@@ -21,6 +21,11 @@ public partial class MainWindow
         QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
         QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
         SettingsPanel.CloseRequested += (_, _) => CloseSettings();
+        SettingsPanel.QuitRequested += (_, _) =>
+        {
+            CloseSettings();
+            Close();   // asks first while the room hears a deck
+        };
         DeckGrip.PointerPressed += OnDeckGripPressed;
         DeckGrip.PointerMoved += OnDeckGripMoved;
         DeckGrip.PointerReleased += OnDeckGripReleased;

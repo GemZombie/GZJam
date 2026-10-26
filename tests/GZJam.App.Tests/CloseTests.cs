@@ -85,6 +85,40 @@ public sealed class CloseTests
         }
     }
 
+    /// <summary>Some Linux desktops draw no title bar, so Settings has a way to close GZJam of its own (#55).</summary>
+    [AvaloniaFact]
+    public async Task Quit_in_Settings_closes_and_still_asks_while_the_room_hears_a_deck()
+    {
+        using (var app = new AppHarness())
+        {
+            var asked = Answer(app, close: false);
+            app.Window.OpenSettings(SettingsSection.Library);
+            Quit(app);
+            Assert.Empty(asked);
+            Assert.False(app.Window.IsVisible);
+        }
+
+        using (var app = new AppHarness())
+        {
+            DeckViewModel deck = await PlayOnDeck1(app, inTheRoom: true);
+            var asked = Answer(app, close: false);
+            app.Window.OpenSettings();
+            Quit(app);
+            Assert.Single(asked);
+            Assert.True(app.Window.IsVisible);
+            Assert.False(app.Window.IsSettingsOpen);   // back to the decks, still playing
+            Assert.True(deck.IsPlaying);
+        }
+
+        static void Quit(AppHarness app)
+        {
+            var quit = app.Window.FindControl<SettingsPanel>("SettingsPanel")!.FindControl<Button>("QuitButton")!;
+            Assert.True(quit.IsEffectivelyVisible);   // on every section
+            quit.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            AppHarness.Settle(100);
+        }
+    }
+
     [AvaloniaFact]
     public async Task In_the_question_enter_and_escape_keep_playing()
     {

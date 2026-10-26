@@ -761,6 +761,9 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
 - **macOS:** the bar leaves room on the left for the window's own buttons. Not yet seen on a Mac
   (issue #18).
 - **Linux** keeps the system's title bar where there is one; tiling desktops like Hyprland have none.
+  For those, Settings has **QUIT GZJAM** at the bottom of its side column (issue #55), on every
+  platform and every section: out of the way of the decks, and it asks first while the room hears
+  a deck, like any other close.
 
 ### Status: a level meter on each deck (2026-10-23, issue #2)
 

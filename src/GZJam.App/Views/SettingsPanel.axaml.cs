@@ -33,6 +33,9 @@ public partial class SettingsPanel : UserControl
     /// <summary>DONE was pressed.</summary>
     public event EventHandler? CloseRequested;
 
+    /// <summary>QUIT GZJAM was pressed.</summary>
+    public event EventHandler? QuitRequested;
+
     /// <summary>Library › IMPORT… was pressed.</summary>
     public event EventHandler? MixxxImportRequested;
 
@@ -76,6 +79,8 @@ public partial class SettingsPanel : UserControl
     }
 
     private void OnDoneClick(object? sender, RoutedEventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnQuitClick(object? sender, RoutedEventArgs e) => QuitRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnMixxxImportClick(object? sender, RoutedEventArgs e) => MixxxImportRequested?.Invoke(this, EventArgs.Empty);
 

@@ -19,6 +19,10 @@
               BorderBrush="{StaticResource SettingsLineBrush}" BorderThickness="0,0,1,0">
         <DockPanel Margin="0,10">
           <TextBlock x:Name="NavVersionText" DockPanel.Dock="Bottom" Classes="dim" FontSize="11" Margin="18,0" />
+          <!-- Some Linux desktops (Hyprland) draw no title bar, so no close button: this works on all (#55).
+               Still asks first while the room hears a deck. -->
+          <Button x:Name="QuitButton" DockPanel.Dock="Bottom" Classes="hw small" Content="QUIT GZJAM" Margin="14,0,14,10"
+                  HorizontalAlignment="Left" Click="OnQuitClick" ToolTip.Tip="Close GZJam (asks first while the room hears music)" />
           <StackPanel>
             <RadioButton x:Name="NavSound" Classes="settings-nav" GroupName="SettingsSections" Content="Sound" IsChecked="True" />
             <RadioButton x:Name="NavDecks" Classes="settings-nav" GroupName="SettingsSections" Content="Decks" />
