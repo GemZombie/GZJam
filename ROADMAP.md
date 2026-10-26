@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.8.0** (25 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.0** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -33,6 +33,8 @@ release.
 
 **Decks**
 - Two decks, or four in the same space.
+- Compact decks for a laptop: smaller decks, so the library and queue show more songs. A key, a
+  button or a grip switches them, as often as you like during a night.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
   passages closer together.
@@ -76,7 +78,7 @@ release.
 - GZJam asks before closing while the room is hearing music.
 - If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
   as they were, paused. After a normal close they come back too, each deck at the start of its song.
-- With two taps to pause the deck the room hears, a stray tap (even while the screen is frozen)
+- With two taps to pause or fade out the deck the room hears, a stray tap (even while the screen is frozen)
   never stops the music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
   dividers between panels.
@@ -85,23 +87,17 @@ release.
 - GZJam says quietly, at startup, when a new version is out (never during a set), and a
   [user guide](docs/GUIDE.md) covers everything, from your first song to a checklist for the night.
 
-**Coming from Mixxx**
-- Import ratings, crates (as labels), playlists, history, locked BPMs and hot cues. Mixxx's own files are
-  never changed.
+**Coming from other players**
+- From Mixxx: ratings, crates (as labels), playlists, history, locked BPMs and hot cues.
+- From MediaMonkey, foobar2000, iTunes and most other players: playlists saved as M3U, and the star
+  ratings they keep in the song files.
+- The other player's files, and your music, are never changed.
 
 Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and AAC on Windows and Mac.
 
 ## Finished, coming in the next release
 
-- Settings › About's links say where they go: *User guide · GZJam on GitHub*.
-- [Import M3U playlists, and star ratings saved in the song files](https://github.com/GemZombie/GZJam/issues/116),
-  for DJs coming from MediaMonkey, foobar2000 and most other players
-- [Compact decks](https://github.com/GemZombie/GZJam/issues/128), to see more songs on a laptop: a
-  key, a button and a grip switch them, as often as you like during a night
-- [Fade out on air takes two taps](https://github.com/GemZombie/GZJam/issues/130), like pause, when
-  you've chosen two taps
-- In the queue, [Space previews](https://github.com/GemZombie/GZJam/issues/134) and
-  [Delete keeps your place](https://github.com/GemZombie/GZJam/issues/133)
+Nothing yet since 0.9.0.
 
 ## Planned next
 
