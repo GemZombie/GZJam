@@ -226,11 +226,13 @@ lights when a song has EQ. The room and the headphones hear it alike.
 **FADE OUT** fades the deck out over 5 seconds (Settings › Decks › *Fade-out length*). It counts as
 the song ending: auto-play waits the gap and starts the next one.
 
-### Pausing a deck the room hears
+### Pausing or fading out a deck the room hears
 
-A tap pauses, like any deck. If you'd rather a stray touch couldn't stop the music, choose **Tap
-twice (or press and hold)** in Settings › Decks › *Pausing the live deck*: the first tap says *Tap
-again to pause*.
+A tap pauses, like any deck, and a tap on FADE OUT fades it. If you'd rather a stray touch couldn't
+stop the music, choose **Tap twice (or press and hold)** in Settings › Decks › *Pausing or fading
+out the live deck*: the first tap on the play key says *Tap again to pause*, and the first on FADE
+OUT says *Tap again to fade out* (the key turns red until then, for a few seconds). A deck the room
+can't hear pauses and fades on one tap.
 
 ---
 
@@ -348,6 +350,8 @@ The queue is tonight's list of songs to come.
   or press Enter (Shift+Enter: play next). Files and whole folders dragged from your file manager go
   in too.
 - **Reordering:** drag a row by its ⋮⋮ grip. Right-click › *Move to top*, *Remove*, *Clear queue*.
+- **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
+  stops); **Delete** takes it out and selects the next, so you can keep going.
 - **Loading from it:** drag a queued song onto a deck; it leaves the queue.
 
 ### Auto-play
@@ -389,7 +393,7 @@ The gear in the top bar. Music keeps playing while it's open; DONE, Escape or a 
   loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), and **Extra
   protection against crackles**.
 - **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
-  it), *Pausing the live deck* (Tap, or Tap twice).
+  it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
 - **Library:** *Import from Mixxx*, *Import playlists (M3U)*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
@@ -493,8 +497,8 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 | | |
 |---|---|
 | **Enter** | add the selected songs to the queue (**Shift+Enter**: play next) |
-| **Space** | preview the selected song in the headphones |
-| **Delete** | take the selected songs out of the open playlist |
+| **Space** | preview the selected song in the headphones (in the library or the queue) |
+| **Delete** | take the selected songs out of the open playlist, or out of the queue |
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Escape** | clear the search; close Settings; cancel a drag |

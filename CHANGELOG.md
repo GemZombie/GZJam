@@ -25,6 +25,10 @@ New:
 
 Changed:
 
+- **Fade out on air takes two taps too,** when you've chosen two taps to pause the deck the room
+  hears (Settings › Decks › *Pausing or fading out the live deck*): a fade ends the dance as surely
+  as a pause.
+- **Space previews in the queue too,** as in the library.
 - **The decks come back after a normal close too,** not just the queue: each with its song, tempo
   and cue button, paused at the start of the song. Closing GZJam no longer loses what was loaded.
   After a crash they still come back exactly where they were.
@@ -33,6 +37,8 @@ Changed:
 
 Fixed:
 
+- **Delete in the queue** left nothing selected, so the arrow keys stopped working until you
+  clicked in the queue again. The next song is selected now.
 - **A song deleted beside a copy of itself** (same size and date) could be taken as moved onto
   the copy, which then got its hearts, cues and playlist places. With more than one music folder only.
 - **Settings › About's links say where they go:** *User guide · GZJam on GitHub*. The project's

@@ -199,8 +199,8 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Classes="setting" Text="Pausing the live deck" />
-                    <TextBlock Classes="setting-help" Text="The deck the room is hearing." />
+                    <TextBlock Classes="setting" Text="Pausing or fading out the live deck" />
+                    <TextBlock Classes="setting-help" Text="The deck the room is hearing. Tap twice: PAUSE and FADE OUT each need a second tap." />
                   </StackPanel>
                   <ComboBox Grid.Column="1" ItemsSource="{Binding PauseChoices}" SelectedItem="{Binding PauseChoice}" />
                 </Grid>

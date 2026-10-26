@@ -561,6 +561,10 @@
   <Style Selector="Button.play.armed /template/ ContentPresenter">
     <Setter Property="Background" Value="#66F04444" />
   </Style>
+  <!-- First of two taps to fade out an on-air deck: the same red as an armed play key -->
+  <Style Selector="Button.hw.armed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#66F04444" />
+  </Style>
   <Style Selector="Button.play:disabled">
     <Setter Property="Opacity" Value="0.35" />
   </Style>
