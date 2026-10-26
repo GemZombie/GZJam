@@ -429,6 +429,63 @@ under `backups`.
 
 ## At a gig
 
+### Plugging into the venue's sound
+
+**Which input.** Use a **line input** on the venue's mixer: a stereo channel's pair of jacks or
+RCA sockets, or a mono channel's line jack. A microphone input (the XLR socket on a mic channel)
+expects a far quieter signal: a laptop overloads it unless its gain is all the way down, and it
+hisses. If a mic input is all there is, put a **DI box** in between.
+
+**Which cable.** From a laptop's headphone jack or a small sound card: a 3.5 mm stereo plug to two
+6.35 mm (1/4") plugs or two RCA plugs, whichever the mixer has. From a sound card with its own
+outputs, cables to match them. Keep it short: across a hall, use a DI box at the DJ table and a
+microphone cable to the mixer, which doesn't pick up hum on the way.
+
+**Mono.** At most dances the speakers stand on both sides of the floor, and dancers near one hear
+mostly that side. In stereo, they'd lose whatever was recorded on the other (on many old
+recordings, half the band). With **Mono** on (Settings › Sound, on by default), both sides play
+the whole song. It also means that if the mixer has only a mono channel free, one cable from
+either side carries everything.
+
+**Setting the levels.** Do this before the doors open, once:
+
+1. On the mixer: the channel's fader and the master fader down, the channel's **gain** (or
+   **trim**) at its lowest, its EQ in the middle.
+2. In GZJam: **MAIN** near the top. Play the loudest song you'll play. With *Match loudness* on,
+   most songs play at about the same level, so any typical song will do.
+3. Turn the channel's gain up until its meter peaks just under 0 (or the peak light only just
+   flickers on the loudest moments). Lower is safer than higher.
+4. Bring the channel's fader up to its mark (0, or U), and set the room's level with the master
+   fader.
+5. From then on, the room's level is the mixer's. Leave **MAIN** where it is. GZJam's **LIMIT**
+   light stays off.
+
+Why this way round: GZJam sends its cleanest signal with MAIN near the top. MAIN low with the
+mixer's gain high adds hiss; MAIN high with the mixer's gain high distorts in the mixer, where
+GZJam's limiter can't help.
+
+**The mixer's channel distorts even with its gain at the lowest** (a mic input, an older mixer,
+or a channel set up for something quieter): choose a lower **Loudness target** in Settings › Sound
+(-20 or -23 LUFS), so everything leaves GZJam a few dB quieter, or turn MAIN down.
+
+**No mixer: straight into a powered speaker or PA.** Then MAIN is the room's volume. Start with
+MAIN low and the speaker's own volume at about its middle, play a song, and set the speaker so that
+MAIN at about three quarters is as loud as the room will need. That leaves room to turn up as the
+floor fills, without the speaker distorting.
+
+**Hum or buzz.** A laptop on its charger, plugged into a different outlet from the sound system,
+often hums through the speakers (a ground loop). Try these in order:
+
+- Plug the charger into the same power strip as the mixer.
+- Unplug the charger for a moment: if the hum stops, it's a ground loop. (Don't play the night on
+  battery.)
+- A DI box with a ground lift switch, or a ground loop isolator (a small box that goes in the audio
+  cable).
+- A USB sound card instead of the laptop's own jack. Some laptops' jacks pick up the computer's
+  own noise: a whine that changes when you scroll or the screen changes.
+
+Never remove the ground pin from a power plug.
+
 **Before the doors open**
 
 - [ ] Plug in the sound card, then open GZJam. MAIN and CUE in the top bar are green and name the
@@ -436,7 +493,8 @@ under `backups`.
 - [ ] **Mono** on (Settings › Sound), unless you know you want stereo.
 - [ ] Play a song to the room and preview another in the headphones: the preview is in the
       headphones only.
-- [ ] Set the room's level with the sound system and the **MAIN** fader; the **LIMIT** light
+- [ ] Set the levels: **MAIN** near the top, then the mixer (see
+      [Plugging into the venue's sound](#plugging-into-the-venues-sound)); the **LIMIT** light
       stays off.
 - [ ] Plug the laptop into power, and set it to its best performance mode. Turn off sleep, and
       updates that might restart it.
@@ -470,6 +528,9 @@ under `backups`.
 - Use a wired output: Bluetooth speakers and headphones add delay and drop out.
 - Plug the sound card straight into the computer rather than through a hub or dock.
 - Keep the computer plugged in, at its best performance mode.
+
+**The venue's sound distorts, hisses or hums:** see
+[Plugging into the venue's sound](#plugging-into-the-venues-sound).
 
 **The speakers won't open**
 
