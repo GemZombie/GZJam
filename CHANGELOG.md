@@ -25,6 +25,9 @@ New:
 - **Choose the loudness target:** Settings › Sound › *Loudness target*, under *Match loudness*.
   -16 LUFS as before, or -18, -20 or -23 for more headroom on a mixer or PA that clips easily (turn
   its channel up to make up for it). Quiet, peaky old transfers also come up closer to the rest.
+- **The user guide: plugging into the venue's sound** (under *At a gig*): which input and cable,
+  why mono, setting the levels so nothing distorts or hisses, a powered speaker with no mixer, and
+  what to try for hum.
 
 Changed:
 
