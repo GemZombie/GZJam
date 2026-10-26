@@ -20,6 +20,8 @@ New:
 - **A song added to the queue or a playlist it's in already** still goes in, but the top bar says
   so (*"Shiny Stockings" is in the queue already (5th)*), with **Undo** to take the new copy out
   again.
+- **MAIN and PHONES volume from the keyboard:** Ctrl+↑ and Ctrl+↓ (Cmd on a Mac) turn MAIN up or
+  down a little each press; with Shift, PHONES. They work from anywhere, the search box too.
 
 Changed:
 

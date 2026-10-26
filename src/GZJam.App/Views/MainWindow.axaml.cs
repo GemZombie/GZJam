@@ -32,6 +32,8 @@ public partial class MainWindow : Window
         _queueDrag = new DragStarter(this, QueueList, item => DragFromQueue((QueueItem)item), QueueMenu);
 
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
+        // Ahead of the lists and the search box, which would take Ctrl+arrows for themselves.
+        AddHandler(KeyDownEvent, OnVolumeKeyDown, RoutingStrategies.Tunnel);
 
         PositionChanged += (_, _) => RememberNormalBounds();
         Resized += (_, _) => RememberNormalBounds();
@@ -190,6 +192,26 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
         }
+    }
+
+    /// <summary>One press of a volume key, in the sliders' percent: small, so a held key can't blast the room.</summary>
+    internal const double VolumeKeyStep = 2;
+
+    /// <summary>
+    /// Ctrl+↑/↓ (Cmd on macOS) turns MAIN up or down, with Shift the PHONES (#132): from anywhere,
+    /// the search box too, as they type nothing. Held, the key repeats.
+    /// </summary>
+    private void OnVolumeKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Up or Key.Down) || Vm.Mixer is not { } mixer
+            || (e.KeyModifiers & ~KeyModifiers.Shift) != CommandModifier)
+            return;
+        double step = e.Key == Key.Up ? VolumeKeyStep : -VolumeKeyStep;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            mixer.CueVolume += step;
+        else
+            mixer.MainVolume += step;
+        e.Handled = true;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

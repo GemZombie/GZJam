@@ -123,8 +123,11 @@ public sealed partial class MixerViewModel : ObservableObject
 
     public string MainVolumeText => Db(MainVolume);
     public string CueVolumeText => Db(CueVolume);
-    public string MainVolumeTip => $"Main (speaker) volume: {MainVolumeText}";
-    public string CueVolumeTip => $"Phones (headphone) volume: {CueVolumeText}";
+    public string MainVolumeTip => $"Main (speaker) volume: {MainVolumeText} · keys: {Command}+↑ ↓";
+    public string CueVolumeTip => $"Phones (headphone) volume: {CueVolumeText} · keys: {Command}+Shift+↑ ↓";
+
+    /// <summary>The volume keys' modifier, as each platform names it (#132).</summary>
+    private static string Command => OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl";
 
     /// <summary>A volume as the dB it turns the output down by: "0 dB", "−6 dB", "off".</summary>
     private static string Db(double percent)
