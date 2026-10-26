@@ -274,4 +274,111 @@ public sealed class AutoPlayTests
             auto.GapDownCommand.Execute(null);
         Assert.Equal("0.0 s", auto.GapText);
     }
+
+    // ───────────── Fade after a set time (#98) ─────────────
+
+    /// <summary>Moves a deck to just before a place in its song (a seek: not counted as playing past anything).</summary>
+    private static void JustBefore(AppHarness app, DeckViewModel deck, TimeSpan at)
+    {
+        deck.Deck.Seek(at - TimeSpan.FromSeconds(0.2));
+        app.Play(0.01);
+    }
+
+    [AvaloniaFact]
+    public void With_a_limit_each_song_fades_out_after_it_and_the_next_one_starts()
+    {
+        var (app, auto, tracks) = Setup(queued: 3, seconds: 75);
+        using var _ = app;
+        app.Settings.FadeOutSeconds = 0.5;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.FadeAfterUpCommand.Execute(null);   // Off › 1:00
+        Assert.Equal("1:00", auto.FadeAfterText);
+
+        auto.IsOn = true;
+        app.Play(0.1);
+        TimeSpan fadesAt = d1.Deck.Start + TimeSpan.FromSeconds(60);
+        Assert.Equal(fadesAt, d1.Deck.FadesAt);
+        Assert.Equal($"0:00 / fade {Format.Duration(fadesAt)}", d1.ReadoutCaption);
+        Assert.InRange(d1.Deck.Remaining.TotalSeconds, 59.5, 61);   // to the end of the fade, not the song
+
+        JustBefore(app, d1, fadesAt);
+        Assert.False(d1.Deck.IsFading);
+        PlayUntil(app, () => d1.Deck.IsFading);
+        Assert.InRange(d1.Deck.Position.TotalSeconds, fadesAt.TotalSeconds, fadesAt.TotalSeconds + 0.5);
+
+        PlayUntil(app, () => d2.IsOnAir);
+        Assert.Equal(d2.Deck.Start + TimeSpan.FromSeconds(60), d2.Deck.FadesAt);   // the next song has it too
+        Assert.Null(d1.Deck.AutoFade);   // out of the room
+        Assert.Equal(tracks[2], d1.Track);
+    }
+
+    [AvaloniaFact]
+    public void A_song_moved_past_the_limit_plays_on_and_a_short_one_plays_to_its_end()
+    {
+        var (app, auto, _) = Setup(queued: 2, seconds: 75);
+        using var _app = app;
+        var d1 = app.ViewModel.Deck1!;
+        auto.FadeAfterUpCommand.Execute(null);
+        auto.IsOn = true;
+        app.Play(0.1);
+
+        d1.Deck.Seek(TimeSpan.FromSeconds(62));   // the DJ moved it on: past the point, not played past it
+        for (int i = 0; i < 10; i++)
+            app.Play(0.033);
+        Assert.False(d1.Deck.IsFading);
+        Assert.Null(d1.Deck.FadesAt);
+        Assert.EndsWith("/ 1:15", d1.ReadoutCaption);
+
+        // A limit longer than the song: nothing to fade, it plays to its end as before.
+        for (int i = 0; i < 4; i++)
+            auto.FadeAfterUpCommand.Execute(null);   // 2:00
+        d1.Deck.Seek(TimeSpan.Zero);
+        app.Play(0.033);
+        Assert.Null(d1.Deck.FadesAt);
+    }
+
+    [AvaloniaFact]
+    public void Turning_auto_play_off_lets_the_song_play_to_its_end()
+    {
+        var (app, auto, _) = Setup(queued: 2, seconds: 75);
+        using var _app = app;
+        var d1 = app.ViewModel.Deck1!;
+        auto.FadeAfterUpCommand.Execute(null);
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.NotNull(d1.Deck.FadesAt);
+
+        auto.IsOn = false;
+        Assert.Null(d1.Deck.AutoFade);
+        JustBefore(app, d1, TimeSpan.FromSeconds(60));
+        for (int i = 0; i < 15; i++)
+            app.Play(0.033);
+        Assert.False(d1.Deck.IsFading);
+        Assert.True(d1.IsPlaying);
+    }
+
+    [AvaloniaFact]
+    public void Fade_after_steps_from_off_through_one_to_five_minutes_and_is_remembered()
+    {
+        using var app = new AppHarness();
+        AutoPlayViewModel auto = app.ViewModel.AutoPlay!;
+        Assert.Equal("Off", auto.FadeAfterText);
+        Assert.False(auto.IsFadeAfterOn);
+
+        auto.FadeAfterUpCommand.Execute(null);
+        auto.FadeAfterUpCommand.Execute(null);
+        Assert.Equal("1:15", auto.FadeAfterText);
+        Assert.Equal(75, app.Settings.AutoFadeAfterSeconds);
+
+        for (int i = 0; i < 30; i++)
+            auto.FadeAfterUpCommand.Execute(null);
+        Assert.Equal("5:00", auto.FadeAfterText);
+
+        for (int i = 0; i < 16; i++)
+            auto.FadeAfterDownCommand.Execute(null);
+        Assert.Equal("1:00", auto.FadeAfterText);
+        auto.FadeAfterDownCommand.Execute(null);
+        Assert.Equal("Off", auto.FadeAfterText);
+        Assert.Equal(0, app.Settings.AutoFadeAfterSeconds);
+    }
 }

@@ -28,6 +28,9 @@ New:
 - **The user guide: plugging into the venue's sound** (under *At a gig*): which input and cable,
   why mono, setting the levels so nothing distorts or hisses, a powered speaker with no mixer, and
   what to try for hum.
+- **Auto-play can fade each song out after a set time,** for practice nights, classes and jams:
+  *FADE AFTER* under the gap, *Off* or 1:00 to 5:00. The deck's time counts down to the end of
+  the fade, then the gap, then the next song. Songs shorter than that play to their end.
 
 Changed:
 

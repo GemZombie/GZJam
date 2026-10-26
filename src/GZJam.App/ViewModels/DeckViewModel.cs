@@ -833,7 +833,9 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         DeckReadout.Elapsed => $"elapsed of {Format.Duration(Deck.Length)}",
         DeckReadout.Bpm => $"{BpmCaption} · {TempoText}",
-        _ => $"{Format.Duration(Deck.Position)} / {Format.Duration(Deck.Length)}",
+        _ => Deck.FadesAt is { } fadesAt
+            ? $"{Format.Duration(Deck.Position)} / fade {Format.Duration(fadesAt)}"   // auto-play's limit (#98)
+            : $"{Format.Duration(Deck.Position)} / {Format.Duration(Deck.Length)}",
     };
 
     // ───────────── Commands ─────────────

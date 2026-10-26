@@ -28,6 +28,7 @@ public sealed class Deck : IDisposable
     private TimeSpan? _fadeLength;
     private TimeSpan _start;
     private TimeSpan? _end;
+    private TimeSpan _lastPosition;   // at the last update, to see the playhead pass the auto fade
     private readonly double[] _eqDb = new double[3];   // low, mid, high
     private double _midHz = 1000;
     private Evening _even;
@@ -97,6 +98,8 @@ public sealed class Deck : IDisposable
         TrackPath = path;
         _playing = false;
         _ended = false;
+        _lastPosition = TimeSpan.Zero;
+        AutoFade = null;
         Attach();
         ApplyTempo();
         ApplyVolumes();
@@ -196,7 +199,10 @@ public sealed class Deck : IDisposable
         _end = end > _start ? end : null;
     }
 
-    /// <summary>Real time left until the music ends, accounting for tempo and the jumps still armed ahead.</summary>
+    /// <summary>
+    /// Real time left until the music ends, accounting for tempo and the jumps still armed ahead,
+    /// and for an <see cref="AutoFade"/> still ahead: then it's until that fade is over.
+    /// </summary>
     public TimeSpan Remaining
     {
         get
@@ -207,9 +213,25 @@ public sealed class Deck : IDisposable
                 if (jump.Armed && jump.From > position)
                     left -= jump.To - jump.From;   // forward: skipped; backward: played again
             }
-            return Max(TimeSpan.Zero, left / (1 + _tempoPercent / 100));
+            double speed = 1 + _tempoPercent / 100;
+            TimeSpan toEnd = Max(TimeSpan.Zero, left / speed);
+            return FadesAt is { } at ? Min(toEnd, (at - position) / speed + AutoFade!.Value.Length) : toEnd;
         }
     }
+
+    /// <summary>
+    /// Fade out by itself when the playhead reaches <c>At</c> (a place in the song), over
+    /// <c>Length</c>: auto-play's limit on each song, for practice nights and classes (#98). Only
+    /// when it's passed while playing: a song already beyond it, or moved past it, plays on.
+    /// </summary>
+    public (TimeSpan At, TimeSpan Length)? AutoFade { get; set; }
+
+    /// <summary>Where <see cref="AutoFade"/> will fade the song, if that's still ahead and before the music ends.</summary>
+    public TimeSpan? FadesAt => AutoFade is { } fade && IsLoaded && !_ended && _fadeLength is null
+        && fade.At > Position && fade.At < End ? fade.At : null;
+
+    /// <summary>The playhead passes further than this in one update only when moved, not by playing.</summary>
+    private static readonly TimeSpan PlayedStep = TimeSpan.FromSeconds(1);
 
     // ───────────── Jumps ─────────────
 
@@ -510,6 +532,16 @@ public sealed class Deck : IDisposable
             ApplyVolumes();
         }
 
+        // Auto-play's limit on each song: passed while playing, not jumped or moved over.
+        TimeSpan position = Position, last = _lastPosition;
+        _lastPosition = position;
+        if (AutoFade is { } fade && _playing && !_ended && _fadeLength is null
+            && last < fade.At && position >= fade.At && position - last < PlayedStep && fade.At < End)
+        {
+            FadeOut(fade.Length);
+            return;
+        }
+
         // The end of the music (trailing silence is trimmed), or the end of the file.
         if (_playing && !_ended && (
                 (_end is not null && Position >= End) ||
@@ -620,6 +652,7 @@ public sealed class Deck : IDisposable
     }
 
     private static TimeSpan Max(TimeSpan a, TimeSpan b) => a > b ? a : b;
+    private static TimeSpan Min(TimeSpan a, TimeSpan b) => a < b ? a : b;
 
     public void Dispose() => Unload();
 }

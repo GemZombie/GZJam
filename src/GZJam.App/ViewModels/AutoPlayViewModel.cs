@@ -75,6 +75,45 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         OnPropertyChanged(nameof(GapText));
     }
 
+    /// <summary>The shortest and longest limit on each song, and the step between (#98).</summary>
+    internal const double FadeAfterMin = 60, FadeAfterMax = 300, FadeAfterStep = 15;
+
+    /// <summary>"Off", or how long each song plays before auto-play fades it out, e.g. "1:30".</summary>
+    public string FadeAfterText => _settings.AutoFadeAfterSeconds > 0
+        ? Format.Duration(TimeSpan.FromSeconds(_settings.AutoFadeAfterSeconds)) : "Off";
+
+    public bool IsFadeAfterOn => _settings.AutoFadeAfterSeconds > 0;
+
+    [RelayCommand]
+    private void FadeAfterDown() => SetFadeAfter(_settings.AutoFadeAfterSeconds <= FadeAfterMin ? 0 : _settings.AutoFadeAfterSeconds - FadeAfterStep);
+
+    [RelayCommand]
+    private void FadeAfterUp() => SetFadeAfter(_settings.AutoFadeAfterSeconds <= 0 ? FadeAfterMin : _settings.AutoFadeAfterSeconds + FadeAfterStep);
+
+    private void SetFadeAfter(double seconds)
+    {
+        _settings.AutoFadeAfterSeconds = seconds <= 0 ? 0 : Math.Clamp(seconds, FadeAfterMin, FadeAfterMax);
+        Log.Info(_settings.AutoFadeAfterSeconds > 0 ? $"Auto-play: fade each song out after {FadeAfterText}" : "Auto-play: songs play to their end");
+        OnPropertyChanged(nameof(FadeAfterText));
+        OnPropertyChanged(nameof(IsFadeAfterOn));
+        SetAutoFades();
+    }
+
+    /// <summary>
+    /// The deck the room hears fades out by itself after the set time while auto-play is on.
+    /// Off, or the limit off, and every song plays to its end again.
+    /// </summary>
+    private void SetAutoFades()
+    {
+        double limit = _settings.AutoFadeAfterSeconds;
+        foreach (DeckViewModel deck in _owner.Decks)
+        {
+            deck.Deck.AutoFade = IsOn && limit > 0 && deck.IsInRoom && deck.HasTrack
+                ? (deck.Deck.Start + TimeSpan.FromSeconds(limit), TimeSpan.FromSeconds(_settings.FadeOutSeconds))
+                : null;
+        }
+    }
+
     /// <summary>The decks on the side of the crossfader the room hears.</summary>
     private List<DeckViewModel> LiveSide =>
         _owner.ActiveDecks.Where(d => Crossfade.Side(d.Deck.Index) == _mix.LiveSide).ToList();
@@ -113,6 +152,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             pending.Deck.StartsIn = null;
             _pending = null;   // a song waiting out the gap doesn't start
         }
+        SetAutoFades();
         Changed();
     }
 
@@ -170,6 +210,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     {
         if (!IsOn)
             return;
+        SetAutoFades();   // follows the crossfader and each new song
 
         if (_pending is { } pending)
         {
