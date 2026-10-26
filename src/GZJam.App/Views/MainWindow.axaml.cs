@@ -35,6 +35,7 @@ public partial class MainWindow : Window
         // Ahead of the lists and the search box, which would take Ctrl+arrows for themselves.
         AddHandler(KeyDownEvent, OnVolumeKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyDownEvent, OnFullScreenKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyDownEvent, OnDeckKeyDown, RoutingStrategies.Tunnel);
         PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)

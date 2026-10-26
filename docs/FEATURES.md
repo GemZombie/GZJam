@@ -1362,5 +1362,21 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - Taken ahead of the lists and the search box (a tunneling handler on the window), so they work
   from anywhere, the search box too, as they type nothing. Plain arrows still move through the lists
   and from the search box into the results.
-- The sliders' tooltips name their keys. The rest of #132 (the decks, the crossfader, auto-play)
-  is still to come; customizing keys is #135.
+- The sliders' tooltips name their keys. Customizing keys is #135.
+
+### Status: keys for the decks, the crossfader and auto-play (#132, 0.9.2)
+
+- All Ctrl (Cmd on macOS), in one tunneling handler (`MainWindow.DeckKeys.cs`), so none fires
+  while typing and all work from the search box:
+  - **Ctrl+1..4** (number row or keypad): the deck's play button (`TogglePlayCommand`), so the
+    two-tap rule on air applies.
+  - **Ctrl+Shift+1..4**: its CUE.
+  - **Ctrl+Alt+1..4**: load the selected song. From the queue if keyboard focus is in it (the
+    song leaves the queue, as from its menu), else the library's selection; one song only, or a
+    notice. Through `LoadToDeckAsync`, so loading over a playing deck is blocked or asked as set.
+    Not in a text box: Ctrl+Alt is AltGr there, which types characters on many layouts.
+  - **Ctrl+← / →**: the crossfader's 1 / 2 keys (a glide). Not in a text box, where they move by word.
+  - **Ctrl+P**: auto-play on or off, or a notice when there's nothing to play.
+- Decks beyond those on screen are ignored. Fade out has no key: one keypress ending the song the
+  room hears was judged too easy to hit.
+- The play, CUE, crossfader and AUTO-PLAY tooltips name their keys (`Format.CommandKey`).

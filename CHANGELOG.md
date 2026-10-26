@@ -17,6 +17,11 @@ New:
 - **Full screen: F11,** and F11 again to go back (on a Mac, also Ctrl+Cmd+F). While it's on, a key
   at the right end of the top bar leaves it too, for a touch screen with no keyboard. Next time
   GZJam opens, it's maximized rather than full screen.
+- **Keys for the decks, the crossfader and auto-play** (Cmd instead of Ctrl on a Mac):
+  **Ctrl+1 / 2** play or pause a deck (two presses on air, if you've chosen two taps), **Ctrl+Shift+1 / 2**
+  its CUE, **Ctrl+Alt+1 / 2** load the selected song onto it (protected as always),
+  **Ctrl+← / →** glide the crossfader, **Ctrl+P** auto-play on or off. With four decks, 3 and 4 too.
+  The buttons' tooltips say their keys. FADE OUT has no key on purpose.
 
 Changed:
 

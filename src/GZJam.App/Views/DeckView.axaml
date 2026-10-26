@@ -387,7 +387,7 @@
                 IsEnabled="{Binding HasTrack}"
                 BorderBrush="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
                 Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}"
-                ToolTip.Tip="Play / pause">
+                ToolTip.Tip="{Binding PlayTip}">
           <Panel>
             <PathIcon Data="{StaticResource IconPlay}" Width="{DynamicResource DeckPlayIconSize}" Height="{DynamicResource DeckPlayIconSize}"
                       IsVisible="{Binding !IsPlaying}" />
@@ -397,7 +397,7 @@
         </Button>
         <!-- Cue: this deck in the headphones, whatever the crossfader is doing -->
         <ToggleButton x:Name="CueButton" Grid.Column="1" Classes="hw cue-button" IsChecked="{Binding IsCueOn}"
-                      ToolTip.Tip="Cue: send this deck to your headphones">
+                      ToolTip.Tip="{Binding CueTip}">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Border Classes="led amber" Classes.on="{Binding IsCueOn}" />
             <TextBlock Text="CUE" />

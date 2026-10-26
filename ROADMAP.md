@@ -106,6 +106,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 - [Full screen with F11](https://github.com/GemZombie/GZJam/issues/155) (on a Mac, also
   Ctrl+Cmd+F), with a key in the top bar to leave it.
+- Position bars (the preview's, a deck's whole song) move the song when your finger lets go, so a
+  held finger no longer makes it stutter.
+- [Keys for the decks, the crossfader and auto-play](https://github.com/GemZombie/GZJam/issues/132):
+  play, CUE and load a deck, glide the crossfader, auto-play on and off.
 
 ## Planned next
 
@@ -133,8 +137,6 @@ ran dry, it's reopened.
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
-- [More keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/132): the decks (play, cue,
-  fade out, load), the crossfader, auto-play
 - [Choose which columns the queue shows](https://github.com/GemZombie/GZJam/issues/131)
 - [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
   library, queue or a playlist

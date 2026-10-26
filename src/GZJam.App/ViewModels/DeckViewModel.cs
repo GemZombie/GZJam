@@ -810,6 +810,10 @@ public sealed partial class DeckViewModel : ObservableObject
         ? Deck.TempoPercent == 0 ? "BPM" : $"BPM · from {Format.Bpm(original)}"
         : "BPM unknown";
 
+    /// <summary>The play and CUE keys' tooltips, with their keyboard shortcuts (#132).</summary>
+    public string PlayTip => $"Play / pause · key: {Format.CommandKey}+{Label}";
+    public string CueTip => $"Cue: send this deck to your headphones · key: {Format.CommandKey}+Shift+{Label}";
+
     public string ReadoutText => Readout switch
     {
         DeckReadout.Elapsed => Format.Duration(Deck.Position),
