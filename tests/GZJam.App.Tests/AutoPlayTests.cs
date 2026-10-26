@@ -381,4 +381,103 @@ public sealed class AutoPlayTests
         Assert.Equal("Off", auto.FadeAfterText);
         Assert.Equal(0, app.Settings.AutoFadeAfterSeconds);
     }
+
+    // ───────────── Wait after each song, stop at a set time (#100) ─────────────
+
+    [AvaloniaFact]
+    public void Waiting_after_each_song_lines_up_the_next_and_play_carries_on()
+    {
+        var (app, auto, tracks) = Setup(queued: 4);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.WaitAfterEach = true;
+        auto.IsOn = true;
+
+        PlayUntil(app, () => d1.IsFinished);
+        PlayUntil(app, () => app.ViewModel.Mixer!.Crossfader == 1);   // lined up: the crossfader goes over
+        for (int i = 0; i < 20; i++)
+            app.Play(0.033);   // well past the gap: it doesn't start by itself
+        Assert.False(d2.IsPlaying);
+        Assert.Equal("Deck 2 is ready: press play", auto.Status);
+        Assert.Equal(tracks[1], d2.Track);
+
+        d2.TogglePlayCommand.Execute(null);   // the teacher is ready
+        app.Play(0.1);
+        Assert.True(d2.IsOnAir);
+        Assert.Equal(tracks[2], d1.Track);   // and the one after is loaded behind it
+        Assert.Equal("Next: Deck 1", auto.Status);
+
+        PlayUntil(app, () => d2.IsFinished);
+        PlayUntil(app, () => app.ViewModel.Mixer!.Crossfader == 0);
+        Assert.False(d1.IsPlaying);
+        Assert.Equal("Deck 1 is ready: press play", auto.Status);
+
+        auto.WaitAfterEach = false;   // no longer waiting: it starts
+        app.Play(0.1);
+        Assert.True(d1.IsOnAir);
+    }
+
+    [AvaloniaFact]
+    public void At_the_stop_time_the_song_playing_is_the_last()
+    {
+        var (app, auto, _) = Setup(queued: 4);
+        using var _app = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        var now = new DateTime(2026, 10, 30, 22, 50, 0);
+        auto.Now = () => now;
+        auto.StopAt = new DateTime(2026, 10, 30, 23, 0, 0);
+        auto.IsOn = true;
+
+        PlayUntil(app, () => d2.IsPlaying);   // before the time: on to the next as usual
+
+        now = now.AddMinutes(15);
+        PlayUntil(app, () => d2.IsFinished);
+        for (int i = 0; i < 20; i++)
+            app.Play(0.033);
+        Assert.False(auto.IsOn);
+        Assert.False(d1.IsPlaying);
+        Assert.Null(auto.StopAt);   // done: tomorrow's night isn't cut short
+        Assert.Equal($"Auto-play stopped: it's past {new DateTime(2026, 10, 30, 23, 0, 0):t}, as set.", app.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public void Stop_times_are_every_quarter_hour_from_the_next_one()
+    {
+        using var app = new AppHarness();
+        var auto = app.ViewModel.AutoPlay!;
+        auto.Now = () => new DateTime(2026, 10, 30, 21, 52, 10);
+
+        auto.RefreshStopChoices();
+
+        Assert.Equal("Off", auto.StopChoices[0].Label);
+        Assert.Equal(new DateTime(2026, 10, 30, 22, 0, 0), auto.StopChoices[1].Value);
+        Assert.Equal(new DateTime(2026, 10, 31, 5, 45, 0), auto.StopChoices[^1].Value);   // past midnight too
+        Assert.Equal(33, auto.StopChoices.Count);
+        Assert.Same(auto.StopChoices[0], auto.StopChoice);
+
+        auto.StopChoice = auto.StopChoices[5];
+        Assert.Equal(new DateTime(2026, 10, 30, 23, 0, 0), auto.StopAt);
+        auto.StopChoice = null!;   // the list being replaced: not a choice
+        Assert.Equal(new DateTime(2026, 10, 30, 23, 0, 0), auto.StopAt);
+
+        auto.Now = () => new DateTime(2026, 10, 30, 22, 0, 0);
+        auto.RefreshStopChoices();
+        Assert.Equal(new DateTime(2026, 10, 30, 22, 15, 0), auto.StopChoices[1].Value);
+        Assert.Equal(auto.StopAt, auto.StopChoice.Value);
+    }
+
+    [AvaloniaFact]
+    public void The_options_that_are_set_show_under_auto_play()
+    {
+        using var app = new AppHarness();
+        var auto = app.ViewModel.AutoPlay!;
+        Assert.Equal("", auto.OptionsText);
+
+        for (int i = 0; i < 3; i++)
+            auto.FadeAfterUpCommand.Execute(null);
+        auto.WaitAfterEach = true;
+        auto.StopAt = new DateTime(2026, 10, 30, 23, 0, 0);
+
+        Assert.Equal($"Fade after 1:30 · Waits after each song · Stops at {auto.StopAt:t}", auto.OptionsText);
+    }
 }

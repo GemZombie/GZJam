@@ -195,7 +195,7 @@ is out of scope until it earns a place.
   ends (silence trimming), not the end of the file.
 - The crossfader's last 4% at each end snaps to the end; a deck counts as "in the room" from
   about -20 dB; tapping a locked position bar says how to unlock it.
-- **Fade after** (#98, 0.9.1): under the gap, *Off* or 1:00-5:00 in 15 s steps
+- **Fade after** (#98, 0.9.1): in the options (below), *Off* or 1:00-5:00 in 15 s steps
   (`AppSettings.AutoFadeAfterSeconds`). While auto-play is on, each deck in the room gets
   `Deck.AutoFade` = (its music's start + the limit, the fade-out length); the deck fades itself
   when the playhead plays past that point (not when it's moved past it: a seek or jump of more
@@ -203,6 +203,17 @@ is out of scope until it earns a place.
   surprised. `Deck.Remaining` counts to the end of that fade, so the readout, its 30 s blink and
   auto-play all see it; the caption says *0:42 / fade 1:30*. A song shorter than the limit plays
   to its end. Auto-play off clears it from every deck.
+- **Options menu** (#100, 0.9.1): a **⋯** key after the gap's + opens a panel flyout with *Fade
+  after*, *Wait for me after each song* (a switch) and *Stop at* (Off, or every quarter hour from
+  the next one for 8 hours, rebuilt as the flyout opens). The ones set show in a dim line under
+  the status (`OptionsText`). Fade after was first its own row under the gap; with two more
+  options, a menu kept the queue's room.
+- **Wait after each song:** on a song's end, the next deck is loaded as usual but, instead of the
+  gap, the crossfader glides over in 1 s and the deck waits (*Deck 2 is ready: press play*). The
+  DJ pressing play on it carries on. Turned off while waiting, the song starts.
+- **Stop at:** checked when the room's song ends: past the time, auto-play turns off with a
+  notice and the stop time clears. Neither is saved in settings: forgotten, either would surprise
+  a DJ at the next dance (a silence, or the night cut short).
 
 ### Changed after the first hardware test (2026-10-20)
 

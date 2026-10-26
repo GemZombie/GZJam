@@ -156,6 +156,9 @@ public partial class MainWindow : Window
 
     private void OnPlayNextClick(object? sender, RoutedEventArgs e) => Vm.AddToQueue(SelectedTracks(), 0);
 
+    /// <summary>Auto-play's options opening: its stop times start from the next quarter hour.</summary>
+    private void OnAutoPlayOptionsOpening(object? sender, EventArgs e) => Vm.AutoPlay?.RefreshStopChoices();
+
     private void OnShowInTreeClick(object? sender, RoutedEventArgs e)
     {
         if (SelectedTracks().FirstOrDefault() is not { } track)

@@ -28,9 +28,15 @@ New:
 - **The user guide: plugging into the venue's sound** (under *At a gig*): which input and cable,
   why mono, setting the levels so nothing distorts or hisses, a powered speaker with no mixer, and
   what to try for hum.
-- **Auto-play can fade each song out after a set time,** for practice nights, classes and jams:
-  *FADE AFTER* under the gap, *Off* or 1:00 to 5:00. The deck's time counts down to the end of
-  the fade, then the gap, then the next song. Songs shorter than that play to their end.
+- **Auto-play options,** in the **⋯** key beside the gap, for classes, practice nights and the end
+  of the night. What's set shows under AUTO-PLAY.
+  - **Fade after** a set time, *Off* or 1:00 to 5:00: each song fades out, then the gap, then the
+    next. The deck's time counts down to the end of the fade. Songs shorter than that play to
+    their end.
+  - **Wait for me after each song:** the next song is lined up, the crossfader moves over, and it
+    waits for you (or the teacher) to press play.
+  - **Stop at** a time: the song playing then is the last, and auto-play turns itself off.
+  - Waiting and the stop time are for tonight: they're off again the next time you open GZJam.
 
 Changed:
 

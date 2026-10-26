@@ -26,6 +26,9 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     /// <summary>The deck the room heard last, so the next is the one after it.</summary>
     private DeckViewModel? _current;
 
+    /// <summary>With <see cref="WaitAfterEach"/>: the deck lined up and waiting for the DJ to press play.</summary>
+    private DeckViewModel? _waiting;
+
     public AutoPlayViewModel(MainWindowViewModel owner, MixEngine mix, QueueViewModel queue, AppSettings settings)
     {
         _owner = owner;
@@ -51,6 +54,8 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         {
             if (!IsOn)
                 return "";
+            if (_waiting is { } waiting)
+                return $"Deck {waiting.Label} is ready: press play";
             if (_pending is { } pending)
             {
                 double secondsLeft = (pending.Due - TimeProvider.System.GetTimestamp()) / (double)TimeProvider.System.TimestampFrequency;
@@ -97,7 +102,84 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         OnPropertyChanged(nameof(FadeAfterText));
         OnPropertyChanged(nameof(IsFadeAfterOn));
         SetAutoFades();
+        Changed();
     }
+
+    /// <summary>
+    /// For classes, where the teacher talks between songs (#100): when a song ends, the next is
+    /// lined up (the crossfader moves to it) but waits for the DJ or teacher to press play. Not
+    /// remembered: auto-play that waits, at a dance next week, would be a silence nobody expected.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool WaitAfterEach { get; set; }
+
+    /// <summary>
+    /// Auto-play finishes the song playing at this time, then stops, so the night ends on time
+    /// (#100). Null: it doesn't. Not remembered: it's for tonight.
+    /// </summary>
+    [ObservableProperty]
+    public partial DateTime? StopAt { get; set; }
+
+    /// <summary>The time of day, for <see cref="StopAt"/> (tests set it).</summary>
+    internal Func<DateTime> Now { get; set; } = () => DateTime.Now;
+
+    /// <summary>How far ahead <see cref="StopChoices"/> reaches, in quarter hours: 8 hours.</summary>
+    private const int StopQuarters = 32;
+
+    /// <summary>Off, then every quarter hour from the next one for 8 hours (and the time chosen, if earlier).</summary>
+    public IReadOnlyList<Choice<DateTime?>> StopChoices { get; private set; } = [new(null, "Off")];
+
+    public Choice<DateTime?> StopChoice
+    {
+        get => StopChoices.FirstOrDefault(c => c.Value == StopAt) ?? StopChoices[0];
+        set
+        {
+            if (value is not null)   // null: the list was replaced, not a choice
+                StopAt = value.Value;
+        }
+    }
+
+    /// <summary>Brings the stop times up to date with the clock: called as the options open.</summary>
+    public void RefreshStopChoices()
+    {
+        DateTime now = Now();
+        DateTime first = now.Date.AddMinutes((Math.Floor(now.TimeOfDay.TotalMinutes / 15) + 1) * 15);
+        var times = Enumerable.Range(0, StopQuarters).Select(i => first.AddMinutes(15 * i)).ToList();
+        if (StopAt is { } chosen && !times.Contains(chosen))
+            times.Insert(0, chosen);
+        StopChoices = [new(null, "Off"), .. times.Select(t => new Choice<DateTime?>(t, ClockTime(t)))];
+        OnPropertyChanged(nameof(StopChoices));
+        OnPropertyChanged(nameof(StopChoice));
+    }
+
+    private static string ClockTime(DateTime time) => time.ToString("t", System.Globalization.CultureInfo.CurrentCulture);
+
+    partial void OnWaitAfterEachChanged(bool value)
+    {
+        Log.Info(value ? "Auto-play: waits for you after each song" : "Auto-play: starts each song after the gap");
+        if (!value && _waiting is { } waiting)
+        {
+            _waiting = null;
+            if (IsOn && !waiting.IsPlaying)
+                Start(waiting);   // no longer waiting: go on as if the gap were over
+        }
+        Changed();
+    }
+
+    partial void OnStopAtChanged(DateTime? value)
+    {
+        Log.Info(value is { } at ? $"Auto-play: stops after the song playing at {ClockTime(at)}" : "Auto-play: no stop time");
+        OnPropertyChanged(nameof(StopChoice));
+        Changed();
+    }
+
+    /// <summary>The options that are set, e.g. "Fade after 1:30 · Waits after each song · Stops at 11:00 PM".</summary>
+    public string OptionsText => string.Join(" · ", new[]
+    {
+        IsFadeAfterOn ? $"Fade after {FadeAfterText}" : null,
+        WaitAfterEach ? "Waits after each song" : null,
+        StopAt is { } at ? $"Stops at {ClockTime(at)}" : null,
+    }.OfType<string>());
 
     /// <summary>
     /// The deck the room hears fades out by itself after the set time while auto-play is on.
@@ -147,10 +229,14 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         Log.Info($"Auto-play {(value ? "on" : "off")}");
         if (value)
             Begin();
-        else if (_pending is { } pending)
+        else
         {
-            pending.Deck.StartsIn = null;
-            _pending = null;   // a song waiting out the gap doesn't start
+            if (_pending is { } pending)
+            {
+                pending.Deck.StartsIn = null;
+                _pending = null;   // a song waiting out the gap doesn't start
+            }
+            _waiting = null;
         }
         SetAutoFades();
         Changed();
@@ -181,9 +267,18 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     /// <summary>A deck's music stopped: its song ended or was faded out.</summary>
     public void OnDeckFinished(DeckViewModel deck)
     {
-        if (!IsOn || Crossfade.Side(deck.Deck.Index) != _mix.LiveSide || _pending is not null)
+        if (!IsOn || Crossfade.Side(deck.Deck.Index) != _mix.LiveSide || _pending is not null || _waiting is not null)
             return;   // only the song the room was hearing advances the set
         _current = deck;
+
+        // The night's end, as set: the song playing then was the last.
+        if (StopAt is { } stopAt && Now() >= stopAt)
+        {
+            IsOn = false;
+            StopAt = null;
+            _owner.ShowNotice($"Auto-play stopped: it's past {ClockTime(stopAt)}, as set.", 8);
+            return;
+        }
 
         DeckViewModel? next = NextDeck;
         if (next is null || next.IsPlaying)
@@ -194,6 +289,16 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         {
             IsOn = false;
             _owner.ShowNotice("Auto-play stopped: the queue is empty.");
+            return;
+        }
+        if (WaitAfterEach)
+        {
+            // Lined up for the teacher: the crossfader goes over (the room is silent), and the
+            // song waits for play. Pressing play on it carries on from there.
+            _waiting = next;
+            Log.Info($"Auto-play: Deck {next.Label} is ready, waiting for play");
+            _owner.Mixer!.GlideTo(Crossfade.Side(next.Deck.Index), TimeSpan.FromSeconds(1));
+            Changed();
             return;
         }
         _pending = (next, TimeProvider.System.GetTimestamp() + (long)(_settings.GapSeconds * TimeProvider.System.TimestampFrequency));
@@ -212,6 +317,11 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             return;
         SetAutoFades();   // follows the crossfader and each new song
 
+        if (_waiting is { IsPlaying: true } started)
+        {
+            _waiting = null;   // the DJ pressed play: the set carries on from it
+            _current = started;
+        }
         if (_pending is { } pending)
         {
             double left = (pending.Due - TimeProvider.System.GetTimestamp()) / (double)TimeProvider.System.TimestampFrequency;
@@ -220,16 +330,22 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             {
                 _pending = null;
                 pending.Deck.StartsIn = null;
-                // Over at the end of the gap, unless the DJ took the crossfader meanwhile.
-                double side = Crossfade.Side(pending.Deck.Deck.Index);
-                if (_owner.Mixer!.IsGliding || Math.Abs(_owner.Mixer.Crossfader - side) < 0.05)
-                    _owner.Mixer.SetNow(side);
-                _current = pending.Deck;
-                pending.Deck.Start();
+                Start(pending.Deck);
             }
         }
         Refill();
         OnPropertyChanged(nameof(Status));
+    }
+
+    /// <summary>Starts the next song: the gap is over, or auto-play stopped waiting for the DJ.</summary>
+    private void Start(DeckViewModel deck)
+    {
+        // Over at the end of the gap, unless the DJ took the crossfader meanwhile.
+        double side = Crossfade.Side(deck.Deck.Index);
+        if (_owner.Mixer!.IsGliding || Math.Abs(_owner.Mixer.Crossfader - side) < 0.05)
+            _owner.Mixer.SetNow(side);
+        _current = deck;
+        deck.Start();
     }
 
     /// <summary>Keeps the deck after the live one loaded with the next queued track.</summary>
@@ -264,6 +380,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanToggle));
         OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(OptionsText));
     }
 
     /// <summary>Called when decks load or eject, which can make the switch usable.</summary>

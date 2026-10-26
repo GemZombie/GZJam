@@ -112,8 +112,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   -23 LUFS), for more headroom on a mixer or PA that clips easily.
 - [The user guide: plugging into a venue's mixer or PA](docs/GUIDE.md#plugging-into-the-venues-sound):
   which input and cable, mono, setting the levels so nothing distorts or hisses, and hum.
-- [Auto-play fades each song out after a set time](https://github.com/GemZombie/GZJam/issues/98)
-  (1:00 to 5:00), for practice nights, classes and jams.
+- Auto-play options, for classes, practice nights and the end of the night:
+  [fade each song out after a set time](https://github.com/GemZombie/GZJam/issues/98),
+  [wait for you after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100).
 
 ## Planned next
 
@@ -168,8 +169,6 @@ to one you'd use.
   that are gone, and clean it up
 
 **Playing**
-- [Pause after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100),
-  for lessons and the end of the night
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
