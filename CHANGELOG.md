@@ -10,6 +10,14 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.2 (unreleased)
+
+New:
+
+- **Full screen: F11,** and F11 again to go back (on a Mac, also Ctrl+Cmd+F). While it's on, a key
+  at the right end of the top bar leaves it too, for a touch screen with no keyboard. Next time
+  GZJam opens, it's maximized rather than full screen.
+
 ## 0.9.1 (2026-10-26)
 
 New:

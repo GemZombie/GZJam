@@ -564,6 +564,19 @@ stand for, color only where it means something, tighter corners. Pass 1 (decks a
   orange gradient and a filled tile; STOP is a key.
 - The folder-scope chip's text is neutral (it was lavender).
 
+### Status: full screen (#155, 0.9.2)
+
+- **F11** toggles `WindowState.FullScreen` (on a Mac also Ctrl+Cmd+F; macOS's green button works by
+  itself). A tunneling key handler, like the volume keys, so it works from the search box. Esc
+  doesn't leave it: Esc already clears the search and closes Settings.
+- Leaving goes back to what the window was (maximized or normal). An exit key (four corners
+  pointing in) shows at the right end of the top bar while it's on; on Windows it takes the place
+  of GZJam's minimize / maximize / close keys, and the bar stops being the title bar (no dragging a
+  window that fills the screen). On a Mac, the room kept for the traffic lights goes.
+- Saved as maximized: a booth laptop never opens to a screen with no visible way out.
+- Avalonia supports full screen on all three systems but binds no key; tiling Linux desktops
+  (Hyprland) own full screen and may ignore the request: to check on the Linux laptop (#19).
+
 ### Status: loudness matching built (2026-10-21)
 
 - **Measured** in the analysis pass (`LoudnessMeter`): integrated loudness per EBU R128 / ITU-R

@@ -70,6 +70,12 @@ top bar then says *Updating analysis…*.
 
 The dividers between the panels can be dragged to give one more room.
 
+**Full screen:** **F11** (on a Mac, also **Ctrl+Cmd+F** or the green window button), and F11 again
+to go back. In full screen, a key at the right end of the top bar leaves it too, for a touch screen
+with no keyboard. Escape doesn't leave it, since Escape does other things in GZJam. Next time GZJam
+opens, it's maximized rather than full screen. On tiling Linux desktops such as Hyprland, use the
+desktop's own full-screen key.
+
 ---
 
 ## Outputs: speakers, headphones and booth
@@ -594,6 +600,7 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 | **Ctrl+Shift+↑ / ↓** (Cmd+Shift on Mac) | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
+| **F11** (on a Mac, also **Ctrl+Cmd+F**) | full screen, and back |
 | **Escape** | clear the search; close Settings; cancel a drag |
 | **↓** in the search box | into the results |
 | **Right-click**, or **press and hold** | a song's, a deck's or a waveform's menu |
