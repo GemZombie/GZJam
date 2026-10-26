@@ -169,9 +169,12 @@ public sealed class LibraryScanner(LibraryDatabase database)
             foreach (string path in _arrived.Where(a => a.Value.RootId == rootId && !seen.Contains(a.Key)).Select(a => a.Key).ToList())
                 _arrived.Remove(path);
 
-            var fromElsewhere = FindMoves(_gone.ToDictionary(g => g.Key, g => g.Value.Stamp, StringComparer.Ordinal), added)
+            // Only another folder's: this folder's own were paired within it already, and a folder's
+            // first scan leaves all its songs here as arrived. Pairing with those took a song deleted
+            // beside a copy of itself (same size and date) as moved onto the copy.
+            var fromElsewhere = FindMoves(_gone.Where(g => g.Value.RootId != rootId).ToDictionary(g => g.Key, g => g.Value.Stamp, StringComparer.Ordinal), added)
                 .Where(m => m.From != m.To).ToList();
-            var toElsewhere = FindMoves(missing, _arrived.ToDictionary(a => a.Key, a => a.Value.Stamp, StringComparer.Ordinal))
+            var toElsewhere = FindMoves(missing, _arrived.Where(a => a.Value.RootId != rootId).ToDictionary(a => a.Key, a => a.Value.Stamp, StringComparer.Ordinal))
                 .Where(m => m.From != m.To && !File.Exists(m.From)).ToList();
 
             foreach (var (from, to) in fromElsewhere)
