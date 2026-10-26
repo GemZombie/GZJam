@@ -12,6 +12,12 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 ## 0.9.1 (unreleased)
 
+New:
+
+- **QUIT GZJAM in Settings,** at the bottom of the side column: a way to close GZJam on Linux
+  desktops that draw no title bar (Hyprland), so no close button. It asks first while the room hears
+  music.
+
 Changed:
 
 - **New installs: the deck the room hears takes two taps to pause or fade out,** so a stray touch

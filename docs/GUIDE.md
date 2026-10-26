@@ -393,6 +393,8 @@ The **History** tab beside the Queue is the record of every night.
 ## Settings
 
 The gear in the top bar. Music keeps playing while it's open; DONE, Escape or a tap outside closes it.
+**QUIT GZJAM**, at the bottom of the side column, closes GZJam itself: for Linux desktops that draw
+no title bar (and so no close button), or a touch screen. It asks first while the room hears music.
 
 - **Sound:** Speakers, Headphones, *One output for both*, Booth and *Booth volume*, *Speakers for
   GZJam alone* (Windows), **Mono** (on: the room and headphones play mono, so the whole floor hears

@@ -75,7 +75,8 @@ release.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
-- GZJam asks before closing while the room is hearing music.
+- GZJam asks before closing while the room is hearing music. Settings has a Quit key too, for Linux
+  desktops that draw no title bar.
 - If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
   as they were, paused. After a normal close they come back too, each deck at the start of its song.
 - With two taps to pause or fade out the deck the room hears, a stray tap (even while the screen is frozen)
@@ -100,13 +101,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - New installs: two taps to pause or fade out the deck the room hears.
 - [The top bar says the analysis of your songs is a one-time job](https://github.com/GemZombie/GZJam/issues/139),
   and roughly how long is left.
+- [A Quit key in Settings](https://github.com/GemZombie/GZJam/issues/55), for Linux desktops that draw
+  no title bar (Hyprland), so no close button.
 
 ## Planned next
 
 **Before 1.0:** a reliable night, everywhere.
 
 *Fixes*
-- [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
 
 *Testing*
