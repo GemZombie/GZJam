@@ -593,13 +593,21 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 
 ## Keys and gestures
 
+The keys that start with Ctrl (Cmd on a Mac) work from anywhere, most of them from the search box too. FADE OUT has
+no key on purpose: one keypress ending the song the room hears is too easy to hit by mistake.
+
 | | |
 |---|---|
 | **Enter** | add the selected songs to the queue (**Shift+Enter**: play next) |
 | **Space** | preview the selected song in the headphones (in the library or the queue) |
 | **Delete** | take the selected songs out of the open playlist, or out of the queue |
-| **Ctrl+↑ / Ctrl+↓** (Cmd on Mac) | MAIN volume up or down, a little each press |
-| **Ctrl+Shift+↑ / ↓** (Cmd+Shift on Mac) | PHONES volume up or down |
+| **Ctrl+1 / Ctrl+2** (Cmd on Mac; 3 and 4 with four decks) | play or pause that deck (two presses on air, if you've chosen two taps) |
+| **Ctrl+Shift+1 / 2** | that deck's CUE (headphones) on or off |
+| **Ctrl+Alt+1 / 2** (Cmd+Option on Mac) | load the selected song onto that deck: from the queue if you're in it (it leaves the queue), otherwise from the library |
+| **Ctrl+← / Ctrl+→** | the crossfader glides to Deck 1 / Deck 2 (in the search box they move by word, as usual) |
+| **Ctrl+P** | auto-play on or off |
+| **Ctrl+↑ / Ctrl+↓** | MAIN volume up or down, a little each press |
+| **Ctrl+Shift+↑ / ↓** | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **F11** (on a Mac, also **Ctrl+Cmd+F**) | full screen, and back |

@@ -543,7 +543,7 @@
             <StackPanel Spacing="6">
               <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="5">
                 <ToggleButton x:Name="AutoPlaySwitch" Classes="hw small" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
-                              ToolTip.Tip="Play through the queue automatically, alternating decks">
+                              ToolTip.Tip="{Binding SwitchTip}">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <Border Classes="led green" Classes.on="{Binding IsOn}" />
                     <TextBlock Text="AUTO-PLAY" />
