@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.1** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.2** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -67,7 +67,8 @@ release.
 - A booth output, for a monitor speaker at the DJ table: what the room hears, at its own volume.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level, at a
   level you choose: lower leaves more headroom for a mixer or PA that distorts easily.
-- MAIN and PHONES volume from the keyboard too: Ctrl+↑/↓ (Cmd on a Mac), with Shift for PHONES.
+- Keys for the decks (play, CUE, load the selected song), the crossfader, auto-play, and MAIN and
+  PHONES volume, all with Ctrl (Cmd on a Mac).
 - A level meter and a safety limiter for the speakers.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
@@ -87,7 +88,8 @@ release.
 - With two taps to pause or fade out the deck the room hears, a stray tap (even while the screen is frozen)
   never stops the music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
-  dividers between panels.
+  dividers between panels. A finger held on a position bar moves the song only when it lets go.
+- Full screen with F11 (on a Mac, also Ctrl+Cmd+F).
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
 - GZJam says quietly, at startup, when a new version is out (never during a set), and a
@@ -104,12 +106,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [Full screen with F11](https://github.com/GemZombie/GZJam/issues/155) (on a Mac, also
-  Ctrl+Cmd+F), with a key in the top bar to leave it.
-- Position bars (the preview's, a deck's whole song) move the song when your finger lets go, so a
-  held finger no longer makes it stutter.
-- [Keys for the decks, the crossfader and auto-play](https://github.com/GemZombie/GZJam/issues/132):
-  play, CUE and load a deck, glide the crossfader, auto-play on and off.
+Nothing yet since 0.9.2.
 
 ## Planned next
 

@@ -10,7 +10,7 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
-## 0.9.2 (unreleased)
+## 0.9.2 (2026-10-26)
 
 New:
 
@@ -21,7 +21,8 @@ New:
   **Ctrl+1 / 2** play or pause a deck (two presses on air, if you've chosen two taps), **Ctrl+Shift+1 / 2**
   its CUE, **Ctrl+Alt+1 / 2** load the selected song onto it (protected as always),
   **Ctrl+← / →** glide the crossfader, **Ctrl+P** auto-play on or off. With four decks, 3 and 4 too.
-  The buttons' tooltips say their keys. FADE OUT has no key on purpose.
+  The buttons' tooltips say their keys. FADE OUT has no key on purpose. If a key doesn't work on your
+  keyboard (a Mac, or a layout other than US English), please say so.
 
 Changed:
 
