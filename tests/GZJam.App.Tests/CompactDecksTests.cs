@@ -30,7 +30,7 @@ public sealed class CompactDecksTests
         Assert.True(mixer > HeightOf(app, "MixerPanel"));
         Assert.True(HeightOf(app, "TrackGrid") >= songs + deck - DeckView.CompactHeight - 1, "the library gets the room");
         Assert.False(app.Window.FindControl<Control>("PhonesMixRow")!.IsVisible);
-        Assert.Equal("Bigger decks (Ctrl+D)", vm.CompactDecksTip);
+        Assert.Equal($"Bigger decks ({(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+D)", vm.CompactDecksTip);   // Cmd on a Mac
 
         // The side keys sit either side of the crossfader, on its row.
         var crossfader = app.Window.FindControl<Control>("Crossfader")!;
