@@ -40,7 +40,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Microsoft's download server fails now and then (it did on 2026-10-25, for every job):
+      # wait a minute and try once more before giving up.
       - uses: actions/setup-dotnet@v6
+        id: dotnet
+        continue-on-error: true
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Wait before trying .NET again
+        if: steps.dotnet.outcome == 'failure'
+        shell: bash
+        run: sleep 60
+
+      - uses: actions/setup-dotnet@v6
+        if: steps.dotnet.outcome == 'failure'
         with:
           dotnet-version: 10.0.x
 
