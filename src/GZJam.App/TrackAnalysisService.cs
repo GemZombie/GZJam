@@ -36,6 +36,8 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     private readonly List<Thread> _workers = [];
     private int _libraryTotal;
     private int _libraryDone;
+    private bool _libraryUpdate;   // the library's being analyzed again, for a new analyzer
+    private long _libraryStarted;  // when this run through the library began, for the time left
 
     public TrackAnalysisService(LibraryDatabase database, AudioEngine audio, int? threads = null)
     {
@@ -54,9 +56,16 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     /// <summary>Raised on the UI thread when a track has been analyzed (path, result).</summary>
     public event Action<string, TrackAnalysis>? Analyzed;
 
-    /// <summary>Progress through the library, e.g. "Analyzing tracks… 1,234 / 12,686"; null when idle.</summary>
+    /// <summary>
+    /// Progress through the library, e.g. "First-time analysis… 1,234 / 12,686", then "First-time
+    /// analysis… 1 h 40 min left"; null when idle.
+    /// </summary>
     [ObservableProperty]
     public partial string? Status { get; private set; }
+
+    /// <summary>Why the analysis is happening and that it's done once, for the status's tooltip.</summary>
+    [ObservableProperty]
+    public partial string? StatusTip { get; private set; }
 
     [ObservableProperty]
     public partial double Percent { get; private set; }
@@ -114,11 +123,18 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             int added = 0;
             lock (_lock)
             {
+                if (_libraryDone >= _libraryTotal)
+                {
+                    // Idle: a fresh run through the library, counted from zero.
+                    (_libraryDone, _libraryTotal, _libraryUpdate) = (0, 0, false);
+                    _libraryStarted = TimeProvider.System.GetTimestamp();
+                }
                 foreach (PendingAnalysis p in pending)
                 {
                     if (_jobs.ContainsKey(p.Path))
                         continue;
                     Enqueue(new Job(p.Path, p.Version, Priority.Library));
+                    _libraryUpdate |= p.Update;
                     added++;
                 }
                 if (added > 0)
@@ -257,14 +273,54 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     private void UpdateStatus()
     {
         int done, total;
+        bool update;
+        TimeSpan elapsed;
         lock (_lock)
-            (done, total) = (_libraryDone, _libraryTotal);
+            (done, total, update, elapsed) = (_libraryDone, _libraryTotal, _libraryUpdate, TimeProvider.System.GetElapsedTime(_libraryStarted));
         Dispatcher.UIThread.Post(() =>
         {
             bool busy = done < total;
-            Status = busy ? $"Analyzing tracks… {Format.Count(done)} / {Format.Count(total)}" : null;
+            Status = busy ? StatusText(done, total, update, elapsed) : null;
+            StatusTip = busy ? $"{Format.Count(done)} of {Format.Count(total)} songs done. {(update ? UpdateTip : NewSongsTip)}" : null;
             Percent = busy ? 100.0 * done / total : 0;
         });
+    }
+
+    private const string NewSongsTip =
+        "GZJam listens to each song once, start to finish, for its waveform, where the music starts and ends, " +
+        "its BPM and its loudness, and keeps what it finds. After this, only songs new to your music folders " +
+        "(or changed) are analyzed. Use GZJam as normal meanwhile: a song you load or queue goes first.";
+
+    private const string UpdateTip =
+        "This version of GZJam analyzes songs better, so it listens to each one again, once: its waveform, " +
+        "where the music starts and ends, its BPM and its loudness. Use GZJam as normal meanwhile: a song you " +
+        "load or queue goes first.";
+
+    /// <summary>
+    /// The top bar's progress: says the work is done once (or once again, for a new analyzer), and
+    /// once enough songs are done to tell, roughly how long the rest will take instead of the count
+    /// (the tooltip keeps it). Short, as the old "Analyzing tracks… n / total" was: the top bar has
+    /// no room to spare on a 1024-wide window.
+    /// </summary>
+    internal static string StatusText(int done, int total, bool update, TimeSpan elapsed)
+    {
+        string text = update ? "Updating analysis… " : "First-time analysis… ";
+        // Too early, the rate is mostly the first songs' luck (or a deck's song jumping the line).
+        return done >= 25 && elapsed >= TimeSpan.FromMinutes(1)
+            ? text + TimeLeft(elapsed * ((double)(total - done) / done))
+            : text + $"{Format.Count(done)} / {Format.Count(total)}";
+    }
+
+    /// <summary>A rough time left: to the minute under an hour, then to ten minutes.</summary>
+    internal static string TimeLeft(TimeSpan left)
+    {
+        if (left < TimeSpan.FromMinutes(1))
+            return "under a minute left";
+        if (left < TimeSpan.FromMinutes(59.5))
+            return $"{Math.Round(left.TotalMinutes):0} min left";
+        int tens = (int)Math.Round(left.TotalMinutes / 10);   // whole ten minutes
+        (int hours, int minutes) = (tens / 6, tens % 6 * 10);
+        return minutes == 0 ? $"{hours} h left" : $"{hours} h {minutes} min left";
     }
 
     public void Dispose()

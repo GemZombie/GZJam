@@ -18,6 +18,10 @@ Changed:
   or click can't stop the dance. The first tap says *Tap again to pause* (or *to fade out*) and
   lights the key red. If you already use GZJam, your setting stays as it is; to switch, choose *Tap
   twice* in Settings › Decks › *Pausing or fading out the live deck*.
+- **The top bar says the analysis of your songs is a one-time job.** On a new library it says
+  *First-time analysis…*, then roughly how long is left; pointing at it explains what's happening
+  and that GZJam is fine to use meanwhile. The Mixxx import says so too: the import takes seconds,
+  the analysis after it is separate.
 
 ## 0.9.0 (2026-10-26)
 

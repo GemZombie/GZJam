@@ -96,7 +96,9 @@ is out of scope until it earns a place.
   roughly 25-40 minutes once, on 1-3 below-normal-priority threads. Results are saved in the
   library database (keyed by path, invalidated when the file's size or date changes).
 - **Order:** a track loaded onto a deck is analyzed first, then queued tracks, then the rest of
-  the library in folder order. Progress shows in the top bar ("Analyzing tracks… n / total").
+  the library in folder order. Progress shows in the top bar ("First-time analysis… n / total",
+  then roughly the time left; "Updating analysis…" for a new analyzer), with a tooltip saying why and
+  that it's done once.
 - **Silence:** 50 ms windows; silence is anything 40 dB below the track's loud passages (95th
   percentile) or below -60 dBFS. 50 ms is kept before the first note and 250 ms after the last.
   On the real library the median trim is 0.2 s at the start and 3 s at the end (old transfers

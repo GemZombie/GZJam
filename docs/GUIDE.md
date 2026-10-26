@@ -46,9 +46,15 @@ guide covers everything GZJam does, from your first song to what to do if the so
 7. **Change over.** When Deck 1's song ends, press play on Deck 2 and tap **2** under the
    crossfader (it glides over in a moment). Or let [auto-play](#the-queue-and-auto-play) do it.
 
-While GZJam works through your library the first time, the top bar says *Analyzing tracks…*: it's
-finding where each song really starts and ends, its BPM, its loudness and its waveform. You can play
-right away; a song you load is analyzed first.
+While GZJam works through your library the first time, the top bar says *First-time analysis…*:
+it's listening to each song once, start to finish, to find where it really starts and ends, its BPM,
+its loudness and its waveform. On a big library this takes a while (an hour or two for 12,000 songs,
+depending on the laptop); once enough songs are done, the top bar says roughly how long is left, and
+pointing at it says how many are done. It's done once: after that, only songs new to your music
+folders are analyzed. You can play right away; a song you load or queue is analyzed first.
+
+Now and then a new version of GZJam analyzes songs better, and listens to each one again, once: the
+top bar then says *Updating analysis…*.
 
 ---
 

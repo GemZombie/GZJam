@@ -65,9 +65,10 @@
 
         <!-- Scanning, then analyzing (waveforms, silence, BPM) -->
         <StackPanel x:Name="BackgroundStatusPanel" Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
-                    IsVisible="{Binding BackgroundStatus, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    IsVisible="{Binding BackgroundStatus, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Background="Transparent" ToolTip.Tip="{Binding BackgroundTip}">
           <TextBlock Classes="muted" FontSize="12" Text="{Binding BackgroundStatus}" VerticalAlignment="Center" />
-          <ProgressBar Width="120" MinWidth="120" Height="4" Minimum="0" Maximum="100"
+          <ProgressBar Width="100" MinWidth="100" Height="4" Minimum="0" Maximum="100"
                        Value="{Binding BackgroundPercent}" Foreground="{StaticResource AccentBrush}" />
         </StackPanel>
 

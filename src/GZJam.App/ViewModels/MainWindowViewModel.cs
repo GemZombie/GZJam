@@ -123,10 +123,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string? BackgroundStatus => Library.ScanStatus ?? Analysis?.Status;
     public double BackgroundPercent => Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
 
+    /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
+    public string? BackgroundTip => Library.ScanStatus is not null
+        ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
+        : Analysis?.StatusTip;
+
     private void BackgroundChanged()
     {
         OnPropertyChanged(nameof(BackgroundStatus));
         OnPropertyChanged(nameof(BackgroundPercent));
+        OnPropertyChanged(nameof(BackgroundTip));
     }
 
     /// <summary>
