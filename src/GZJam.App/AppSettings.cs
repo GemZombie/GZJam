@@ -104,6 +104,12 @@ public sealed class AppSettings
     /// </summary>
     public bool MatchLoudness { get; set; } = true;
 
+    /// <summary>
+    /// What loudness matching aims at, in LUFS: one of <see cref="LoudnessMatch.Targets"/>. Lower
+    /// leaves more headroom, for a venue's mixer or PA that clips easily (#122).
+    /// </summary>
+    public double LoudnessTarget { get; set; } = LoudnessMatch.TargetLufs;
+
     /// <summary>Speaker, headphone and booth volume, 0-100.</summary>
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;
@@ -195,6 +201,8 @@ public sealed class AppSettings
             if (settings.DeckReadouts.Remove(old, out DeckReadout readout))
                 settings.DeckReadouts.TryAdd(renamed, readout);
         }
+        // A hand-edited target that isn't one of the choices: the nearest one.
+        settings.LoudnessTarget = LoudnessMatch.Targets.MinBy(t => Math.Abs(t - settings.LoudnessTarget));
         settings.SeenColumns ??= [];
         foreach (string column in NewHiddenColumns.Except(settings.SeenColumns).ToList())
         {

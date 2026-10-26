@@ -116,6 +116,12 @@ public static class LoudnessMatch
     /// <summary>Everything is brought toward this (Apple Music and many DJ apps use about the same).</summary>
     public const double TargetLufs = -16;
 
+    /// <summary>
+    /// The targets a DJ may choose (#122): a lower one leaves more room under the limiter, for a
+    /// mixer or PA that clips easily, and lets quiet, peaky old transfers come up all the way.
+    /// </summary>
+    public static readonly IReadOnlyList<double> Targets = [-16, -18, -20, -23];
+
     /// <summary>The most a quiet track is turned up, however quiet.</summary>
     public const double MaxBoostDb = 9;
 
@@ -126,9 +132,9 @@ public static class LoudnessMatch
     public const double PeakAllowanceDb = 1.5;
 
     /// <summary>The gain, in dB, that brings a track of this loudness and peak to the target.</summary>
-    public static double GainDb(double lufs, double? peakDb)
+    public static double GainDb(double lufs, double? peakDb, double targetLufs = TargetLufs)
     {
-        double gain = TargetLufs - lufs;
+        double gain = targetLufs - lufs;
         if (gain <= 0)
             return Math.Round(gain, 1);
         double headroom = PeakAllowanceDb - (peakDb ?? 0);

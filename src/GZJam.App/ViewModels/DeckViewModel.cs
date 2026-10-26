@@ -278,7 +278,7 @@ public sealed partial class DeckViewModel : ObservableObject
     private long _matchMovedAt;
 
     /// <summary>What loudness matching would apply to this song: 0 if it's off or not measured yet.</summary>
-    private double MatchTargetDb => _settings.MatchLoudness && _lufs is { } lufs ? LoudnessMatch.GainDb(lufs, _peakDb) : 0;
+    private double MatchTargetDb => _settings.MatchLoudness && _lufs is { } lufs ? LoudnessMatch.GainDb(lufs, _peakDb, _settings.LoudnessTarget) : 0;
 
     /// <summary>The song's measured loudness and what matching does to it, for the EQ panel.</summary>
     public string LevelText
@@ -296,7 +296,7 @@ public sealed partial class DeckViewModel : ObservableObject
         }
     }
 
-    /// <summary>Loudness matching was turned on or off in Settings.</summary>
+    /// <summary>Loudness matching was turned on or off in Settings, or its target changed.</summary>
     internal void LoudnessSettingChanged()
     {
         UpdateMatch(force: !IsOnAir);

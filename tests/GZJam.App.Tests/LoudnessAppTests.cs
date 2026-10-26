@@ -75,6 +75,31 @@ public sealed class LoudnessAppTests
     }
 
     [AvaloniaFact]
+    public void A_lower_target_turns_songs_down_and_is_saved()
+    {
+        using var app = new AppHarness(settings: new AppSettings());   // matching on, as by default
+        var settings = app.ViewModel.Settings;
+        var deck = LoadAndMeasure(app, app.ViewModel.Deck2!, app.ToneTrack("Loud remaster"));
+        double usual = deck.Deck.GainDb;
+        Assert.Equal("−16 LUFS (usual)", settings.LoudnessTargetChoice.Label);
+
+        settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -20);
+
+        Assert.Equal(usual - 4, deck.Deck.GainDb, 1);   // off air: at once
+        Assert.Equal(-20, app.Settings.LoudnessTarget);
+        Assert.Equal(["−16 LUFS (usual)", "−18 LUFS", "−20 LUFS", "−23 LUFS (most headroom)"],
+            settings.LoudnessTargetChoices.Select(c => c.Label));
+    }
+
+    [Theory]
+    [InlineData(-16, -16)]
+    [InlineData(-19.5, -20)]
+    [InlineData(-40, -23)]
+    [InlineData(0, -16)]
+    public void A_target_that_is_not_one_of_the_choices_becomes_the_nearest(double saved, double loaded) =>
+        Assert.Equal(loaded, AppSettings.Migrate(new AppSettings { LoudnessTarget = saved }).LoudnessTarget);
+
+    [AvaloniaFact]
     public void Off_air_matching_applies_at_once()
     {
         using var app = new AppHarness(settings: new AppSettings());   // matching on, as by default
