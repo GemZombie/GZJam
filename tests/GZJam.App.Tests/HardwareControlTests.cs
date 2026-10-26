@@ -53,7 +53,7 @@ public sealed class HardwareControlTests
         Assert.Equal("0 dB", mixer.CueVolumeText);
         fader.Value = 50;
         Assert.Equal("−12 dB", mixer.CueVolumeText);
-        Assert.Equal("Phones (headphone) volume: −12 dB", mixer.CueVolumeTip);
+        Assert.StartsWith("Phones (headphone) volume: −12 dB · keys: ", mixer.CueVolumeTip);   // and its keys (#132)
         fader.Value = 0;
         Assert.Equal("off", mixer.CueVolumeText);
     }

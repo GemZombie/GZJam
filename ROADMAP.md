@@ -106,6 +106,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   no title bar (Hyprland), so no close button.
 - [A song added to the queue or a playlist it's in already](https://github.com/GemZombie/GZJam/issues/136):
   the top bar says so, with Undo.
+- [MAIN and PHONES volume from the keyboard](https://github.com/GemZombie/GZJam/issues/132): Ctrl+↑/↓
+  (Cmd on a Mac), with Shift for PHONES.
 
 ## Planned next
 
@@ -139,8 +141,8 @@ ran dry, it's reopened.
   and setting the levels so nothing clips
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
-- [More keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/132), MAIN and PHONES volume
-  first
+- [More keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/132): the decks (play, cue,
+  fade out, load), the crossfader, auto-play
 - [Choose which columns the queue shows](https://github.com/GemZombie/GZJam/issues/131)
 - [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
   library, queue or a playlist

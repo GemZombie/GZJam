@@ -1315,3 +1315,14 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   four combinations). A drag instead of a continuous height: two sizes that each look right, rather
   than a deck squeezed to any height.
 
+
+### Status: MAIN and PHONES volume from the keyboard (#132, 2026-10-26)
+
+- **Ctrl+↑ / Ctrl+↓** (Cmd on macOS) turns MAIN up or down by 2 on the slider's 0-100 (about
+  0.3 dB near the top, more lower down: the sliders' audio taper), and with **Shift**, PHONES. Held,
+  the key repeats; a step never jumps enough to blast the room.
+- Taken ahead of the lists and the search box (a tunneling handler on the window), so they work
+  from anywhere, the search box too, as they type nothing. Plain arrows still move through the lists
+  and from the search box into the results.
+- The sliders' tooltips name their keys. The rest of #132 (the decks, the crossfader, auto-play)
+  is still to come; customizing keys is #135.

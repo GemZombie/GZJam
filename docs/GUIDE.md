@@ -248,7 +248,8 @@ fading out the live deck*.
 - **The meter** shows what the speakers play: one column in mono, two in stereo.
 - **LIMIT** lights when the speakers are too loud and the limiter is holding them down. Turn a deck
   or the main volume down. Nothing GZJam plays can distort.
-- **MAIN** and **PHONES** are the speakers' and headphones' volumes.
+- **MAIN** and **PHONES** are the speakers' and headphones' volumes. From the keyboard: **Ctrl+↑/↓**
+  (Cmd on Mac) turns MAIN up or down a little, and with **Shift**, PHONES.
 - **PHONES MIX:** what the headphones hear. At **CUE** (the left), the decks you've cued and the
   preview; at **MAIN** (the right), what the room hears; in the middle, both.
 - **The crossfader** fades the room between the decks: left is Deck 1 (and 3), right is Deck 2 (and
@@ -510,6 +511,8 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 | **Enter** | add the selected songs to the queue (**Shift+Enter**: play next) |
 | **Space** | preview the selected song in the headphones (in the library or the queue) |
 | **Delete** | take the selected songs out of the open playlist, or out of the queue |
+| **Ctrl+↑ / Ctrl+↓** (Cmd on Mac) | MAIN volume up or down, a little each press |
+| **Ctrl+Shift+↑ / ↓** (Cmd+Shift on Mac) | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Escape** | clear the search; close Settings; cancel a drag |
