@@ -104,7 +104,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.1.
+- [Full screen with F11](https://github.com/GemZombie/GZJam/issues/155) (on a Mac, also
+  Ctrl+Cmd+F), with a key in the top bar to leave it.
 
 ## Planned next
 

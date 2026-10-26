@@ -34,6 +34,12 @@ public partial class MainWindow : Window
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
         // Ahead of the lists and the search box, which would take Ctrl+arrows for themselves.
         AddHandler(KeyDownEvent, OnVolumeKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyDownEvent, OnFullScreenKeyDown, RoutingStrategies.Tunnel);
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty)
+                ShowFullScreen();
+        };
 
         PositionChanged += (_, _) => RememberNormalBounds();
         Resized += (_, _) => RememberNormalBounds();
@@ -394,7 +400,8 @@ public partial class MainWindow : Window
             Y = _normalPosition.Y,
             Width = _normalSize.Width,
             Height = _normalSize.Height,
-            Maximized = WindowState == WindowState.Maximized,
+            // Full screen comes back maximized: a booth laptop never opens to a screen with no way out in sight.
+            Maximized = WindowState is WindowState.Maximized or WindowState.FullScreen,
         };
     }
 

@@ -28,7 +28,7 @@
         <Button x:Name="MaximizeButton" Focusable="False" Classes="caption" Content="&#xE922;" AutomationProperties.Name="Maximize" />
         <Button x:Name="CloseButton" Focusable="False" Classes="caption close" Content="&#xE8BB;" AutomationProperties.Name="Close" />
       </StackPanel>
-      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
+      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
         <!-- The logo: the waveform G and the name in its drawn letters -->
         <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center" AutomationProperties.Name="GZJam">
           <c:LogoMark Width="24" Height="24" />
@@ -121,6 +121,13 @@
 
         <Button x:Name="SettingsButton" Grid.Column="8" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
           <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
+        </Button>
+
+        <!-- In full screen, in place of the window's own buttons: the way out by mouse or finger (#155) -->
+        <Button x:Name="ExitFullScreenButton" Grid.Column="9" Classes="icon-button" Click="OnExitFullScreenClick" IsVisible="False"
+                ToolTip.Tip="Leave full screen (F11)" AutomationProperties.Name="Leave full screen">
+          <Path Data="{StaticResource IconExitFullScreen}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
+                StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="15" Height="15" />
         </Button>
       </Grid>
       </DockPanel>
