@@ -19,6 +19,7 @@ release.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
+  A song added to the queue or a playlist twice is still added, but GZJam says so, with Undo.
 - Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
   it, and add it to the queue. The queue or a night in History can be saved as one.
 - A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
@@ -103,6 +104,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   and roughly how long is left.
 - [A Quit key in Settings](https://github.com/GemZombie/GZJam/issues/55), for Linux desktops that draw
   no title bar (Hyprland), so no close button.
+- [A song added to the queue or a playlist it's in already](https://github.com/GemZombie/GZJam/issues/136):
+  the top bar says so, with Undo.
 
 ## Planned next
 
@@ -139,7 +142,6 @@ ran dry, it's reopened.
 - [More keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/132), MAIN and PHONES volume
   first
 - [Choose which columns the queue shows](https://github.com/GemZombie/GZJam/issues/131)
-- [Say when a song added to the queue or a playlist is already there](https://github.com/GemZombie/GZJam/issues/136)
 - [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
   library, queue or a playlist
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not

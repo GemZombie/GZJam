@@ -355,7 +355,9 @@ The queue is tonight's list of songs to come.
 
 - **Adding:** drag songs into it (a line shows where), right-click › *Add to queue* or *Play next*,
   or press Enter (Shift+Enter: play next). Files and whole folders dragged from your file manager go
-  in too.
+  in too. A song that's in the queue already still goes in, but the top bar says so (*"Shiny
+  Stockings" is in the queue already (5th)*), with **Undo** to take the new copy out again. The same
+  goes for a playlist.
 - **Reordering:** drag a row by its ⋮⋮ grip. Right-click › *Move to top*, *Remove*, *Clear queue*.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.

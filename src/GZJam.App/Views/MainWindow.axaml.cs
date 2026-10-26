@@ -133,10 +133,10 @@ public partial class MainWindow : Window
         switch (e.Key)
         {
             case Key.Enter when e.KeyModifiers.HasFlag(KeyModifiers.Shift):
-                Vm.Queue.PlayNext(SelectedTracks());
+                Vm.AddToQueue(SelectedTracks(), 0);
                 break;
             case Key.Enter:
-                Vm.Queue.Add(SelectedTracks());
+                Vm.AddToQueue(SelectedTracks());
                 break;
             case Key.Space:
                 PreviewSelected();
@@ -150,9 +150,9 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void OnAddToQueueClick(object? sender, RoutedEventArgs e) => Vm.Queue.Add(SelectedTracks());
+    private void OnAddToQueueClick(object? sender, RoutedEventArgs e) => Vm.AddToQueue(SelectedTracks());
 
-    private void OnPlayNextClick(object? sender, RoutedEventArgs e) => Vm.Queue.PlayNext(SelectedTracks());
+    private void OnPlayNextClick(object? sender, RoutedEventArgs e) => Vm.AddToQueue(SelectedTracks(), 0);
 
     private void OnShowInTreeClick(object? sender, RoutedEventArgs e)
     {

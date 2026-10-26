@@ -80,7 +80,7 @@ public partial class MainWindow
                 Vm.ShowNotice("A deck takes one song. Drop several on the queue.");
                 return;
             case not null when target == QueueArea:
-                Vm.Queue.Add(tracks, index);
+                Vm.AddToQueue(tracks, index);
                 break;
             default:
                 Vm.ShowNotice("Drop songs on a deck, or on the queue.");
