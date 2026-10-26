@@ -14,7 +14,10 @@ public readonly record struct JumpMarker(double From, double To, bool Armed);
 public readonly record struct CueMarker(double At, int Number);
 
 /// <summary>
-/// A track's overview waveform with a playhead; press or drag to seek (mouse, touch or pen).
+/// A track's overview waveform with a playhead; press or drag to seek (mouse, touch or pen). The
+/// song moves once, when the finger or button lets go: until then it plays on, and the playhead
+/// shows where it's going. Seeking at every move made a finger held on the bar stutter the sound,
+/// since a finger never keeps quite still.
 /// Each bar's solid body is how loud that moment is, with its peaks as a faint outline; bars are
 /// colored by frequency (red bass, green mids, blue highs, blending between). The part already
 /// played is dimmed, and the silence trimmed off either end is shaded. Until the waveform is
@@ -150,8 +153,11 @@ public sealed class SeekBar : Control
         set => SetValue(CornerRadiusProperty, value);
     }
 
-    /// <summary>Raised with the requested position, 0..1, while pressing or dragging.</summary>
+    /// <summary>Raised with the requested position, 0..1, when a press or drag on the bar lets go.</summary>
     public event EventHandler<double>? SeekRequested;
+
+    /// <summary>Where a press or drag will move the song when it lets go; shown as the playhead meanwhile.</summary>
+    private double? _seekTo;
 
     /// <summary>Raised when the bar is pressed while <see cref="IsLocked"/>.</summary>
     public event EventHandler? LockedPressed;
@@ -202,7 +208,7 @@ public sealed class SeekBar : Control
         if (Fill is null)
             return;
 
-        double x = Math.Clamp(Progress, 0, 1) * bounds.Width;
+        double x = Math.Clamp(_seekTo ?? Progress, 0, 1) * bounds.Width;
         double center = bounds.Height / 2;
 
         if (Waveform is { } waveform)
@@ -439,7 +445,7 @@ public sealed class SeekBar : Control
             return;
         }
         e.Pointer.Capture(this);
-        RequestSeek(e);
+        AimSeek(e);
         e.Handled = true;
     }
 
@@ -460,7 +466,7 @@ public sealed class SeekBar : Control
         }
         else if (CanSeek)
         {
-            RequestSeek(e);
+            AimSeek(e);
         }
     }
 
@@ -484,17 +490,30 @@ public sealed class SeekBar : Control
                 LockedPressed?.Invoke(this, EventArgs.Empty);
             return;
         }
+        double? seekTo = _seekTo;
+        _seekTo = null;   // before letting go of the pointer, which would cancel it
         e.Pointer.Capture(null);
+        InvalidateVisual();
+        if (seekTo is { } fraction && CanSeek)
+            SeekRequested?.Invoke(this, fraction);
     }
 
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
         if (_grab.IsHolding)
-        {
             _grab.Cancel();   // taken away (a menu opening, say): the marker stays where it was
-            InvalidateVisual();
-        }
+        _seekTo = null;       // and the song stays where it is
+        InvalidateVisual();
+    }
+
+    /// <summary>A press or drag on the bar: the playhead goes where the song will, when it lets go.</summary>
+    private void AimSeek(PointerEventArgs e)
+    {
+        if (Bounds.Width <= 0)
+            return;
+        _seekTo = FractionAt(e.GetPosition(this));
+        InvalidateVisual();
     }
 
     private void RequestSeek(PointerEventArgs e)

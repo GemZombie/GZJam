@@ -18,6 +18,12 @@ New:
   at the right end of the top bar leaves it too, for a touch screen with no keyboard. Next time
   GZJam opens, it's maximized rather than full screen.
 
+Changed:
+
+- **Tapping or dragging along a position bar moves the song when you let go,** in the preview bar
+  and on a deck's whole-song waveform. Until then it plays on, and the playhead follows your finger.
+  A finger held on the bar made the sound stutter, since every tiny movement moved the song.
+
 ## 0.9.1 (2026-10-26)
 
 New:
