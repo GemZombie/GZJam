@@ -162,16 +162,44 @@ public sealed class DeckTests
         Assert.False(a.IsPlaying);   // a freshly loaded deck waits to be started
     }
 
-    [AvaloniaFact]
-    public async Task An_on_air_deck_pauses_with_one_tap_by_default()
+    /// <summary>
+    /// Two taps is the default only where none was saved (a new install): one already in the
+    /// settings file, even the old default of one tap, stays as it is.
+    /// </summary>
+    [Fact]
+    public void Two_taps_is_the_default_only_where_no_choice_was_saved()
     {
-        using var app = new AppHarness();
+        string folder = Directory.CreateTempSubdirectory("gzjam-settings-").FullName;
+        try
+        {
+            string fresh = Path.Combine(folder, "fresh.json"), saved = Path.Combine(folder, "saved.json");
+            File.WriteAllText(fresh, "{ \"FadeOutSeconds\": 5 }");
+            File.WriteAllText(saved, "{ \"OnAirPause\": \"Tap\" }");
+            Assert.Equal(OnAirPause.TapTwice, AppSettings.Load(fresh).OnAirPause);
+            Assert.Equal(OnAirPause.Tap, AppSettings.Load(saved).OnAirPause);
+            Assert.Equal(OnAirPause.TapTwice, AppSettings.Load(Path.Combine(folder, "none.json")).OnAirPause);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task An_on_air_deck_pauses_and_fades_on_the_second_tap_by_default()
+    {
+        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false });   // the real defaults
         DeckViewModel a = app.ViewModel.Deck1!;
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live"));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
         Assert.True(a.IsOnAir);
 
+        a.FadeOutCommand.Execute(null);
+        Assert.True(a.IsFadeArmed);
+        a.TogglePlayCommand.Execute(null);
+        Assert.True(a.IsPauseArmed);
+        Assert.True(a.IsPlaying);
         a.TogglePlayCommand.Execute(null);
 
         Assert.False(a.IsPlaying);

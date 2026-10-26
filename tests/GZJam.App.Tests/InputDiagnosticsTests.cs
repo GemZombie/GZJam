@@ -170,7 +170,7 @@ public sealed class InputDiagnosticsTests
     }
 
     [AvaloniaFact]
-    public async Task Mouse_click_pauses_the_on_air_deck_by_default()
+    public async Task Mouse_click_pauses_the_on_air_deck_with_one_tap_chosen()
     {
         using var app = await TwoDecksPlaying();
         var play = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("PlayButton")!;

@@ -48,7 +48,9 @@ public sealed class AppHarness : IDisposable
         MusicPath = musicFolder ?? Path.Combine(_work, "Music");
         Database = new LibraryDatabase(Path.Combine(_work, "library.db"));
         // Loudness matching off unless a test asks for it: level checks expect tones at their own level.
-        Settings = settings ?? new AppSettings { MatchLoudness = false };
+        // Pausing on air with one tap unless a test asks otherwise: most tests pause the deck the
+        // room hears and aren't about the second tap (tests of the defaults pass their own settings).
+        Settings = settings ?? new AppSettings { MatchLoudness = false, OnAirPause = OnAirPause.Tap };
         if (musicFolder is null && !Directory.Exists(MusicPath))   // another run's music stays as it was
             GenerateMusic(MusicPath);
         Database.AddRoot(MusicPath);

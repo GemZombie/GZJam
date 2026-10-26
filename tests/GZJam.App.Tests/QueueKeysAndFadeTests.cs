@@ -53,7 +53,7 @@ public sealed class QueueKeysAndFadeTests
         await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Live", seconds: 60));
         a.TogglePlayCommand.Execute(null);
         app.Play(0.2);
-        a.FadeOutCommand.Execute(null);   // one tap is the default
+        a.FadeOutCommand.Execute(null);   // one tap chosen (the test harness's setting)
         Assert.False(a.IsFadeArmed);
         AppHarness.Settle(1200);   // the fade runs on the clock
         app.Play(0.1);

@@ -10,6 +10,15 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.1 (unreleased)
+
+Changed:
+
+- **New installs: the deck the room hears takes two taps to pause or fade out,** so a stray touch
+  or click can't stop the dance. The first tap says *Tap again to pause* (or *to fade out*) and
+  lights the key red. If you already use GZJam, your setting stays as it is; to switch, choose *Tap
+  twice* in Settings › Decks › *Pausing or fading out the live deck*.
+
 ## 0.9.0 (2026-10-26)
 
 New:
