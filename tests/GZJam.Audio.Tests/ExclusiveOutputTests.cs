@@ -108,15 +108,32 @@ public sealed class ExclusiveOutputTests : IDisposable
         Assert.Null(_mix.Main.Device);
     }
 
+    /// <summary>
+    /// Watched for a while rather than at one instant, and a failure says when and for how long the
+    /// buffer was empty: it failed once, unexplained, and couldn't be reproduced in 170 runs (#47).
+    /// </summary>
     [Fact]
     public void With_extra_buffering_the_speakers_are_still_gzjams_alone()
     {
         AudioDevice device = SpareDevice();
         _engine.ExtraBuffering = true;
+        var opened = System.Diagnostics.Stopwatch.StartNew();
         _mix.SetOutputs(device, null);
         Assert.True(_mix.Main.IsExclusive);
-        Thread.Sleep(1300);   // past settling: a running output isn't dry
-        Assert.False(_mix.Main.IsDry());
+        Thread.Sleep(1100);   // past settling: a running output isn't dry
+
+        var dry = new List<double>();   // ms after opening
+        int samples = 0;
+        while (opened.ElapsedMilliseconds < 2100)
+        {
+            if (_mix.Main.IsDry())
+                dry.Add(opened.Elapsed.TotalMilliseconds);
+            samples++;
+            Thread.Sleep(2);
+        }
+        if (dry.Count > 0)
+            Assert.Fail($"{device.Name} ran dry in {dry.Count} of {samples} checks, {dry[0]:0}-{dry[^1]:0} ms after opening " +
+            $"(lost: {_mix.Main.IsLost}): a dropout, with extra buffering on");
         _engine.ExtraBuffering = false;
     }
 
