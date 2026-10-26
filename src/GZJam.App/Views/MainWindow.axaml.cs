@@ -207,6 +207,12 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        if (e.Key == Key.D && e.KeyModifiers.HasFlag(CommandModifier))
+        {
+            Vm.CompactDecks = !Vm.CompactDecks;
+            e.Handled = true;
+            return;
+        }
         if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier))
         {
             SearchBox.Focus();

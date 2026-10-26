@@ -1276,3 +1276,23 @@ rest of it.
 ## Open questions
 
 - What worked well in BPM Studio that should carry over?
+
+### Status: compact decks (#128, 2026-10-26)
+
+A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mixxx shows them 24, and
+29 with its decks shrunk), and would switch back and forth during a night.
+
+- **Switching:** the top bar's arrows key (beside the gear), Ctrl/Cmd+D, the grip under the mixer
+  (drag up 16 px: compact; down: full; a tap switches), and Settings › Decks › *Compact decks*.
+  Remembered (`AppSettings.CompactDecks`).
+- **Two decks:** the four-deck compact layout (half height: 130 px instead of the ~297 px row).
+  The mixer is held to the decks' height (`MaxHeight`, set from their measured height once laid
+  out, since four decks and touch mode need more): its faders shorten, the meter leaves out scale
+  labels that would collide, PHONES MIX is hidden (it still applies), and the 1 and 2 keys sit
+  either side of the crossfader on one row, narrower, so it keeps about 90 px.
+- **Four decks:** compact decks also leave out their waveforms (`DeckView.IsMini`): about 90 px
+  each, 188 px a side.
+- Nothing on a deck moves when it starts or goes on air, compact or not (the layout test covers all
+  four combinations). A drag instead of a continuous height: two sizes that each look right, rather
+  than a deck squeezed to any height.
+

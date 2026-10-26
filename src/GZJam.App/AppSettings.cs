@@ -91,6 +91,12 @@ public sealed class AppSettings
     public bool TouchMode { get; set; }
 
     /// <summary>
+    /// Smaller decks, so the library and queue show more songs (a laptop's screen). Switched from
+    /// the top bar, with Ctrl/Cmd+D, or the grip under the decks; DJs flip it back and forth.
+    /// </summary>
+    public bool CompactDecks { get; set; }
+
+    /// <summary>
     /// Turn each track up or down toward the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
     /// </summary>

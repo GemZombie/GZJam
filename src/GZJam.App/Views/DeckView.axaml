@@ -293,7 +293,7 @@
       <!-- Waveform and position: a close-up scrolling past the playhead over the whole song (with four
            decks, the whole song, zoomed in on demand: DeckView.ApplyWaveformLayout).
            Seeking is blocked while the room is hearing the deck. -->
-      <Panel Grid.Row="1">
+      <Panel x:Name="WavePanel" Grid.Row="1">
         <Grid x:Name="WaveRows" RowDefinitions="2*,4,*">
           <c:CloseUpWaveform x:Name="CloseUp" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
                              Waveform="{Binding CloseUpWaveform}" Length="{Binding LengthSeconds}" WindowSeconds="{Binding CloseUpSeconds}"

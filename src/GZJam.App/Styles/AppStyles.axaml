@@ -367,6 +367,26 @@
   </Style>
   <!-- The dividers between the folders, the library and the queue: a short grip in the middle of
        the gap, so it's plain where to drag, by finger as well as mouse -->
+  <!-- Under the decks: drag up for smaller decks, down for bigger, or tap. Wide and tall enough
+       for a finger; the bar itself stays small, like the panels' grips. -->
+  <Style Selector="Border.deck-grip">
+    <Setter Property="Width" Value="72" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Cursor" Value="SizeNorthSouth" />
+  </Style>
+  <Style Selector="Border.deck-grip-bar">
+    <Setter Property="Width" Value="36" />
+    <Setter Property="Height" Value="4" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{StaticResource Line2Brush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.deck-grip:pointerover Border.deck-grip-bar">
+    <Setter Property="Background" Value="{StaticResource MutedBrush}" />
+  </Style>
+
   <Style Selector="Border.splitter-grip">
     <Setter Property="Width" Value="4" />
     <Setter Property="Height" Value="36" />
@@ -585,6 +605,11 @@
     <Setter Property="Padding" Value="9,0" />
     <Setter Property="FontSize" Value="13" />
   </Style>
+  <!-- Compact decks: the side keys either side of the crossfader, narrow, so it keeps its width -->
+  <Style Selector="Grid.compact Button.side">
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="7,0" />
+  </Style>
 
   <!-- Panel tabs (Queue / History) -->
   <Style Selector="ToggleButton.tab">
@@ -661,6 +686,10 @@
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- An icon key that's switched on (compact decks): lit like a pressed hardware key -->
+  <Style Selector="Button.icon-button.on">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
   </Style>
 
   <Style Selector="Border.preview-bar">

@@ -21,6 +21,13 @@ public partial class DeckView : UserControl
     public static readonly StyledProperty<bool> IsCompactProperty =
         AvaloniaProperty.Register<DeckView, bool>(nameof(IsCompact));
 
+    /// <summary>
+    /// With <see cref="IsCompact"/>: no waveform either, just the track line and the keys. For four
+    /// decks with compact decks switched on, so two still fit in a compact deck's height or near it.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsMiniProperty =
+        AvaloniaProperty.Register<DeckView, bool>(nameof(IsMini));
+
     /// <summary>Touch mode: the compact deck's keys are finger-sized too (the full deck's come from the app's resources).</summary>
     public static readonly StyledProperty<bool> IsTouchProperty =
         AvaloniaProperty.Register<DeckView, bool>(nameof(IsTouch));
@@ -34,6 +41,7 @@ public partial class DeckView : UserControl
     {
         IsCompactProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
         IsTouchProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
+        IsMiniProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
     }
 
     /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
@@ -124,6 +132,12 @@ public partial class DeckView : UserControl
         set => SetValue(IsCompactProperty, value);
     }
 
+    public bool IsMini
+    {
+        get => GetValue(IsMiniProperty);
+        set => SetValue(IsMiniProperty, value);
+    }
+
     public bool IsTouch
     {
         get => GetValue(IsTouchProperty);
@@ -164,8 +178,11 @@ public partial class DeckView : UserControl
         Classes.Set("compact", compact);
         if (!compact)
             IsZoomed = false;
+        bool mini = compact && IsMini;
+        Classes.Set("mini", mini);
+        WavePanel.IsVisible = !mini;
         ApplyWaveformLayout();
-        MinHeight = compact ? CompactHeight : FullHeight;
+        MinHeight = mini ? 0 : compact ? CompactHeight : FullHeight;
         // Smaller transport buttons; the full sizes come from the app's resources.
         (string, double)[] sizes = IsTouch
             ? [("DeckButtonSize", 40.0), ("DeckControlHeight", 34.0), ("DeckPlayIconSize", 14.0), ("DeckPauseIconSize", 13.0)]

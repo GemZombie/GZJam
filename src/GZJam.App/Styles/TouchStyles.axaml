@@ -79,6 +79,9 @@
     <Setter Property="MinWidth" Value="60" />
     <Setter Property="MinHeight" Value="42" />
   </Style>
+  <Style Selector="Grid.compact Button.side">
+    <Setter Property="MinWidth" Value="44" />
+  </Style>
   <Style Selector="Button.hw.jump">
     <Setter Property="MinHeight" Value="32" />
     <Setter Property="Padding" Value="10,0" />

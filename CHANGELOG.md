@@ -14,6 +14,9 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 New:
 
+- **Compact decks,** for laptops: smaller decks so the library and queue show more songs. Switch
+  with the arrows beside the gear, Ctrl+D (Cmd+D), or the grip under the mixer, as often as you like
+  during a night.
 - **Import playlists (M3U)** from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other
   players: Settings › Library. Each file becomes a playlist of the same name, in order.
 - **Ratings saved in the song files** (by MediaMonkey, foobar2000, Windows Media Player and
