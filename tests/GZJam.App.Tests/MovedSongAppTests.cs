@@ -57,8 +57,8 @@ public sealed class MovedSongAppTests
         }
         catch (TimeoutException)
         {
-            // Failed once in a full local run and never since (15+ runs, some under load): say
-            // where the move was lost, so the next failure can be fixed rather than guessed at.
+            // Say where the move went: this once followed to the wrong song (the test songs are
+            // alike in size and date), which a plain timeout hid.
             var inLibrary = app.Database.Search(null).Where(t => Path.GetFileName(t.Path) == Path.GetFileName(song.Path)).Select(t => t.Path);
             Assert.Fail($"The queue didn't follow the move. Queue: {app.ViewModel.Queue.Items[0].Track.Path}; moved to: {moved} " +
                         $"(exists: {File.Exists(moved)}); in the library: [{string.Join(" | ", inLibrary)}]; scan: {app.ViewModel.Library.ScanStatus ?? "none"}");

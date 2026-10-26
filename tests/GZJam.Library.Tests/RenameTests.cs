@@ -178,6 +178,59 @@ public sealed class RenameTests : IDisposable
         }
     }
 
+    /// <summary>Two files alike in size and date, as copies of one file (or generated test songs) are.</summary>
+    private (string A, string Twin) Twins(TempLibrary lib)
+    {
+        string a = lib.AddMp3("Swing/Confessin.mp3", new TestMp3.Tags(Title: "Confessin'"));
+        string twin = lib.AddMp3("Swing/Sing.mp3", new TestMp3.Tags(Title: "Sing, Sing"));   // same length title: same size
+        Assert.Equal(new FileInfo(a).Length, new FileInfo(twin).Length);
+        File.SetLastWriteTimeUtc(twin, File.GetLastWriteTimeUtc(a));
+        return (a, twin);
+    }
+
+    [Fact]
+    public void A_song_deleted_beside_its_twin_is_removed_not_moved_onto_the_twin()
+    {
+        var (a, twin) = Twins(_lib);
+        LibraryRoot music = _lib.AddRootAndScan();
+        OtherFolder();   // more than one music folder: the scanner looks for moves between them
+        Db.SetRating([a], Rating.Rejected);
+        Db.SetRating([twin], Rating.Loved);
+
+        File.Delete(a);
+        ScanResult result = _lib.Scanner.Scan(music);
+
+        Assert.Empty(result.Moves);
+        Assert.Equal(1, result.Removed);
+        Assert.Equal(Rating.Loved, Find(twin).Rating);   // not given the deleted song's broken heart
+    }
+
+    [Fact]
+    public void A_song_moved_to_another_folder_beside_its_twin_follows_to_the_right_place()
+    {
+        foreach (bool oldFolderFirst in new[] { true, false })
+        {
+            using var lib = new TempLibrary();
+            var (a, twin) = Twins(lib);
+            LibraryRoot music = lib.AddRootAndScan();
+            string otherPath = Path.Combine(lib.Directory, "Other Music");
+            Directory.CreateDirectory(otherPath);
+            LibraryRoot other = lib.Database.AddRoot(otherPath);
+            lib.Scanner.Scan(other);
+            lib.Database.SetRating([a], Rating.Rejected);
+            lib.Database.SetRating([twin], Rating.Loved);
+
+            string moved = Path.Combine(otherPath, "Confessin.mp3");
+            File.Move(a, moved);
+            var (first, second) = oldFolderFirst ? (music, other) : (other, music);
+            var moves = lib.Scanner.Scan(first).Moves.Concat(lib.Scanner.Scan(second).Moves).ToList();
+
+            Assert.Equal([(a, moved)], moves);
+            Assert.Equal(Rating.Rejected, lib.Database.Search(null).Single(t => t.Path == moved).Rating);
+            Assert.Equal(Rating.Loved, lib.Database.Search(null).Single(t => t.Path == twin).Rating);
+        }
+    }
+
     [Fact]
     public void A_rename_reports_its_old_and_new_paths()
     {
