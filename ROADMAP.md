@@ -102,8 +102,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 *Fixes*
 - [Closing GZJam on Linux desktops that draw no title bar](https://github.com/GemZombie/GZJam/issues/55) (Hyprland)
 - [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
+- [Delete in the queue loses the keyboard](https://github.com/GemZombie/GZJam/issues/133): nothing
+  is selected afterward
 
 *New*
+- [Compact decks](https://github.com/GemZombie/GZJam/issues/128): a key and a button to shrink
+  them, and a grip to drag their height, to see more songs on a laptop
+- [Fade out on air takes two taps](https://github.com/GemZombie/GZJam/issues/130), like pause
+- [Space previews the selected song in the queue too](https://github.com/GemZombie/GZJam/issues/134)
 - [Import M3U playlists, and star ratings saved in the song files](https://github.com/GemZombie/GZJam/issues/116),
   for DJs coming from MediaMonkey, foobar2000 and most other players
 
@@ -127,6 +133,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   for more headroom on a mixer or PA that clips easily
 - [The user guide: connecting to a venue's mixer or PA](https://github.com/GemZombie/GZJam/issues/125),
   and setting the levels so nothing clips
+- [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
+  only, or written to the files too if you turn that on
+- [More keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/132), MAIN and PHONES volume
+  first
+- [Choose which columns the queue shows](https://github.com/GemZombie/GZJam/issues/131)
+- [Say when a song added to the queue or a playlist is already there](https://github.com/GemZombie/GZJam/issues/136)
+- [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
+  library, queue or a playlist
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
   only the usual ones (a dance in a custom tag, the composer, the grouping)
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
@@ -151,6 +165,7 @@ to one you'd use.
 **Playing**
 - [Pause after each song, and stop at a set time](https://github.com/GemZombie/GZJam/issues/100),
   for lessons and the end of the night
+- [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
 - [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
