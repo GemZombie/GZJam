@@ -167,7 +167,8 @@ hearing it blinks slowly. When auto-play is about to start this deck, the status
   pinch (2 to 30 seconds across).
 - **Four decks:** the whole song; the mouse wheel or a pinch zooms that deck in.
 - **Moving around:** off air, click or tap the whole song to go there, or drag the close-up like a
-  record. **On air it's locked**, so a stray touch can't jump the music; tapping it says how to
+  record. Dragging along the whole song, the music plays on and the playhead follows you; it moves
+  when you let go. **On air it's locked**, so a stray touch can't jump the music; tapping it says how to
   unlock it (move the crossfader off that deck). Cue keys and jumps still work on air.
 - **The colors:** red is bass, green mids, blue highs. The shaded parts at either end are silence
   GZJam skips.
@@ -314,7 +315,8 @@ music files.
 ### Previewing
 
 Tap the 🎧 icon on any row (or press Space) to hear the song in the headphones without loading it.
-The preview bar under the song list has its own position bar and STOP.
+The preview bar under the song list has its own position bar and STOP. Tap or drag along it:
+the song plays on while your finger is down, and moves there when you let go.
 
 ### Playlists
 
