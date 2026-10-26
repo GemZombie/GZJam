@@ -534,7 +534,7 @@
                Above the tabs, so its status stays in view on the History tab too. -->
           <Border Classes="autoplay" DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
             <StackPanel Spacing="6">
-              <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="5" RowSpacing="5">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="5">
                 <ToggleButton x:Name="AutoPlaySwitch" Classes="hw small" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
                               ToolTip.Tip="Play through the queue automatically, alternating decks">
                   <StackPanel Orientation="Horizontal" Spacing="8">
@@ -545,24 +545,57 @@
                 <TextBlock Grid.Column="2" Classes="fader-label" Text="GAP" VerticalAlignment="Center" Margin="0,0,3,0"
                            ToolTip.Tip="Silence between songs when auto-play moves to the next one" />
                 <Button Grid.Column="3" Classes="hw step" Content="−" Command="{Binding GapDownCommand}" />
-                <Border Grid.Column="4" Classes="readout-window" MinWidth="58">
+                <Border Grid.Column="4" Classes="readout-window" MinWidth="52">
                   <TextBlock Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold" FontSize="12.5"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <Button Grid.Column="5" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
 
-                <!-- For practice nights and classes: each song fades out after this long (#98) -->
-                <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Classes="fader-label" Text="FADE AFTER" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"
-                           ToolTip.Tip="Auto-play fades each song out after this long, for practice nights and classes. Off: songs play to their end." />
-                <Button x:Name="FadeAfterDownButton" Grid.Row="1" Grid.Column="3" Classes="hw step" Content="−" Command="{Binding FadeAfterDownCommand}" />
-                <Border Grid.Row="1" Grid.Column="4" Classes="readout-window" MinWidth="58">
-                  <TextBlock Classes="mono" Text="{Binding FadeAfterText}" FontWeight="SemiBold" FontSize="12.5"
-                             Classes.muted="{Binding !IsFadeAfterOn}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <Button x:Name="FadeAfterUpButton" Grid.Row="1" Grid.Column="5" Classes="hw step" Content="+" Command="{Binding FadeAfterUpCommand}" />
+                <!-- For classes and practice nights: fade each song after a while, wait for the
+                     teacher between songs, stop at a set time (#98, #100) -->
+                <Button x:Name="AutoPlayOptionsButton" Grid.Column="6" Classes="hw step" Content="⋯" FontSize="14"
+                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, stop at a set time">
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel" Opening="OnAutoPlayOptionsOpening">
+                      <StackPanel Width="270" Spacing="12">
+                        <TextBlock Classes="label" Text="AUTO-PLAY OPTIONS" />
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="5">
+                          <StackPanel Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="setting" Text="Fade after" />
+                            <TextBlock Classes="setting-help" Text="Each song, for classes and practice" />
+                          </StackPanel>
+                          <Button x:Name="FadeAfterDownButton" VerticalAlignment="Center" Grid.Column="1" Classes="hw step" Content="−" Command="{Binding FadeAfterDownCommand}" />
+                          <Border Grid.Column="2" Classes="readout-window" MinWidth="50" VerticalAlignment="Center">
+                            <TextBlock Classes="mono" Text="{Binding FadeAfterText}" FontWeight="SemiBold" FontSize="12.5"
+                                       Classes.muted="{Binding !IsFadeAfterOn}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                          </Border>
+                          <Button x:Name="FadeAfterUpButton" VerticalAlignment="Center" Grid.Column="3" Classes="hw step" Content="+" Command="{Binding FadeAfterUpCommand}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <StackPanel Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="setting" Text="Wait for me after each song" />
+                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="The next song is lined up; press play when you're ready" />
+                          </StackPanel>
+                          <ToggleButton x:Name="WaitAfterEachSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding WaitAfterEach}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <StackPanel Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="setting" Text="Stop at" />
+                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="The song playing then is the last" />
+                          </StackPanel>
+                          <ComboBox x:Name="StopAtBox" Grid.Column="1" MinWidth="110" VerticalAlignment="Center"
+                                    ItemsSource="{Binding StopChoices}" SelectedItem="{Binding StopChoice}" />
+                        </Grid>
+                      </StackPanel>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
               </Grid>
               <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"
                          IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock x:Name="AutoPlayOptionsText" Classes="dim" FontSize="11" Text="{Binding OptionsText}" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding OptionsText}"
+                         IsVisible="{Binding OptionsText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
           </Border>
 
