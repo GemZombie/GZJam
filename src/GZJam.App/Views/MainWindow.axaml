@@ -28,7 +28,7 @@
         <Button x:Name="MaximizeButton" Focusable="False" Classes="caption" Content="&#xE922;" AutomationProperties.Name="Maximize" />
         <Button x:Name="CloseButton" Focusable="False" Classes="caption close" Content="&#xE8BB;" AutomationProperties.Name="Close" />
       </StackPanel>
-      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
+      <Grid x:Name="TopBarContent" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" Margin="20,0,16,0">
         <!-- The logo: the waveform G and the name in its drawn letters -->
         <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center" AutomationProperties.Name="GZJam">
           <c:LogoMark Width="24" Height="24" />
@@ -100,7 +100,18 @@
           </StackPanel>
         </Button>
 
-        <Button x:Name="SettingsButton" Grid.Column="7" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
+        <!-- Smaller decks for more songs, and back: also Ctrl/Cmd+D and the grip under the decks -->
+        <Button x:Name="CompactDecksButton" Grid.Column="7" Classes="icon-button" Command="{Binding ToggleCompactDecksCommand}"
+                ToolTip.Tip="{Binding CompactDecksTip}" Classes.on="{Binding CompactDecks}">
+          <Panel Width="16" Height="16">
+            <Path Data="{StaticResource IconDecksSmaller}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
+                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding !CompactDecks}" />
+            <Path Data="{StaticResource IconDecksBigger}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
+                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding CompactDecks}" />
+          </Panel>
+        </Button>
+
+        <Button x:Name="SettingsButton" Grid.Column="8" Classes="icon-button" ToolTip.Tip="Settings" Click="OnSettingsClick">
           <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
         </Button>
       </Grid>
@@ -128,8 +139,8 @@
 
       <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the phones
            mix, the crossfader -->
-      <Border Grid.Column="1" Classes="panel" Padding="14,12">
-        <Grid RowDefinitions="*,Auto,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
+      <Border x:Name="MixerPanel" Grid.Column="1" Classes="panel" Padding="14,12">
+        <Grid RowDefinitions="*,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
           <Grid ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
             <c:LevelMeter x:Name="MainMeter" IsMono="{Binding IsMono}" Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
                           Margin="0,6,0,6"
@@ -149,7 +160,7 @@
           </Grid>
 
           <!-- The phones mix: what the headphones hear, from what's cued to what the room hears -->
-          <Grid Grid.Row="1" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" ToolTip.Tip="{Binding PhonesMixTip}">
+          <Grid x:Name="PhonesMixRow" Grid.Row="1" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" ToolTip.Tip="{Binding PhonesMixTip}">
             <TextBlock Classes="fader-label" Text="CUE" />
             <TextBlock Grid.Column="1" Classes="fader-label" Text="PHONES MIX" HorizontalAlignment="Center" />
             <TextBlock Grid.Column="2" Classes="fader-label" Text="MAIN" />
@@ -158,20 +169,22 @@
                                  Value="{Binding PhonesMix}" />
           </Grid>
 
-          <c:CrossfaderControl x:Name="Crossfader" Grid.Row="2" Height="{DynamicResource CrossfaderHeight}" Value="{Binding Crossfader}"
-                               ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
-          <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto">
+          <!-- The crossfader, and under it the keys that glide it to a side. Compact decks: all on one
+               row, the keys either side of the crossfader (MainWindow.ApplyDeckLayout). -->
+          <Grid x:Name="CrossfaderRows" Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" RowSpacing="6">
+            <c:CrossfaderControl x:Name="Crossfader" Grid.ColumnSpan="3" Height="{DynamicResource CrossfaderHeight}" Value="{Binding Crossfader}"
+                                 ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
             <!-- The side the room hears has its light on. With four decks each carries both of that side's numbers. -->
-            <Button x:Name="LeftSideButton" Classes="hw side" Command="{Binding SnapTo1Command}" ToolTip.Tip="{Binding LeftTip}">
+            <Button x:Name="LeftSideButton" Grid.Row="1" Classes="hw side" Command="{Binding SnapTo1Command}" ToolTip.Tip="{Binding LeftTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Border Classes="led red" Classes.on="{Binding IsDeck1Live}" />
                 <TextBlock Text="1" Foreground="{StaticResource Deck1Brush}" />
                 <TextBlock Text="3" Foreground="{StaticResource Deck3Brush}" IsVisible="{Binding IsFourDecks}" />
               </StackPanel>
             </Button>
-            <TextBlock x:Name="LiveLabel" Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <TextBlock x:Name="LiveLabel" Grid.Row="1" Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
                        Text="{Binding LiveText}" />
-            <Button x:Name="RightSideButton" Grid.Column="2" Classes="hw side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
+            <Button x:Name="RightSideButton" Grid.Row="1" Grid.Column="2" Classes="hw side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Border Classes="led red" Classes.on="{Binding IsDeck2Live}" />
                 <TextBlock Text="2" Foreground="{StaticResource Deck2Brush}" />
@@ -189,6 +202,12 @@
                     IsVisible="False" DataContext="{Binding Deck4}" />
       </Grid>
     </Grid>
+
+    <!-- Drag up for smaller decks and more songs, down for bigger (or tap): MainWindow.Decks -->
+    <Border x:Name="DeckGrip" Grid.Row="1" Classes="deck-grip" Margin="0,0,0,-12"
+            HorizontalAlignment="Center" VerticalAlignment="Bottom" ToolTip.Tip="{Binding CompactDecksTip}">
+      <Border Classes="deck-grip-bar" />
+    </Border>
 
     <!-- ───────────── Library ───────────── -->
     <Grid Grid.Row="2" ColumnDefinitions="260,12,*,12,320">

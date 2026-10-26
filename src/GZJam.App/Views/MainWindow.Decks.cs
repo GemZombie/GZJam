@@ -1,6 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.Platform.Storage;
 using GZJam.App.ViewModels;
 using GZJam.Library;
@@ -19,6 +21,9 @@ public partial class MainWindow
         QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
         QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
         SettingsPanel.CloseRequested += (_, _) => CloseSettings();
+        DeckGrip.PointerPressed += OnDeckGripPressed;
+        DeckGrip.PointerMoved += OnDeckGripMoved;
+        DeckGrip.PointerReleased += OnDeckGripReleased;
         SettingsPanel.MixxxImportRequested += (_, _) => ImportFromMixxx();
         SettingsPanel.PlaylistImportRequested += (_, _) => ImportPlaylists();
         SettingsPanel.FileRatingsRequested += (_, _) => ImportFileRatings();
@@ -41,13 +46,16 @@ public partial class MainWindow
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(MainWindowViewModel.FourDecks))
+                if (e.PropertyName is nameof(MainWindowViewModel.FourDecks) or nameof(MainWindowViewModel.CompactDecks))
                     ApplyDeckLayout();
             };
             vm.Settings.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(SettingsViewModel.TouchMode))
+                {
                     ApplyTouchMode();
+                    ApplyDeckLayout();   // the compact mixer's crossfader is finger-sized too
+                }
             };
             ApplyDeckLayout();
             ApplyTouchMode();
@@ -68,18 +76,90 @@ public partial class MainWindow
     /// <summary>
     /// Two full-height decks, or four at half height in the same space. Four share it equally,
     /// so the upper and lower decks line up whatever the mixer beside them needs.
+    /// Compact decks (#128): two decks at half height, or four without their waveforms, and the
+    /// mixer beside them no taller: its faders shorten, PHONES MIX goes (it still applies), and the
+    /// side keys move either side of the crossfader.
     /// </summary>
     private void ApplyDeckLayout()
     {
-        bool four = Vm.FourDecks;
+        bool four = Vm.FourDecks, compact = Vm.CompactDecks;
         foreach (DeckView view in DeckViews)
-            view.IsCompact = four;
+        {
+            view.IsCompact = four || compact;
+            view.IsMini = four && compact;
+        }
         Deck3View.IsVisible = Deck4View.IsVisible = four;
         foreach (Grid side in new[] { LeftDecks, RightDecks })
         {
             side.RowDefinitions[1].Height = four ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
             side.RowSpacing = four ? DeckView.CompactGap : 0;
         }
+
+        MixerPanel.MaxHeight = compact ? DeckView.CompactHeight : double.PositiveInfinity;
+        if (compact)
+        {
+            // No taller than the decks need (four without waveforms, or touch mode's bigger keys,
+            // need more than a compact deck's height): known once they've been measured.
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Vm.CompactDecks)
+                    MixerPanel.MaxHeight = Math.Max(LeftDecks.DesiredSize.Height, RightDecks.DesiredSize.Height);
+            }, DispatcherPriority.Loaded);
+        }
+        MixerPanel.Padding = compact ? new Thickness(12, 8) : new Thickness(14, 12);
+        PhonesMixRow.IsVisible = !compact;
+        LiveLabel.IsVisible = !compact;
+        Grid.SetRow(Crossfader, compact ? 1 : 0);
+        Grid.SetColumn(Crossfader, compact ? 1 : 0);
+        Grid.SetColumnSpan(Crossfader, compact ? 1 : 3);
+        Crossfader.Margin = compact ? new Thickness(6, 0) : default;
+        CrossfaderRows.RowSpacing = compact ? 0 : 6;
+        CrossfaderRows.Classes.Set("compact", compact);
+        if (compact)
+            MixerPanel.Resources["CrossfaderHeight"] = Vm.Settings.TouchMode ? 40.0 : 30.0;
+        else
+            MixerPanel.Resources.Remove("CrossfaderHeight");
+    }
+
+    // ───────────── The grip under the decks ─────────────
+
+    /// <summary>How far the grip must be dragged to switch; less, and letting go counts as a tap.</summary>
+    private const double DeckGripSwitchDistance = 16;
+
+    private double _deckGripFrom;
+    private bool _deckGripMoved;
+
+    private void OnDeckGripPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _deckGripFrom = e.GetPosition(this).Y;
+        _deckGripMoved = false;
+        e.Pointer.Capture(DeckGrip);
+        e.Handled = true;
+    }
+
+    /// <summary>Up past the switching distance: smaller decks; down: bigger. Once per drag direction.</summary>
+    private void OnDeckGripMoved(object? sender, PointerEventArgs e)
+    {
+        if (e.Pointer.Captured != DeckGrip)
+            return;
+        double moved = e.GetPosition(this).Y - _deckGripFrom;
+        if (Math.Abs(moved) > 4)
+            _deckGripMoved = true;
+        if (moved <= -DeckGripSwitchDistance && !Vm.CompactDecks || moved >= DeckGripSwitchDistance && Vm.CompactDecks)
+        {
+            Vm.CompactDecks = moved < 0;
+            _deckGripFrom = e.GetPosition(this).Y;
+        }
+    }
+
+    private void OnDeckGripReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (e.Pointer.Captured != DeckGrip)
+            return;
+        e.Pointer.Capture(null);
+        if (!_deckGripMoved)
+            Vm.CompactDecks = !Vm.CompactDecks;   // a tap
+        e.Handled = true;
     }
 
     private DeckViewModel? DeckAt(int index) => Vm.Decks.ElementAtOrDefault(index);

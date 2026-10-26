@@ -163,6 +163,14 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Compact decks" />
+                    <TextBlock Classes="setting-help" Text="Smaller decks, so the library and queue show more songs. Also from the top bar, Ctrl+D (Cmd+D on a Mac), or the grip under the decks." />
+                  </StackPanel>
+                  <ToggleButton x:Name="CompactDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding CompactDecks}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Fade-out length" />
                     <TextBlock Classes="setting-help" Text="How long a deck's FADE OUT key takes to bring it down to silence." />
                   </StackPanel>

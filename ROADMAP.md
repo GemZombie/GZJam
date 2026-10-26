@@ -96,6 +96,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - Settings › About's links say where they go: *User guide · GZJam on GitHub*.
 - [Import M3U playlists, and star ratings saved in the song files](https://github.com/GemZombie/GZJam/issues/116),
   for DJs coming from MediaMonkey, foobar2000 and most other players
+- [Compact decks](https://github.com/GemZombie/GZJam/issues/128), to see more songs on a laptop: a
+  key, a button and a grip switch them, as often as you like during a night
 
 ## Planned next
 
@@ -108,8 +110,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   is selected afterward
 
 *New*
-- [Compact decks](https://github.com/GemZombie/GZJam/issues/128): a key and a button to shrink
-  them, and a grip to drag their height, to see more songs on a laptop
 - [Fade out on air takes two taps](https://github.com/GemZombie/GZJam/issues/130), like pause
 - [Space previews the selected song in the queue too](https://github.com/GemZombie/GZJam/issues/134)
 

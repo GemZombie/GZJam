@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using GZJam.Audio;
 using GZJam.Library;
 
@@ -510,6 +511,29 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>Four decks on screen rather than two (a setting).</summary>
     public bool FourDecks => _deckCount == 4;
+
+    /// <summary>Smaller decks, for more songs in the library and queue (see <see cref="AppSettings.CompactDecks"/>).</summary>
+    public bool CompactDecks
+    {
+        get => _settings.CompactDecks;
+        set
+        {
+            if (value == _settings.CompactDecks)
+                return;
+            _settings.CompactDecks = value;
+            Log.Info($"Decks: {(value ? "compact" : "full size")}");
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CompactDecksTip));
+            Settings.CompactDecksChanged();
+        }
+    }
+
+    public string CompactDecksTip => CompactDecks
+        ? $"Bigger decks ({Shortcuts.Command}+D)"
+        : $"Smaller decks, more songs ({Shortcuts.Command}+D)";
+
+    [RelayCommand]
+    private void ToggleCompactDecks() => CompactDecks = !CompactDecks;
 
     /// <summary>
     /// Shows 2 or 4 decks. Going back to 2 is refused while Deck 3 or 4 is playing; otherwise

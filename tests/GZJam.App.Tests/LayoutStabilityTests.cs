@@ -50,13 +50,16 @@ public sealed class LayoutStabilityTests
         Math.Abs(a.X - b.X) < 0.5 && Math.Abs(a.Y - b.Y) < 0.5 && Math.Abs(a.Width - b.Width) < 0.5 && Math.Abs(a.Height - b.Height) < 0.5;
 
     [AvaloniaTheory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Nothing_moves_when_a_deck_starts_or_goes_on_air(bool fourDecks)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Nothing_moves_when_a_deck_starts_or_goes_on_air(bool fourDecks, bool compact)
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
         vm.Settings.FourDecks = fourDecks;
+        vm.CompactDecks = compact;
         vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A")).GetAwaiter().GetResult();
         vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B")).GetAwaiter().GetResult();
         vm.Mixer!.Crossfader = 1;   // the room hears Deck 2's side

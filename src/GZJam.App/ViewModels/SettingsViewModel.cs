@@ -245,6 +245,15 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Smaller decks (also switched from the top bar, the key and the grip).</summary>
+    public bool CompactDecks
+    {
+        get => _owner.CompactDecks;
+        set => _owner.CompactDecks = value;
+    }
+
+    internal void CompactDecksChanged() => OnPropertyChanged(nameof(CompactDecks));
+
     /// <summary>Four decks on screen rather than two.</summary>
     public bool FourDecks
     {

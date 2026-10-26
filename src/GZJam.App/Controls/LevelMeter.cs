@@ -135,6 +135,7 @@ public sealed class LevelMeter : Control
     private void DrawScale(DrawingContext context, double meterWidth)
     {
         var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
+        double below = double.NegativeInfinity;   // where the last label drawn ends
         foreach (int db in new[] { 0, -6, -12, -24, -48 })
         {
             string text = db == 0 ? "0" : $"−{-db}";
@@ -142,7 +143,10 @@ public sealed class LevelMeter : Control
                 typeface, 9, db == 0 ? ZeroLabelBrush : LabelBrush);
             double y = Bounds.Height * (-db / Range);
             y = Math.Clamp(y - label.Height / 2, 0, Bounds.Height - label.Height);
+            if (y < below)
+                continue;   // a short meter (compact decks): no room for this one between its neighbors
             context.DrawText(label, new Point(meterWidth + 4, y));
+            below = y + label.Height;
         }
     }
 }

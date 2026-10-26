@@ -116,6 +116,14 @@ to avoid it (choose another output as Windows' default).
 Two decks to start with; four if you turn on **Four decks** in Settings › Decks (Deck 3 under
 Deck 1, Deck 4 under Deck 2, each half height).
 
+**Compact decks:** on a laptop, the decks can be made smaller so the library and queue show more
+songs. Press the arrows beside the gear in the top bar, press **Ctrl+D** (Cmd+D on a Mac), or drag
+the small grip under the mixer up (and down again for big decks; a tap on it switches too). Switch
+back and forth as often as you like during a night: nothing playing is affected. Compact decks keep
+the title, time, waveform, play, CUE, FADE OUT and tempo, with the rest in each deck's ⋯ menu; the
+mixer keeps the meter, MAIN, PHONES and the crossfader (PHONES MIX is hidden but still applies).
+With four decks, compact decks also leave out the waveforms. GZJam remembers the choice.
+
 ![Two decks: Deck 1 on air with cue keys 1 and 2, Deck 2 cued in the headphones with a jump set, and a song previewing under the list](images/guide/decks.png)
 
 ### Loading and playing
@@ -380,7 +388,7 @@ The gear in the top bar. Music keeps playing while it's open; DONE, Escape or a 
   instruments recorded on one side), **Match loudness** (on: songs are turned toward the same
   loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), and **Extra
   protection against crackles**.
-- **Decks:** *Four decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
+- **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
   it), *Pausing the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
@@ -488,6 +496,7 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 | **Space** | preview the selected song in the headphones |
 | **Delete** | take the selected songs out of the open playlist |
 | **Ctrl+F** (Cmd+F) | search |
+| **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Escape** | clear the search; close Settings; cancel a drag |
 | **↓** in the search box | into the results |
 | **Right-click**, or **press and hold** | a song's, a deck's or a waveform's menu |
