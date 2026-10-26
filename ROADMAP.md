@@ -108,14 +108,17 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 **Before 1.0:** a reliable night, everywhere.
 
-*Fixes*
-- [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47) (Windows), if it's real
+*Fixes:* none left. [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47)
+couldn't be reproduced in 170 runs on five sound cards; if the activity log ever says the speakers
+ran dry, it's reopened.
 
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
   with a sound card used directly, as at a dance
 - The booth and the splitter cable by ear, a library of 50-60 thousand songs, and a real night
   with dancers
+- With *Extra protection against crackles* on, a night with no "the sound buffer ran dry" in the
+  activity log
 - Done: [the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18), and an hour's
   mock night on Windows and on Mac
 
