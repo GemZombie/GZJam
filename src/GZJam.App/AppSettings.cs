@@ -125,6 +125,15 @@ public sealed class AppSettings
     public bool QueuePanelFolded { get; set; }
 
     /// <summary>
+    /// The queue given the room in the middle, the song list narrowed beside it (#178): for nights
+    /// spent reordering a long queue. The same key swaps back.
+    /// </summary>
+    public bool QueueWide { get; set; }
+
+    /// <summary>The song list's width while the queue is wide, as last dragged; null: as it starts.</summary>
+    public double? WideSongListWidth { get; set; }
+
+    /// <summary>
     /// Turn each track up or down toward the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
     /// </summary>

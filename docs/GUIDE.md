@@ -73,6 +73,11 @@ whole width, fold the library or the queue away with the arrow at the right of i
 its divider almost to the edge): it becomes a slim strip with its name, and a tap anywhere on the
 strip opens it again. GZJam remembers the panels' widths, and which are folded.
 
+**A long queue:** press **Ctrl+L** (Cmd+L on a Mac), or the arrow beside the queue's fold arrow, to
+give the queue the room in the middle, with the song list narrowed beside it: handy on a night
+spent reordering a queue of a hundred songs. The same key gives the song list the room back. Each
+way keeps its own divider, where you last dragged it.
+
 **Full screen:** **F11** (on a Mac, also **Ctrl+Cmd+F** or the green window button), and F11 again
 to go back. In full screen, a key at the right end of the top bar leaves it too, for a touch screen
 with no keyboard. Escape doesn't leave it, since Escape does other things in GZJam. Next time GZJam
@@ -634,6 +639,7 @@ no key on purpose: one keypress ending the song the room hears is too easy to hi
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Ctrl+Shift+D** (Cmd+Shift+D) | hide the decks (one line at the top instead), and back |
+| **Ctrl+L** (Cmd+L) | give the queue the room in the middle, and back to the song list |
 | **F11** (on a Mac, also **Ctrl+Cmd+F**) | full screen, and back |
 | **Ctrl+,** or **Ctrl+O** (Cmd+, or Cmd+O) | Settings, and closed again |
 | **Escape** | clear the search; close Settings; cancel a drag |

@@ -76,6 +76,63 @@ public sealed class PanelStripTests
         Assert.Equal(library, Find<Control>(app, "LibraryPanel").Bounds.Width, 0);
     }
 
+    private static readonly RawInputModifiers Command = OperatingSystem.IsMacOS() ? RawInputModifiers.Meta : RawInputModifiers.Control;
+
+    private static void PressCommandL(AppHarness app)
+    {
+        app.Window.KeyPress(Key.L, Command, PhysicalKey.L, null);
+        AppHarness.Settle(150);
+    }
+
+    [AvaloniaFact]
+    public void Ctrl_L_gives_the_queue_the_room_and_back_each_divider_where_it_was_left()
+    {
+        using var app = new AppHarness();
+        double queue = Find<Control>(app, "QueuePanel").Bounds.Width, songs = Find<Control>(app, "TrackGrid").Bounds.Width;
+
+        PressCommandL(app);
+        app.Screenshot("queue-wide");
+        Assert.True(app.Settings.QueueWide);   // remembered
+        double narrow = Find<Control>(app, "TrackGrid").Bounds.Width;
+        Assert.True(Find<Control>(app, "QueuePanel").Bounds.Width > queue + 300, "the queue has the room");
+        Assert.True(Find<Control>(app, "QueuePanel").Bounds.Width > narrow, "more than the song list");
+
+        // The divider dragged while wide: that's where it is next time it's wide.
+        var from = Middle(app, "QueueSplitter");
+        app.MouseDrag(from, from - new Point(80, 0));
+        AppHarness.Settle(150);
+        double dragged = Find<Control>(app, "TrackGrid").Bounds.Width;
+        Assert.Equal(narrow - 80, dragged, 2);
+
+        Find<Button>(app, "QueueWideButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));   // the button, the same
+        AppHarness.Settle(150);
+        Assert.False(app.Settings.QueueWide);
+        Assert.Equal(queue, Find<Control>(app, "QueuePanel").Bounds.Width, 0);   // as it was before
+        Assert.Equal(songs, Find<Control>(app, "TrackGrid").Bounds.Width, 0);
+
+        PressCommandL(app);
+        Assert.Equal(dragged, Find<Control>(app, "TrackGrid").Bounds.Width, 0);
+    }
+
+    [AvaloniaFact]
+    public void Folding_a_wide_queue_gives_the_song_list_the_room_and_the_key_opens_it_wide_again()
+    {
+        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, QueueWide = true });
+        Assert.True(Find<Control>(app, "QueuePanel").Bounds.Width > Find<Control>(app, "TrackGrid").Bounds.Width);   // as left
+
+        Find<Button>(app, "FoldQueueButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        AppHarness.Settle(150);
+        Assert.True(app.Settings.QueuePanelFolded);
+        Assert.False(app.Settings.QueueWide);
+        double songs = Find<Control>(app, "TrackGrid").Bounds.Width;
+        Assert.True(songs > 1000, "the song list has the room");
+
+        PressCommandL(app);
+        Assert.False(app.Settings.QueuePanelFolded);
+        Assert.True(Find<Control>(app, "QueuePanel").IsVisible);
+        Assert.True(Find<Control>(app, "QueuePanel").Bounds.Width > Find<Control>(app, "TrackGrid").Bounds.Width);
+    }
+
     [AvaloniaFact]
     public void GZJam_starts_with_the_panels_as_they_were_left()
     {
