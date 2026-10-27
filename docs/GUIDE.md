@@ -148,6 +148,9 @@ With four decks, compact decks also leave out the waveforms. GZJam remembers the
   Settings › Decks › *Loading a playing deck*.
 - **Play/pause:** the round key. **ON AIR** (red) means the room hears this deck; **OFF AIR** means
   it's playing but the crossfader is on the other side.
+- **The red bar along the top** of the deck the room hears fills up as the song plays, so you can
+  see at a glance how far in you are. It's full when the time left reaches 0:00 (where the music
+  ends, not the file).
 - **Eject** empties a deck that isn't playing.
 - **One song per side:** with four decks, Decks 1 and 3 share the crossfader's left side and 2 and
   4 the right. GZJam won't start a deck the room would hear while the other deck on its side is on

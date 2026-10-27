@@ -16,6 +16,9 @@ New:
 
 - **A key for Settings: Ctrl+,** (the usual one, Cmd+, on a Mac) **or Ctrl+O,** O for Options.
   The same key again, or Escape, closes it.
+- **The red on-air bar fills up as the song plays,** along the top of the deck the room hears:
+  bright for what's played, dim for what's left, on every size of deck. It's full when the time
+  left reaches 0:00.
 
 ## 0.9.2 (2026-10-26)
 
