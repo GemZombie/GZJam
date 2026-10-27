@@ -121,6 +121,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   energy, labels, album, genre, year, when it was last played, BPM and time.
 - [Grouping and Comment columns in the song list](https://github.com/GemZombie/GZJam/issues/161),
   read from the song files, where iTunes and Music keep them too, and Grouping searchable.
+- [Hidden decks sit at the top of the queue](https://github.com/GemZombie/GZJam/issues/177), in the
+  order the room will hear them: the song it hears now, then the next deck, then the queue.
 
 ## Planned next
 
@@ -173,8 +175,6 @@ to one you'd use.
 
 
 **Playing**
-- [The decks at the top of the queue](https://github.com/GemZombie/GZJam/issues/177) when they're
-  hidden: the song the room hears, then the next deck, then the rest, as one running order
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
