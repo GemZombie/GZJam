@@ -116,6 +116,9 @@ Nothing yet since 0.9.2.
 couldn't be reproduced in 170 runs on five sound cards; if the activity log ever says the speakers
 ran dry, it's reopened.
 
+*Also:* [Grouping and Comment columns in the song list](https://github.com/GemZombie/GZJam/issues/161),
+read from the song files, where iTunes and Music keep them too, and Grouping searchable
+
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
   with a sound card used directly, as at a dance
@@ -129,8 +132,8 @@ ran dry, it's reopened.
 **After 1.0:**
 - [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
   for a new laptop with a different drive or system
-- [Import from iTunes / Apple Music](https://github.com/GemZombie/GZJam/issues/97): ratings,
-  playlists and play counts, as the Mixxx import does
+- [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
+  sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
@@ -138,7 +141,7 @@ ran dry, it's reopened.
 - [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
   library, queue or a playlist
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
-  only the usual ones (a dance in a custom tag, the composer, the grouping)
+  only the usual ones (a dance in a custom tag, the composer)
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
   laptop plugged straight into a PA with no mixer
 - [Hints for new DJs](https://github.com/GemZombie/GZJam/issues/123), quiet and optional: the same
