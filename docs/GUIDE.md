@@ -611,6 +611,7 @@ no key on purpose: one keypress ending the song the room hears is too easy to hi
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **F11** (on a Mac, also **Ctrl+Cmd+F**) | full screen, and back |
+| **Ctrl+,** or **Ctrl+O** (Cmd+, or Cmd+O) | Settings, and closed again |
 | **Escape** | clear the search; close Settings; cancel a drag |
 | **↓** in the search box | into the results |
 | **Right-click**, or **press and hold** | a song's, a deck's or a waveform's menu |

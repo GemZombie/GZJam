@@ -1380,3 +1380,12 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - Decks beyond those on screen are ignored. Fade out has no key: one keypress ending the song the
   room hears was judged too easy to hit.
 - The play, CUE, crossfader and AUTO-PLAY tooltips name their keys (`Shortcuts.Command`).
+
+### Status: a key for Settings (#166, 0.9.3)
+
+- **Ctrl+,** (Cmd+, on macOS, its standard Settings key; many Windows and Linux apps use Ctrl+,
+  too) and **Ctrl+O** (O for Options: a DJ asked for it, and nothing in GZJam opens files). Either
+  opens Settings, and again closes it, as Escape does. Only the plain key, no Shift or Alt.
+- Not Ctrl+S, which a DJ also suggested: it means "save" nearly everywhere, and pressing it from
+  habit shouldn't put a panel over the night.
+- In `MainWindow.OnKeyDown` with Ctrl+D and Ctrl+F; the gear's tooltip names both keys.

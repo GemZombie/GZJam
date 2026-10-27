@@ -10,6 +10,13 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.3 (unreleased)
+
+New:
+
+- **A key for Settings: Ctrl+,** (the usual one, Cmd+, on a Mac) **or Ctrl+O,** O for Options.
+  The same key again, or Escape, closes it.
+
 ## 0.9.2 (2026-10-26)
 
 New:

@@ -245,6 +245,16 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        // Ctrl+, (the Mac's own key for Settings) or Ctrl+O for Options; again to close (#166).
+        if (e.Key is Key.OemComma or Key.O && e.KeyModifiers == CommandModifier)
+        {
+            if (IsSettingsOpen)
+                CloseSettings();
+            else
+                OpenSettings();
+            e.Handled = true;
+            return;
+        }
         if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier))
         {
             SearchBox.Focus();
