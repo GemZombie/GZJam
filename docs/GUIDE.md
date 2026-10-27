@@ -136,6 +136,13 @@ the title, time, waveform, play, CUE, FADE OUT and tempo, with the rest in each 
 mixer keeps the meter, MAIN, PHONES and the crossfader (PHONES MIX is hidden but still applies).
 With four decks, compact decks also leave out the waveforms. GZJam remembers the choice.
 
+**Hidden decks:** for the most songs on screen, press **Ctrl+Shift+D** (Cmd+Shift+D on a Mac), or
+drag the grip up once more from compact decks. The decks and mixer fold into one line under the top
+bar: the deck the room hears with its play key (two taps on air, if you've chosen two taps), its
+song, the time left and the red bar filling as it plays, then what's next (the other deck's song,
+or the first in the queue). Everything carries on as before: auto-play, the keys, the music. The
+same keys, the arrows at the end of the line, a tap on the grip or a drag down bring the decks back.
+
 ![Two decks: Deck 1 on air with cue keys 1 and 2, Deck 2 cued in the headphones with a jump set, and a song previewing under the list](images/guide/decks.png)
 
 ### Loading and playing
@@ -619,6 +626,7 @@ no key on purpose: one keypress ending the song the room hears is too easy to hi
 | **Ctrl+Shift+↑ / ↓** | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
+| **Ctrl+Shift+D** (Cmd+Shift+D) | hide the decks (one line at the top instead), and back |
 | **F11** (on a Mac, also **Ctrl+Cmd+F**) | full screen, and back |
 | **Ctrl+,** or **Ctrl+O** (Cmd+, or Cmd+O) | Settings, and closed again |
 | **Escape** | clear the search; close Settings; cancel a drag |

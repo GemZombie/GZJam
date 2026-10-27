@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Platform.Storage;
 using GZJam.App.ViewModels;
@@ -51,7 +52,8 @@ public partial class MainWindow
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
             vm.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName is nameof(MainWindowViewModel.FourDecks) or nameof(MainWindowViewModel.CompactDecks))
+                if (e.PropertyName is nameof(MainWindowViewModel.FourDecks) or nameof(MainWindowViewModel.CompactDecks)
+                    or nameof(MainWindowViewModel.DecksHidden))
                     ApplyDeckLayout();
             };
             vm.Settings.PropertyChanged += (_, e) =>
@@ -62,9 +64,27 @@ public partial class MainWindow
                     ApplyDeckLayout();   // the compact mixer's crossfader is finger-sized too
                 }
             };
+            if (vm.AirLine is { } airLine)
+            {
+                airLine.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(AirLineViewModel.Now))
+                        ColorAirLine(airLine.Now);
+                };
+                ColorAirLine(airLine.Now);
+            }
             ApplyDeckLayout();
             ApplyTouchMode();
         };
+    }
+
+    /// <summary>The hidden decks' line (#164) in the colors of the deck it shows, as the deck itself is.</summary>
+    private void ColorAirLine(DeckViewModel? deck)
+    {
+        IBrush accent = deck is not null && this.TryFindResource($"Deck{deck.Label}Brush", out object? found) && found is IBrush brush
+            ? brush
+            : (IBrush)this.FindResource("MutedBrush")!;
+        AirDeckName.Foreground = AirTimeLeft.Foreground = AirPlayButton.Foreground = AirPlayButton.BorderBrush = accent;
     }
 
     private DeckView[] DeckViews => [Deck1View, Deck2View, Deck3View, Deck4View];
@@ -94,6 +114,7 @@ public partial class MainWindow
             view.IsMini = four && compact;
         }
         Deck3View.IsVisible = Deck4View.IsVisible = four;
+        DecksRow.IsVisible = !Vm.DecksHidden;   // the air line stands in (#164)
         foreach (Grid side in new[] { LeftDecks, RightDecks })
         {
             side.RowDefinitions[1].Height = four ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
@@ -107,7 +128,7 @@ public partial class MainWindow
             // need more than a compact deck's height): known once they've been measured.
             Dispatcher.UIThread.Post(() =>
             {
-                if (Vm.CompactDecks)
+                if (Vm.CompactDecks && !Vm.DecksHidden)
                     MixerPanel.MaxHeight = Math.Max(LeftDecks.DesiredSize.Height, RightDecks.DesiredSize.Height);
             }, DispatcherPriority.Loaded);
         }
@@ -132,17 +153,23 @@ public partial class MainWindow
     private const double DeckGripSwitchDistance = 16;
 
     private double _deckGripFrom;
+    private int _deckSizeFrom, _deckGripSize;
     private bool _deckGripMoved;
 
     private void OnDeckGripPressed(object? sender, PointerPressedEventArgs e)
     {
         _deckGripFrom = e.GetPosition(this).Y;
+        _deckSizeFrom = _deckGripSize = DeckSize;
         _deckGripMoved = false;
         e.Pointer.Capture(DeckGrip);
         e.Handled = true;
     }
 
-    /// <summary>Up past the switching distance: smaller decks; down: bigger. Once per drag direction.</summary>
+    /// <summary>
+    /// Up past the switching distance: one step smaller than when the grip was pressed (full,
+    /// compact, hidden, #164); down: one step bigger; back again: as it was. One step per drag, so
+    /// a long drag from full decks doesn't hide them.
+    /// </summary>
     private void OnDeckGripMoved(object? sender, PointerEventArgs e)
     {
         if (e.Pointer.Captured != DeckGrip)
@@ -150,12 +177,24 @@ public partial class MainWindow
         double moved = e.GetPosition(this).Y - _deckGripFrom;
         if (Math.Abs(moved) > 4)
             _deckGripMoved = true;
-        if (moved <= -DeckGripSwitchDistance && !Vm.CompactDecks || moved >= DeckGripSwitchDistance && Vm.CompactDecks)
+        int step = moved <= -DeckGripSwitchDistance ? 1 : moved >= DeckGripSwitchDistance ? -1 : 0;
+        int size = Math.Clamp(_deckSizeFrom + step, 0, 2);
+        if (size == _deckGripSize)
+            return;
+        _deckGripSize = size;
+        if (size == 2)
+            Vm.DecksHidden = true;
+        else if (_deckSizeFrom == 2)
+            Vm.DecksHidden = false;   // back as they were, compact or not
+        else
         {
-            Vm.CompactDecks = moved < 0;
-            _deckGripFrom = e.GetPosition(this).Y;
+            Vm.DecksHidden = false;
+            Vm.CompactDecks = size == 1;
         }
     }
+
+    /// <summary>The decks' size as a step: 0 full, 1 compact, 2 hidden.</summary>
+    private int DeckSize => Vm.DecksHidden ? 2 : Vm.CompactDecks ? 1 : 0;
 
     private void OnDeckGripReleased(object? sender, PointerReleasedEventArgs e)
     {
@@ -163,7 +202,7 @@ public partial class MainWindow
             return;
         e.Pointer.Capture(null);
         if (!_deckGripMoved)
-            Vm.CompactDecks = !Vm.CompactDecks;   // a tap
+            Vm.ToggleCompactDecksCommand.Execute(null);   // a tap: hidden decks come back
         e.Handled = true;
     }
 

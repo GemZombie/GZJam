@@ -99,6 +99,12 @@ public sealed class AppSettings
     public bool CompactDecks { get; set; }
 
     /// <summary>
+    /// The decks and mixer hidden, with one line under the top bar for what the room hears and
+    /// what's next (#164): one step past <see cref="CompactDecks"/>, which they come back as.
+    /// </summary>
+    public bool DecksHidden { get; set; }
+
+    /// <summary>
     /// The folder list folded down to the music folders themselves, for more playlists (#163): for
     /// a DJ who plays from the whole library or a playlist, never one album's folder.
     /// </summary>

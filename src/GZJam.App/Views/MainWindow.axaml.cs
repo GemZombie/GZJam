@@ -239,9 +239,13 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
-        if (e.Key == Key.D && e.KeyModifiers.HasFlag(CommandModifier))
+        // Ctrl+D: compact decks (or back from hidden); with Shift, hide them (#164).
+        if (e.Key == Key.D && (e.KeyModifiers & ~KeyModifiers.Shift) == CommandModifier)
         {
-            Vm.CompactDecks = !Vm.CompactDecks;
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                Vm.ToggleHideDecksCommand.Execute(null);
+            else
+                Vm.ToggleCompactDecksCommand.Execute(null);
             e.Handled = true;
             return;
         }
