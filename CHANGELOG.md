@@ -10,6 +10,12 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.4 (unreleased)
+
+Fixed:
+
+- **The Energy column resizes** like the others: the line between Energy and Played wouldn't move.
+
 ## 0.9.3 (2026-10-27)
 
 New:
