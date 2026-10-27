@@ -42,4 +42,5 @@ GZJam isn't signed with a paid certificate, so the first time you open it:
 - **macOS** may say it can't check GZJam for malicious software: open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
 
 Your music is only ever read, never changed. Every release's changes: [CHANGELOG.md](https://github.com/GemZombie/GZJam/blob/main/CHANGELOG.md).
+Every key and gesture, not only the new ones: [the user guide](https://github.com/GemZombie/GZJam/blob/main/docs/GUIDE.md#keys-and-gestures).
 EOF
