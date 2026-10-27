@@ -50,6 +50,30 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
+    public void Ctrl_comma_or_Ctrl_O_opens_settings_from_anywhere_and_closes_it_again()
+    {
+        using var app = new AppHarness();
+        var command = OperatingSystem.IsMacOS() ? RawInputModifiers.Meta : RawInputModifiers.Control;
+        var search = app.Window.FindControl<TextBox>("SearchBox")!;
+        search.Focus();
+
+        app.Window.KeyPress(Key.OemComma, command, PhysicalKey.Comma, null);
+        Assert.True(app.Window.IsSettingsOpen);
+        Assert.Equal("", search.Text ?? "");   // nothing typed into the search
+        app.Window.KeyPress(Key.OemComma, command, PhysicalKey.Comma, null);
+        Assert.False(app.Window.IsSettingsOpen);
+
+        app.Window.KeyPress(Key.O, command, PhysicalKey.O, null);
+        Assert.True(app.Window.IsSettingsOpen);
+        app.Window.KeyPress(Key.O, command, PhysicalKey.O, null);
+        Assert.False(app.Window.IsSettingsOpen);
+
+        app.Window.KeyPress(Key.O, command | RawInputModifiers.Shift, PhysicalKey.O, null);   // only the plain key
+        Assert.False(app.Window.IsSettingsOpen);
+        Assert.Contains("+,", ToolTip.GetTip(app.Window.FindControl<Button>("SettingsButton")!) as string);
+    }
+
+    [AvaloniaFact]
     public void It_reopens_where_it_was_left_and_the_output_chips_open_it_on_Sound()
     {
         using var app = new AppHarness();

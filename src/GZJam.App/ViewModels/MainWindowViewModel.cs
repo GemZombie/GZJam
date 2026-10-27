@@ -601,6 +601,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ? $"Bigger decks ({Shortcuts.Command}+D)"
         : $"Smaller decks, more songs ({Shortcuts.Command}+D)";
 
+    public string SettingsTip => $"Settings · keys: {Shortcuts.Command}+, or {Shortcuts.Command}+O";
+
     [RelayCommand]
     private void ToggleCompactDecks() => CompactDecks = !CompactDecks;
 
