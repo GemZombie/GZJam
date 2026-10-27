@@ -8,9 +8,9 @@ internal static class TagReader
     /// <summary>
     /// Which way of reading tags a song was read with. Raise it whenever tags are read better (a
     /// new field, a fix like BPMs stored x10): the next scan reads every song again, rather than
-    /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back.
+    /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back. 2: Grouping.
     /// </summary>
-    public const int Version = 1;
+    public const int Version = 2;
 
     /// <summary>
     /// Builds a <see cref="Track"/> for a file. Files with unreadable or missing tags still get a
@@ -37,6 +37,7 @@ internal static class TagReader
                 AlbumArtist = Clean(string.Join("; ", tag.AlbumArtists)),
                 Genre = Clean(string.Join("; ", tag.Genres)),
                 Comment = ReadComment(tagFile),
+                Grouping = ReadGrouping(tagFile),
                 Year = tag.Year > 0 ? (int)tag.Year : null,
                 TrackNumber = tag.Track > 0 ? (int)tag.Track : null,
                 TagBpm = ReadBpm(tagFile),
@@ -102,6 +103,48 @@ internal static class TagReader
         }
         string? fallback = Clean(file.Tag.Comment);
         return fallback is null || IsJunkComment(fallback) ? null : fallback;
+    }
+
+    /// <summary>
+    /// Grouping: in an MP3, iTunes 12.5.2 and later (and Music) write it to a GRP1 frame, which
+    /// TagLib# doesn't know; older iTunes and most other apps use TIT1, which TagLib#'s Grouping
+    /// reads, as it does M4A's ©grp and the GROUPING comment in FLAC, Ogg and Opus. (Newer iTunes
+    /// uses TIT1 for "Work", but its files have a GRP1 too.)
+    /// </summary>
+    private static string? ReadGrouping(TagLib.File file)
+    {
+        if (file.GetTag(TagLib.TagTypes.Id3v2) is TagLib.Id3v2.Tag id3)
+        {
+            foreach (TagLib.Id3v2.Frame frame in id3.GetFrames("GRP1"))
+            {
+                string? text = frame switch
+                {
+                    TagLib.Id3v2.TextInformationFrame known => string.Join("; ", known.Text),
+                    TagLib.Id3v2.UnknownFrame unknown => FrameText(unknown.Data),
+                    _ => null,
+                };
+                if (Clean(text) is { } grouping)
+                    return grouping;
+            }
+        }
+        return Clean(file.Tag.Grouping);
+    }
+
+    /// <summary>An ID3v2 text frame's data: its encoding byte, then the text (a NUL between several values).</summary>
+    internal static string? FrameText(TagLib.ByteVector data)
+    {
+        if (data.Count < 2)
+            return null;
+        TagLib.StringType encoding = data[0] switch
+        {
+            1 => TagLib.StringType.UTF16,
+            2 => TagLib.StringType.UTF16BE,
+            3 => TagLib.StringType.UTF8,
+            _ => TagLib.StringType.Latin1,
+        };
+        string text = data.ToString(encoding, 1, data.Count - 1);
+        string[] values = text.Split('\0', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return values.Length == 0 ? null : string.Join("; ", values.Select(v => v.TrimStart('\uFEFF')));
     }
 
     /// <summary>Leftovers from broken taggers: iTunes frame names and bare language codes.</summary>

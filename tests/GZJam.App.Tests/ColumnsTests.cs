@@ -39,7 +39,7 @@ public sealed class ColumnsTests
         Assert.True(menu.IsOpen);
         Assert.False(app.Window.FindControl<ContextMenu>("TrackMenu")!.IsOpen);   // not the track menu
         var items = menu.Items.OfType<MenuItem>().Skip(1).ToList();
-        Assert.Equal(["♥ Rating", "Album art", "Album", "Genre", "Year", "BPM", "Energy", "Played"], items.Select(i => (string)i.Header!));
+        Assert.Equal(["♥ Rating", "Album art", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"], items.Select(i => (string)i.Header!));
         Assert.False(items.Single(i => (string)i.Header! == "Genre").IsChecked);
 
         items.Single(i => (string)i.Header! == "Year").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));
@@ -53,13 +53,24 @@ public sealed class ColumnsTests
         Assert.DoesNotContain("Genre", app.Settings.HiddenColumns);
     }
 
+    [Fact]
+    public void Settings_from_before_Grouping_and_Comment_start_with_them_hidden_once()
+    {
+        var old = AppSettings.Migrate(new AppSettings { HiddenColumns = ["Genre"], SeenColumns = ["Art"] });
+        Assert.Equal(["Genre", "Grouping", "Comment"], old.HiddenColumns);
+
+        old.HiddenColumns.Remove("Comment");   // the DJ shows it
+        Assert.Equal(["Genre", "Grouping"], AppSettings.Migrate(old).HiddenColumns);   // and it stays shown
+        Assert.True(new AppSettings().HiddenColumns.Contains("Grouping"), "hidden for new settings too");
+    }
+
     [AvaloniaFact]
     public void Every_column_with_a_written_header_resizes_by_dragging_the_line_after_it()
     {
         using var app = new AppHarness();
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         // Only the icon columns (the play key, ♥, Art) keep their width.
-        Assert.Equal(["Title", "Artist", "Album", "Genre", "Year", "BPM", "Energy", "Played", "Time"],
+        Assert.Equal(["Title", "Artist", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played", "Time"],
             grid.Columns.Where(c => c.CanUserResize).Select(c => (string)c.Header!));
 
         // The line between Energy and Played (#175)

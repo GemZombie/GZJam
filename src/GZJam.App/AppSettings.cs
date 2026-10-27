@@ -175,9 +175,10 @@ public sealed class AppSettings
     /// <summary>
     /// Library columns the DJ has hidden, by header. Genre starts hidden: the folder tree already
     /// sorts music by genre and style, and a laptop can't fit every column. Art too: an album's
-    /// songs all share one picture, so in a long list it doesn't tell them apart.
+    /// songs all share one picture, so in a long list it doesn't tell them apart. Grouping and
+    /// Comment too: only some DJs fill them in (#161).
     /// </summary>
-    public List<string> HiddenColumns { get; set; } = ["Genre", "Art"];
+    public List<string> HiddenColumns { get; set; } = ["Genre", "Art", "Grouping", "Comment"];
 
     /// <summary>
     /// What the queue doesn't show of each song, chosen from its menu (#131), by
@@ -194,7 +195,7 @@ public sealed class AppSettings
     public List<string>? SeenColumns { get; set; }
 
     /// <summary>Columns added later that start hidden; settings saved before one was added get it hidden.</summary>
-    private static readonly string[] NewHiddenColumns = ["Art"];
+    private static readonly string[] NewHiddenColumns = ["Art", "Grouping", "Comment"];
 
     /// <summary>
     /// At startup, ask GitHub whether there's a newer GZJam, and say so (see <see cref="UpdateCheck"/>).

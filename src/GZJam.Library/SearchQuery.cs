@@ -7,7 +7,7 @@ namespace GZJam.Library;
 /// What the DJ typed in the search box, turned into SQL conditions. Plain words match tags and
 /// folder names as word prefixes; filters narrow by field, much like Mixxx's:
 /// <list type="bullet">
-/// <item><c>artist:basie</c>, <c>title:</c>, <c>album:</c>, <c>genre:</c>, <c>comment:</c>, <c>folder:</c>
+/// <item><c>artist:basie</c>, <c>title:</c>, <c>album:</c>, <c>genre:</c>, <c>comment:</c>, <c>grouping:</c>, <c>folder:</c>
 /// (quote several words: <c>artist:"count basie"</c>)</item>
 /// <item><c>bpm:140</c>, <c>bpm:130-150</c>, <c>bpm:&gt;200</c>; <c>~bpm:140</c> is near 140: within 8%
 /// either side (as far as the tempo slider reaches) unless the DJ chose otherwise in Settings, or
@@ -35,6 +35,7 @@ internal sealed class SearchQuery
         ["album"] = "album",
         ["genre"] = "genre",
         ["comment"] = "comment",
+        ["grouping"] = "grouping",
         ["folder"] = "folder",
     };
 
