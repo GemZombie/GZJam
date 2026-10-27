@@ -117,6 +117,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 - [A queue as big as the song list](https://github.com/GemZombie/GZJam/issues/178): Ctrl+L (Cmd+L
   on a Mac) gives the queue the room in the middle, and the song list back, for nights spent
   reordering a long queue.
+- [Choose what the queue shows](https://github.com/GemZombie/GZJam/issues/131): album art, ♥,
+  energy, labels, album, genre, year, when it was last played, BPM and time.
 
 ## Planned next
 
@@ -147,7 +149,6 @@ read from the song files, where iTunes and Music keep them too, and Grouping sea
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
-- [Choose which columns the queue shows](https://github.com/GemZombie/GZJam/issues/131)
 - [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
   library, queue or a playlist
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
