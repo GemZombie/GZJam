@@ -24,6 +24,10 @@ New:
 - **A deck-size switch in the top bar:** full, compact or hidden, one click each, the size now lit.
   Also Ctrl+D (compact) and Ctrl+Shift+D (hidden), Cmd on a Mac, Settings › Decks › *Deck size*,
   and the grip under the decks: a little up for compact, further for hidden.
+- **Fold the library or the queue panel away** with the arrow in its header, or by dragging its
+  divider almost to the edge. It becomes a slim strip with its name, and a tap anywhere on the strip
+  opens it again: no hunting for a divider at the screen's edge, where touch screens take swipes for
+  themselves. The panels' widths are remembered too.
 - **More room for playlists:** the arrow beside LIBRARY folds the folders down to your music folder,
   and the playlists take the rest of the column. Or drag the grip on the PLAYLISTS header to make
   the list longer or shorter. Both are remembered.

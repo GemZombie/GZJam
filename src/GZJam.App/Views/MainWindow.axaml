@@ -279,15 +279,41 @@
     </Border>
 
     <!-- ───────────── Library ───────────── -->
-    <Grid Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
+    <!-- The side panels can be dragged wider or narrower, or folded into a strip that a tap opens
+         again (MainWindow.Panes) -->
+    <Grid x:Name="PanesGrid" Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
+      <Button x:Name="LibraryStrip" Classes="fold-strip" IsVisible="False" Click="OnLibraryStripClick"
+              ToolTip.Tip="Show the library">
+        <StackPanel Spacing="12" HorizontalAlignment="Center">
+          <Path Classes="strip-chevron" Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
+          <LayoutTransformControl>
+            <LayoutTransformControl.LayoutTransform>
+              <RotateTransform Angle="90" />
+            </LayoutTransformControl.LayoutTransform>
+            <TextBlock Classes="label" Text="LIBRARY" />
+          </LayoutTransformControl>
+        </StackPanel>
+      </Button>
+      <Button x:Name="QueueStrip" Grid.Column="4" Classes="fold-strip" IsVisible="False" Click="OnQueueStripClick"
+              ToolTip.Tip="Show the queue and History">
+        <StackPanel Spacing="12" HorizontalAlignment="Center">
+          <Path Classes="strip-chevron" Data="M 9,0 10,1 2,10 10,19 9,20 0,10 Z" />
+          <LayoutTransformControl>
+            <LayoutTransformControl.LayoutTransform>
+              <RotateTransform Angle="90" />
+            </LayoutTransformControl.LayoutTransform>
+            <TextBlock Classes="label" Text="QUEUE" />
+          </LayoutTransformControl>
+        </StackPanel>
+      </Button>
 
       <!-- Folder tree, and the playlists under it. Folded, the tree shows only the music folders
            and the playlists take the rest; otherwise the playlists are as tall as the grip on their
            header was dragged (MainWindow.Playlists, #163). -->
-      <Border Classes="panel">
+      <Border x:Name="LibraryPanel" Classes="panel">
         <Grid x:Name="LibraryColumn" RowDefinitions="Auto,*,Auto">
-          <Border Classes="panel-header">
-            <Grid ColumnDefinitions="*,Auto">
+          <Border Classes="panel-header" Padding="14,0,6,0">
+            <Grid ColumnDefinitions="*,Auto,Auto">
               <Button x:Name="FoldFoldersButton" Classes="link" Margin="-6,0,0,0" HorizontalAlignment="Left"
                       Command="{Binding Library.ToggleFoldFoldersCommand}" ToolTip.Tip="{Binding Library.FoldTip}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
@@ -297,6 +323,11 @@
               </Button>
               <Button Grid.Column="1" Classes="link" Content="+ Folder" Click="OnAddFolderClick"
                       ToolTip.Tip="Add a music folder to the library" />
+              <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
+              <Button x:Name="FoldLibraryButton" Grid.Column="2" Classes="link panel-fold" Click="OnFoldLibraryClick"
+                      ToolTip.Tip="Fold the library panel away">
+                <Path Classes="strip-chevron" Data="M 9,0 10,1 2,10 10,19 9,20 0,10 Z" />
+              </Button>
             </Grid>
           </Border>
           <c:FolderTreeView x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6"
@@ -373,7 +404,7 @@
       </Border>
 
       <!-- Drag to share the room between the panels: a grip shows where (a finger gets no pointer change) -->
-      <Border Grid.Column="1" Classes="splitter-grip" />
+      <Border x:Name="TreeSplitterGrip" Grid.Column="1" Classes="splitter-grip" />
       <GridSplitter x:Name="TreeSplitter" Grid.Column="1" Classes="panes" Background="Transparent" ResizeDirection="Columns"
                     ToolTip.Tip="Drag to make the panels either side wider or narrower" />
 
@@ -598,12 +629,12 @@
       </Border>
 
       <!-- Drag to share the room between the panels: a grip shows where (a finger gets no pointer change) -->
-      <Border Grid.Column="3" Classes="splitter-grip" />
+      <Border x:Name="QueueSplitterGrip" Grid.Column="3" Classes="splitter-grip" />
       <GridSplitter x:Name="QueueSplitter" Grid.Column="3" Classes="panes" Background="Transparent" ResizeDirection="Columns"
                     ToolTip.Tip="Drag to make the panels either side wider or narrower" />
 
       <!-- Queue and History -->
-      <Border Grid.Column="4" Classes="panel">
+      <Border x:Name="QueuePanel" Grid.Column="4" Classes="panel">
         <Grid RowDefinitions="Auto,Auto,*">
           <!-- Auto-play: plays through the queue, alternating decks, with the gap between songs.
                Above the tabs, so its status stays in view on the History tab too. -->
@@ -674,8 +705,8 @@
             </StackPanel>
           </Border>
 
-          <Border Grid.Row="1" Classes="panel-header" Padding="8,0,14,0">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+          <Border Grid.Row="1" Classes="panel-header" Padding="8,0,6,0">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="4">
               <ToggleButton x:Name="QueueTab" Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
               <ToggleButton Grid.Column="1" Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
@@ -684,6 +715,11 @@
                          Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
               <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding History.Summary}" IsVisible="{Binding ShowHistory}" />
+              <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
+              <Button x:Name="FoldQueueButton" Grid.Column="4" Classes="link panel-fold" Click="OnFoldQueueClick"
+                      ToolTip.Tip="Fold the queue panel away">
+                <Path Classes="strip-chevron" Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
+              </Button>
             </Grid>
           </Border>
 

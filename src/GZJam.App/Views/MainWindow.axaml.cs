@@ -52,6 +52,7 @@ public partial class MainWindow : Window
         InitializeSearch();
         InitializeColumns();
         InitializePlaylists();
+        InitializePanes();
         UseTopBarAsTitleBar();
     }
 
