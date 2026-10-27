@@ -166,10 +166,10 @@ public sealed class AlbumArtAppTests
     public void Settings_from_before_album_art_start_with_its_column_hidden_once()
     {
         var old = AppSettings.Migrate(new AppSettings { HiddenColumns = ["Year"], SeenColumns = null });
-        Assert.Equal(["Year", "Art"], old.HiddenColumns);
+        Assert.Equal(["Year", "Art", "Grouping", "Comment"], old.HiddenColumns);
 
         old.HiddenColumns.Remove("Art");   // the DJ shows it
-        Assert.Equal(["Year"], AppSettings.Migrate(old).HiddenColumns);   // and it stays shown
+        Assert.Equal(["Year", "Grouping", "Comment"], AppSettings.Migrate(old).HiddenColumns);   // and it stays shown
 
         string file = Path.Combine(Directory.CreateTempSubdirectory("gzjam-settings-").FullName, "settings.json");
         var fresh = new AppSettings();

@@ -14,7 +14,7 @@ namespace GZJam.App.Views;
 public partial class MainWindow
 {
     /// <summary>Columns that can be hidden; title, artist and time always show.</summary>
-    internal static readonly string[] OptionalColumns = ["♥", "Art", "Album", "Genre", "Year", "BPM", "Energy", "Played"];
+    internal static readonly string[] OptionalColumns = ["♥", "Art", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"];
 
     private ContextMenu? _columnsMenu;
 

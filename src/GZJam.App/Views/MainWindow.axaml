@@ -544,6 +544,24 @@
                                   Binding="{Binding Album, Mode=OneWay}" />
               <DataGridTextColumn Header="Genre" Width="88" x:DataType="lib:Track"
                                   Binding="{Binding Genre, Mode=OneWay}" />
+              <!-- Grouping and Comment, from the song files (as iTunes and Music keep them, #161):
+                   cut off with "…", the whole text in the tooltip -->
+              <DataGridTemplateColumn Header="Grouping" Width="130" SortMemberPath="Grouping">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="lib:Track">
+                    <TextBlock Text="{Binding Grouping}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding Grouping}" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Comment" Width="160" SortMemberPath="Comment">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="lib:Track">
+                    <TextBlock Text="{Binding Comment}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding Comment}" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Year" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Year, Mode=OneWay}" />
               <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"

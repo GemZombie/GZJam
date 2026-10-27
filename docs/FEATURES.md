@@ -1479,3 +1479,18 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   `QueueList` and styles in AppStyles, so the row template stays one template.
 - The title keeps at least 90 px, however much is shown.
 - In `MainWindow.QueueColumns.cs`.
+
+### Status: Grouping and Comment columns (#161, 0.9.4)
+
+- A Mac DJ sorts their iTunes library with Grouping and Comments (dance, feel, era, vibe) and wants
+  to see them while playing. Both are in the song files, so no iTunes import is needed.
+- **Grouping is read** (`Track.Grouping`): in an MP3 the iTunes `GRP1` frame first (TagLib# 2.3
+  doesn't know it, so `TagReader.FrameText` decodes the unknown frame), else `TIT1`; M4A `©grp`;
+  FLAC, Ogg and Opus `GROUPING`, those three through TagLib#'s `Tag.Grouping`.
+  `TagReader.Version` 2, so the next scan reads every song again, once.
+- **Upgrade 21** adds `tracks.grouping` and remakes the full-text index with it (0.11 s on a
+  12,700-song library). It only adds, so `OldestReader` stays 19: 0.9.3 still opens the library,
+  and its writes leave grouping as it was.
+- **Search:** plain words cover Grouping; `grouping:` searches only it.
+- **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
+  text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).

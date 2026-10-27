@@ -299,15 +299,15 @@ The song list shows your music; the folder tree shows it as it is on disk.
 
 - **Choosing a folder** narrows the list (and searches) to everything beneath it. Click it again to
   close it; the chip above the list shows the scope, and its ✕ goes back to the whole library.
-- **Search** as you type, across titles, artists, albums, comments and folder names (`balboa` finds
-  songs in a *Balboa* folder). Ctrl+F (Cmd+F on a Mac) jumps to the search box; Escape clears it.
+- **Search** as you type, across titles, artists, albums, comments, Grouping and folder names
+  (`balboa` finds songs in a *Balboa* folder). Ctrl+F (Cmd+F on a Mac) jumps to the search box; Escape clears it.
 - **Filters** you can type:
 
   | Type | For |
   |---|---|
   | `bpm:140`, `bpm:130-150`, `bpm:>200` | a BPM, or a range |
   | `~bpm:140` | songs that can be pitched to 140 (within 8%; `~bpm:140/5` for 5%) |
-  | `artist:basie`, `title:`, `album:`, `genre:`, `comment:`, `folder:` | one field (`artist:"count basie"` for several words) |
+  | `artist:basie`, `title:`, `album:`, `genre:`, `comment:`, `grouping:`, `folder:` | one field (`artist:"count basie"` for several words) |
   | `year:1938`, `year:1935-1940`, `year:<1950` | the year |
   | `rating:yes`, `rating:no`, `rating:none` | hearts |
   | `energy:high`, `energy:2-3` | energy |
@@ -318,8 +318,9 @@ The song list shows your music; the folder tree shows it as it is on disk.
 - **The BPM button** beside the search box fills in a BPM filter by tap: *Near Deck 1* (the deck's
   tempo as the room hears it), a tempo range, or *Any BPM*. **The Label button** does the same for
   labels.
-- **Columns:** right-click a column header to show or hide ♥, Album, Genre, Year, BPM, Energy,
-  Played and Art. Click a header to sort.
+- **Columns:** right-click a column header to show or hide ♥, Album, Genre, Grouping, Comment,
+  Year, BPM, Energy, Played and Art. Click a header to sort. Long Grouping and Comment text is cut
+  off with "…"; point at it (or hold a finger on it) for the whole text.
 
 ### Marking songs
 
@@ -381,6 +382,10 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   and shows what it found: 4-5 stars become ♥, 1-2 stars a broken heart, 3 stay unrated. Songs
   you've rated in GZJam keep their rating. In a big library reading takes a few minutes. iTunes /
   Music keeps its ratings in its own library rather than the files, so there's nothing to read there.
+- **Grouping and Comments,** as iTunes, Music and many other players keep them, are in the song
+  files themselves, so GZJam reads them without any import: show the *Grouping* and *Comment*
+  columns, and search them (`grouping:balboa`). Handy if you sort your music by dance, feel or era
+  in those fields. (iTunes ratings and play counts aren't in the files.)
 
 The files are only read, never changed.
 

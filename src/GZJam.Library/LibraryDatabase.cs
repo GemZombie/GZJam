@@ -379,6 +379,37 @@ public sealed partial class LibraryDatabase
         """
             CREATE INDEX ix_tracks_order ON tracks(root_id, folder COLLATE NOCASE, track_number, file_name COLLATE NOCASE);
             """,
+
+        // 21: The Grouping tag (#161), searchable like the comment, so the full-text index is made
+        // again with it. Read at the next scan (TagReader.Version 2). Only adds: an older GZJam
+        // leaves grouping as it was, and reads the library fine.
+        """
+            ALTER TABLE tracks ADD COLUMN grouping TEXT;
+            DROP TRIGGER IF EXISTS tracks_ai;
+            DROP TRIGGER IF EXISTS tracks_ad;
+            DROP TRIGGER IF EXISTS tracks_au;
+            DROP TABLE IF EXISTS tracks_fts;
+            CREATE VIRTUAL TABLE tracks_fts USING fts5(
+                title, artist, album, album_artist, genre, comment, folder, file_name, grouping,
+                content = 'tracks', content_rowid = 'id',
+                tokenize = 'unicode61 remove_diacritics 2'
+            );
+            CREATE TRIGGER tracks_ai AFTER INSERT ON tracks BEGIN
+                INSERT INTO tracks_fts(rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping)
+                VALUES (new.id, new.title, new.artist, new.album, new.album_artist, new.genre, new.comment, new.folder, new.file_name, new.grouping);
+            END;
+            CREATE TRIGGER tracks_ad AFTER DELETE ON tracks BEGIN
+                INSERT INTO tracks_fts(tracks_fts, rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping)
+                VALUES ('delete', old.id, old.title, old.artist, old.album, old.album_artist, old.genre, old.comment, old.folder, old.file_name, old.grouping);
+            END;
+            CREATE TRIGGER tracks_au AFTER UPDATE ON tracks BEGIN
+                INSERT INTO tracks_fts(tracks_fts, rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping)
+                VALUES ('delete', old.id, old.title, old.artist, old.album, old.album_artist, old.genre, old.comment, old.folder, old.file_name, old.grouping);
+                INSERT INTO tracks_fts(rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping)
+                VALUES (new.id, new.title, new.artist, new.album, new.album_artist, new.genre, new.comment, new.folder, new.file_name, new.grouping);
+            END;
+            INSERT INTO tracks_fts(tracks_fts) VALUES ('rebuild');
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -444,20 +475,20 @@ public sealed partial class LibraryDatabase
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
             INSERT INTO tracks (root_id, path, folder, file_name, file_size, modified_utc,
-                                title, artist, album, album_artist, genre, comment, year, track_number, bpm, duration_ms, tag_version)
+                                title, artist, album, album_artist, genre, comment, grouping, year, track_number, bpm, duration_ms, tag_version)
             VALUES ($root, $path, $folder, $file, $size, $mod,
-                    $title, $artist, $album, $album_artist, $genre, $comment, $year, $track, $bpm, $duration, $tag_version)
+                    $title, $artist, $album, $album_artist, $genre, $comment, $grouping, $year, $track, $bpm, $duration, $tag_version)
             ON CONFLICT(path) DO UPDATE SET
                 root_id = excluded.root_id, folder = excluded.folder, file_name = excluded.file_name,
                 file_size = excluded.file_size, modified_utc = excluded.modified_utc,
                 title = excluded.title, artist = excluded.artist, album = excluded.album,
-                album_artist = excluded.album_artist, genre = excluded.genre, comment = excluded.comment,
+                album_artist = excluded.album_artist, genre = excluded.genre, comment = excluded.comment, grouping = excluded.grouping,
                 year = excluded.year, track_number = excluded.track_number, bpm = excluded.bpm,
                 duration_ms = excluded.duration_ms, tag_version = excluded.tag_version;
             """;
         var p = new Dictionary<string, SqliteParameter>();
         foreach (string name in new[] { "$root", "$path", "$folder", "$file", "$size", "$mod", "$title", "$artist",
-                     "$album", "$album_artist", "$genre", "$comment", "$year", "$track", "$bpm", "$duration", "$tag_version" })
+                     "$album", "$album_artist", "$genre", "$comment", "$grouping", "$year", "$track", "$bpm", "$duration", "$tag_version" })
             p[name] = cmd.Parameters.Add(new SqliteParameter { ParameterName = name });
         cmd.Prepare();
 
@@ -475,6 +506,7 @@ public sealed partial class LibraryDatabase
             p["$album_artist"].Value = Db(t.AlbumArtist);
             p["$genre"].Value = Db(t.Genre);
             p["$comment"].Value = Db(t.Comment);
+            p["$grouping"].Value = Db(t.Grouping);
             p["$year"].Value = (object?)t.Year ?? DBNull.Value;
             p["$track"].Value = (object?)t.TrackNumber ?? DBNull.Value;
             p["$bpm"].Value = (object?)t.TagBpm ?? DBNull.Value;
@@ -672,6 +704,7 @@ public sealed partial class LibraryDatabase
         AlbumArtist = GetString(r, o.AlbumArtist),
         Genre = GetString(r, o.Genre),
         Comment = GetString(r, o.Comment),
+        Grouping = GetString(r, o.Grouping),
         Year = GetInt(r, o.Year),
         TrackNumber = GetInt(r, o.TrackNumber),
         TagBpm = GetDouble(r, o.TagBpm),
@@ -693,7 +726,7 @@ public sealed partial class LibraryDatabase
             Folder = r.GetOrdinal("folder"), FileName = r.GetOrdinal("file_name"), FileSize = r.GetOrdinal("file_size"),
             ModifiedUtc = r.GetOrdinal("modified_utc"), Title = r.GetOrdinal("title"), Artist = r.GetOrdinal("artist"),
             Album = r.GetOrdinal("album"), AlbumArtist = r.GetOrdinal("album_artist"), Genre = r.GetOrdinal("genre"),
-            Comment = r.GetOrdinal("comment"), Year = r.GetOrdinal("year"), TrackNumber = r.GetOrdinal("track_number"),
+            Comment = r.GetOrdinal("comment"), Grouping = r.GetOrdinal("grouping"), Year = r.GetOrdinal("year"), TrackNumber = r.GetOrdinal("track_number"),
             TagBpm = r.GetOrdinal("bpm"), DetectedBpm = r.GetOrdinal("detected_bpm"), RangeMin = r.GetOrdinal("range_min"),
             RangeMax = r.GetOrdinal("range_max"), ManualBpm = r.GetOrdinal("manual_bpm"), Duration = r.GetOrdinal("duration_ms"),
             Rating = r.GetOrdinal("rating"), Energy = r.GetOrdinal("energy"), LastPlayed = r.GetOrdinal("last_played"),

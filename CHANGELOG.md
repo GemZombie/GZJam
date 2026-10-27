@@ -21,6 +21,11 @@ New:
 - **Choose what the queue shows:** right-click the queue › *Show*. Album, genre, year and when a
   song was last played can join the title, artist, BPM and time, and album art, the ♥, energy and
   labels can be left out. Remembered.
+- **Grouping and Comment columns** in the song list (right-click a header to show them), read from
+  the song files, where iTunes, Music and many other players keep them: the dance, the feel, the
+  era. Long text is cut off, and the whole of it shows when you point at it. Grouping is searchable
+  too, by plain words or `grouping:balboa`. The first scan after updating reads every song again,
+  once, which takes a few minutes in a big library.
 
 Fixed:
 

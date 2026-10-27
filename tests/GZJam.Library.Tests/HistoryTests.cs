@@ -125,6 +125,11 @@ public sealed class HistoryTests : IDisposable
                 DROP TABLE playlists;
                 DROP TABLE schema_compat;                     -- added by upgrade 19
                 DROP INDEX ix_tracks_order;                   -- added by upgrade 20
+                DROP TRIGGER tracks_ai;                       -- upgrade 21 remade the search index
+                DROP TRIGGER tracks_ad;                       -- with grouping (and makes it again)
+                DROP TRIGGER tracks_au;
+                DROP TABLE tracks_fts;
+                ALTER TABLE tracks DROP COLUMN grouping;
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();
@@ -153,7 +158,8 @@ public sealed class HistoryTests : IDisposable
             cmd.CommandText = """
                 CREATE TABLE roots (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE);
                 CREATE TABLE tracks (id INTEGER PRIMARY KEY, root_id INTEGER, path TEXT NOT NULL UNIQUE, folder TEXT,
-                                     file_name TEXT, track_number INTEGER, bpm REAL);
+                                     file_name TEXT, title TEXT, artist TEXT, album TEXT, album_artist TEXT, genre TEXT,
+                                     comment TEXT, track_number INTEGER, bpm REAL);
                 INSERT INTO roots(path) VALUES ('C:\music');
                 PRAGMA user_version = 1;
                 """;

@@ -24,6 +24,12 @@ public sealed class Track : INotifyPropertyChanged
     public string? AlbumArtist { get; init; }
     public string? Genre { get; init; }
     public string? Comment { get; init; }
+
+    /// <summary>
+    /// The Grouping tag, which iTunes and Music users often sort by: the dance, the feel, the era
+    /// ("Balboa, fast, oldie"). Read from the file, like the comment (#161).
+    /// </summary>
+    public string? Grouping { get; init; }
     public int? Year { get; init; }
     public int? TrackNumber { get; init; }
 
