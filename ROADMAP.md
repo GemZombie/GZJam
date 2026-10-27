@@ -185,6 +185,9 @@ to one you'd use.
   a sequence of dances, or so many of each
 
 **Elsewhere**
+- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
+  other Subsonic servers), copied to the laptop ahead of the night, for a laptop too small for the
+  whole library
 - [Two rooms](https://github.com/GemZombie/GZJam/issues/120): two GZJams on the same network, for
   schools with two floors, either one controlling the other
 - [GZJam in other languages](https://github.com/GemZombie/GZJam/issues/102)
@@ -197,7 +200,8 @@ to one you'd use.
 ## Decided against
 
 - **Streaming services** (Spotify, Apple Music, TIDAL, Beatport): DJ streaming is only open to
-  partner companies, and Spotify's terms forbid mixing its music.
+  partner companies, and Spotify's terms forbid mixing its music. (Your own music on your own server is
+  different: see [#184](https://github.com/GemZombie/GZJam/issues/184).)
 - **DJ controllers (MIDI), for now:** they're made for beatmatching, scratching and live effects,
   and GZJam aims to stay simple: choosing the right song and playing it well. A controller's own sound card
   works as an output already. If you'd use one with GZJam, say so in
