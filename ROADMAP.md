@@ -112,7 +112,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.3.
+- [The Energy column resizes](https://github.com/GemZombie/GZJam/issues/175) like the other
+  columns in the song list.
 
 ## Planned next
 
