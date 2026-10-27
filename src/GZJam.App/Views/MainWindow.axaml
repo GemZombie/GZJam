@@ -706,7 +706,7 @@
           </Border>
 
           <Border Grid.Row="1" Classes="panel-header" Padding="8,0,6,0">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="4">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
               <ToggleButton x:Name="QueueTab" Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
               <ToggleButton Grid.Column="1" Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
@@ -715,8 +715,13 @@
                          Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
               <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding History.Summary}" IsVisible="{Binding ShowHistory}" />
+              <!-- Give the queue the room in the middle, or the song list back (#178): the divider moves
+                   left, or right again. The tip names the key (MainWindow.Panes). -->
+              <Button x:Name="QueueWideButton" Grid.Column="4" Classes="link panel-fold" Click="OnQueueWideClick">
+                <Path Classes="queue-wide" Data="M 0,0 H 1.6 V 12 H 0 Z M 3.5,6 8.3,1.2 9.4,2.3 6.5,5.2 H 15 V 6.8 H 6.5 L 9.4,9.7 8.3,10.8 Z" />
+              </Button>
               <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
-              <Button x:Name="FoldQueueButton" Grid.Column="4" Classes="link panel-fold" Click="OnFoldQueueClick"
+              <Button x:Name="FoldQueueButton" Grid.Column="5" Classes="link panel-fold" Click="OnFoldQueueClick"
                       ToolTip.Tip="Fold the queue panel away">
                 <Path Classes="strip-chevron" Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
               </Button>

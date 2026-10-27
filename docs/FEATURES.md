@@ -1452,3 +1452,18 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - `AppSettings.LibraryPanelWidth`/`QueuePanelWidth` (kept between 120 and 560 px) and
   `LibraryPanelFolded`/`QueuePanelFolded` are remembered; before, widths reset at each start.
 - In `MainWindow.Panes.cs`.
+
+### Status: the queue takes the room in the middle (#178, 0.9.4)
+
+- A DJ's request: some nights are spent reordering a long queue (100 songs), adding from the
+  library only now and then, as in Mixxx, whose queue is as tall as its playlist view. The queue
+  panel could be folded for the song list, but not the other way round.
+- **Ctrl+L** (Cmd+L), or `QueueWideButton` beside the queue's fold arrow (a divider with an arrow
+  to the left, turned round once wide), swaps which side has the room. Wide, the queue's column is
+  the stretching one and the song list keeps a width of its own (420 px to start, never under
+  240); otherwise as before.
+- Each way keeps its own divider: `AppSettings.QueuePanelWidth` as before, and
+  `WideSongListWidth` for the wide queue. `QueueWide` is remembered too.
+- Folding a wide queue gives the song list the room (wide is cleared); Ctrl+L with the queue folded
+  opens it wide.
+- In `MainWindow.Panes.cs`. More columns in a wide queue are #131.

@@ -442,6 +442,16 @@
   <Style Selector="Button.panel-fold">
     <Setter Property="Padding" Value="8,6" />
   </Style>
+  <!-- The queue's divider to the left, for a wide queue; turned round once it's wide (#178) -->
+  <Style Selector="Path.queue-wide">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="11" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Fill" Value="{StaticResource MutedBrush}" />
+  </Style>
+  <Style Selector="Button.wide Path.queue-wide">
+    <Setter Property="RenderTransform" Value="scaleX(-1)" />
+  </Style>
 
   <Style Selector="Border.splitter-grip">
     <Setter Property="Width" Value="4" />

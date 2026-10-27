@@ -250,6 +250,13 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        // Ctrl+L: the queue takes the room in the middle, or the song list does (#178).
+        if (e.Key == Key.L && e.KeyModifiers == CommandModifier)
+        {
+            ToggleQueueWide();
+            e.Handled = true;
+            return;
+        }
         // Ctrl+, (the Mac's own key for Settings) or Ctrl+O for Options; again to close (#166).
         if (e.Key is Key.OemComma or Key.O && e.KeyModifiers == CommandModifier)
         {

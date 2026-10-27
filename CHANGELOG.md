@@ -12,6 +12,13 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 ## 0.9.4 (unreleased)
 
+New:
+
+- **A queue as big as the song list: Ctrl+L** (Cmd+L on a Mac), or the arrow beside the queue's
+  fold arrow. The queue takes the room in the middle, with the song list narrowed beside it, for
+  nights spent reordering a long queue. The same key gives the song list the room back, and each
+  way keeps its divider where you left it.
+
 Fixed:
 
 - **The Energy column resizes** like the others: the line between Energy and Played wouldn't move.
