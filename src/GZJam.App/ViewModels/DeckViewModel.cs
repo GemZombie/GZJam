@@ -811,8 +811,8 @@ public sealed partial class DeckViewModel : ObservableObject
         : "BPM unknown";
 
     /// <summary>The play and CUE keys' tooltips, with their keyboard shortcuts (#132).</summary>
-    public string PlayTip => $"Play / pause · key: {Format.CommandKey}+{Label}";
-    public string CueTip => $"Cue: send this deck to your headphones · key: {Format.CommandKey}+Shift+{Label}";
+    public string PlayTip => $"Play / pause · key: {Shortcuts.Command}+{Label}";
+    public string CueTip => $"Cue: send this deck to your headphones · key: {Shortcuts.Command}+Shift+{Label}";
 
     public string ReadoutText => Readout switch
     {

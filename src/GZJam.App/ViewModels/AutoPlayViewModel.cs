@@ -44,7 +44,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     /// <summary>The switch works whenever there's something to play: queued tracks or a loaded deck.</summary>
     public bool CanToggle => IsOn || _queue.Items.Count > 0 || _owner.Decks.Any(d => d.HasTrack);
 
-    public string SwitchTip => $"Play through the queue automatically, alternating decks · key: {Format.CommandKey}+P";
+    public string SwitchTip => $"Play through the queue automatically, alternating decks · key: {Shortcuts.Command}+P";
 
     public double GapSeconds => _settings.GapSeconds;
     public string GapText => $"{_settings.GapSeconds:0.0} s";

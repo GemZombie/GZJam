@@ -19,9 +19,6 @@ public static class Format
 
     public static string Count(int n) => n.ToString("N0", CultureInfo.CurrentCulture);
 
-    /// <summary>The key the keyboard shortcuts start with, as a tooltip names it: Cmd on a Mac, Ctrl elsewhere.</summary>
-    public static string CommandKey => OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl";
-
     /// <summary>"1st", "2nd", "3rd", "4th", "11th", "22nd".</summary>
     public static string Ordinal(int n) => Count(n) + ((n % 100) is 11 or 12 or 13 ? "th" : (n % 10) switch
     {

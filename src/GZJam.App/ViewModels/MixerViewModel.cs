@@ -123,8 +123,8 @@ public sealed partial class MixerViewModel : ObservableObject
 
     public string MainVolumeText => Db(MainVolume);
     public string CueVolumeText => Db(CueVolume);
-    public string MainVolumeTip => $"Main (speaker) volume: {MainVolumeText} · keys: {Format.CommandKey}+↑ ↓";
-    public string CueVolumeTip => $"Phones (headphone) volume: {CueVolumeText} · keys: {Format.CommandKey}+Shift+↑ ↓";
+    public string MainVolumeTip => $"Main (speaker) volume: {MainVolumeText} · keys: {Shortcuts.Command}+↑ ↓";
+    public string CueVolumeTip => $"Phones (headphone) volume: {CueVolumeText} · keys: {Shortcuts.Command}+Shift+↑ ↓";
 
     /// <summary>A volume as the dB it turns the output down by: "0 dB", "−6 dB", "off".</summary>
     private static string Db(double percent)
@@ -239,8 +239,8 @@ public sealed partial class MixerViewModel : ObservableObject
     /// <summary>Decks 3 and 4 are on screen, so the side buttons show them too.</summary>
     public bool IsFourDecks => owner.FourDecks;
 
-    public string LeftTip => (owner.FourDecks ? "Switch the room to the left: Decks 1 and 3" : "Switch the room to Deck 1") + $" · key: {Format.CommandKey}+←";
-    public string RightTip => (owner.FourDecks ? "Switch the room to the right: Decks 2 and 4" : "Switch the room to Deck 2") + $" · key: {Format.CommandKey}+→";
+    public string LeftTip => (owner.FourDecks ? "Switch the room to the left: Decks 1 and 3" : "Switch the room to Deck 1") + $" · key: {Shortcuts.Command}+←";
+    public string RightTip => (owner.FourDecks ? "Switch the room to the right: Decks 2 and 4" : "Switch the room to Deck 2") + $" · key: {Shortcuts.Command}+→";
 
     internal void DeckCountChanged()
     {
