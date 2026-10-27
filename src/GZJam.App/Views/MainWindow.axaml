@@ -227,49 +227,25 @@
     <!-- ───────────── Library ───────────── -->
     <Grid Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
 
-      <!-- Folder tree -->
+      <!-- Folder tree, and the playlists under it. Folded, the tree shows only the music folders
+           and the playlists take the rest; otherwise the playlists are as tall as the grip on their
+           header was dragged (MainWindow.Playlists, #163). -->
       <Border Classes="panel">
-        <DockPanel>
-          <Border DockPanel.Dock="Top" Classes="panel-header">
+        <Grid x:Name="LibraryColumn" RowDefinitions="Auto,*,Auto">
+          <Border Classes="panel-header">
             <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Classes="label" Text="LIBRARY" />
+              <Button x:Name="FoldFoldersButton" Classes="link" Margin="-6,0,0,0" HorizontalAlignment="Left"
+                      Command="{Binding Library.ToggleFoldFoldersCommand}" ToolTip.Tip="{Binding Library.FoldTip}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <Path x:Name="FoldChevron" Classes="fold-chevron" Classes.folded="{Binding Library.AreFoldersFolded}" />
+                  <TextBlock Classes="label" Text="LIBRARY" />
+                </StackPanel>
+              </Button>
               <Button Grid.Column="1" Classes="link" Content="+ Folder" Click="OnAddFolderClick"
                       ToolTip.Tip="Add a music folder to the library" />
             </Grid>
           </Border>
-          <!-- Playlists: sets planned in order, under the folders -->
-          <DockPanel x:Name="PlaylistsSection" DockPanel.Dock="Bottom">
-            <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Classes="label" Text="PLAYLISTS" />
-                <Button x:Name="NewPlaylistButton" Grid.Column="1" Classes="link" Content="+ New" Click="OnNewPlaylistClick"
-                        ToolTip.Tip="Plan a set: a playlist of songs in order" />
-              </Grid>
-            </Border>
-            <ListBox x:Name="PlaylistList" Classes="playlists" Margin="4,4,4,6" MaxHeight="220"
-                     ItemsSource="{Binding Library.Playlists}" SelectedItem="{Binding Library.SelectedPlaylist, Mode=TwoWay}">
-              <ListBox.ItemTemplate>
-                <DataTemplate DataType="lib:PlaylistInfo">
-                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
-                    <Grid.ContextMenu>
-                      <ContextMenu>
-                        <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
-                        <Separator />
-                        <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
-                        <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
-                      </ContextMenu>
-                    </Grid.ContextMenu>
-                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
-                          Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-                               ToolTip.Tip="{Binding Name}" />
-                    <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
-                  </Grid>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </DockPanel>
-          <c:FolderTreeView x:Name="FolderTree" Classes="folders" Margin="4,6"
+          <c:FolderTreeView x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6"
                     ItemsSource="{Binding Library.Roots}"
                     SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -301,7 +277,45 @@
               </TreeDataTemplate>
             </c:FolderTreeView.ItemTemplate>
           </c:FolderTreeView>
-        </DockPanel>
+          <!-- Playlists: sets planned in order, under the folders -->
+          <DockPanel x:Name="PlaylistsSection" Grid.Row="2">
+            <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="label" Text="PLAYLISTS" />
+                <Button x:Name="NewPlaylistButton" Grid.Column="1" Classes="link" Content="+ New" Click="OnNewPlaylistClick"
+                        ToolTip.Tip="Plan a set: a playlist of songs in order" />
+              </Grid>
+            </Border>
+            <ListBox x:Name="PlaylistList" Classes="playlists" Margin="4,4,4,6"
+                     ItemsSource="{Binding Library.Playlists}" SelectedItem="{Binding Library.SelectedPlaylist, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="lib:PlaylistInfo">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
+                    <Grid.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
+                        <Separator />
+                        <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
+                        <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
+                      </ContextMenu>
+                    </Grid.ContextMenu>
+                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                          Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               ToolTip.Tip="{Binding Name}" />
+                    <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+          <!-- Drag up for more playlists, down for more folders: on the playlists' top edge -->
+          <Border x:Name="PlaylistsGrip" Grid.Row="2" Classes="deck-grip playlists-grip"
+                  IsVisible="{Binding !Library.AreFoldersFolded}"
+                  ToolTip.Tip="Drag up for more playlists, down for more folders">
+            <Border Classes="deck-grip-bar" />
+          </Border>
+        </Grid>
       </Border>
 
       <!-- Drag to share the room between the panels: a grip shows where (a finger gets no pointer change) -->

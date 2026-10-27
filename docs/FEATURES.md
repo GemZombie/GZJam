@@ -1398,3 +1398,17 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - `DeckViewModel.AirProgress` measures in real time from the trim start to where the time left
   ends: played / (played + `Deck.Remaining`), the played part divided by the speed. So tempo, armed
   jumps and an auto-play fade count as the readout counts them, and the bar is full at -0:00.
+
+### Status: more room for playlists (#163, 0.9.3)
+
+- A DJ with one music folder and every album straight inside it plays from the whole library or a
+  playlist, never an album's folder, so the tree was wasted room and the playlists were held to
+  220 px (about eight rows).
+- **Fold:** an arrow beside LIBRARY (`LibraryViewModel.AreFoldersFolded`, saved as
+  `AppSettings.FoldersFolded`). Folded, every folder closes and the tree's row is only as tall as
+  the music folders; the playlists' row takes the rest. Opening any folder (its arrow, or *Show in
+  folder*) unfolds; unfolding by the arrow opens the music folders again, as at the first start.
+- **Grip:** on the playlists' top edge, like the decks' grip. Dragging sets the list's most height
+  (`AppSettings.PlaylistsHeight`, 220 to start with), from 60 px (two rows) up to leaving the
+  folders 70 px; clamped again as the window changes size. A short list stays as short as its
+  playlists. Hidden while folded, where there's nothing to share.
