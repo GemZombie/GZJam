@@ -119,6 +119,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   reordering a long queue.
 - [Choose what the queue shows](https://github.com/GemZombie/GZJam/issues/131): album art, ♥,
   energy, labels, album, genre, year, when it was last played, BPM and time.
+- [Grouping and Comment columns in the song list](https://github.com/GemZombie/GZJam/issues/161),
+  read from the song files, where iTunes and Music keep them too, and Grouping searchable.
 
 ## Planned next
 
@@ -127,9 +129,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 *Fixes:* none left. [A rare dropout with extra crackle protection on](https://github.com/GemZombie/GZJam/issues/47)
 couldn't be reproduced in 170 runs on five sound cards; if the activity log ever says the speakers
 ran dry, it's reopened.
-
-*Also:* [Grouping and Comment columns in the song list](https://github.com/GemZombie/GZJam/issues/161),
-read from the song files, where iTunes and Music keep them too, and Grouping searchable
 
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
