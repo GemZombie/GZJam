@@ -169,6 +169,10 @@ to one you'd use.
 
 
 **Playing**
+- [The decks at the top of the queue](https://github.com/GemZombie/GZJam/issues/177) when they're
+  hidden: the song the room hears, then the next deck, then the rest, as one running order
+- [A queue as big as the song list](https://github.com/GemZombie/GZJam/issues/178), or a key to
+  swap which of the two has the room, for nights spent reordering a long queue
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
