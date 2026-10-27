@@ -780,6 +780,24 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>0..1 through the track.</summary>
     public double Progress => Deck.Length > TimeSpan.Zero ? Deck.Position / Deck.Length : 0;
 
+    /// <summary>
+    /// How far into the song, 0..1, for the on-air bar (#165): from where the music starts to where
+    /// it ends, in real time, as the time left counts it (after trimmed silence, with the tempo, armed
+    /// jumps and an auto-play fade). So the bar is full just as the time left reaches 0:00.
+    /// </summary>
+    public double AirProgress
+    {
+        get
+        {
+            if (!HasTrack)
+                return 0;
+            double speed = 1 + Deck.TempoPercent / 100;
+            double played = Math.Max(0, (Deck.Position - Deck.Start).TotalSeconds / speed);
+            double total = played + Deck.Remaining.TotalSeconds;
+            return total > 0 ? played / total : 1;
+        }
+    }
+
     /// <summary>Jumping around in what the room is dancing to is blocked; fade it out of the room first.</summary>
     public bool CanSeek => HasTrack && !IsOnAir;
 
@@ -1304,6 +1322,7 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowsStatus));
         OnPropertyChanged(nameof(CanSeek));
         OnPropertyChanged(nameof(Progress));
+        OnPropertyChanged(nameof(AirProgress));
         OnPropertyChanged(nameof(PauseNeedsConfirm));
         OnPropertyChanged(nameof(IsCueOn));
         OnPropertyChanged(nameof(IsFinished));

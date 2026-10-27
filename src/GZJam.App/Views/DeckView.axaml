@@ -140,14 +140,14 @@
     <Style Selector="v|DeckView.compact TextBlock.status">
       <Setter Property="MinWidth" Value="54" />
     </Style>
-    <!-- On air: a red bar along the top edge (the frame's padding is undone so it reaches the edges) -->
-    <Style Selector="Border.onair-bar">
+    <!-- On air: a red bar along the top edge that fills as the song plays (the frame's padding is
+         undone so it reaches the edges) -->
+    <Style Selector="c|AirBar.onair-bar">
       <Setter Property="Height" Value="3" />
-      <Setter Property="Background" Value="{StaticResource OnAirBrush}" />
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="Margin" Value="-16,-14,-16,0" />
     </Style>
-    <Style Selector="v|DeckView.compact Border.onair-bar">
+    <Style Selector="v|DeckView.compact c|AirBar.onair-bar">
       <Setter Property="Margin" Value="-12,-8,-12,0" />
     </Style>
     <!-- The deck's level meter, in the frame's padding along the edge nearest the mixer (Decks 2
@@ -447,7 +447,8 @@
         </Button>
       </Grid>
     </Grid>
-    <Border Classes="onair-bar" IsVisible="{Binding IsOnAir}" IsHitTestVisible="False" />
+    <c:AirBar x:Name="AirBar" Classes="onair-bar" Progress="{Binding AirProgress}" Fill="{StaticResource OnAirBrush}"
+              IsVisible="{Binding IsOnAir}" IsHitTestVisible="False" />
     </Panel>
   </Border>
 </UserControl>

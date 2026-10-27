@@ -1389,3 +1389,12 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - Not Ctrl+S, which a DJ also suggested: it means "save" nearly everywhere, and pressing it from
   habit shouldn't put a panel over the night.
 - In `MainWindow.OnKeyDown` with Ctrl+D and Ctrl+F; the gear's tooltip names both keys.
+
+### Status: the on-air bar shows how far into the song (#165, 0.9.3)
+
+- The red bar along the top of the deck on air (`Controls/AirBar.cs`) fills left to right: played
+  in full red, the rest at 30%, so the whole bar still reads as "on air" at the start of a song.
+  Every deck size; hidden off air, as before.
+- `DeckViewModel.AirProgress` measures in real time from the trim start to where the time left
+  ends: played / (played + `Deck.Remaining`), the played part divided by the speed. So tempo, armed
+  jumps and an auto-play fade count as the readout counts them, and the bar is full at -0:00.
