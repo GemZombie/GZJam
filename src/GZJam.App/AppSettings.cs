@@ -113,6 +113,17 @@ public sealed class AppSettings
     /// <summary>How tall the playlist list may grow, in pixels, dragged by the DJ (#163); null: 220.</summary>
     public double? PlaylistsHeight { get; set; }
 
+    /// <summary>The library and queue panels' widths, as their dividers were last dragged; null: as they start.</summary>
+    public double? LibraryPanelWidth { get; set; }
+    public double? QueuePanelWidth { get; set; }
+
+    /// <summary>
+    /// The library or queue panel folded into a slim strip at its side, opened again by a tap on
+    /// the strip: easier by touch than finding a divider at the screen's edge.
+    /// </summary>
+    public bool LibraryPanelFolded { get; set; }
+    public bool QueuePanelFolded { get; set; }
+
     /// <summary>
     /// Turn each track up or down toward the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.

@@ -1440,3 +1440,15 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   hidden keeps whether they were compact, so the keys bring them back as they were.
 - Settings › Decks: *Deck size* (Full, Compact, Hidden: one line) in place of the compact switch.
 - The grip follows the finger in one drag: 16 px a step, 76 px two (full to hidden, or back).
+
+### Status: side panels fold into a strip (#173, 0.9.3)
+
+- The library and queue panels could be dragged to nothing, leaving a divider at the window's
+  edge; in full screen on a touch laptop the system takes swipes from there, so the panel was hard
+  to get back.
+- Now a panel let go narrower than 120 px folds into a 34 px strip (`LibraryStrip`, `QueueStrip`):
+  the panel's name sideways and an arrow, the whole strip one tap target that opens it to its width
+  from before. Each panel's header has an arrow that folds it. Folded, the divider is hidden.
+- `AppSettings.LibraryPanelWidth`/`QueuePanelWidth` (kept between 120 and 560 px) and
+  `LibraryPanelFolded`/`QueuePanelFolded` are remembered; before, widths reset at each start.
+- In `MainWindow.Panes.cs`.

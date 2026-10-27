@@ -68,7 +68,10 @@ top bar then says *Updating analysis…*.
 - **The library** below: the folder tree and playlists on the left, the song list in the middle.
 - **The queue and History** on the right, with **AUTO-PLAY** and the **GAP** above them.
 
-The dividers between the panels can be dragged to give one more room.
+The dividers between the panels can be dragged to give one more room. To give the song list the
+whole width, fold the library or the queue away with the arrow at the right of its header (or drag
+its divider almost to the edge): it becomes a slim strip with its name, and a tap anywhere on the
+strip opens it again. GZJam remembers the panels' widths, and which are folded.
 
 **Full screen:** **F11** (on a Mac, also **Ctrl+Cmd+F** or the green window button), and F11 again
 to go back. In full screen, a key at the right end of the top bar leaves it too, for a touch screen
