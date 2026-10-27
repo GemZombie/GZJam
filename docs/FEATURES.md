@@ -1467,3 +1467,15 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - Folding a wide queue gives the song list the room (wide is cleared); Ctrl+L with the queue folded
   opens it wide.
 - In `MainWindow.Panes.cs`. More columns in a wide queue are #131.
+
+### Status: choosing what the queue shows (#131, 0.9.4)
+
+- A DJ's request (2026-10-25): the library's columns can be chosen, the queue's couldn't. With a
+  wide queue (#178) there's room for more.
+- The queue's menu › *Show* (`QueueColumnsMenu`, filled as it opens) ticks parts on and off:
+  album art, ♥, energy, labels, album, genre, year, played, BPM, time. Title and artist always.
+- Album (140 px, trimmed), genre (80), year and played are new, in their own group before the icons;
+  they start off (`AppSettings.HiddenQueueColumns`). Off parts are hidden by `hide-<name>` classes on
+  `QueueList` and styles in AppStyles, so the row template stays one template.
+- The title keeps at least 90 px, however much is shown.
+- In `MainWindow.QueueColumns.cs`.

@@ -258,6 +258,18 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Padding" Value="0" />
   </Style>
+  <!-- What the queue shows of each song, chosen from its menu (MainWindow.QueueColumns, #131) -->
+  <Style Selector="ListBox.queue.hide-art c|AlbumArt.q-art"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-rating c|RatingIcon.q-rating"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-energy c|EnergyIcon.q-energy"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-labels c|LabelChips.q-labels"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-album TextBlock.q-album"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-genre TextBlock.q-genre"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-year TextBlock.q-year"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-played TextBlock.q-played"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-bpm TextBlock.q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector="ListBox.queue.hide-time TextBlock.q-time"><Setter Property="IsVisible" Value="False" /></Style>
+
   <Style Selector="ListBox.queue ListBoxItem">
     <Setter Property="Padding" Value="0" />
     <Setter Property="Margin" Value="0" />

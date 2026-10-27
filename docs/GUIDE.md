@@ -399,6 +399,10 @@ The queue is tonight's list of songs to come.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
 - **Loading from it:** drag a queued song onto a deck; it leaves the queue.
+- **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
+  and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
+  time. Album, genre, year and played start off; they fit best in a queue given the room with
+  **Ctrl+L**. GZJam remembers your choice.
 
 ### Auto-play
 

@@ -180,6 +180,13 @@ public sealed class AppSettings
     public List<string> HiddenColumns { get; set; } = ["Genre", "Art"];
 
     /// <summary>
+    /// What the queue doesn't show of each song, chosen from its menu (#131), by
+    /// <see cref="Views.MainWindow.QueueColumns"/> name. Album, genre, year and when it was last
+    /// played start hidden: they're for a wide queue (#178).
+    /// </summary>
+    public List<string> HiddenQueueColumns { get; set; } = ["Album", "Genre", "Year", "Played"];
+
+    /// <summary>
     /// Columns added since the column chooser that start hidden, which these settings have seen
     /// (so <see cref="HiddenColumns"/> already says whether the DJ wants them). Null: settings
     /// new this session, which started with them hidden, or saved before this was kept.

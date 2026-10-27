@@ -264,6 +264,7 @@ public partial class MainWindow
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
         LabelsMenu.Fill(QueueLabelsMenu, Vm, tracks);
         BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
+        FillQueueColumnsMenu();
     }
 
     private void UpdateLoadMenuItems(MenuItem[] items, bool oneTrackSelected)
