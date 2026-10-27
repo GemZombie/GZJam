@@ -128,20 +128,24 @@ to avoid it (choose another output as Windows' default).
 Two decks to start with; four if you turn on **Four decks** in Settings › Decks (Deck 3 under
 Deck 1, Deck 4 under Deck 2, each half height).
 
-**Compact decks:** on a laptop, the decks can be made smaller so the library and queue show more
-songs. Press the arrows beside the gear in the top bar, press **Ctrl+D** (Cmd+D on a Mac), or drag
-the small grip under the mixer up (and down again for big decks; a tap on it switches too). Switch
-back and forth as often as you like during a night: nothing playing is affected. Compact decks keep
-the title, time, waveform, play, CUE, FADE OUT and tempo, with the rest in each deck's ⋯ menu; the
-mixer keeps the meter, MAIN, PHONES and the crossfader (PHONES MIX is hidden but still applies).
-With four decks, compact decks also leave out the waveforms. GZJam remembers the choice.
+**Deck size:** on a laptop, the decks can be made smaller so the library and queue show more songs.
+The switch beside the gear in the top bar has three keys: **full** decks, **compact** decks, and
+**hidden** decks; the lit one is the size now. Or press **Ctrl+D** (Cmd+D on a Mac) for compact and
+back, or drag the small grip under the mixer: a little up for compact, further up for hidden, down
+again for bigger (a tap on it switches compact). Settings › Decks › *Deck size* has the same three.
+Switch as often as you like during a night: nothing playing is affected.
 
-**Hidden decks:** for the most songs on screen, press **Ctrl+Shift+D** (Cmd+Shift+D on a Mac), or
-drag the grip up once more from compact decks. The decks and mixer fold into one line under the top
-bar: the deck the room hears with its play key (two taps on air, if you've chosen two taps), its
-song, the time left and the red bar filling as it plays, then what's next (the other deck's song,
-or the first in the queue). Everything carries on as before: auto-play, the keys, the music. The
-same keys, the arrows at the end of the line, a tap on the grip or a drag down bring the decks back.
+**Compact decks** keep the title, time, waveform, play, CUE, FADE OUT and tempo, with the rest in
+each deck's ⋯ menu; the mixer keeps the meter, MAIN, PHONES and the crossfader (PHONES MIX is hidden
+but still applies). With four decks, compact decks also leave out the waveforms. GZJam remembers the
+choice.
+
+**Hidden decks**, for the most songs on screen (the switch's third key, or **Ctrl+Shift+D**,
+Cmd+Shift+D on a Mac), fold the decks and mixer into one line under the top bar: the deck the room
+hears with its play key (two taps on air, if you've chosen two taps), its song, the time left and
+the red bar filling as it plays, then what's next (the other deck's song, or the first in the
+queue). Everything carries on as before: auto-play, the keys, the music. The switch, the same key,
+the arrows at the end of the line, a tap on the grip or a drag down bring the decks back.
 
 ![Two decks: Deck 1 on air with cue keys 1 and 2, Deck 2 cued in the headphones with a jump set, and a song previewing under the list](images/guide/decks.png)
 

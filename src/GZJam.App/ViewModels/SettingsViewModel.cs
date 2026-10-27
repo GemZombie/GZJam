@@ -272,7 +272,29 @@ public sealed partial class SettingsViewModel : ObservableObject
         set => _owner.CompactDecks = value;
     }
 
-    internal void CompactDecksChanged() => OnPropertyChanged(nameof(CompactDecks));
+    public IReadOnlyList<Choice<DeckSize>> DeckSizeChoices { get; } =
+    [
+        new(DeckSize.Full, "Full"),
+        new(DeckSize.Compact, "Compact"),
+        new(DeckSize.Hidden, "Hidden: one line"),
+    ];
+
+    /// <summary>The decks' size, as the top bar's switch sets it too (#171).</summary>
+    public Choice<DeckSize> DeckSizeChoice
+    {
+        get => DeckSizeChoices.First(c => c.Value == _owner.DeckSize);
+        set
+        {
+            if (value is not null)
+                _owner.DeckSize = value.Value;
+        }
+    }
+
+    internal void DeckSizeChanged()
+    {
+        OnPropertyChanged(nameof(CompactDecks));
+        OnPropertyChanged(nameof(DeckSizeChoice));
+    }
 
     /// <summary>Four decks on screen rather than two.</summary>
     public bool FourDecks

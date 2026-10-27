@@ -720,7 +720,50 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
-  <!-- An icon key that's switched on (compact decks): lit like a pressed hardware key -->
+  <!-- The deck-size switch (#171): three keys in one housing, the size now lit -->
+  <Style Selector="Border.deck-size">
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Padding" Value="2" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.deck-size">
+    <Setter Property="Width" Value="30" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.deck-size Path">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Stretch" Value="None" />
+    <Setter Property="StrokeThickness" Value="1.4" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="Button.deck-size:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+  </Style>
+  <Style Selector="Button.deck-size:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+  </Style>
+  <!-- The size now: a raised key, lit -->
+  <Style Selector="Button.deck-size.on /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource KeyHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource KeyEdgeBrush}" />
+  </Style>
+  <Style Selector="Button.deck-size.on">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+  </Style>
+
+  <!-- An icon key that's switched on: lit like a pressed hardware key -->
   <Style Selector="Button.icon-button.on">
     <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
   </Style>

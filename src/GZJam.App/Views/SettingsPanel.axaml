@@ -176,10 +176,10 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Compact decks" />
-                    <TextBlock Classes="setting-help" Text="Smaller decks, so the library and queue show more songs. Also from the top bar, Ctrl+D (Cmd+D on a Mac), or the grip under the decks." />
+                    <TextBlock Classes="setting" Text="Deck size" />
+                    <TextBlock Classes="setting-help" Text="Compact decks leave the library and queue more songs; hidden ones leave the most, with one line at the top for what's playing and what's next. Also from the switch in the top bar, Ctrl+D and Ctrl+Shift+D (Cmd on a Mac), or the grip under the decks." />
                   </StackPanel>
-                  <ToggleButton x:Name="CompactDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding CompactDecks}" />
+                  <ComboBox x:Name="DeckSizeBox" Grid.Column="1" VerticalAlignment="Center" ItemsSource="{Binding DeckSizeChoices}" SelectedItem="{Binding DeckSizeChoice}" />
                 </Grid>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">

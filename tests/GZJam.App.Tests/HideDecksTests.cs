@@ -46,7 +46,7 @@ public sealed class HideDecksTests
         // Compact, then hidden: Ctrl+D (or the top bar's key) brings them back compact.
         app.ViewModel.CompactDecks = true;
         app.ViewModel.DecksHidden = true;
-        Assert.StartsWith("Show the decks", app.ViewModel.CompactDecksTip);
+        Assert.Equal(DeckSize.Hidden, app.ViewModel.DeckSize);
         app.Window.KeyPress(Key.D, Command, PhysicalKey.D, "d");
         AppHarness.Settle(150);
         Assert.False(app.ViewModel.DecksHidden);
@@ -104,22 +104,61 @@ public sealed class HideDecksTests
     }
 
     [AvaloniaFact]
-    public void The_grip_takes_one_step_per_drag_and_a_tap_brings_hidden_decks_back()
+    public void The_switch_in_the_top_bar_goes_to_any_size_and_Settings_follows()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        Button Key(string name) => Find<Button>(app, name);
+        Assert.Contains("on", Key("FullDecksButton").Classes);
+
+        Key("HiddenDecksButton").Command!.Execute(Key("HiddenDecksButton").CommandParameter);   // straight from full
+        AppHarness.Settle(100);
+        app.Screenshot("deck-size-switch-hidden");
+        Assert.True(vm.DecksHidden);
+        Assert.Contains("on", Key("HiddenDecksButton").Classes);
+        Assert.DoesNotContain("on", Key("FullDecksButton").Classes);
+        Assert.Equal(DeckSize.Hidden, vm.Settings.DeckSizeChoice.Value);
+
+        Key("CompactDecksButton").Command!.Execute(Key("CompactDecksButton").CommandParameter);
+        AppHarness.Settle(100);
+        Assert.False(vm.DecksHidden);
+        Assert.True(vm.CompactDecks);
+        Assert.Contains("on", Key("CompactDecksButton").Classes);
+        Assert.Contains("+D", ToolTip.GetTip(Key("CompactDecksButton")) as string);
+        Assert.Contains("+Shift+D", ToolTip.GetTip(Key("HiddenDecksButton")) as string);
+
+        Key("FullDecksButton").Command!.Execute(Key("FullDecksButton").CommandParameter);
+        AppHarness.Settle(100);
+        Assert.Equal(DeckSize.Full, vm.DeckSize);
+        Assert.False(app.Settings.CompactDecks || app.Settings.DecksHidden);
+
+        // Settings › Decks › Deck size, the same three.
+        vm.Settings.DeckSizeChoice = vm.Settings.DeckSizeChoices.First(c => c.Value == DeckSize.Hidden);
+        AppHarness.Settle(100);
+        Assert.True(vm.DecksHidden);
+        Assert.Contains("on", Key("HiddenDecksButton").Classes);
+    }
+
+    [AvaloniaFact]
+    public void The_grip_follows_the_finger_a_step_or_two_and_a_tap_brings_hidden_decks_back()
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
 
         var at = Grip(app);
-        app.MouseDrag(at, at - new Point(0, 120));   // a long drag: one step
-        Assert.True(vm.CompactDecks);
-        Assert.False(vm.DecksHidden);
+        app.MouseDrag(at, at - new Point(0, 40));   // a little: compact
+        Assert.Equal(DeckSize.Compact, vm.DeckSize);
 
         at = Grip(app);
-        app.MouseDrag(at, at - new Point(0, 60));
-        Assert.True(vm.DecksHidden);
+        app.MouseDrag(at, at + new Point(0, 40));
+        Assert.Equal(DeckSize.Full, vm.DeckSize);
 
         at = Grip(app);
-        app.MouseDrag(at, at + new Point(0, 60));
+        app.MouseDrag(at, at - new Point(0, 120));   // further: hidden, in one drag
+        Assert.Equal(DeckSize.Hidden, vm.DeckSize);
+
+        at = Grip(app);
+        app.MouseDrag(at, at + new Point(0, 40));   // a little down: back as they were
         Assert.False(vm.DecksHidden);
         Assert.True(vm.CompactDecks);
 

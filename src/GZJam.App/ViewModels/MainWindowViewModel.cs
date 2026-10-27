@@ -595,9 +595,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _settings.CompactDecks = value;
             Log.Info($"Decks: {(value ? "compact" : "full size")}");
             OnPropertyChanged();
-            OnPropertyChanged(nameof(CompactDecksTip));
-            OnPropertyChanged(nameof(AreDecksSmaller));
-            Settings.CompactDecksChanged();
+            DeckSizeChanged();
         }
     }
 
@@ -607,12 +605,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _settings.PlaylistsHeight;
         set => _settings.PlaylistsHeight = value;
     }
-
-    public string CompactDecksTip => DecksHidden
-        ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
-        : CompactDecks
-            ? $"Bigger decks ({Shortcuts.Command}+D)"
-            : $"Smaller decks, more songs ({Shortcuts.Command}+D)";
 
     public string SettingsTip => $"Settings · keys: {Shortcuts.Command}+, or {Shortcuts.Command}+O";
 
@@ -641,14 +633,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Log.Info($"Decks: {(value ? "hidden" : "shown")}");
             AirLine?.Refresh();
             OnPropertyChanged();
-            OnPropertyChanged(nameof(CompactDecksTip));
             OnPropertyChanged(nameof(HideDecksTip));
-            OnPropertyChanged(nameof(AreDecksSmaller));
+            DeckSizeChanged();
         }
     }
-
-    /// <summary>Compact or hidden: the top bar's decks key offers bigger decks.</summary>
-    public bool AreDecksSmaller => CompactDecks || DecksHidden;
 
     public string HideDecksTip => DecksHidden
         ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
@@ -656,6 +644,44 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void ToggleHideDecks() => DecksHidden = !DecksHidden;
+
+    /// <summary>
+    /// The decks' size, as the top bar's three-way switch and Settings › Decks choose it (#171).
+    /// Hidden keeps whether they were compact, so showing them again from the keys brings them
+    /// back as they were; choosing Full or Compact sets both.
+    /// </summary>
+    public DeckSize DeckSize
+    {
+        get => DecksHidden ? DeckSize.Hidden : CompactDecks ? DeckSize.Compact : DeckSize.Full;
+        set
+        {
+            if (value == DeckSize.Hidden)
+            {
+                DecksHidden = true;
+                return;
+            }
+            CompactDecks = value == DeckSize.Compact;
+            DecksHidden = false;
+        }
+    }
+
+    [RelayCommand]
+    private void SetDeckSize(DeckSize size) => DeckSize = size;
+
+    public bool IsFullDecks => DeckSize == DeckSize.Full;
+    public bool IsCompactSize => DeckSize == DeckSize.Compact;
+
+    public string FullDecksTip => "Full decks";
+    public string CompactDecksTip => $"Compact decks, more songs · {Shortcuts.Command}+D";
+    public string HiddenDecksTip => $"Hide the decks, for the most songs · {Shortcuts.Command}+Shift+D";
+
+    private void DeckSizeChanged()
+    {
+        OnPropertyChanged(nameof(DeckSize));
+        OnPropertyChanged(nameof(IsFullDecks));
+        OnPropertyChanged(nameof(IsCompactSize));
+        Settings.DeckSizeChanged();
+    }
 
     /// <summary>
     /// Shows 2 or 4 decks. Going back to 2 is refused while Deck 3 or 4 is playing; otherwise
@@ -1217,4 +1243,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Mix?.Dispose();
         Audio?.Dispose();
     }
+}
+
+/// <summary>How much room the decks take (#171): full, compact (#128), or hidden behind one line (#164).</summary>
+public enum DeckSize
+{
+    Full,
+    Compact,
+    Hidden,
 }
