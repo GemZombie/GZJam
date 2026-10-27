@@ -1494,3 +1494,17 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Search:** plain words cover Grouping; `grouping:` searches only it.
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
+
+### Status: hidden decks atop the queue (#177, 0.9.4)
+
+- A DJ's suggestion after trying hidden decks (#164): the line at the top said what's playing and
+  next, and the queue what comes after: one running order in two places.
+- With the decks hidden and the queue in view, `QueueDecks` shows a row per deck atop the queue,
+  in `AirLineViewModel.Order`: the deck the room hears (else the crossfader's side), then the
+  others in turn. Each row: its play key (the deck's own command, so two taps on air still
+  apply), the deck's name and status in its color, art, title and artist, time left; the room's
+  row brighter, with its on-air bar along the bottom.
+- A song dropped on a row loads that deck, refused while it's on air as on the deck itself.
+- `MainWindowViewModel.DecksInQueue` (hidden, Queue tab, queue panel open; the window reports the
+  panel through `QueuePanelOpen`) and `ShowAirLine` (hidden, otherwise): the room's play key is on
+  screen exactly once.

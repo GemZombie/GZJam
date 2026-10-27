@@ -127,6 +127,7 @@ public partial class MainWindow
         string where = target switch
         {
             DeckView { DataContext: DeckViewModel d } => $"Deck {d.Label}",
+            Border { DataContext: DeckViewModel d } => $"Deck {d.Label} (atop the queue)",
             Panel when target == QueueArea => "the queue",
             _ => "nowhere (dropped outside the decks and queue)",
         };
@@ -137,6 +138,10 @@ public partial class MainWindow
             case DeckView { DataContext: DeckViewModel deck } when drag.Tracks is [var track]:
                 if (await Vm.LoadToDeckAsync(deck, track) && drag.FromQueue is { } fromQueue)
                     Vm.Queue.Remove(fromQueue);
+                break;
+            case Border { DataContext: DeckViewModel rowDeck } when drag.Tracks is [var rowTrack]:
+                if (await Vm.LoadToDeckAsync(rowDeck, rowTrack) && drag.FromQueue is { } fromQueueToRow)
+                    Vm.Queue.Remove(fromQueueToRow);
                 break;
             case Panel when target == QueueArea:
                 int index = DropIndex(queuePoint, out _);
@@ -171,6 +176,8 @@ public partial class MainWindow
     {
         foreach (DeckView view in DeckViews)
             view.SetDropState(null);
+        foreach (Border row in DeckRows)
+            SetRowDropState(row, null);
         QueueDropLine.IsVisible = false;
         SetQueueScroll(0);
     }
@@ -215,6 +222,17 @@ public partial class MainWindow
             view.SetDropState(allowed);
             blocked = !allowed;
         }
+        foreach (Border row in DeckRows)
+        {
+            if (row != target)
+            {
+                SetRowDropState(row, null);
+                continue;
+            }
+            bool allowed = songs == 1 && row.DataContext is DeckViewModel deck && Vm.CanLoad(deck);
+            SetRowDropState(row, allowed);
+            blocked = !allowed;
+        }
 
         if (Vm.ShowHistory && IsOver(QueueTab, at))
             Vm.ShowHistory = false;
@@ -234,13 +252,27 @@ public partial class MainWindow
         return target;
     }
 
-    /// <summary>The deck view or the queue under <paramref name="at"/> (window coordinates), if any.</summary>
+    /// <summary>The deck view, the deck's row atop the queue, or the queue under <paramref name="at"/> (window coordinates), if any.</summary>
     private object? DropTargetAt(Point at)
     {
         foreach (DeckView view in DeckViews)
             if (IsOver(view, at))
                 return view;
+        foreach (Border row in DeckRows)
+            if (IsOver(row, at))
+                return row;
         return IsOver(QueueArea, at) ? QueueArea : null;
+    }
+
+    /// <summary>Hidden decks' rows atop the queue (#177), when they show.</summary>
+    private IEnumerable<Border> DeckRows => QueueDecks.IsEffectivelyVisible
+        ? QueueDecks.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("deck-row"))
+        : [];
+
+    private static void SetRowDropState(Border row, bool? accepted)
+    {
+        row.Classes.Set("drop-ok", accepted == true);
+        row.Classes.Set("drop-no", accepted == false);
     }
 
     private bool IsOver(Control control, Point at) =>

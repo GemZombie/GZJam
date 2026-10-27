@@ -27,6 +27,13 @@ New:
   too, by plain words or `grouping:balboa`. The first scan after updating reads every song again,
   once, which takes a few minutes in a big library.
 
+Changed:
+
+- **Hidden decks sit at the top of the queue,** in the order the room will hear them: the deck it
+  hears now, with its play key, time left and filling red bar, then the other deck, then the queue,
+  so the running order is in one column. Drop a song on a deck's row to load it. With the queue
+  folded away or History showing, the line under the top bar stands in for them as before.
+
 Fixed:
 
 - **The Energy column resizes** like the others: the line between Energy and Played wouldn't move.

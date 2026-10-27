@@ -150,7 +150,8 @@
     </Border>
 
     <!-- ───────────── Hidden decks: one line for what the room hears and what's next (#164) ───────────── -->
-    <Border x:Name="AirLine" Grid.Row="1" Classes="panel air-line" IsVisible="{Binding DecksHidden}" ClipToBounds="True">
+    <!-- Only while the queue is out of view (folded, or History showing): otherwise the decks sit atop it (#177) -->
+    <Border x:Name="AirLine" Grid.Row="1" Classes="panel air-line" IsVisible="{Binding ShowAirLine}" ClipToBounds="True">
       <Panel>
         <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,*,Auto" ColumnSpacing="14" Margin="12,8,8,8">
           <!-- The deck the room hears: its own play key (two taps on air, if chosen), so the room
@@ -820,8 +821,53 @@
                        Text="Songs appear here once the room has heard them for 30 seconds." />
           </Grid>
 
-          <Panel Grid.Row="2" x:Name="QueueArea" Background="Transparent"
-                 IsVisible="{Binding ShowQueue}">
+          <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding ShowQueue}">
+          <!-- Hidden decks atop the queue, in the order the room will hear them (#177): the one it
+               hears now with its play key, time left and on-air bar, then the next, then the queue.
+               A song dropped on one loads it, protected as on the deck itself. -->
+          <ItemsControl x:Name="QueueDecks" ItemsSource="{Binding AirLine.Order, FallbackValue={x:Null}}"
+                        IsVisible="{Binding DecksInQueue}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:DeckViewModel">
+                <Border Classes="deck-row" Classes.air="{Binding IsOnAir}" ClipToBounds="True">
+                  <Panel>
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8" Margin="8,7,10,7">
+                      <Button Classes="play deck-row-play" Width="30" Height="30" Classes.playing="{Binding IsPlaying}" Classes.armed="{Binding IsPauseArmed}"
+                              Command="{Binding TogglePlayCommand}" IsEnabled="{Binding HasTrack}" ToolTip.Tip="{Binding PlayTip}"
+                              Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}"
+                              BorderBrush="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" VerticalAlignment="Center">
+                        <Panel>
+                          <PathIcon Data="{StaticResource IconPlay}" Width="10" Height="10" IsVisible="{Binding !IsPlaying}" />
+                          <PathIcon Data="{StaticResource IconPause}" Width="9" Height="9" IsVisible="{Binding IsPlaying}" />
+                        </Panel>
+                      </Button>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" MinWidth="50">
+                        <TextBlock Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
+                                   Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
+                        <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" FontSize="9.5" />
+                      </StackPanel>
+                      <c:AlbumArt Grid.Column="2" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center"
+                                  SongPath="{Binding Track.Path, FallbackValue={x:Null}}" IsVisible="{Binding HasTrack}" />
+                      <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis"
+                                   Classes.muted="{Binding !HasTrack}" />
+                        <TextBlock Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis"
+                                   Text="{Binding Track.Artist, FallbackValue='Drag a song here'}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="4" Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}"
+                                 Text="{Binding TimeLeftText}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
+                                 Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
+                    </Grid>
+                    <!-- How far into the song the room is (#165) -->
+                    <c:AirBar Classes="deck-row-bar" Progress="{Binding AirProgress}" Fill="{StaticResource OnAirBrush}"
+                              IsVisible="{Binding IsOnAir}" IsHitTestVisible="False" />
+                  </Panel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Panel Grid.Row="1" x:Name="QueueArea" Background="Transparent">
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
@@ -899,6 +945,7 @@
             <Border x:Name="QueueDropLine" Height="2" Margin="8,0" VerticalAlignment="Top"
                     Background="{StaticResource AccentBrush}" IsVisible="False" IsHitTestVisible="False" />
           </Panel>
+          </Grid>
         </Grid>
       </Border>
     </Grid>

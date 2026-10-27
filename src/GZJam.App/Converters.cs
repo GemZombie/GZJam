@@ -57,4 +57,9 @@ public static class Converters
 
     /// <summary>Played tonight: dimmed, so it isn't played again by mistake.</summary>
     public static readonly IValueConverter Dimmed = new FuncValueConverter<bool, double>(played => played ? 0.4 : 1);
+
+    /// <summary>A deck's color by its label ("1": Deck1Brush), for what stands in for a deck (#177).</summary>
+    public static readonly IValueConverter DeckAccent = new FuncValueConverter<string?, Avalonia.Media.IBrush?>(label =>
+        label is not null && Avalonia.Application.Current is { } app
+            && Avalonia.Controls.ResourceNodeExtensions.TryFindResource(app, $"Deck{label}Brush", out object? found) && found is Avalonia.Media.IBrush brush ? brush : null);
 }

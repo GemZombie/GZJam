@@ -563,7 +563,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>The right-hand panel shows the History tab rather than the Queue.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowQueue))]
+    [NotifyPropertyChangedFor(nameof(ShowQueue), nameof(DecksInQueue), nameof(ShowAirLine))]
     public partial bool ShowHistory { get; set; }
 
     public bool ShowQueue => !ShowHistory;
@@ -637,9 +637,35 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             AirLine?.Refresh();
             OnPropertyChanged();
             OnPropertyChanged(nameof(HideDecksTip));
+            OnPropertyChanged(nameof(DecksInQueue));
+            OnPropertyChanged(nameof(ShowAirLine));
             DeckSizeChanged();
         }
     }
+
+    /// <summary>Whether the queue panel is open (not folded into its strip); the window says (#173).</summary>
+    public bool QueuePanelOpen
+    {
+        get => _queuePanelOpen;
+        set
+        {
+            if (SetProperty(ref _queuePanelOpen, value))
+            {
+                OnPropertyChanged(nameof(DecksInQueue));
+                OnPropertyChanged(nameof(ShowAirLine));
+            }
+        }
+    }
+    private bool _queuePanelOpen = true;
+
+    /// <summary>
+    /// Hidden decks sit atop the queue, in the order the room will hear them (#177), whenever the
+    /// queue is in view; otherwise the line under the top bar stands in for them. Either way the
+    /// room's play key is on screen, once.
+    /// </summary>
+    public bool DecksInQueue => DecksHidden && ShowQueue && QueuePanelOpen;
+
+    public bool ShowAirLine => DecksHidden && !DecksInQueue;
 
     public string HideDecksTip => DecksHidden
         ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
