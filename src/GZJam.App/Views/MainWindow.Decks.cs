@@ -152,6 +152,9 @@ public partial class MainWindow
     /// <summary>How far the grip must be dragged to switch; less, and letting go counts as a tap.</summary>
     private const double DeckGripSwitchDistance = 16;
 
+    /// <summary>How far for a second step in the same drag: full to hidden, or hidden to full (#171).</summary>
+    private const double DeckGripSecondStep = 76;
+
     private double _deckGripFrom;
     private int _deckSizeFrom, _deckGripSize;
     private bool _deckGripMoved;
@@ -166,9 +169,9 @@ public partial class MainWindow
     }
 
     /// <summary>
-    /// Up past the switching distance: one step smaller than when the grip was pressed (full,
-    /// compact, hidden, #164); down: one step bigger; back again: as it was. One step per drag, so
-    /// a long drag from full decks doesn't hide them.
+    /// The size follows the finger from where the grip was pressed (full, compact, hidden; #164,
+    /// #171): up past the switching distance, one step smaller, and further up a second; down the
+    /// same for bigger; back again, as it was.
     /// </summary>
     private void OnDeckGripMoved(object? sender, PointerEventArgs e)
     {
@@ -177,15 +180,17 @@ public partial class MainWindow
         double moved = e.GetPosition(this).Y - _deckGripFrom;
         if (Math.Abs(moved) > 4)
             _deckGripMoved = true;
-        int step = moved <= -DeckGripSwitchDistance ? 1 : moved >= DeckGripSwitchDistance ? -1 : 0;
+        double distance = Math.Abs(moved);
+        int steps = distance >= DeckGripSecondStep ? 2 : distance >= DeckGripSwitchDistance ? 1 : 0;
+        int step = moved < 0 ? steps : -steps;
         int size = Math.Clamp(_deckSizeFrom + step, 0, 2);
         if (size == _deckGripSize)
             return;
         _deckGripSize = size;
         if (size == 2)
             Vm.DecksHidden = true;
-        else if (_deckSizeFrom == 2)
-            Vm.DecksHidden = false;   // back as they were, compact or not
+        else if (_deckSizeFrom == 2 && size == 1)
+            Vm.DecksHidden = false;   // one step down: back as they were, compact or not
         else
         {
             Vm.DecksHidden = false;

@@ -108,17 +108,24 @@
           </StackPanel>
         </Button>
 
-        <!-- Smaller decks for more songs, and back: also Ctrl/Cmd+D and the grip under the decks.
-             With the decks hidden (Ctrl/Cmd+Shift+D, #164), it brings them back. -->
-        <Button x:Name="CompactDecksButton" Grid.Column="7" Classes="icon-button" Command="{Binding ToggleCompactDecksCommand}"
-                ToolTip.Tip="{Binding CompactDecksTip}" Classes.on="{Binding AreDecksSmaller}">
-          <Panel Width="16" Height="16">
-            <Path Data="{StaticResource IconDecksSmaller}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
-                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding !AreDecksSmaller}" />
-            <Path Data="{StaticResource IconDecksBigger}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
-                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding AreDecksSmaller}" />
-          </Panel>
-        </Button>
+        <!-- The decks' size: full, compact (Ctrl/Cmd+D) or hidden behind one line (Ctrl/Cmd+Shift+D),
+             the lit key the size now (#171). Also Settings › Decks and the grip under the decks. -->
+        <Border x:Name="DeckSizeSwitch" Grid.Column="7" Classes="deck-size">
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="FullDecksButton" Classes="deck-size" Classes.on="{Binding IsFullDecks}"
+                    Command="{Binding SetDeckSizeCommand}" CommandParameter="{x:Static vm:DeckSize.Full}" ToolTip.Tip="{Binding FullDecksTip}">
+              <Path Data="{StaticResource IconDecksFull}" Stroke="{Binding $parent[Button].Foreground}" />
+            </Button>
+            <Button x:Name="CompactDecksButton" Classes="deck-size" Classes.on="{Binding IsCompactSize}"
+                    Command="{Binding SetDeckSizeCommand}" CommandParameter="{x:Static vm:DeckSize.Compact}" ToolTip.Tip="{Binding CompactDecksTip}">
+              <Path Data="{StaticResource IconDecksCompact}" Stroke="{Binding $parent[Button].Foreground}" />
+            </Button>
+            <Button x:Name="HiddenDecksButton" Classes="deck-size" Classes.on="{Binding DecksHidden}"
+                    Command="{Binding SetDeckSizeCommand}" CommandParameter="{x:Static vm:DeckSize.Hidden}" ToolTip.Tip="{Binding HiddenDecksTip}">
+              <Path Data="{StaticResource IconDecksHidden}" Stroke="{Binding $parent[Button].Foreground}" />
+            </Button>
+          </StackPanel>
+        </Border>
 
         <Button x:Name="SettingsButton" Grid.Column="8" Classes="icon-button" ToolTip.Tip="{Binding SettingsTip}" Click="OnSettingsClick">
           <PathIcon Data="{StaticResource IconGear}" Width="16" Height="16" />
@@ -265,9 +272,9 @@
       </Grid>
     </Grid>
 
-    <!-- Drag up for smaller decks and more songs, down for bigger (or tap): MainWindow.Decks -->
+    <!-- Drag up for smaller decks and more songs, further for hidden ones; down for bigger (or tap): MainWindow.Decks -->
     <Border x:Name="DeckGrip" Grid.Row="1" Classes="deck-grip" Margin="0,0,0,-12"
-            HorizontalAlignment="Center" VerticalAlignment="Bottom" ToolTip.Tip="{Binding CompactDecksTip}">
+            HorizontalAlignment="Center" VerticalAlignment="Bottom" ToolTip.Tip="Drag up for smaller decks, further for one line; down for bigger. A tap switches compact.">
       <Border Classes="deck-grip-bar" />
     </Border>
 

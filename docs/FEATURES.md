@@ -1419,8 +1419,8 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   (`DecksRow`) give way to one line under the top bar (`AirLine`), and the library and queue take
   the rest. Unhiding brings them back as they were, compact or not.
 - **Keys:** Ctrl+Shift+D (Cmd on macOS) hides and shows. Ctrl+D, the top bar's decks key and a tap
-  on the grip bring hidden decks back. The grip moves one step per drag from where it was pressed
-  (full, compact, hidden), so one long drag from full decks doesn't hide them.
+  on the grip bring hidden decks back. (The top bar's three-way switch and the grip's two steps in
+  one drag came with #171.)
 - **The line** (`AirLineViewModel`, refreshed every tick): *now* is the deck on air (the
   crossfader's side first, in a blend), else the loaded deck on the crossfader's side, ready to
   start. It shows that deck's play key (its `TogglePlayCommand`, so the two-tap rule and its hint
@@ -1430,3 +1430,13 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   song in the queue. Colored by the deck shown.
 - Not shown: the mixer's meter and faders (MAIN and PHONES keep their keys). Hiding pauses
   nothing, and the decks' views stay alive underneath.
+
+### Status: a deck-size switch (#171, 0.9.3)
+
+- Hidden decks (#164) could only be reached by Ctrl+Shift+D or the grip from compact decks: not
+  findable. The top bar's one decks key became a three-key switch (`DeckSizeSwitch`): full,
+  compact, hidden, the size now a raised, lit key; one click reaches any size. Tooltips name
+  Ctrl/Cmd+D and Ctrl/Cmd+Shift+D. `MainWindowViewModel.DeckSize` over the two saved booleans:
+  hidden keeps whether they were compact, so the keys bring them back as they were.
+- Settings › Decks: *Deck size* (Full, Compact, Hidden: one line) in place of the compact switch.
+- The grip follows the finger in one drag: 16 px a step, 76 px two (full to hidden, or back).
