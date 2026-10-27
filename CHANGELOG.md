@@ -19,6 +19,9 @@ New:
 - **The red on-air bar fills up as the song plays,** along the top of the deck the room hears:
   bright for what's played, dim for what's left, on every size of deck. It's full when the time
   left reaches 0:00.
+- **Hide the decks: Ctrl+Shift+D** (Cmd+Shift+D on a Mac), or drag the grip under compact decks up
+  once more. One line under the top bar takes their place: the song the room hears with its play
+  key, time left and on-air bar, and what's next. The same key brings them back.
 - **More room for playlists:** the arrow beside LIBRARY folds the folders down to your music folder,
   and the playlists take the rest of the column. Or drag the grip on the PLAYLISTS header to make
   the list longer or shorter. Both are remembered.

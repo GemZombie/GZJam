@@ -72,6 +72,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
+            AirLine = new AirLineViewModel(this, mix, Queue);
             Preview = new PreviewViewModel(this, mix.Preview);
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
             foreach (DeckViewModel deck in Decks)
@@ -595,6 +596,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Log.Info($"Decks: {(value ? "compact" : "full size")}");
             OnPropertyChanged();
             OnPropertyChanged(nameof(CompactDecksTip));
+            OnPropertyChanged(nameof(AreDecksSmaller));
             Settings.CompactDecksChanged();
         }
     }
@@ -606,14 +608,54 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set => _settings.PlaylistsHeight = value;
     }
 
-    public string CompactDecksTip => CompactDecks
-        ? $"Bigger decks ({Shortcuts.Command}+D)"
-        : $"Smaller decks, more songs ({Shortcuts.Command}+D)";
+    public string CompactDecksTip => DecksHidden
+        ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
+        : CompactDecks
+            ? $"Bigger decks ({Shortcuts.Command}+D)"
+            : $"Smaller decks, more songs ({Shortcuts.Command}+D)";
 
     public string SettingsTip => $"Settings · keys: {Shortcuts.Command}+, or {Shortcuts.Command}+O";
 
+    /// <summary>With the decks hidden, the compact key (and Ctrl/Cmd+D) brings them back as they were.</summary>
     [RelayCommand]
-    private void ToggleCompactDecks() => CompactDecks = !CompactDecks;
+    private void ToggleCompactDecks()
+    {
+        if (DecksHidden)
+            DecksHidden = false;
+        else
+            CompactDecks = !CompactDecks;
+    }
+
+    /// <summary>
+    /// The decks and mixer folded into one line under the top bar, for the most songs on screen
+    /// (#164; see <see cref="AppSettings.DecksHidden"/>). Nothing playing is affected.
+    /// </summary>
+    public bool DecksHidden
+    {
+        get => _settings.DecksHidden;
+        set
+        {
+            if (value == _settings.DecksHidden)
+                return;
+            _settings.DecksHidden = value;
+            Log.Info($"Decks: {(value ? "hidden" : "shown")}");
+            AirLine?.Refresh();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CompactDecksTip));
+            OnPropertyChanged(nameof(HideDecksTip));
+            OnPropertyChanged(nameof(AreDecksSmaller));
+        }
+    }
+
+    /// <summary>Compact or hidden: the top bar's decks key offers bigger decks.</summary>
+    public bool AreDecksSmaller => CompactDecks || DecksHidden;
+
+    public string HideDecksTip => DecksHidden
+        ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
+        : $"Hide the decks, for the most songs ({Shortcuts.Command}+Shift+D)";
+
+    [RelayCommand]
+    private void ToggleHideDecks() => DecksHidden = !DecksHidden;
 
     /// <summary>
     /// Shows 2 or 4 decks. Going back to 2 is refused while Deck 3 or 4 is playing; otherwise
@@ -653,6 +695,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     internal DeckViewModel? OnAirBeside(DeckViewModel deck) => ActiveDecks.FirstOrDefault(d =>
         d != deck && d.IsOnAir && Crossfade.Side(d.Deck.Index) == Crossfade.Side(deck.Deck.Index));
     public MixerViewModel? Mixer { get; }
+
+    /// <summary>What the room hears and what's next, in place of hidden decks (#164).</summary>
+    public AirLineViewModel? AirLine { get; }
     public PreviewViewModel? Preview { get; }
     public AutoPlayViewModel? AutoPlay { get; }
     public SettingsViewModel Settings { get; }
@@ -1056,6 +1101,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         foreach (DeckViewModel deck in Decks)
             deck.UpdateMeter();
         RefreshDecks();
+        AirLine?.Refresh();
         Preview?.Refresh();
         KeepNight();
         if (!_roomHasHeardMusic && Decks.Any(d => d.IsOnAir))

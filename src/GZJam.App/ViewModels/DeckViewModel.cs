@@ -839,6 +839,9 @@ public sealed partial class DeckViewModel : ObservableObject
         _ => HasTrack ? "-" + Format.Duration(Deck.Remaining) : "-0:00",
     };
 
+    /// <summary>Time left, whichever readout the deck shows: for the line in place of hidden decks (#164).</summary>
+    public string TimeLeftText => HasTrack ? "-" + Format.Duration(Deck.Remaining) : "";
+
     /// <summary>How long before the music ends the readout starts blinking, as on CDJs.</summary>
     internal static readonly TimeSpan EndingWarning = TimeSpan.FromSeconds(30);
 
@@ -1343,6 +1346,7 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(BpmText));
         OnPropertyChanged(nameof(BpmCaption));
         OnPropertyChanged(nameof(ReadoutText));
+        OnPropertyChanged(nameof(TimeLeftText));
         OnPropertyChanged(nameof(ReadoutCaption));
         OnPropertyChanged(nameof(IsEnding));
         OnPropertyChanged(nameof(IsReadoutDimmed));

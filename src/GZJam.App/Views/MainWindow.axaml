@@ -108,14 +108,15 @@
           </StackPanel>
         </Button>
 
-        <!-- Smaller decks for more songs, and back: also Ctrl/Cmd+D and the grip under the decks -->
+        <!-- Smaller decks for more songs, and back: also Ctrl/Cmd+D and the grip under the decks.
+             With the decks hidden (Ctrl/Cmd+Shift+D, #164), it brings them back. -->
         <Button x:Name="CompactDecksButton" Grid.Column="7" Classes="icon-button" Command="{Binding ToggleCompactDecksCommand}"
-                ToolTip.Tip="{Binding CompactDecksTip}" Classes.on="{Binding CompactDecks}">
+                ToolTip.Tip="{Binding CompactDecksTip}" Classes.on="{Binding AreDecksSmaller}">
           <Panel Width="16" Height="16">
             <Path Data="{StaticResource IconDecksSmaller}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
-                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding !CompactDecks}" />
+                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding !AreDecksSmaller}" />
             <Path Data="{StaticResource IconDecksBigger}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
-                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding CompactDecks}" />
+                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" IsVisible="{Binding AreDecksSmaller}" />
           </Panel>
         </Button>
 
@@ -141,8 +142,54 @@
       <TextBlock Text="{Binding AudioError}" Foreground="{StaticResource OnAirBrush}" TextWrapping="Wrap" />
     </Border>
 
+    <!-- ───────────── Hidden decks: one line for what the room hears and what's next (#164) ───────────── -->
+    <Border x:Name="AirLine" Grid.Row="1" Classes="panel air-line" IsVisible="{Binding DecksHidden}" ClipToBounds="True">
+      <Panel>
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,*,Auto" ColumnSpacing="14" Margin="12,8,8,8">
+          <!-- The deck the room hears: its own play key (two taps on air, if chosen), so the room
+               can always be paused without bringing the decks back -->
+          <Button x:Name="AirPlayButton" Classes="play" Classes.playing="{Binding AirLine?.Now?.IsPlaying, TargetNullValue=False}"
+                  Classes.armed="{Binding AirLine?.Now?.IsPauseArmed, TargetNullValue=False}" Command="{Binding AirLine?.Now?.TogglePlayCommand}"
+                  IsEnabled="{Binding AirLine?.HasNow}" ToolTip.Tip="{Binding AirLine?.Now?.PlayTip}"
+                  Width="34" Height="34" VerticalAlignment="Center">
+            <Panel>
+              <PathIcon Data="{StaticResource IconPlay}" Width="12" Height="12" IsVisible="{Binding !AirLine?.Now?.IsPlaying, TargetNullValue=False}" />
+              <PathIcon Data="{StaticResource IconPause}" Width="11" Height="11" IsVisible="{Binding AirLine?.Now?.IsPlaying, TargetNullValue=False}" />
+            </Panel>
+          </Button>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" IsVisible="{Binding AirLine?.HasNow}">
+            <TextBlock x:Name="AirDeckName" Classes="deck-name" Text="{Binding AirLine?.Now?.Label, StringFormat='DECK {0}'}" />
+            <TextBlock Classes="status" Classes.air="{Binding AirLine?.Now?.IsOnAir, TargetNullValue=False}" Text="{Binding AirLine?.Now?.Status}" FontSize="10" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+            <TextBlock x:Name="AirTitle" Text="{Binding AirLine?.Now?.Title, FallbackValue='Nothing on air', TargetNullValue='Nothing on air'}" FontSize="14" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock Classes="muted" Text="{Binding AirLine?.Now?.Track?.Artist, FallbackValue=''}" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Border Grid.Column="3" Classes="hint" VerticalAlignment="Center"
+                  IsVisible="{Binding AirLine?.Now?.Hint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+            <TextBlock Text="{Binding AirLine?.Now?.Hint}" />
+          </Border>
+          <TextBlock x:Name="AirTimeLeft" Grid.Column="4" Classes="mono readout-text" Classes.blink="{Binding AirLine?.Now?.IsReadoutDimmed, TargetNullValue=False}"
+                     Text="{Binding AirLine?.Now?.TimeLeftText}" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="5" VerticalAlignment="Center" Spacing="2" Margin="10,0,0,0">
+            <TextBlock x:Name="AirNextFrom" Classes="label" Text="{Binding AirLine?.NextFrom}" />
+            <TextBlock x:Name="AirNextText" Text="{Binding AirLine?.NextText}" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Button x:Name="ShowDecksButton" Grid.Column="6" Classes="icon-button" Command="{Binding ToggleHideDecksCommand}"
+                  ToolTip.Tip="{Binding HideDecksTip}" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconDecksBigger}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.8"
+                  StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16" />
+          </Button>
+        </Grid>
+        <!-- How far into the song the room is, the width of the line (#165) -->
+        <c:AirBar x:Name="AirLineBar" Classes="air-line-bar" Progress="{Binding AirLine?.Now?.AirProgress, TargetNullValue=0}"
+                  Fill="{StaticResource OnAirBrush}" IsVisible="{Binding AirLine?.Now?.IsOnAir, TargetNullValue=False}" IsHitTestVisible="False" />
+      </Panel>
+    </Border>
+
     <!-- ───────────── Decks + mixer ───────────── -->
-    <Grid Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
+    <Grid x:Name="DecksRow" Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
       <!-- The row is as tall as the decks or the mixer column need, whichever is more. With four
            decks, 3 sits under 1 and 4 under 2, all four the same height (MainWindow.ApplyDeckLayout). -->
       <Grid x:Name="LeftDecks" RowDefinitions="*,Auto">

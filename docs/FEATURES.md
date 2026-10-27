@@ -1412,3 +1412,21 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   (`AppSettings.PlaylistsHeight`, 220 to start with), from 60 px (two rows) up to leaving the
   folders 70 px; clamped again as the window changes size. A short list stays as short as its
   playlists. Hidden while folded, where there's nothing to share.
+
+### Status: hiding the decks (#164, 0.9.3)
+
+- One step past compact decks (`AppSettings.DecksHidden`, remembered): the decks and mixer
+  (`DecksRow`) give way to one line under the top bar (`AirLine`), and the library and queue take
+  the rest. Unhiding brings them back as they were, compact or not.
+- **Keys:** Ctrl+Shift+D (Cmd on macOS) hides and shows. Ctrl+D, the top bar's decks key and a tap
+  on the grip bring hidden decks back. The grip moves one step per drag from where it was pressed
+  (full, compact, hidden), so one long drag from full decks doesn't hide them.
+- **The line** (`AirLineViewModel`, refreshed every tick): *now* is the deck on air (the
+  crossfader's side first, in a blend), else the loaded deck on the crossfader's side, ready to
+  start. It shows that deck's play key (its `TogglePlayCommand`, so the two-tap rule and its hint
+  apply; no press-and-hold here), DECK n and ON AIR, title and artist, any hint, the time left
+  (always time left, whatever the deck's readout shows; it blinks in the last 30 seconds) and a
+  full-width on-air bar (#165). *Next* is another loaded deck (one off air first), else the first
+  song in the queue. Colored by the deck shown.
+- Not shown: the mixer's meter and faders (MAIN and PHONES keep their keys). Hiding pauses
+  nothing, and the decks' views stay alive underneath.
