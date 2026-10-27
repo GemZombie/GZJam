@@ -161,7 +161,16 @@ to one you'd use.
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
 
+- [Fold away the folder list, or drag the divider](https://github.com/GemZombie/GZJam/issues/163),
+  to see more playlists
+
 **Playing**
+- [Hide the decks](https://github.com/GemZombie/GZJam/issues/164): one line at the top with
+  what's playing and what's next, for the most songs on screen
+- [The on-air bar fills as the song plays](https://github.com/GemZombie/GZJam/issues/165), to show
+  at a glance how far into it the room is
+- [A key for Settings](https://github.com/GemZombie/GZJam/issues/166): Ctrl+, (Cmd+, on a Mac),
+  and Ctrl+O
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
