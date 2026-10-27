@@ -106,9 +106,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [Hide the decks](https://github.com/GemZombie/GZJam/issues/164) with Ctrl+Shift+D (Cmd on a
-  Mac): one line at the top with the song the room hears, its play key, time left and what's next,
-  for the most songs on screen.
+- [Hide the decks](https://github.com/GemZombie/GZJam/issues/164): one line at the top with the
+  song the room hears, its play key, time left and what's next, for the most songs on screen. A
+  [switch in the top bar](https://github.com/GemZombie/GZJam/issues/171) picks full, compact or
+  hidden decks in one click.
+- [Fold the library or the queue away](https://github.com/GemZombie/GZJam/issues/173) into a slim
+  strip that a tap opens again, easy by touch even in full screen.
 - [The on-air bar fills as the song plays](https://github.com/GemZombie/GZJam/issues/165), so you
   see at a glance how far into it the room is.
 - [More room for playlists](https://github.com/GemZombie/GZJam/issues/163): fold the folders down
