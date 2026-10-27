@@ -187,7 +187,7 @@ public sealed class TouchDragTests
         app.ViewModel.Settings.TouchMode = true;
         AppHarness.Settle(200);
         var splitter = app.Window.FindControl<GridSplitter>("TreeSplitter")!;
-        var folders = (Control)((Grid)splitter.Parent!).Children.OfType<Control>().First(c => Grid.GetColumn(c) == 0);
+        var folders = app.Window.FindControl<Control>("LibraryPanel")!;
         double before = folders.Bounds.Width;
 
         // 5 px into the folder panel, beside the 12 px gap: still the divider in touch mode.
