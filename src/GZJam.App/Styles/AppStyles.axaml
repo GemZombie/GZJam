@@ -188,6 +188,26 @@
   </Style>
 
   <!-- Playlists, under the folder tree: rows like the folders' -->
+  <!-- LIBRARY's fold arrow (#163): down while the folders show, right when folded away, drawn
+       like the folders' own arrows -->
+  <Style Selector="Path.fold-chevron">
+    <Setter Property="Width" Value="9" />
+    <Setter Property="Height" Value="9" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Fill" Value="{StaticResource MutedBrush}" />
+    <Setter Property="Data" Value="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
+  </Style>
+  <Style Selector="Path.fold-chevron.folded">
+    <Setter Property="Data" Value="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
+  </Style>
+  <!-- The grip on the playlists' top edge: drag to share the column with the folders (#163) -->
+  <Style Selector="Border.playlists-grip">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Margin" Value="0,-6,0,0" />
+    <Setter Property="ZIndex" Value="1" />
+  </Style>
   <Style Selector="Border.playlists-header">
     <Setter Property="BorderThickness" Value="0,1,0,1" />
     <Setter Property="Height" Value="36" />

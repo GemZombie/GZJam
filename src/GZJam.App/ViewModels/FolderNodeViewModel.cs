@@ -29,6 +29,12 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsExpanded { get; set; }
 
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value)
+            _owner.FolderExpanded();
+    }
+
     /// <summary>"Jazz &amp; Swing › Classic Swing", including the root's name.</summary>
     public string DisplayPath => Parent is null ? Name : $"{Parent.DisplayPath} › {Name}";
 

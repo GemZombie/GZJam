@@ -329,6 +329,12 @@ Delete to take a song out (the file isn't touched). **Add to queue** puts the wh
 queue; right-click a song › *Add to queue from here* puts the rest. The queue's menu has *Save queue
 as playlist…*, and History's ⋯ has *Save as playlist…*.
 
+**More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
+down for more folders. If you only ever play from the whole library or a playlist, click the arrow
+beside **LIBRARY** to fold the folders away: only your music folder shows (still there to click for
+the whole library), and the playlists take the rest of the column. Opening a folder, or the arrow
+again, brings the folders back. GZJam remembers both.
+
 ### Renamed and moved songs
 
 Rename or move songs in your file manager whenever you like: a song keeps its hearts, labels, cues,

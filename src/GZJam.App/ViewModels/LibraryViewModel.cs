@@ -44,6 +44,41 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial FolderNodeViewModel? SelectedFolder { get; set; }
 
+    /// <summary>
+    /// The folder list folded down to the music folders themselves, so the playlists get the room
+    /// (#163). Opening a folder in the tree (or "Show in folder") unfolds it again.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FoldTip))]
+    public partial bool AreFoldersFolded { get; set; }
+
+    public string FoldTip => AreFoldersFolded ? "Show the folders" : "Fold the folders away, for more playlists";
+
+    [RelayCommand]
+    private void ToggleFoldFolders() => AreFoldersFolded = !AreFoldersFolded;
+
+    partial void OnAreFoldersFoldedChanged(bool value)
+    {
+        var nodes = Roots.SelectMany(r => r.SelfAndDescendants()).ToList();
+        if (value)
+        {
+            foreach (var node in nodes)
+                node.IsExpanded = false;
+        }
+        else if (!nodes.Any(n => n.IsExpanded))
+        {
+            foreach (var root in Roots)
+                root.IsExpanded = true;   // back as it opens the first time
+        }
+    }
+
+    /// <summary>A folder in the tree was opened: with the folders folded, they unfold.</summary>
+    internal void FolderExpanded()
+    {
+        if (AreFoldersFolded)
+            AreFoldersFolded = false;
+    }
+
     [ObservableProperty]
     public partial string SearchText { get; set; } = "";
 
@@ -487,7 +522,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         {
             var vm = new FolderNodeViewModel(this, node, null);
             foreach (var n in vm.SelfAndDescendants())
-                n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot);
+                n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !AreFoldersFolded);
             Roots.Add(vm);
         }
         SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;

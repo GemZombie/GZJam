@@ -19,6 +19,9 @@ New:
 - **The red on-air bar fills up as the song plays,** along the top of the deck the room hears:
   bright for what's played, dim for what's left, on every size of deck. It's full when the time
   left reaches 0:00.
+- **More room for playlists:** the arrow beside LIBRARY folds the folders down to your music folder,
+  and the playlists take the rest of the column. Or drag the grip on the PLAYLISTS header to make
+  the list longer or shorter. Both are remembered.
 
 ## 0.9.2 (2026-10-26)
 

@@ -99,6 +99,15 @@ public sealed class AppSettings
     public bool CompactDecks { get; set; }
 
     /// <summary>
+    /// The folder list folded down to the music folders themselves, for more playlists (#163): for
+    /// a DJ who plays from the whole library or a playlist, never one album's folder.
+    /// </summary>
+    public bool FoldersFolded { get; set; }
+
+    /// <summary>How tall the playlist list may grow, in pixels, dragged by the DJ (#163); null: 220.</summary>
+    public double? PlaylistsHeight { get; set; }
+
+    /// <summary>
     /// Turn each track up or down toward the same loudness (measured when it's analyzed), so a
     /// quiet 1938 transfer and a loud remaster play at about the same level. On by default.
     /// </summary>

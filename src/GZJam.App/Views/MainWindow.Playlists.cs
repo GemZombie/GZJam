@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
@@ -20,8 +21,15 @@ public partial class MainWindow
         DataContextChanged += (_, _) =>
         {
             if (DataContext is MainWindowViewModel vm)
+            {
                 vm.Library.PropertyChanged += OnLibraryChangedForPlaylists;
+                ApplyLibraryColumn();
+            }
         };
+        LibraryColumn.SizeChanged += (_, _) => ApplyLibraryColumn();
+        PlaylistsGrip.PointerPressed += OnPlaylistsGripPressed;
+        PlaylistsGrip.PointerMoved += OnPlaylistsGripMoved;
+        PlaylistsGrip.PointerReleased += OnPlaylistsGripReleased;
     }
 
     private void OnLibraryChangedForPlaylists(object? sender, PropertyChangedEventArgs e)
@@ -29,6 +37,72 @@ public partial class MainWindow
         // A playlist shows in its own order: whatever column the library was sorted by doesn't apply.
         if (e.PropertyName == nameof(LibraryViewModel.IsPlaylistOpen) && Vm.Library.IsPlaylistOpen)
             TrackGrid.CollectionView?.SortDescriptions.Clear();
+        else if (e.PropertyName == nameof(LibraryViewModel.AreFoldersFolded))
+            ApplyLibraryColumn();
+    }
+
+    // ───────────── Sharing the column with the folders (#163) ─────────────
+
+    /// <summary>How tall the playlist list may grow until the DJ drags its grip (about eight rows).</summary>
+    internal const double DefaultPlaylistsHeight = 220;
+
+    /// <summary>The least the grip leaves either side: about two rows of playlists, or of folders.</summary>
+    private const double MinPlaylistsHeight = 60, MinFoldersHeight = 70;
+
+    private double _playlistsGripFrom, _playlistsHeightFrom;
+
+    /// <summary>
+    /// Folded, the folder list is only as tall as its music folders and the playlists take the
+    /// rest. Otherwise the folders take the room and the playlists grow up to the height dragged
+    /// (220 to start with), always leaving the folders a little.
+    /// </summary>
+    private void ApplyLibraryColumn()
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+        bool folded = vm.Library.AreFoldersFolded;
+        LibraryColumn.RowDefinitions[1].Height = folded ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
+        LibraryColumn.RowDefinitions[2].Height = folded ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
+        PlaylistList.MaxHeight = folded ? double.PositiveInfinity : ClampPlaylistsHeight(vm.PlaylistsHeight ?? DefaultPlaylistsHeight);
+    }
+
+    private double ClampPlaylistsHeight(double height)
+    {
+        // What else the column holds: its header, the playlists' header and the margins around the lists.
+        double others = LibraryColumn.RowDefinitions[0].ActualHeight + PlaylistsSection.Bounds.Height - PlaylistList.Bounds.Height
+            + FolderTree.Margin.Top + FolderTree.Margin.Bottom;
+        double most = LibraryColumn.Bounds.Height - others - MinFoldersHeight;
+        if (LibraryColumn.Bounds.Height > 0 && most > MinPlaylistsHeight)
+            height = Math.Min(height, most);
+        return Math.Max(MinPlaylistsHeight, height);
+    }
+
+    internal double PlaylistsMaxHeight => PlaylistList.MaxHeight;
+
+    private void OnPlaylistsGripPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _playlistsGripFrom = e.GetPosition(this).Y;
+        _playlistsHeightFrom = PlaylistList.Bounds.Height;
+        e.Pointer.Capture(PlaylistsGrip);
+        e.Handled = true;
+    }
+
+    /// <summary>Up: taller playlists, down: shorter, following the pointer.</summary>
+    private void OnPlaylistsGripMoved(object? sender, PointerEventArgs e)
+    {
+        if (e.Pointer.Captured != PlaylistsGrip)
+            return;
+        double height = ClampPlaylistsHeight(_playlistsHeightFrom - (e.GetPosition(this).Y - _playlistsGripFrom));
+        PlaylistList.MaxHeight = height;
+        Vm.PlaylistsHeight = height;
+    }
+
+    private void OnPlaylistsGripReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (e.Pointer.Captured != PlaylistsGrip)
+            return;
+        e.Pointer.Capture(null);
+        e.Handled = true;
     }
 
     private void OnNewPlaylistClick(object? sender, RoutedEventArgs e) => _ = Vm.CreatePlaylistAsync();
