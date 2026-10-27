@@ -1379,4 +1379,4 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   - **Ctrl+P**: auto-play on or off, or a notice when there's nothing to play.
 - Decks beyond those on screen are ignored. Fade out has no key: one keypress ending the song the
   room hears was judged too easy to hit.
-- The play, CUE, crossfader and AUTO-PLAY tooltips name their keys (`Format.CommandKey`).
+- The play, CUE, crossfader and AUTO-PLAY tooltips name their keys (`Shortcuts.Command`).
