@@ -31,8 +31,13 @@ public sealed class HideDecksTests
         AppHarness.Settle(150);
         Assert.True(app.Settings.DecksHidden);   // remembered
         Assert.False(Find<Control>(app, "DecksRow").IsVisible);
-        Assert.True(Find<Control>(app, "AirLine").IsVisible);
+        Assert.True(Find<Control>(app, "QueueDecks").IsVisible);   // atop the queue (#177)
         Assert.True(Find<Control>(app, "TrackGrid").Bounds.Height > songs + 200, "the library gets the room");
+
+        // The queue folded away: the line under the top bar stands in for the decks.
+        Find<Button>(app, "FoldQueueButton").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        AppHarness.Settle(150);
+        Assert.True(Find<Control>(app, "AirLine").IsVisible);
         Assert.True(Find<Control>(app, "AirLine").Bounds.Height < 70, "one line");
         Assert.Equal("Nothing on air", Find<TextBlock>(app, "AirTitle").Text);
         Assert.False(Find<Button>(app, "AirPlayButton").IsEffectivelyEnabled);
@@ -57,7 +62,8 @@ public sealed class HideDecksTests
     [AvaloniaFact]
     public void The_line_shows_the_song_on_air_its_bar_and_whats_next_and_pauses_with_two_taps()
     {
-        using var app = new AppHarness();
+        // The queue folded, so the line is what stands in for the decks (#177).
+        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, QueuePanelFolded = true });
         app.Settings.OnAirPause = OnAirPause.TapTwice;
         var vm = app.ViewModel;
         vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Jump Steady", 60)).GetAwaiter().GetResult();

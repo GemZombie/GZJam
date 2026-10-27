@@ -149,11 +149,15 @@ but still applies). With four decks, compact decks also leave out the waveforms.
 choice.
 
 **Hidden decks**, for the most songs on screen (the switch's third key, or **Ctrl+Shift+D**,
-Cmd+Shift+D on a Mac), fold the decks and mixer into one line under the top bar: the deck the room
-hears with its play key (two taps on air, if you've chosen two taps), its song, the time left and
-the red bar filling as it plays, then what's next (the other deck's song, or the first in the
-queue). Everything carries on as before: auto-play, the keys, the music. The switch, the same key,
-the arrows at the end of the line, a tap on the grip or a drag down bring the decks back.
+Cmd+Shift+D on a Mac), fold the decks and mixer away. They sit at the top of the queue instead, in
+the order the room will hear them: first the deck the room hears, with its play key (two taps on
+air, if you've chosen two taps), its song, the time left and the red bar filling as it plays; then
+the other deck; then the queue. So the whole running order is in one column. Drop a song on a
+deck's row to load it, protected as on the deck itself. With the queue folded away or History
+showing, one line under the top bar stands in for the decks: the same play key, song and time
+left, then what's next. Everything carries on as before: auto-play, the keys, the music. The
+switch, the same key, the arrows at the end of the line, a tap on the grip or a drag down bring
+the decks back.
 
 ![Two decks: Deck 1 on air with cue keys 1 and 2, Deck 2 cued in the headphones with a jump set, and a song previewing under the list](images/guide/decks.png)
 

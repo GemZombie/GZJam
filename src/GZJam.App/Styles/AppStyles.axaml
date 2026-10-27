@@ -428,6 +428,34 @@
     <Setter Property="VerticalAlignment" Value="Top" />
   </Style>
 
+  <!-- Hidden decks atop the queue (#177): a row each, the one the room hears first and brighter,
+       its on-air bar along the bottom; a line under the last before the queue -->
+  <Style Selector="ItemsControl#QueueDecks">
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+  <Style Selector="Border.deck-row">
+    <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="ItemsControl#QueueDecks ContentPresenter:nth-child(n+2) Border.deck-row">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ItemsControl#QueueDecks ContentPresenter:nth-last-child(1) Border.deck-row">
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
+  </Style>
+  <Style Selector="Border.deck-row.drop-ok">
+    <Setter Property="Background" Value="#3322C55E" />
+  </Style>
+  <Style Selector="Border.deck-row.drop-no">
+    <Setter Property="Background" Value="#33F04444" />
+  </Style>
+  <Style Selector="c|AirBar.deck-row-bar">
+    <Setter Property="Height" Value="3" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+  </Style>
+
   <!-- A side panel folded away: a strip the height of the panels, its name sideways; a tap opens it -->
   <Style Selector="Button.fold-strip">
     <Setter Property="HorizontalAlignment" Value="Stretch" />

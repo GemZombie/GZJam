@@ -94,6 +94,7 @@ public partial class MainWindow
             return;
         AppSettings settings = vm.PanelSettings;
         bool wide = settings.QueueWide && !settings.QueuePanelFolded;
+        vm.QueuePanelOpen = !settings.QueuePanelFolded;
         ApplyPane(0, LibraryPanel, LibraryStrip, TreeSplitter, TreeSplitterGrip, settings.LibraryPanelFolded,
             settings.LibraryPanelWidth ?? DefaultLibraryWidth);
         ApplyPane(4, QueuePanel, QueueStrip, QueueSplitter, QueueSplitterGrip, settings.QueuePanelFolded,
