@@ -549,7 +549,7 @@
               <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Bpm, Mode=OneWay, Converter={x:Static app:Converters.Bpm}}" SortMemberPath="Bpm" />
               <!-- Energy: tap to cycle unset, low, medium, high -->
-              <DataGridTemplateColumn Header="Energy" Width="84" CanUserResize="False" SortMemberPath="Energy">
+              <DataGridTemplateColumn Header="Energy" Width="84" MinWidth="44" SortMemberPath="Energy">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate DataType="lib:Track">
                     <Button Classes="row-icon" Padding="8,4" Click="OnEnergyCellClick" HorizontalAlignment="Center" VerticalAlignment="Center"
