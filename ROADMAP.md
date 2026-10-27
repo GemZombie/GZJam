@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.2** (26 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.3** (27 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -21,7 +21,8 @@ release.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
   A song added to the queue or a playlist twice is still added, but GZJam says so, with Undo.
 - Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
-  it, and add it to the queue. The queue or a night in History can be saved as one.
+  it, and add it to the queue. The queue or a night in History can be saved as one. Fold the
+  folders away, or drag the playlists' grip, for a longer list of them.
 - A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
   marks, labels, cues, playlists and plays; one in the queue or on a deck follows it.
 - Songs can be dragged straight from the file manager onto a deck or into the queue, even ones
@@ -34,8 +35,11 @@ release.
 
 **Decks**
 - Two decks, or four in the same space.
-- Compact decks for a laptop: smaller decks, so the library and queue show more songs. A key, a
-  button or a grip switches them, as often as you like during a night.
+- Compact decks for a laptop: smaller decks, so the library and queue show more songs. Or hide
+  the decks, for the most songs on screen: one line at the top keeps the song the room hears, its
+  play key, time left and what's next. A switch in the top bar picks full, compact or hidden in
+  one click (or a key, or the grip under the decks), as often as you like during a night.
+- The deck the room hears has a red on-air bar that fills as the song plays.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
   passages closer together.
@@ -89,7 +93,9 @@ release.
   never stops the music.
 - Touch: everything works by finger, with a touch mode for bigger keys and rows, and grips on the
   dividers between panels. A finger held on a position bar moves the song only when it lets go.
-- Full screen with F11 (on a Mac, also Ctrl+Cmd+F).
+- Fold the library or the queue away into a slim strip, which a tap opens again.
+- Full screen with F11 (on a Mac, also Ctrl+Cmd+F), and Settings with Ctrl+, or Ctrl+O (Cmd on a
+  Mac).
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
 - GZJam says quietly, at startup, when a new version is out (never during a set), and a
@@ -106,18 +112,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [Hide the decks](https://github.com/GemZombie/GZJam/issues/164): one line at the top with the
-  song the room hears, its play key, time left and what's next, for the most songs on screen. A
-  [switch in the top bar](https://github.com/GemZombie/GZJam/issues/171) picks full, compact or
-  hidden decks in one click.
-- [Fold the library or the queue away](https://github.com/GemZombie/GZJam/issues/173) into a slim
-  strip that a tap opens again, easy by touch even in full screen.
-- [The on-air bar fills as the song plays](https://github.com/GemZombie/GZJam/issues/165), so you
-  see at a glance how far into it the room is.
-- [More room for playlists](https://github.com/GemZombie/GZJam/issues/163): fold the folders down
-  to your music folder, or drag the playlists' grip.
-- [A key for Settings](https://github.com/GemZombie/GZJam/issues/166): Ctrl+, or Ctrl+O (Cmd on a
-  Mac).
+Nothing yet since 0.9.3.
 
 ## Planned next
 
