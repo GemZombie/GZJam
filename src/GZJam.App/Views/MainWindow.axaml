@@ -807,7 +807,7 @@
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
-                  <Grid ColumnDefinitions="Auto,20,Auto,*,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent"
+                  <Grid ColumnDefinitions="Auto,20,Auto,*,Auto,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent"
                         Opacity="{Binding Track.IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}">
                     <Border Classes="next-bar" IsVisible="{Binding IsNext}" Grid.ColumnSpan="2" />
                     <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
@@ -817,23 +817,33 @@
                     </Border>
                     <TextBlock Grid.Column="1" Classes="dim mono" Text="{Binding Number}" FontSize="11"
                                HorizontalAlignment="Right" VerticalAlignment="Center" />
-                    <c:AlbumArt Grid.Column="2" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
+                    <c:AlbumArt Grid.Column="2" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
                                 SongPath="{Binding Track.Path}" />
-                    <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,7">
+                    <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,7" MinWidth="90">
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
                       <!-- The artist, then the song's labels in what room is left -->
                       <c:PriorityRow Spacing="5">
                         <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                        <c:LabelChips x:Name="QueueLabels" Classes="small" ItemsSource="{Binding Track.Labels}" />
+                        <c:LabelChips x:Name="QueueLabels" Classes="small q-labels" ItemsSource="{Binding Track.Labels}" />
                       </c:PriorityRow>
                     </StackPanel>
-                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-                      <c:RatingIcon Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12" VerticalAlignment="Center" />
-                      <c:EnergyIcon Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10" VerticalAlignment="Center" />
-                      <TextBlock Classes="muted mono" Text="{Binding BpmText}" FontSize="11" />
-                      <TextBlock Classes="muted mono" Text="{Binding DurationText}" FontSize="11" />
+                    <!-- More of the song, chosen from the queue's menu (Show ›, #131): for a wide queue -->
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                      <TextBlock Classes="muted q-album" Text="{Binding Track.Album}" FontSize="11" Width="140"
+                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Album}" />
+                      <TextBlock Classes="muted q-genre" Text="{Binding Track.Genre}" FontSize="11" Width="80"
+                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Genre}" />
+                      <TextBlock Classes="muted mono q-year" Text="{Binding Track.Year}" FontSize="11" MinWidth="30" />
+                      <TextBlock Classes="muted mono q-played" FontSize="11" MinWidth="42" TextAlignment="Right" ToolTip.Tip="Last played"
+                                 Text="{Binding Track.LastPlayedUtc, Converter={x:Static app:Converters.Ago}}" />
                     </StackPanel>
-                    <Button Grid.Column="5" Classes="row-icon" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
+                    <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                      <c:RatingIcon Classes="q-rating" Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12" VerticalAlignment="Center" />
+                      <c:EnergyIcon Classes="q-energy" Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10" VerticalAlignment="Center" />
+                      <TextBlock Classes="muted mono q-bpm" Text="{Binding BpmText}" FontSize="11" />
+                      <TextBlock Classes="muted mono q-time" Text="{Binding DurationText}" FontSize="11" />
+                    </StackPanel>
+                    <Button Grid.Column="6" Classes="row-icon" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
                             VerticalAlignment="Center">
                       <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
                             StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
@@ -857,6 +867,7 @@
                   <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
                   <MenuItem x:Name="QueueBpmMenu" Header="BPM" />
                   <Separator />
+                  <MenuItem x:Name="QueueColumnsMenu" Header="Show" />
                   <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>

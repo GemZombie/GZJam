@@ -18,6 +18,9 @@ New:
   fold arrow. The queue takes the room in the middle, with the song list narrowed beside it, for
   nights spent reordering a long queue. The same key gives the song list the room back, and each
   way keeps its divider where you left it.
+- **Choose what the queue shows:** right-click the queue › *Show*. Album, genre, year and when a
+  song was last played can join the title, artist, BPM and time, and album art, the ♥, energy and
+  labels can be left out. Remembered.
 
 Fixed:
 
