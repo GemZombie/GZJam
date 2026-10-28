@@ -853,11 +853,11 @@
               <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="8" Classes="q-number" Text="#" Width="20" TextAlignment="Right" />
               <Panel c:FitRow.Key="Art" c:FitRow.DropOrder="7" Classes="q-art" Width="30" Margin="2,0,0,0" Background="Transparent"
                      ToolTip.Tip="Album art" />
-              <TextBlock c:FitRow.Key="Title" c:FitRow.Fills="True" Text="Title · Artist" />
-              <TextBlock c:FitRow.Key="Album" c:FitRow.DropOrder="1" Classes="q-album" Text="Album" Margin="4,0,0,0" />
-              <TextBlock c:FitRow.Key="Genre" c:FitRow.DropOrder="2" Classes="q-genre" Text="Genre" Margin="4,0,0,0" />
+              <TextBlock c:FitRow.Key="Title" c:FitRow.Fills="True" Classes="trims" Text="Title · Artist" />
+              <TextBlock c:FitRow.Key="Album" c:FitRow.DropOrder="1" Classes="q-album trims" Text="Album" Margin="4,0,0,0" />
+              <TextBlock c:FitRow.Key="Genre" c:FitRow.DropOrder="2" Classes="q-genre trims" Text="Genre" Margin="4,0,0,0" />
               <TextBlock c:FitRow.Key="Year" c:FitRow.DropOrder="3" Classes="q-year" Text="Year" Margin="4,0,0,0" />
-              <TextBlock c:FitRow.Key="Played" c:FitRow.DropOrder="4" Classes="q-played" Text="Played" Margin="4,0,0,0" TextAlignment="Right" />
+              <TextBlock c:FitRow.Key="Played" c:FitRow.DropOrder="4" Classes="q-played trims" Text="Played" Margin="4,0,0,0" TextAlignment="Right" />
               <TextBlock c:FitRow.Key="Rating" c:FitRow.DropOrder="6" Classes="q-rating" Text="♥" Width="12" TextAlignment="Center"
                          ToolTip.Tip="Rating" />
               <TextBlock c:FitRow.Key="Energy" c:FitRow.DropOrder="5" Classes="q-energy" Text="E" Width="12" Margin="3,0,0,0" TextAlignment="Center"

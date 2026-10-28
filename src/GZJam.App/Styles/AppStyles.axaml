@@ -296,8 +296,12 @@
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <!-- The long names end in "…" when narrowed; a short one (BPM, Year) stays whole, a pixel or two
+       into the gap beside it if a computer's font is wider -->
+  <Style Selector="Border.queue-columns TextBlock.trims">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
   </Style>
   <Style Selector="Border.queue-columns TextBlock.moving">
     <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />

@@ -164,7 +164,12 @@ public sealed class QueueColumnsTests
         }
         app.Screenshot("queue-column-names");
         var names = Header(app).Children.OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && !Header(app).IsDropped(t) && t.Text is { Length: > 0 });
-        Assert.All(names.Where(t => FitRow.GetKey(t) != "Title"), t => Assert.False(t.TextLayout.TextLines.Any(l => l.HasCollapsed), $"{t.Text} cut short"));
+        Assert.All(names.Where(t => FitRow.GetKey(t) != "Title"), t =>
+        {
+            Assert.False(t.TextLayout.TextLines.Any(l => l.HasCollapsed), $"{t.Text} cut short");
+            Assert.True(t.TextLayout.WidthIncludingTrailingWhitespace <= t.Bounds.Width + Header(app).Spacing,
+                $"{t.Text}: {t.TextLayout.WidthIncludingTrailingWhitespace:0.0} px in {t.Bounds.Width} and the gap");
+        });
     }
 
     [AvaloniaFact]
