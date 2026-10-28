@@ -845,7 +845,7 @@
 
           <Grid x:Name="QueueLists" Grid.Row="2" RowDefinitions="Auto,Auto,*" IsVisible="{Binding ShowQueue}">
           <!-- The column names (#188), laid out as the rows are, so they give way alike: drag one to
-               move it, the line after it to resize it (MainWindow.QueueHeader). Not a sort: the
+               move it, the line beside it (on the title's side) to resize it (MainWindow.QueueHeader). Not a sort: the
                queue's order is the running order. -->
           <Border x:Name="QueueHeaderBar" Classes="queue-columns" IsVisible="{Binding ShowsQueueColumnNames}">
             <c:FitRow x:Name="QueueHeader" Spacing="6" FillMinWidth="74" Margin="0,0,2,0" Background="Transparent">
