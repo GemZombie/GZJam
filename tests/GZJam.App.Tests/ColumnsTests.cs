@@ -4,6 +4,8 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Media;
+using System.ComponentModel;
 using Avalonia.VisualTree;
 
 namespace GZJam.App.Tests;
@@ -89,5 +91,49 @@ public sealed class ColumnsTests
         energy.Width = new DataGridLength(10);
         AppHarness.Settle(100);
         Assert.Equal(energy.MinWidth, energy.ActualWidth, 1);
+    }
+
+    [AvaloniaFact]
+    public void A_narrowed_column_keeps_its_name_and_the_sort_arrow_takes_room_only_where_it_shows()
+    {
+        using var app = new AppHarness();
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        Column(app, "Year").Width = new DataGridLength(48);
+        Column(app, "BPM").Width = new DataGridLength(48);
+        Column(app, "Artist").Width = new DataGridLength(100);
+        Column(app, "BPM").Sort(ListSortDirection.Ascending);
+        AppHarness.Settle(300);
+        app.Screenshot("library-narrow-columns");
+
+        TextBlock Name(string header) => grid.GetVisualDescendants().OfType<DataGridColumnHeader>()
+            .First(h => (string?)h.Content == header).GetVisualDescendants().OfType<TextBlock>().Single();
+
+        // Unsorted: the whole name fits, as it did not before (#186: 0 px left at 48 px wide).
+        foreach (string header in new[] { "Year", "Artist" })
+        {
+            var name = Name(header);
+            Assert.Equal(TextTrimming.CharacterEllipsis, name.TextTrimming);
+            Assert.True(name.Bounds.Width >= Natural(name), $"{header}: {name.Bounds.Width} px for {Natural(name)}");
+        }
+        // Sorted: the arrow shows, and the name still has most of its room.
+        var bpm = Name("BPM");
+        var arrow = grid.GetVisualDescendants().OfType<DataGridColumnHeader>().First(h => (string?)h.Content == "BPM")
+            .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single(p => p.Name == "SortIcon");
+        Assert.True(arrow.IsEffectivelyVisible);
+        Assert.True(bpm.Bounds.Width >= 12, $"BPM sorted: {bpm.Bounds.Width} px");
+
+        // The cells get the column's room less its padding (the grid's own text margin took 24 px
+        // more), and end in "…" rather than cutting a letter in half.
+        var artist = grid.GetVisualDescendants().OfType<DataGridCell>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>())
+            .First(t => t.Text == app.Library.Results[0].Artist);
+        Assert.Equal(TextTrimming.CharacterEllipsis, artist.TextTrimming);
+        Assert.True(artist.Bounds.Width >= 100 - 2 * 8 - 1, $"Artist cell: {artist.Bounds.Width} px");
+    }
+
+    private static double Natural(TextBlock text)
+    {
+        var copy = new TextBlock { Text = text.Text, FontSize = text.FontSize, FontWeight = text.FontWeight, FontFamily = text.FontFamily };
+        copy.Measure(Size.Infinity);
+        return Math.Floor(copy.DesiredSize.Width);
     }
 }
