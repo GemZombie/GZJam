@@ -488,6 +488,11 @@
                     ItemsSource="{Binding Library.Results}"
                     IsReadOnly="True" SelectionMode="Extended"
                     CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False">
+            <!-- The grid keeps 32 px of every header for the sort arrow, sorted or not, so a narrow
+                 column lost its name (#186): the arrow takes room only where it shows -->
+            <DataGrid.Resources>
+              <x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
+            </DataGrid.Resources>
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="38" CanUserResize="False" CanUserSort="False">
                 <DataGridTemplateColumn.CellTemplate>

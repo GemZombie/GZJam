@@ -151,6 +151,20 @@
     <Setter Property="Padding" Value="8,0" />
     <Setter Property="MinHeight" Value="32" />
   </Style>
+  <!-- Narrow columns (#186): the name ends in "…", and the sort arrow keeps a little gap from it -->
+  <Style Selector="DataGrid.tracks DataGridColumnHeader TextBlock">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="DataGrid.tracks DataGridColumnHeader /template/ Path#SortIcon">
+    <Setter Property="Height" Value="10" />
+    <Setter Property="Margin" Value="4,0,0,0" />
+  </Style>
+  <!-- The grid's text cells keep 12 px each side on top of the cell's own 8, so a 48 px BPM column
+       had room for one digit: only the cell's padding now, as the written cells have -->
+  <Style Selector="DataGrid.tracks DataGridCell TextBlock">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Margin" Value="0" />
+  </Style>
   <!-- A song's labels, after its title -->
   <Style Selector="Border.label-chip">
     <Setter Property="Background" Value="#1C222C" />
