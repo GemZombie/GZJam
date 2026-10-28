@@ -120,6 +120,15 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   ending in "…" when they don't fit.
 - [A narrow queue no longer overlaps](https://github.com/GemZombie/GZJam/issues/187): what it shows
   gives way a part at a time, album first and BPM and time last.
+- [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from its
+  right-click menu, heard in the headphone preview; previews now play songs with their EQ and
+  loudness matching, as a deck will.
+- [Export a playlist, the queue or a night as files](https://github.com/GemZombie/GZJam/issues/101),
+  to a folder or USB stick, numbered in order with a playlist beside them.
+- [Restore a backup where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112):
+  GZJam asks where each music folder is now, and offers the likeliest.
+- [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189),
+  lined up with it, BPM as the room hears it.
 
 ## Planned next
 
@@ -130,14 +139,6 @@ couldn't be reproduced in 170 runs on five sound cards; if the activity log ever
 ran dry, it's reopened.
 
 *New*
-- [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189):
-  rating, energy, labels, BPM (as the room hears it) and the rest, as room allows
-- [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
-  library, queue or a playlist, while preparing a set
-- [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
-  stick: a spare copy of the night's set, or one to hand to another DJ
-- [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
-  for a new laptop with a different drive or system
 - [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
   the library
 

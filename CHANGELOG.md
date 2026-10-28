@@ -12,6 +12,31 @@ Bring ROADMAP.md up to date at the same time: it's the big picture, this is what
 
 ## 0.9.5 (unreleased)
 
+New:
+
+- **EQ a song without loading it:** right-click it in the song list, a playlist, the queue or
+  History › *EQ…*. The same EQ panel as a deck's opens beside it, with *Preview in headphones* to
+  hear it while you set it. It's used when the song is loaded later, and a deck already holding
+  it follows at once.
+- **Export a playlist, the queue or a night as files:** right-click a playlist, the queue › *Export
+  as files…*, or a History night's ⋯. Pick where (a USB stick, say): the songs are copied there in
+  order into a new folder, as *01 - Artist - Title.mp3*, with a playlist file beside them that plays
+  from wherever the folder goes. A spare copy of the night's set, or one to hand to another DJ.
+  GZJam says first how many songs, how big, and the room there. It only copies: your files are
+  never moved or changed, and nothing is overwritten.
+- **Restore a backup on another computer, with the music somewhere else:** a new laptop, another
+  drive, or from Windows to Linux. If the backup's music folders aren't there, GZJam asks where
+  each one is now, offering the likeliest (a folder of the same name with the songs in it) and
+  saying how many of its songs it found. Everything you gave your songs comes along.
+- **With the decks hidden, their rows atop the queue show what the queue shows:** labels, the ♥,
+  energy, album and the rest, as you've chosen in the queue's menu › *Show*, lined up with the
+  queue's. The BPM is the one the room hears, with the deck's pitch.
+
+Changed:
+
+- **The headphone preview plays a song as a deck will:** with its EQ, its evening out and loudness
+  matching. Before, previews played every file as it was.
+
 Fixed:
 
 - **Narrow song list columns keep their names and their text.** A column made thin lost its name
