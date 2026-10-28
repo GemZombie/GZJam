@@ -254,6 +254,39 @@ public sealed class QueueColumnsTests
     }
 
     [AvaloniaFact]
+    public void The_lines_to_drag_show_between_the_names_and_light_up_under_the_pointer()
+    {
+        using var app = new AppHarness();
+        app.ViewModel.Queue.Add(app.Library.Results.Take(3).ToList());
+        app.Window.SetQueueColumnShown("Album", true);
+        app.Window.FindControl<Grid>("PanesGrid")!.ColumnDefinitions[4].Width = new GridLength(560);
+        AppHarness.Settle(200);
+
+        // A line beside each name that resizes, and only those: in the gap on the title's side.
+        var header = Header(app);
+        Assert.Equal(MainWindow.QueueColumnSizes.Keys.Order(), header.Children.Where(FitRow.GetDivided).Select(c => FitRow.GetKey(c)!).Order());
+        var shown = header.Ordered().Where(c => c.IsVisible && !header.IsDropped(c)).ToList();
+        Assert.Contains(shown, FitRow.GetDivided);
+        for (int i = 1; i < shown.Count; i++)
+        {
+            if (!FitRow.GetDivided(shown[i]))
+                continue;
+            var line = header.DividerOf(shown[i])!.Value;
+            Assert.True(line.Left);
+            Assert.InRange(line.X, shown[i - 1].Bounds.Right, shown[i].Bounds.Left);
+        }
+
+        // Under the pointer, Album's line lights up; away from it, it doesn't.
+        Control album = Part(header, "Album");
+        Point onLine = header.TranslatePoint(new Point(header.DividerOf(album)!.Value.X, header.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseMove(onLine);
+        Assert.Equal("Album", app.Window.FindControl<FitRowLines>("QueueColumnLines")!.Hot);
+        app.Screenshot("queue-column-lines");
+        app.Window.MouseMove(At(app, Part(header, "Title"), 10));
+        Assert.Null(app.Window.FindControl<FitRowLines>("QueueColumnLines")!.Hot);
+    }
+
+    [AvaloniaFact]
     public void The_column_names_can_be_switched_off_and_GZJam_starts_as_it_was_left()
     {
         using var app = new AppHarness(settings: new AppSettings

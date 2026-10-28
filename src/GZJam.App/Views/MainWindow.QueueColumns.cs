@@ -47,6 +47,10 @@ public partial class MainWindow
         QueueHeader.PointerPressed += OnQueueHeaderPointerPressed;
         QueueHeader.PointerReleased += OnQueueHeaderPointerReleased;
         QueueHeader.PointerCaptureLost += (_, _) => EndQueueHeaderDrag();
+        QueueHeader.PointerExited += (_, _) => QueueColumnLines.Hot = _resizing;
+        // The lines to drag, drawn between the names (#198).
+        foreach (var part in QueueHeader.Children)
+            FitRow.SetDivided(part, FitRow.GetKey(part) is { } key && QueueColumnSizes.ContainsKey(key));
     }
 
     private void ApplyQueueColumns()
@@ -162,23 +166,13 @@ public partial class MainWindow
     /// </summary>
     private (string Key, bool Left)? ResizableAt(double x)
     {
-        var parts = HeaderParts();
-        int title = parts.FindIndex(FitRow.GetFills);
-        for (int i = 0; i < parts.Count; i++)
+        foreach (var part in HeaderParts().Where(FitRow.GetDivided))
         {
-            if (FitRow.GetKey(parts[i]) is not { } key || !QueueColumnSizes.ContainsKey(key))
-                continue;
-            bool left = i > title;
-            if (Math.Abs(ResizeLine(parts[i], left) - x) <= ResizeGrab)
-                return (key, left);
+            if (QueueHeader.DividerOf(part) is { } line && Math.Abs(line.X - x) <= ResizeGrab)
+                return (FitRow.GetKey(part)!, line.Left);
         }
         return null;
     }
-
-    /// <summary>The line beside a part, midway into the gap (its margin and half the spacing).</summary>
-    private double ResizeLine(Control part, bool left) => left
-        ? part.Bounds.Left - part.Margin.Left - QueueHeader.Spacing / 2
-        : part.Bounds.Right + part.Margin.Right + QueueHeader.Spacing / 2;
 
     /// <summary>Shows the accent line over the queue at <paramref name="x"/> in the names.</summary>
     private void ShowQueueColumnLine(double x)
@@ -227,13 +221,14 @@ public partial class MainWindow
             ResizeQueueColumn(key, Math.Min(_widthFrom + by, _widthMost));
             _moved = true;
             QueueHeader.UpdateLayout();
-            if (HeaderParts().FirstOrDefault(c => FitRow.GetKey(c) == key) is { } part)
-                ShowQueueColumnLine(ResizeLine(part, _resizingLeft));
+            if (HeaderParts().FirstOrDefault(c => FitRow.GetKey(c) == key) is { } part && QueueHeader.DividerOf(part) is { } line)
+                ShowQueueColumnLine(line.X);
             return;
         }
         if (_moving is null)
         {
-            QueueHeader.Cursor = ResizableAt(x) is null ? Cursor.Default : new Cursor(StandardCursorType.SizeWestEast);
+            QueueColumnLines.Hot = ResizableAt(x)?.Key;
+            QueueHeader.Cursor = QueueColumnLines.Hot is null ? Cursor.Default : new Cursor(StandardCursorType.SizeWestEast);
             return;
         }
         if (!_moved && Math.Abs(x - _dragFrom) < 4)
@@ -261,6 +256,7 @@ public partial class MainWindow
         foreach (var part in QueueHeader.Children)
             part.Classes.Remove("moving");
         _resizing = _moving = _dropBefore = null;
+        QueueColumnLines.Hot = null;
         QueueColumnDropLine.IsVisible = false;
     }
 }

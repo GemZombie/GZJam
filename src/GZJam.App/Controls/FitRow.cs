@@ -15,6 +15,10 @@ namespace GZJam.App.Controls;
 /// given other <see cref="WidthsProperty"/> (#188): both inherited, so set once on a list they
 /// reach each of its rows, and its column names, alike.
 /// </para>
+/// <para>
+/// Parts marked <see cref="DividedProperty"/> have a line beside them, on the filling part's side,
+/// drawn by a <see cref="FitRowLines"/> over the row: the column names' lines to drag (#198).
+/// </para>
 /// </summary>
 public sealed class FitRow : Panel
 {
@@ -46,16 +50,24 @@ public sealed class FitRow : Panel
     public static readonly AttachedProperty<IReadOnlyDictionary<string, double>?> WidthsProperty =
         AvaloniaProperty.RegisterAttached<FitRow, Control, IReadOnlyDictionary<string, double>?>("Widths", inherits: true);
 
+    /// <summary>A part with a line beside it, on the filling part's side.</summary>
+    public static readonly AttachedProperty<bool> DividedProperty =
+        AvaloniaProperty.RegisterAttached<FitRow, Control, bool>("Divided");
+
     private readonly HashSet<Control> _dropped = [];
 
     static FitRow()
     {
         AffectsMeasure<FitRow>(SpacingProperty, FillMinWidthProperty, OrderProperty, WidthsProperty);
         AffectsParentMeasure<FitRow>(FillsProperty, DropOrderProperty, KeyProperty);
+        AffectsParentArrange<FitRow>(DividedProperty);
     }
 
     public double Spacing { get => GetValue(SpacingProperty); set => SetValue(SpacingProperty, value); }
     public double FillMinWidth { get => GetValue(FillMinWidthProperty); set => SetValue(FillMinWidthProperty, value); }
+
+    /// <summary>After the parts are laid out (so the lines beside them can follow).</summary>
+    public event EventHandler? Arranged;
 
     public static bool GetFills(Control control) => control.GetValue(FillsProperty);
     public static void SetFills(Control control, bool value) => control.SetValue(FillsProperty, value);
@@ -63,6 +75,8 @@ public sealed class FitRow : Panel
     public static void SetDropOrder(Control control, int value) => control.SetValue(DropOrderProperty, value);
     public static string? GetKey(Control control) => control.GetValue(KeyProperty);
     public static void SetKey(Control control, string? value) => control.SetValue(KeyProperty, value);
+    public static bool GetDivided(Control control) => control.GetValue(DividedProperty);
+    public static void SetDivided(Control control, bool value) => control.SetValue(DividedProperty, value);
     public static IReadOnlyList<string>? GetOrder(Control control) => control.GetValue(OrderProperty);
     public static void SetOrder(Control control, IReadOnlyList<string>? value) => control.SetValue(OrderProperty, value);
     public static IReadOnlyDictionary<string, double>? GetWidths(Control control) => control.GetValue(WidthsProperty);
@@ -104,6 +118,23 @@ public sealed class FitRow : Panel
         for (int i = 0; i < slots.Count; i++)
             laidOut[slots[i]] = moving[i];
         return laidOut;
+    }
+
+    /// <summary>
+    /// The line beside a part showing, midway into the gap (its margin and half the spacing) on the
+    /// filling part's side, and whether that's its left; null when the part isn't showing.
+    /// </summary>
+    internal (double X, bool Left)? DividerOf(Control part)
+    {
+        var shown = Ordered().Where(c => c.IsVisible && !_dropped.Contains(c)).ToList();
+        int at = shown.IndexOf(part);
+        if (at < 0)
+            return null;
+        bool left = at > shown.FindIndex(GetFills);
+        double x = left
+            ? part.Bounds.Left - part.Margin.Left - Spacing / 2
+            : part.Bounds.Right + part.Margin.Right + Spacing / 2;
+        return (x, left);
     }
 
     private double? SetWidth(Control part) =>
@@ -171,6 +202,7 @@ public sealed class FitRow : Panel
         }
         // Cut off at the sides only: a chip a pixel taller than the line keeps its edges.
         Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
+        Arranged?.Invoke(this, EventArgs.Empty);
         return finalSize;
     }
 }
