@@ -686,8 +686,9 @@
   </Style>
 
   <!-- Auto-play strip above the queue tabs -->
+  <!-- The sides as the tabs below; at the queue's usual width everything in it just fits (#187) -->
   <Style Selector="Border.autoplay">
-    <Setter Property="Padding" Value="10,10,10,8" />
+    <Setter Property="Padding" Value="8,10,6,8" />
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
@@ -734,6 +735,11 @@
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- A queue panel too narrow for the tabs as they are (#187): closer together -->
+  <Style Selector="Border.narrow ToggleButton.tab">
+    <Setter Property="Padding" Value="4,4" />
+    <Setter Property="Margin" Value="0" />
   </Style>
   <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
