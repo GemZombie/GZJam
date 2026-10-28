@@ -661,6 +661,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The side panels' widths and folds, for the window to apply and keep (see <see cref="AppSettings.LibraryPanelFolded"/>).</summary>
     internal AppSettings PanelSettings => _settings;
 
+    /// <summary>The column names over the queue (#188), switched off or on from its menu › Show.</summary>
+    public bool ShowsQueueColumnNames
+    {
+        get => _settings.ShowQueueColumnNames;
+        set
+        {
+            if (value == _settings.ShowQueueColumnNames)
+                return;
+            _settings.ShowQueueColumnNames = value;
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>How tall the playlist list may grow, as its grip was last dragged (#163); null: as it starts.</summary>
     public double? PlaylistsHeight
     {

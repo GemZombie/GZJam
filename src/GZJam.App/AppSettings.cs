@@ -187,6 +187,15 @@ public sealed class AppSettings
     /// </summary>
     public List<string> HiddenQueueColumns { get; set; } = ["Album", "Genre", "Year", "Played"];
 
+    /// <summary>The queue's parts in the order the DJ dragged them into (#188), by name; null: as they come.</summary>
+    public List<string>? QueueColumnOrder { get; set; }
+
+    /// <summary>Widths the DJ gave the queue's text parts by dragging (#188), by name.</summary>
+    public Dictionary<string, double> QueueColumnWidths { get; set; } = [];
+
+    /// <summary>The column names over the queue (#188), from its menu › Show.</summary>
+    public bool ShowQueueColumnNames { get; set; } = true;
+
     /// <summary>
     /// Columns added since the column chooser that start hidden, which these settings have seen
     /// (so <see cref="HiddenColumns"/> already says whether the DJ wants them). Null: settings

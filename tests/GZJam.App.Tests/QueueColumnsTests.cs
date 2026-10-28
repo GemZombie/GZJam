@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using GZJam.App.Controls;
@@ -7,7 +10,7 @@ using GZJam.App.Views;
 
 namespace GZJam.App.Tests;
 
-/// <summary>Choosing what the queue shows of each song, from its menu (#131).</summary>
+/// <summary>Choosing what the queue shows of each song, from its menu (#131), and its column names (#188).</summary>
 public sealed class QueueColumnsTests
 {
     private static List<T> Shown<T>(AppHarness app, string part) where T : Control =>
@@ -124,5 +127,109 @@ public sealed class QueueColumnsTests
         Assert.Empty(Shown<AlbumArt>(app, "q-art"));
         Assert.Empty(Shown<TextBlock>(app, "q-bpm"));
         Assert.Equal(2, Shown<TextBlock>(app, "q-album").Count);
+    }
+
+    private static FitRow Header(AppHarness app) => app.Window.FindControl<FitRow>("QueueHeader")!;
+
+    private static FitRow FirstRow(AppHarness app) =>
+        app.Window.FindControl<ListBox>("QueueList")!.GetVisualDescendants().OfType<FitRow>().First();
+
+    private static Control Part(FitRow row, string key) => row.Children.Single(c => FitRow.GetKey(c) == key);
+
+    private static double Left(AppHarness app, Control part) => part.TranslatePoint(default, app.Window)!.Value.X;
+
+    private static Point At(AppHarness app, Control part, double x) =>
+        part.TranslatePoint(new Point(x, part.Bounds.Height / 2), app.Window)!.Value;
+
+    [AvaloniaFact]
+    public void The_column_names_line_up_with_the_songs_and_give_way_alike()
+    {
+        using var app = new AppHarness();
+        app.ViewModel.Queue.Add(app.Library.Results.Take(3).ToList());
+        foreach (var (name, _) in MainWindow.QueueColumns)
+            app.Window.SetQueueColumnShown(name, true);
+        var panes = app.Window.FindControl<Grid>("PanesGrid")!;
+        foreach (int width in new[] { 180, 260, 320, 420, 560 })
+        {
+            panes.ColumnDefinitions[4].Width = new GridLength(width);
+            AppHarness.Settle(150);
+            AssertFits(Header(app), $"{width} px");
+            foreach (string key in MainWindow.QueueColumnOrder.Where(k => k != "Title"))
+            {
+                Control name = Part(Header(app), key), part = Part(FirstRow(app), key);
+                Assert.Equal(FirstRow(app).IsDropped(part), Header(app).IsDropped(name));
+                if (!Header(app).IsDropped(name))
+                    Assert.Equal(Left(app, part), Left(app, name), 1);
+            }
+        }
+        app.Screenshot("queue-column-names");
+        var names = Header(app).Children.OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && !Header(app).IsDropped(t) && t.Text is { Length: > 0 });
+        Assert.All(names.Where(t => FitRow.GetKey(t) != "Title"), t => Assert.False(t.TextLayout.TextLines.Any(l => l.HasCollapsed), $"{t.Text} cut short"));
+    }
+
+    [AvaloniaFact]
+    public void Dragging_a_name_moves_its_column_and_dragging_its_end_resizes_it_both_remembered()
+    {
+        using var app = new AppHarness();
+        app.ViewModel.Queue.Add(app.Library.Results.Take(3).ToList());
+        app.Window.SetQueueColumnShown("Album", true);
+        app.Window.FindControl<Grid>("PanesGrid")!.ColumnDefinitions[4].Width = new GridLength(560);
+        AppHarness.Settle(200);
+
+        // BPM dragged in front of the title.
+        Control bpm = Part(Header(app), "BPM"), title = Part(Header(app), "Title");
+        Point from = At(app, bpm, 5), to = At(app, title, 3);
+        app.Window.MouseMove(from);
+        app.Window.MouseDown(from, MouseButton.Left);
+        app.Window.MouseMove(from - new Point(20, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+        Assert.True(app.Window.FindControl<Border>("QueueColumnDropLine")!.IsVisible);
+        app.Window.MouseUp(to, MouseButton.Left);
+        AppHarness.Settle(150);
+        Assert.True(Left(app, Part(FirstRow(app), "BPM")) < Left(app, Part(FirstRow(app), "Title")));
+        Assert.True(Left(app, Part(Header(app), "BPM")) < Left(app, Part(Header(app), "Title")));
+        Assert.Equal(["Number", "Art", "BPM", "Title"], app.Settings.QueueColumnOrder!.Take(4));
+        Assert.False(app.Window.FindControl<Border>("QueueColumnDropLine")!.IsVisible);
+
+        // The line after Album dragged 40 to the right: wider in the names and the songs alike.
+        Control album = Part(Header(app), "Album");
+        double before = album.Bounds.Width;
+        Point edge = At(app, album, album.Bounds.Width - 1);
+        app.Window.MouseMove(edge);
+        app.Window.MouseDown(edge, MouseButton.Left);
+        app.Window.MouseMove(edge + new Point(40, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseUp(edge + new Point(40, 0), MouseButton.Left);
+        AppHarness.Settle(150);
+        Assert.Equal(before + 40, Part(Header(app), "Album").Bounds.Width, 1);
+        Assert.Equal(Part(Header(app), "Album").Bounds.Width, Part(FirstRow(app), "Album").Bounds.Width, 1);
+        Assert.Equal(before + 40 + 4, app.Settings.QueueColumnWidths["Album"], 1);   // its margin included
+        app.Window.ResizeQueueColumn("Album", 2000);
+        Assert.Equal(MainWindow.QueueColumnSizes["Album"].Most, app.Settings.QueueColumnWidths["Album"]);
+        app.Screenshot("queue-columns-moved");
+
+        // As they came, from the menu.
+        app.Window.ResetQueueColumns();
+        AppHarness.Settle(150);
+        Assert.Null(app.Settings.QueueColumnOrder);
+        Assert.Empty(app.Settings.QueueColumnWidths);
+        Assert.True(Left(app, Part(FirstRow(app), "Title")) < Left(app, Part(FirstRow(app), "BPM")));
+    }
+
+    [AvaloniaFact]
+    public void The_column_names_can_be_switched_off_and_GZJam_starts_as_it_was_left()
+    {
+        using var app = new AppHarness(settings: new AppSettings
+        {
+            MatchLoudness = false, QueueColumnOrder = ["Time", "Title"], QueueColumnWidths = { ["Time"] = 50 },
+        });
+        app.ViewModel.Queue.Add(app.Library.Results.Take(1).ToList());
+        AppHarness.Settle(200);
+        Assert.True(Left(app, Part(FirstRow(app), "Time")) < Left(app, Part(FirstRow(app), "Title")));
+        Assert.Equal(47, Part(FirstRow(app), "Time").Bounds.Width, 1);   // 50 less its margin
+        Assert.True(app.Window.FindControl<Border>("QueueHeaderBar")!.IsVisible);
+        app.ViewModel.ShowsQueueColumnNames = false;
+        AppHarness.Settle(100);
+        Assert.False(app.Window.FindControl<Border>("QueueHeaderBar")!.IsVisible);
+        Assert.False(app.Settings.ShowQueueColumnNames);
     }
 }
