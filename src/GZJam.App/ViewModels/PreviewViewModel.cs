@@ -33,6 +33,8 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
         }
         try
         {
+            _loudness = owner.GetLoudness(track.Path);
+            Apply(owner.GetEq(track.Path));   // as a deck would play it (#137)
             player.Play(track.Path);
             Track = track;
         }
@@ -42,6 +44,28 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
         }
         Refresh();
     }
+
+    private (double? Lufs, double? PeakDb) _loudness;
+    private TrackEq _eq;
+
+    /// <summary>The song's EQ, evening out and loudness matching, on the preview.</summary>
+    private void Apply(TrackEq eq)
+    {
+        _eq = eq;
+        player.SetEq(eq.Low, eq.Mid, eq.High, eq.MidHz);
+        player.Even = new Deck.Evening(eq.Even / TrackEq.MaxEven, _loudness.Lufs ?? DeckViewModel.UnmeasuredLufs);
+        player.GainDb = owner.MatchDb(_loudness.Lufs, _loudness.PeakDb) + eq.Gain;
+    }
+
+    /// <summary>A song's EQ changed: heard at once if it's the one previewing.</summary>
+    internal void EqChanged(string path, TrackEq eq)
+    {
+        if (Track?.Path == path)
+            Apply(eq);
+    }
+
+    /// <summary>Loudness matching was turned on or off in Settings, or its target changed.</summary>
+    internal void LoudnessSettingChanged() => Apply(_eq);
 
     [RelayCommand]
     public void Stop()

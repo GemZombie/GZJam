@@ -19,7 +19,11 @@ public partial class MainWindow
     {
         HistoryList.AddHandler(PointerPressedEvent, OnHistoryPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         _historyDrag = new DragStarter(this, HistoryList, item => DragFromHistory((PlayItem)item), HistoryMenu);
-        HistoryMenu.Opening += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
+        HistoryMenu.Opening += (_, _) =>
+        {
+            UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
+            HistoryEqItem.IsEnabled = SelectedPlays().Count == 1;
+        };
         HistoryMenu.Opened += (_, _) => UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
         NameSessionFlyout.Opened += (_, _) =>
         {

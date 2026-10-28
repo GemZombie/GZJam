@@ -10,8 +10,10 @@ namespace GZJam.Audio;
 public sealed class PreviewPlayer : IDisposable
 {
     private readonly MixEngine _mix;
+    private readonly SongSound _sound = new("the headphone preview");
     private int _stream;
     private bool _playing;
+    private double _gain = 1;
 
     internal PreviewPlayer(MixEngine mix) => _mix = mix;
 
@@ -33,6 +35,7 @@ public sealed class PreviewPlayer : IDisposable
 
         _stream = stream;
         TrackPath = path;
+        _sound.Attach(_stream);
         if (start > TimeSpan.Zero)
             Bass.ChannelSetPosition(_stream, Bass.ChannelSeconds2Bytes(_stream, start.TotalSeconds));
         _playing = true;
@@ -47,8 +50,34 @@ public sealed class PreviewPlayer : IDisposable
             Bass.StreamFree(_stream);
         }
         _stream = 0;
+        _sound.Detach();   // freed with the stream
         _playing = false;
         TrackPath = null;
+    }
+
+    /// <summary>
+    /// The song's EQ and evening out, as a deck would play it (#137): set before or after
+    /// <see cref="Play"/>, and kept until changed.
+    /// </summary>
+    public void SetEq(double low, double mid, double high, double midHz = 1000) => _sound.SetEq(low, mid, high, midHz);
+
+    public (double Low, double Mid, double High) Eq => _sound.Eq;
+
+    public Deck.Evening Even
+    {
+        get => _sound.Even;
+        set => _sound.Even = value;
+    }
+
+    /// <summary>Gain in dB (loudness matching and the DJ's own), as on a deck.</summary>
+    public double GainDb
+    {
+        get => 20 * Math.Log10(_gain);
+        set
+        {
+            _gain = Math.Pow(10, Math.Clamp(value, -30, 20) / 20);
+            ApplyVolume();
+        }
     }
 
     public void Seek(TimeSpan position)
@@ -85,7 +114,7 @@ public sealed class PreviewPlayer : IDisposable
     internal void ApplyVolume()
     {
         if (_stream != 0)
-            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, _mix.PhonesCueLevel);
+            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, _mix.PhonesCueLevel * _gain);
     }
 
     internal void Detach()

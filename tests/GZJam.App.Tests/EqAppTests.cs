@@ -8,7 +8,7 @@ using GZJam.Library;
 
 namespace GZJam.App.Tests;
 
-/// <summary>A deck's EQ: set from its EQ button, remembered for the song.</summary>
+/// <summary>A song's EQ: set from a deck's EQ button, or from its right-click menu anywhere (#137), remembered for the song.</summary>
 public sealed class EqAppTests
 {
     [AvaloniaFact]
@@ -18,28 +18,28 @@ public sealed class EqAppTests
         var vm = app.ViewModel;
         var song = app.ToneTrack("Hissy transfer");
         vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
-        Assert.False(vm.Deck1!.IsEqSet);
+        Assert.False(vm.Deck1!.Eq.IsSet);
 
-        vm.Deck1.EqHigh = -7.3;   // half-dB steps
-        vm.Deck1.EqLow = -40;     // as far as it goes
+        vm.Deck1.Eq.High = -7.3;   // half-dB steps
+        vm.Deck1.Eq.Low = -40;     // as far as it goes
 
-        Assert.Equal(-7.5, vm.Deck1.EqHigh);
-        Assert.Equal(TrackEq.MinDb, vm.Deck1.EqLow);
-        Assert.Equal("−7.5 dB", vm.Deck1.EqHighText);
-        Assert.True(vm.Deck1.IsEqSet);
+        Assert.Equal(-7.5, vm.Deck1.Eq.High);
+        Assert.Equal(TrackEq.MinDb, vm.Deck1.Eq.Low);
+        Assert.Equal("−7.5 dB", vm.Deck1.Eq.HighText);
+        Assert.True(vm.Deck1.Eq.IsSet);
         Assert.Equal((TrackEq.MinDb, 0.0, -7.5), vm.Deck1.Deck.Eq);
         Assert.Equal(new TrackEq(TrackEq.MinDb, 0, -7.5), app.Database.GetEq(song.Path));
 
         // Another song on the deck starts flat; the first brings its EQ wherever it goes.
         vm.LoadToDeckAsync(vm.Deck1, app.ToneTrack("Clean")).GetAwaiter().GetResult();
-        Assert.False(vm.Deck1.IsEqSet);
+        Assert.False(vm.Deck1.Eq.IsSet);
         Assert.Equal((0.0, 0.0, 0.0), vm.Deck1.Deck.Eq);
         vm.LoadToDeckAsync(vm.Deck2!, song).GetAwaiter().GetResult();
-        Assert.Equal(-7.5, vm.Deck2!.EqHigh);
+        Assert.Equal(-7.5, vm.Deck2!.Eq.High);
         Assert.Equal((TrackEq.MinDb, 0.0, -7.5), vm.Deck2.Deck.Eq);
 
         // Flat forgets it.
-        vm.Deck2.FlatEqCommand.Execute(null);
+        vm.Deck2.Eq.FlatCommand.Execute(null);
         Assert.Equal(TrackEq.Flat, app.Database.GetEq(song.Path));
         vm.Deck2.EjectCommand.Execute(null);
         Assert.Equal((0.0, 0.0, 0.0), vm.Deck2.Deck.Eq);
@@ -57,7 +57,7 @@ public sealed class EqAppTests
         app.Play(0.3);
         float before = app.Play(0.3).Main;
 
-        vm.Deck1.EqHigh = -24;
+        vm.Deck1.Eq.High = -24;
         app.Play(0.3);
         float after = app.Play(0.3).Main;
 
@@ -87,8 +87,8 @@ public sealed class EqAppTests
         app.Window.MouseUp(at, Avalonia.Input.MouseButton.Left);
         AppHarness.Settle(100);
 
-        Assert.Equal(-6, vm.Deck2!.EqHigh);
-        Assert.Equal(-12, vm.Deck2.EqLow);
+        Assert.Equal(-6, vm.Deck2!.Eq.High);
+        Assert.Equal(-12, vm.Deck2.Eq.Low);
         Assert.Contains("on", button.Classes);
         button.Flyout.Hide();
     }
@@ -101,28 +101,28 @@ public sealed class EqAppTests
         var song = app.ToneTrack("Boomy");
         vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
         var deck = vm.Deck1!;
-        Assert.Equal("1 kHz", deck.EqMidHzText);
-        Assert.False(deck.IsMidMoved);
+        Assert.Equal("1 kHz", deck.Eq.MidHzText);
+        Assert.False(deck.Eq.IsMidMoved);
 
-        deck.MoveMidCommand.Execute("down");
-        deck.MoveMidCommand.Execute("down");
-        Assert.Equal("630 Hz", deck.EqMidHzText);
+        deck.Eq.MoveMidCommand.Execute("down");
+        deck.Eq.MoveMidCommand.Execute("down");
+        Assert.Equal("630 Hz", deck.Eq.MidHzText);
         Assert.Equal(630, deck.Deck.MidHz);
-        Assert.True(deck.IsMidMoved);
-        Assert.True(deck.IsEqSet);   // moving it alone counts as EQ set, so it's saved
+        Assert.True(deck.Eq.IsMidMoved);
+        Assert.True(deck.Eq.IsSet);   // moving it alone counts as EQ set, so it's saved
         Assert.Equal(630, app.Database.GetEq(song.Path).MidHz);
 
         for (int i = 0; i < 20; i++)
-            deck.MoveMidCommand.Execute("up");
-        Assert.Equal("5 kHz", deck.EqMidHzText);   // as far as it goes
+            deck.Eq.MoveMidCommand.Execute("up");
+        Assert.Equal("5 kHz", deck.Eq.MidHzText);   // as far as it goes
 
-        deck.EqMid = -3;
-        deck.FlatBandCommand.Execute("midhz");     // tapping the frequency: back to 1 kHz, the cut stays
-        Assert.Equal((1000.0, -3.0), (deck.Deck.MidHz, deck.EqMid));
+        deck.Eq.Mid = -3;
+        deck.Eq.FlatBandCommand.Execute("midhz");     // tapping the frequency: back to 1 kHz, the cut stays
+        Assert.Equal((1000.0, -3.0), (deck.Deck.MidHz, deck.Eq.Mid));
 
-        deck.MoveMidCommand.Execute("up");
+        deck.Eq.MoveMidCommand.Execute("up");
         vm.LoadToDeckAsync(vm.Deck2!, song).GetAwaiter().GetResult();
-        Assert.Equal("1.25 kHz", vm.Deck2!.EqMidHzText);
+        Assert.Equal("1.25 kHz", vm.Deck2!.Eq.MidHzText);
         Assert.Equal(1250, vm.Deck2.Deck.MidHz);
     }
 
@@ -154,18 +154,18 @@ public sealed class EqAppTests
         }
 
         double before = Spread();
-        Assert.Equal("Off", deck.EqEvenText);
-        deck.EqEven = 98;   // in steps of 5
-        Assert.Equal(100, deck.EqEven);
-        Assert.Equal("100", deck.EqEvenText);
-        Assert.True(deck.IsEqSet);
+        Assert.Equal("Off", deck.Eq.EvenText);
+        deck.Eq.Even = 98;   // in steps of 5
+        Assert.Equal(100, deck.Eq.Even);
+        Assert.Equal("100", deck.Eq.EvenText);
+        Assert.True(deck.Eq.IsSet);
         double after = Spread();
 
         Assert.InRange(before, 18, 22);
         Assert.True(after < before - 6, $"{before:0.0} dB apart before, {after:0.0} dB after; {deck.LevelText}; threshold {deck.Deck.Even.ThresholdDb:0.0}, ratio {deck.Deck.Even.Ratio}, make-up {deck.Deck.Even.MakeUpDb:0.0}");
         Assert.Equal(100, app.Database.GetEq(song.Path).Even);
 
-        deck.FlatBandCommand.Execute("even");
+        deck.Eq.FlatBandCommand.Execute("even");
         Assert.InRange(Spread(), before - 1, before + 1);   // off is exactly as before
         Assert.Equal(TrackEq.Flat, app.Database.GetEq(song.Path));
     }
@@ -182,16 +182,16 @@ public sealed class EqAppTests
         var panel = (EqPanel)((Flyout)button.Flyout).Content!;
 
         panel.FindControl<Button>("MidDownButton")!.Command!.Execute("down");
-        vm.Deck1!.EqHigh = -6;
-        vm.Deck1.EqEven = 40;
+        vm.Deck1!.Eq.High = -6;
+        vm.Deck1.Eq.Even = 40;
         AppHarness.Settle(100);
         Assert.Equal("800 Hz", panel.FindControl<TextBlock>("MidHzText")!.Text);
         Assert.Equal(40, panel.FindControl<GZJam.App.Controls.Fader>("EqEvenFader")!.Value);
         app.Screenshot("eq-panel");
 
         panel.FindControl<Button>("FlatButton")!.Command!.Execute(null);
-        Assert.False(vm.Deck1.IsEqSet);
-        Assert.Equal(("1 kHz", "Off"), (vm.Deck1.EqMidHzText, vm.Deck1.EqEvenText));
+        Assert.False(vm.Deck1.Eq.IsSet);
+        Assert.Equal(("1 kHz", "Off"), (vm.Deck1.Eq.MidHzText, vm.Deck1.Eq.EvenText));
         button.Flyout.Hide();
     }
 
@@ -212,5 +212,71 @@ public sealed class EqAppTests
         AppHarness.Settle(200);
         Assert.True(compact.Flyout.IsOpen);
         compact.Flyout.Hide();
+    }
+
+    [AvaloniaFact]
+    public void A_song_not_on_a_deck_gets_its_EQ_from_its_menu_heard_in_the_headphones_and_on_a_deck()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var song = app.ToneTrack("Hissy transfer", 60);
+
+        // From the song list's menu: the deck's panel, for the song, with a key to preview it.
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        var editor = app.Window.ShowSongEq(song, grid, PlacementMode.BottomEdgeAlignedLeft);
+        AppHarness.Settle(150);
+        Assert.Equal("EQ", editor.Heading);
+        Assert.Equal("Hissy transfer", editor.Title);
+        Assert.True(editor.CanPreview);
+        app.Screenshot("song-eq");
+
+        editor.LessHissCommand.Execute(null);
+        editor.Even = 40;
+        Assert.Equal(-6, vm.EqFor(song).High);   // saved for the song
+
+        // Previewed: the headphones hear it with its EQ, and follow a change at once.
+        editor.PreviewCommand!.Execute(null);
+        Assert.Same(song, vm.Preview!.Track);
+        Assert.Equal(-6, app.Mix.Preview.Eq.High);
+        Assert.Equal(0.4, app.Mix.Preview.Even.Amount, 3);
+        editor.Low = -3;
+        Assert.Equal(-3, app.Mix.Preview.Eq.Low);
+        editor.PreviewCommand.Execute(null);   // a second tap stops it
+        Assert.Null(vm.Preview.Track);
+
+        // Loaded later: the deck plays it so.
+        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        Assert.Equal((-3.0, -6.0), (vm.Deck1!.Eq.Low, vm.Deck1.Eq.High));
+        Assert.Equal(-6, vm.Deck1.Deck.Eq.High);
+
+        // Changed from the queue's menu while it's on the deck: the deck follows.
+        var again = vm.EqFor(song);
+        again.Mid = 2;
+        Assert.Equal(2, vm.Deck1.Eq.Mid);
+        Assert.Equal(2, vm.Deck1.Deck.Eq.Mid);
+        Assert.True(vm.Deck1.Eq.IsSet);
+
+        // And the other way: set on the deck, a song panel opened after shows it.
+        vm.Deck1.Eq.Gain = 1.5;
+        Assert.Equal(1.5, vm.EqFor(song).Gain);
+    }
+
+    [AvaloniaFact]
+    public void The_menus_offer_EQ_for_one_song()
+    {
+        using var app = new AppHarness();
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        var menu = app.Window.FindControl<ContextMenu>("TrackMenu")!;
+        grid.SelectedItems.Add(app.Library.Results[0]);
+        menu.Open(grid);
+        AppHarness.Settle(100);
+        Assert.True(app.Window.FindControl<MenuItem>("TrackEqItem")!.IsEnabled);
+        menu.Close();
+
+        grid.SelectedItems.Add(app.Library.Results[1]);
+        menu.Open(grid);
+        AppHarness.Settle(100);
+        Assert.False(app.Window.FindControl<MenuItem>("TrackEqItem")!.IsEnabled);   // one song at a time
+        menu.Close();
     }
 }

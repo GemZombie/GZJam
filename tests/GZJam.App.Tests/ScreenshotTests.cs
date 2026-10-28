@@ -208,13 +208,13 @@ public sealed class ScreenshotTests
         vm.Deck2.CancelTapCommand.Execute(null);
 
         // Deck 3's EQ: the treble down for a hissy transfer.
-        vm.Deck3.LessHissCommand.Execute(null);
-        vm.Deck3.EqLow = 1.5;
+        vm.Deck3.Eq.LessHissCommand.Execute(null);
+        vm.Deck3.Eq.Low = 1.5;
         var eq = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck3View")!.FindControl<Button>("CompactEqButton")!;
         eq.Flyout!.ShowAt(eq);
         app.Screenshot("15-eq");
         eq.Flyout.Hide();
-        vm.Deck3.FlatEqCommand.Execute(null);
+        vm.Deck3.Eq.FlatCommand.Execute(null);
 
         // Touch mode: four decks, then two, then the track menu with finger-sized items.
         vm.Settings.TouchMode = true;

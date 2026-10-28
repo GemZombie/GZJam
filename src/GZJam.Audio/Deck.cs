@@ -29,14 +29,10 @@ public sealed class Deck : IDisposable
     private TimeSpan _start;
     private TimeSpan? _end;
     private TimeSpan _lastPosition;   // at the last update, to see the playhead pass the auto fade
-    private readonly double[] _eqDb = new double[3];   // low, mid, high
-    private double _midHz = 1000;
-    private Evening _even;
-    private int _evenFx;                         // the compressor, only while evening out
+    private readonly SongSound _sound;           // EQ and evening out, on the tempo stream
     private readonly List<Jump> _jumps = [];
     private readonly SyncProcedure _jumpSync;   // kept alive: BASS holds only a pointer to it
     private volatile bool _jumped;               // set on the audio thread, reported by Update
-    private readonly int[] _eqFx = new int[3];
     private readonly DSPProcedure _meterDsp;     // kept alive: BASS calls it from its mixing thread
     private float _peak;                         // since the last TakePeak, set on the audio thread
 
@@ -44,6 +40,7 @@ public sealed class Deck : IDisposable
     {
         _mix = mix;
         Index = index;
+        _sound = new SongSound($"Deck {Name}");
         _jumpSync = OnJumpSync;
         _meterDsp = Measure;
     }
@@ -88,8 +85,7 @@ public sealed class Deck : IDisposable
         }
 
         _tempo = tempo;
-        CreateEq();
-        ApplyEven();
+        _sound.Attach(_tempo);
         SetJumpSyncs();
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
@@ -119,8 +115,7 @@ public sealed class Deck : IDisposable
             Bass.StreamFree(_tempo);
         }
         _tempo = _splitMain = _splitCue = _splitBooth = 0;
-        Array.Clear(_eqFx);   // freed with the stream
-        _evenFx = 0;
+        _sound.Detach();   // freed with the stream
         _playing = false;
         _ended = false;
         TrackPath = null;
@@ -317,22 +312,13 @@ public sealed class Deck : IDisposable
 
     // EQ: shelves below 150 Hz and above 5 kHz (where record hiss lives), a bell around 1 kHz
     // unless the DJ moves it.
-    private static readonly (BQFType Type, float Hz)[] EqBands =
-        [(BQFType.LowShelf, 150), (BQFType.PeakingEQ, 1000), (BQFType.HighShelf, 5000)];
-
     /// <summary>EQ in dB (0 = flat), heard in the room and the headphones alike. Kept across loads.</summary>
-    public (double Low, double Mid, double High) Eq => (_eqDb[0], _eqDb[1], _eqDb[2]);
+    public (double Low, double Mid, double High) Eq => _sound.Eq;
 
     /// <summary>Where the mid band sits, in Hz.</summary>
-    public double MidHz => _midHz;
+    public double MidHz => _sound.MidHz;
 
-    public void SetEq(double low, double mid, double high, double midHz = 1000)
-    {
-        (_eqDb[0], _eqDb[1], _eqDb[2]) = (low, mid, high);
-        _midHz = Math.Clamp(midHz, 20, 20000);
-        for (int band = 0; band < EqBands.Length; band++)
-            ApplyEq(band);
-    }
+    public void SetEq(double low, double mid, double high, double midHz = 1000) => _sound.SetEq(low, mid, high, midHz);
 
     /// <summary>
     /// How a recording is evened out: <paramref name="Amount"/> from 0 (off) to 1, for a song whose
@@ -367,78 +353,8 @@ public sealed class Deck : IDisposable
     /// <summary>Evens out the recording (a compressor after the EQ); amount 0 takes it out altogether.</summary>
     public Evening Even
     {
-        get => _even;
-        set
-        {
-            value = value with { Amount = Math.Clamp(value.Amount, 0, 1) };
-            if (value == _even)
-                return;
-            _even = value;
-            ApplyEven();
-        }
-    }
-
-    private void ApplyEven()
-    {
-        if (_tempo == 0)
-            return;
-        if (_even.Amount <= 0)
-        {
-            if (_evenFx != 0)
-                Bass.ChannelRemoveFX(_tempo, _evenFx);
-            _evenFx = 0;
-            return;
-        }
-        if (_evenFx == 0)
-        {
-            // Priority below the EQ's (0 to 2): BASS runs higher priorities first, so this comes after it.
-            _evenFx = Bass.ChannelSetFX(_tempo, EffectType.Compressor, -1);
-            if (_evenFx == 0)
-                throw new AudioException($"Could not add evening out to Deck {Name}", Bass.LastError);
-        }
-        var parameters = new CompressorParameters
-        {
-            fGain = (float)_even.MakeUpDb,
-            fThreshold = (float)_even.ThresholdDb,
-            fRatio = (float)_even.Ratio,
-            fAttack = 30,     // ms: slow enough to keep the attack of a drum or a horn
-            fRelease = 400,   // ms: gentle, so quiet passages don't pump back up
-            lChannel = FXChannelFlags.All,
-        };
-        if (!Bass.FXSetParameters(_evenFx, parameters))
-            throw new AudioException($"Could not set Deck {Name}'s evening out", Bass.LastError);
-    }
-
-    private void CreateEq()
-    {
-        for (int band = 0; band < EqBands.Length; band++)
-        {
-            _eqFx[band] = Bass.ChannelSetFX(_tempo, EffectType.BQF, band);
-            if (_eqFx[band] == 0)
-                throw new AudioException($"Could not add EQ to Deck {Name}", Bass.LastError);
-            ApplyEq(band);
-        }
-    }
-
-    private void ApplyEq(int band)
-    {
-        if (_eqFx[band] == 0)
-            return;
-        var (type, hz) = EqBands[band];
-        bool shelf = type != BQFType.PeakingEQ;
-        // BASS takes a shelf's slope or a bell's width (Q), and refuses a filter given both.
-        var parameters = new BQFParameters
-        {
-            lFilter = type,
-            fCenter = type == BQFType.PeakingEQ ? (float)_midHz : hz,
-            fGain = (float)_eqDb[band],
-            fBandwidth = 0,
-            fQ = shelf ? 0 : 0.7f,   // the bell: about two octaves wide
-            fS = shelf ? 0.8f : 0,   // the shelves: a gentle slope
-            lChannel = FXChannelFlags.All,
-        };
-        if (!Bass.FXSetParameters(_eqFx[band], parameters))
-            throw new AudioException($"Could not set Deck {Name}'s EQ", Bass.LastError);
+        get => _sound.Even;
+        set => _sound.Even = value;
     }
 
     /// <summary>

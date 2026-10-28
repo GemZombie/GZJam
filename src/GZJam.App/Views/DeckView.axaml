@@ -214,15 +214,15 @@
               <c:EnergyIcon Energy="{Binding Track?.Energy, TargetNullValue={x:Static lib:Energy.Unset}}" Width="14" Height="11" />
             </Button>
             <!-- EQ for this song (lit when set) -->
-            <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding IsEqSet}" Margin="4,0,2,0"
+            <Button x:Name="EqButton" Grid.Column="2" Classes="eq-chip" Classes.on="{Binding Eq.IsSet}" Margin="4,0,2,0"
                     IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
               <StackPanel Orientation="Horizontal" Spacing="4">
-                <Border Classes="led accent" Classes.on="{Binding IsEqSet}" />
+                <Border Classes="led accent" Classes.on="{Binding Eq.IsSet}" />
                 <TextBlock Text="EQ" />
               </StackPanel>
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="eq">
-                  <v:EqPanel />
+                  <v:EqPanel DataContext="{Binding Eq}" />
                 </Flyout>
               </Button.Flyout>
             </Button>
@@ -268,15 +268,15 @@
           <Border Classes="led red" Classes.on="{Binding StatusLight}" />
           <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" />
         </StackPanel>
-        <Button x:Name="CompactEqButton" Grid.Column="4" Classes="eq-chip" Classes.on="{Binding IsEqSet}"
+        <Button x:Name="CompactEqButton" Grid.Column="4" Classes="eq-chip" Classes.on="{Binding Eq.IsSet}"
                 IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
           <StackPanel Orientation="Horizontal" Spacing="4">
-            <Border Classes="led accent" Classes.on="{Binding IsEqSet}" />
+            <Border Classes="led accent" Classes.on="{Binding Eq.IsSet}" />
             <TextBlock Text="EQ" />
           </StackPanel>
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="eq">
-              <v:EqPanel />
+              <v:EqPanel DataContext="{Binding Eq}" />
             </Flyout>
           </Button.Flyout>
         </Button>

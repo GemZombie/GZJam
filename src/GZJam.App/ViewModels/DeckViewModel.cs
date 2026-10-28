@@ -37,6 +37,13 @@ public sealed partial class DeckViewModel : ObservableObject
         _owner = owner;
         _settings = settings;
         Deck = deck;
+        Eq = new EqEditor(() => $"DECK {Label} · EQ", () => Title, () => LevelText, ApplyEq,
+            eq => { if (Track is not null) _owner.SaveEq(Track.Path, eq, this); });
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(Title) or nameof(LevelText))
+                Eq.Refresh();
+        };
         Readout = settings.DeckReadouts.GetValueOrDefault(Label, DeckReadout.Remaining);
         deck.Jumped += (_, _) =>
         {
@@ -142,131 +149,18 @@ public sealed partial class DeckViewModel : ObservableObject
 
     // ───────────── EQ ─────────────
 
-    private TrackEq _eq;
+    /// <summary>This song's EQ: saved for the song as it's changed, and heard in the headphones too.</summary>
+    public EqEditor Eq { get; }
 
-    /// <summary>EQ in dB, 0 = flat. Saved for the song as it's changed, and heard in the headphones too.</summary>
-    public double EqLow
+    private void ApplyEq(TrackEq eq)
     {
-        get => _eq.Low;
-        set => SetEq(_eq with { Low = value });
-    }
-
-    public double EqMid
-    {
-        get => _eq.Mid;
-        set => SetEq(_eq with { Mid = value });
-    }
-
-    public double EqHigh
-    {
-        get => _eq.High;
-        set => SetEq(_eq with { High = value });
-    }
-
-    /// <summary>The DJ's own gain for this song, on top of loudness matching (the same range as the bands).</summary>
-    public double EqGain
-    {
-        get => _eq.Gain;
-        set => SetEq(_eq with { Gain = value });
-    }
-
-    public string EqGainText => Db(_eq.Gain);
-
-    /// <summary>How much the song is evened out (a compressor): 0 (off) to 100.</summary>
-    public double EqEven
-    {
-        get => _eq.Even;
-        set => SetEq(_eq with { Even = value });
-    }
-
-    public string EqEvenText => _eq.Even == 0 ? "Off" : _eq.Even.ToString("0", CultureInfo.CurrentCulture);
-
-    public double EqMaxEven => TrackEq.MaxEven;
-
-    /// <summary>Where the mid band sits, e.g. "1 kHz", "315 Hz".</summary>
-    public string EqMidHzText => Hz(_eq.MidHzOrDefault);
-
-    public bool IsMidMoved => !_eq.IsMidAtDefault;
-
-    internal static string Hz(double hz) => hz >= 1000
-        ? (hz / 1000).ToString("0.##", CultureInfo.CurrentCulture) + " kHz"
-        : hz.ToString("0", CultureInfo.CurrentCulture) + " Hz";
-
-    public string EqLowText => Db(_eq.Low);
-    public string EqMidText => Db(_eq.Mid);
-    public string EqHighText => Db(_eq.High);
-
-    /// <summary>The song has EQ set (the deck's EQ button lights up).</summary>
-    public bool IsEqSet => !_eq.IsFlat;
-
-    public double EqMinDb => TrackEq.MinDb;
-    public double EqMaxDb => TrackEq.MaxDb;
-
-    private static string Db(double db) =>
-        db == 0 ? "0 dB" : db.ToString("+0.#' dB';−0.#' dB'", CultureInfo.CurrentCulture);
-
-    [RelayCommand]
-    private void FlatEq() => SetEq(TrackEq.Flat);
-
-    /// <summary>A starting point for a hissy transfer: the treble down 6 dB.</summary>
-    [RelayCommand]
-    private void LessHiss() => SetEq(_eq with { High = -6 });
-
-    /// <summary>Tapping a band's value puts that band back to flat.</summary>
-    [RelayCommand]
-    private void FlatBand(string band) => SetEq(band switch
-    {
-        "low" => _eq with { Low = 0 },
-        "mid" => _eq with { Mid = 0 },
-        "gain" => _eq with { Gain = 0 },
-        "even" => _eq with { Even = 0 },
-        "midhz" => _eq with { MidHz = TrackEq.DefaultMidHz },
-        _ => _eq with { High = 0 },
-    });
-
-    /// <summary>Moves the mid band one third of an octave down (-1) or up (+1).</summary>
-    [RelayCommand]
-    private void MoveMid(string direction)
-    {
-        var steps = TrackEq.MidFrequencies;
-        int at = NearestMid(_eq.MidHzOrDefault);
-        int to = Math.Clamp(at + (direction == "down" ? -1 : 1), 0, steps.Count - 1);
-        SetEq(_eq with { MidHz = steps[to] });
-    }
-
-    private static int NearestMid(double hz)
-    {
-        var steps = TrackEq.MidFrequencies;
-        int best = 0;
-        for (int i = 1; i < steps.Count; i++)
-        {
-            if (Math.Abs(Math.Log(steps[i] / hz)) < Math.Abs(Math.Log(steps[best] / hz)))
-                best = i;
-        }
-        return best;
-    }
-
-    /// <summary>Applies EQ to the deck (in half-dB steps, within range) and saves it for the song.</summary>
-    private void SetEq(TrackEq eq, bool save = true)
-    {
-        static double Step(double db, double min, double max) => Math.Round(Math.Clamp(db, min, max) * 2) / 2;
-        eq = new TrackEq(Step(eq.Low, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Mid, TrackEq.MinDb, TrackEq.MaxDb),
-            Step(eq.High, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Gain, TrackEq.MinDb, TrackEq.MaxDb),
-            TrackEq.MidFrequencies[NearestMid(eq.MidHzOrDefault)], Math.Round(Math.Clamp(eq.Even, 0, TrackEq.MaxEven) / 5) * 5);
-        bool changed = eq != _eq;
-        _eq = eq;
         Deck.SetEq(eq.Low, eq.Mid, eq.High, eq.MidHz);
         ApplyEven();
         ApplyGain();
-        if (!changed)
-            return;
-        if (save && Track is not null)
-            _owner.SaveEq(Track.Path, eq);
-        foreach (string name in new[] { nameof(EqLow), nameof(EqMid), nameof(EqHigh), nameof(EqGain), nameof(EqLowText), nameof(EqMidText),
-                     nameof(EqHighText), nameof(EqGainText), nameof(EqEven), nameof(EqEvenText), nameof(EqMidHzText), nameof(IsMidMoved),
-                     nameof(IsEqSet), nameof(LevelText) })
-            OnPropertyChanged(name);
     }
+
+    /// <summary>This song's EQ was changed somewhere else (the library's EQ panel, #137).</summary>
+    internal void EqChangedElsewhere(TrackEq eq) => Eq.Set(eq, save: false);
 
     // ───────────── Loudness matching ─────────────
 
@@ -278,21 +172,14 @@ public sealed partial class DeckViewModel : ObservableObject
     private long _matchMovedAt;
 
     /// <summary>What loudness matching would apply to this song: 0 if it's off or not measured yet.</summary>
-    private double MatchTargetDb => _settings.MatchLoudness && _lufs is { } lufs ? LoudnessMatch.GainDb(lufs, _peakDb, _settings.LoudnessTarget) : 0;
+    private double MatchTargetDb => _owner.MatchDb(_lufs, _peakDb);
 
     /// <summary>The song's measured loudness and what matching does to it, for the EQ panel.</summary>
     public string LevelText
     {
         get
         {
-            if (Track is null)
-                return "";
-            if (_lufs is not { } lufs)
-                return IsAnalyzing ? "Measuring loudness…" : "Loudness not measured";
-            string measured = string.Create(CultureInfo.CurrentCulture, $"{lufs:0.0} LUFS").Replace('-', '−');
-            return _settings.MatchLoudness
-                ? $"{measured} · matching {Db(MatchTargetDb)}"
-                : $"{measured} · loudness matching off";
+            return Track is null ? "" : _owner.LevelText(_lufs, _peakDb, measuring: IsAnalyzing);
         }
     }
 
@@ -327,16 +214,16 @@ public sealed partial class DeckViewModel : ObservableObject
         ApplyGain();
     }
 
-    private void ApplyGain() => Deck.GainDb = _matchDb + _eq.Gain;
+    private void ApplyGain() => Deck.GainDb = _matchDb + Eq.Value.Gain;
 
     /// <summary>
     /// A typical song's loudness, for evening out one whose loudness isn't measured yet: a guess,
     /// put right when analysis finishes.
     /// </summary>
-    private const double UnmeasuredLufs = -16;
+    internal const double UnmeasuredLufs = -16;
 
     /// <summary>Evens out the song around its own loudness (a compressor after the EQ).</summary>
-    private void ApplyEven() => Deck.Even = new Deck.Evening(_eq.Even / TrackEq.MaxEven, _lufs ?? UnmeasuredLufs);
+    private void ApplyEven() => Deck.Even = new Deck.Evening(Eq.Value.Even / TrackEq.MaxEven, _lufs ?? UnmeasuredLufs);
 
     // ───────────── Jumps ─────────────
 
@@ -1022,7 +909,7 @@ public sealed partial class DeckViewModel : ObservableObject
         OnTrimChanged();
         _lufs = _peakDb = null;
         _matchDb = 0;
-        SetEq(TrackEq.Flat, save: false);
+        Eq.Set(TrackEq.Flat, save: false);
         _jumpFrom = null;
         _jumps = [];
         Deck.SetJumps([]);
@@ -1103,15 +990,15 @@ public sealed partial class DeckViewModel : ObservableObject
         ApplyTrim();
         _lufs = _peakDb = null;
         _matchDb = 0;
-        SetEq(_owner.GetEq(track.Path), save: false);
+        Eq.Set(_owner.GetEq(track.Path), save: false);
         _jumpFrom = null;
         _jumps = _owner.GetJumps(track.Path).ToList();
         Deck.SetJumps(_jumps.Select(j => (j.From, j.To, true)).ToList());
         OnJumpsChanged();
         _cues = _owner.GetCues(track.Path).ToList();
         OnCuesChanged();
-        if (IsEqSet)
-            Log.Info($"Deck {Label}: EQ for this song: low {EqLowText}, mid {EqMidText} at {EqMidHzText}, high {EqHighText}, gain {EqGainText}, even {EqEvenText}");
+        if (Eq.IsSet)
+            Log.Info($"Deck {Label}: EQ for this song: {Eq.Describe()}");
         Refresh();
         _ = AnalyzeAsync(track);
         _ = LoadDetailAsync(track);
