@@ -32,6 +32,12 @@ New:
   energy, album and the rest, as you've chosen in the queue's menu › *Show*, lined up with the
   queue's. The BPM is the one the room hears, with the deck's pitch.
 
+- **Column names over the queue:** drag a name to put its column elsewhere (BPM before the title,
+  say), and drag the line after album, genre, year, played, BPM or time to make it wider or
+  narrower. Remembered, and the decks' rows atop the queue follow. They don't sort: the queue's
+  order is the running order. Switch them off, or put the columns back as they came, from the
+  queue's menu › *Show*.
+
 Changed:
 
 - **The headphone preview plays a song as a deck will:** with its EQ, its evening out and loudness

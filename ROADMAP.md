@@ -129,6 +129,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
   GZJam asks where each music folder is now, and offers the likeliest.
 - [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189),
   lined up with it, BPM as the room hears it.
+- [Column names over the queue](https://github.com/GemZombie/GZJam/issues/188): drag one to move its
+  column, the line after it to resize it.
 
 ## Planned next
 
@@ -138,9 +140,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 couldn't be reproduced in 170 runs on five sound cards; if the activity log ever says the speakers
 ran dry, it's reopened.
 
-*New*
-- [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
-  the library
+*New:* none left.
 
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
