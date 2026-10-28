@@ -19,7 +19,7 @@ public sealed class SongExportTests : IDisposable
     private string Stick => Directory.CreateDirectory(Path.Combine(_work, "stick")).FullName;
 
     [Fact]
-    public void The_songs_are_copied_in_order_with_a_playlist_and_the_originals_are_left_as_they_were()
+    public async Task The_songs_are_copied_in_order_with_a_playlist_and_the_originals_are_left_as_they_were()
     {
         Track[] set =
         [
@@ -38,7 +38,7 @@ public sealed class SongExportTests : IDisposable
             export.Files.Select(f => f.FileName));
 
         var progress = new List<int>();
-        export.CopyAsync(new SyncProgress(progress.Add)).GetAwaiter().GetResult();
+        await export.CopyAsync(new SyncProgress(progress.Add));
         Assert.Equal([1, 2, 3], progress);
         Assert.Equal(File.ReadAllBytes(set[0].Path), File.ReadAllBytes(Path.Combine(export.Folder, export.Files[0].FileName)));
         Assert.Equal(modified, File.GetLastWriteTimeUtc(Path.Combine(export.Folder, export.Files[0].FileName)));
@@ -55,13 +55,13 @@ public sealed class SongExportTests : IDisposable
     }
 
     [Fact]
-    public void Nothing_is_overwritten_a_second_copy_goes_into_a_new_folder()
+    public async Task Nothing_is_overwritten_a_second_copy_goes_into_a_new_folder()
     {
         Track[] set = [Song("a.mp3", "Band", "One")];
-        SongExport.Plan("Set", set, Stick).CopyAsync().GetAwaiter().GetResult();
+        await SongExport.Plan("Set", set, Stick).CopyAsync();
         var again = SongExport.Plan("Set", set, Stick);
         Assert.Equal(Path.Combine(Stick, "Set (2)"), again.Folder);
-        again.CopyAsync().GetAwaiter().GetResult();
+        await again.CopyAsync();
         Assert.True(File.Exists(Path.Combine(Stick, "Set", "01 - Band - One.mp3")));
         Assert.True(File.Exists(Path.Combine(Stick, "Set (2)", "01 - Band - One.mp3")));
     }
