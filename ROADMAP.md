@@ -169,6 +169,8 @@ to one you'd use.
 
 
 **Playing**
+- [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
+  the library
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
