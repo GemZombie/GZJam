@@ -3,8 +3,8 @@ using Avalonia.Controls;
 namespace GZJam.App.Views;
 
 /// <summary>
-/// Choosing what the queue shows of each song (#131): the queue's menu › Show. The title and
-/// artist always show; the rest is ticked on or off, and remembered. Album, genre, year and when it
+/// Choosing what the queue shows of each song (#131): the queue's menu › Show, for the decks atop
+/// it too (#189). The title and artist always show; the rest is ticked on or off, and remembered. Album, genre, year and when it
 /// was last played start off: they're for a queue given the room in the middle (#178).
 /// </summary>
 public partial class MainWindow
@@ -24,7 +24,11 @@ public partial class MainWindow
         if (DataContext is null)
             return;
         foreach (var (name, _) in QueueColumns)
-            QueueList.Classes.Set("hide-" + name.ToLowerInvariant(), Vm.HiddenQueueColumns.Contains(name));
+        {
+            bool hidden = Vm.HiddenQueueColumns.Contains(name);
+            QueueList.Classes.Set("hide-" + name.ToLowerInvariant(), hidden);
+            QueueDecks.Classes.Set("hide-" + name.ToLowerInvariant(), hidden);   // the decks atop it too (#189)
+        }
     }
 
     private void FillQueueColumnsMenu()

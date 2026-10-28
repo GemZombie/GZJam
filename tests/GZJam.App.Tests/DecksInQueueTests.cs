@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using GZJam.App.Controls;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
+using GZJam.Library;
 
 namespace GZJam.App.Tests;
 
@@ -75,6 +76,62 @@ public sealed class DecksInQueueTests
         AppHarness.Settle(100);
         Assert.True(Find<Control>(app, "AirLine").IsVisible);
         Assert.False(vm.DecksInQueue);
+    }
+
+    [AvaloniaFact]
+    public void The_decks_atop_the_queue_show_what_the_queue_shows()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var tone = app.ToneTrack("Jump Steady", 60);
+        var song = new Track { Path = tone.Path, Folder = "", FileName = tone.FileName, Title = tone.Title, Artist = "Count Basie",
+            Album = "The Complete Decca Recordings", Year = 1938, TagBpm = 150 };
+        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        vm.Deck1!.TempoPercent = 4;
+        vm.AddToQueue([app.Library.Results[0]]);
+        app.Window.SetQueueColumnShown("Album", true);
+        vm.DecksHidden = true;
+        var panes = app.Window.FindControl<Grid>("PanesGrid")!;
+        panes.ColumnDefinitions[4].Width = new GridLength(560);   // the widest the queue goes, room for the album
+        AppHarness.Settle(200);
+
+        FitRow Deck(int row) => Rows(app)[row].GetVisualDescendants().OfType<FitRow>().First();
+        Control Part(FitRow row, string part) => row.Children.Single(c => c.Classes.Contains(part));
+        bool Shows(FitRow row, string part) => Part(row, part).IsEffectivelyVisible && !row.IsDropped(Part(row, part));
+
+        // Deck 1: the album, as the queue shows it now, and the BPM as the room hears it, pitch and all.
+        Assert.True(Shows(Deck(0), "q-album"));
+        Assert.True(Shows(Deck(0), "q-bpm"));
+        Assert.Equal(vm.Deck1.BpmText, ((TextBlock)Part(Deck(0), "q-bpm")).Text);
+        Assert.Contains("156", vm.Deck1.BpmText);
+        Assert.False(Shows(Deck(0), "q-genre"));   // not ticked in the queue
+        app.Screenshot("decks-in-queue-show");
+
+        // The BPM lines up with the queue's below it.
+        var queued = app.Window.FindControl<ListBox>("QueueList")!.GetVisualDescendants().OfType<FitRow>().First();
+        double Right(FitRow row) => Part(row, "q-bpm").TranslatePoint(new Point(Part(row, "q-bpm").Bounds.Width, 0), app.Window)!.Value.X;
+        Assert.Equal(Right(queued), Right(Deck(0)), 1);
+
+        // Deck 2, empty: only its name and "Drag a song here".
+        Assert.DoesNotContain(Deck(1).Children, c => c.Classes.Contains("song") && c.IsEffectivelyVisible);
+
+        // Unticked in the queue's menu, gone from the decks too.
+        app.Window.SetQueueColumnShown("BPM", false);
+        AppHarness.Settle(100);
+        Assert.False(Shows(Deck(0), "q-bpm"));
+
+        // However narrow, nothing overlaps; the album gives way first, the time left never.
+        foreach (int width in new[] { 120, 180, 260, 320, 560 })
+        {
+            panes.ColumnDefinitions[4].Width = new GridLength(width);
+            AppHarness.Settle(150);
+            QueueColumnsTests.AssertFits(Deck(0), $"{width} px");
+            QueueColumnsTests.AssertFits(Deck(1), $"{width} px");
+        }
+        Assert.True(Deck(0).Children.Last().IsEffectivelyVisible && !Deck(0).IsDropped(Deck(0).Children.Last()));
+        panes.ColumnDefinitions[4].Width = new GridLength(320);
+        AppHarness.Settle(150);
+        Assert.False(Shows(Deck(0), "q-album"));
     }
 
     [AvaloniaFact]
