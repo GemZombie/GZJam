@@ -39,7 +39,7 @@ public sealed class SessionMenuTests
         AppHarness.Settle(150);
         var headers = ((MenuFlyout)button.Flyout).Items.OfType<MenuItem>().Select(i => (string)i.Header!).ToList();
         button.Flyout.Hide();
-        Assert.Equal(["Name this session…", "Export set list…", "Save as playlist…", "Delete this session…"], headers);
+        Assert.Equal(["Name this session…", "Export set list…", "Save as playlist…", "Export as files…", "Delete this session…"], headers);
     }
 
     [AvaloniaFact]

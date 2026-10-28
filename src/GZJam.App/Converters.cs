@@ -19,6 +19,14 @@ public static class Format
 
     public static string Count(int n) => n.ToString("N0", CultureInfo.CurrentCulture);
 
+    /// <summary>"640 MB", "1.2 GB": a size on disk, as a file manager says it.</summary>
+    public static string Size(long bytes) => bytes switch
+    {
+        >= 1L << 30 => (bytes / (double)(1L << 30)).ToString("0.0", CultureInfo.CurrentCulture) + " GB",
+        >= 1L << 20 => (bytes / (double)(1L << 20)).ToString("0", CultureInfo.CurrentCulture) + " MB",
+        _ => Math.Max(1, bytes / 1024).ToString("0", CultureInfo.CurrentCulture) + " KB",
+    };
+
     /// <summary>"1st", "2nd", "3rd", "4th", "11th", "22nd".</summary>
     public static string Ordinal(int n) => Count(n) + ((n % 100) is 11 or 12 or 13 ? "th" : (n % 10) switch
     {

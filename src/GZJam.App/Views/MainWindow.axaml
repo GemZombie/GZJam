@@ -380,6 +380,8 @@
                     <Grid.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
+                        <MenuItem Header="Export as files…" Click="OnExportPlaylistClick"
+                                  ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
                         <Separator />
                         <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
                         <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
@@ -777,6 +779,8 @@
                     <MenuItem x:Name="NameSessionItem" Header="Name this session…" Click="OnNameSessionClick" />
                     <MenuItem x:Name="ExportSetListItem" Header="Export set list…" Click="OnExportSetListClick" />
                     <MenuItem x:Name="SessionToPlaylistItem" Header="Save as playlist…" Click="OnSessionToPlaylistClick" />
+                    <MenuItem x:Name="ExportSessionItem" Header="Export as files…" Click="OnExportSessionClick"
+                              ToolTip.Tip="Copy the night's songs, in the order played, into a new folder with a playlist beside them" />
                     <Separator />
                     <MenuItem x:Name="DeleteSessionItem" Header="Delete this session…" Click="OnDeleteSessionClick" />
                   </MenuFlyout>
@@ -983,6 +987,8 @@
                   <Separator />
                   <MenuItem x:Name="QueueColumnsMenu" Header="Show" />
                   <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />
+                  <MenuItem Header="Export as files…" Click="OnExportQueueClick"
+                            ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>
               </ListBox.ContextMenu>
