@@ -433,8 +433,66 @@ public sealed partial class SettingsViewModel : ObservableObject
             _owner.ShowNotice($"Couldn't restore {Path.GetFileName(path)}: {ex.Message}", seconds: 8);
             return;
         }
+        string dataDirectory = Path.GetDirectoryName(Path.GetFullPath(_owner.Database.DatabasePath))!;
+        try
+        {
+            await FindMusicFoldersAsync(info, dataDirectory);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
+        {
+            Log.Error($"Couldn't move the backup's music folders", ex);
+            LibraryBackup.Unstage(dataDirectory);
+            _owner.ShowNotice($"Couldn't restore {Path.GetFileName(path)}: {ex.Message}", seconds: 8);
+            return;
+        }
         Log.Info($"Restoring the backup {path} (from {info.Created:u}, GZJam {info.GZJamVersion}): GZJam opens again with it");
         _owner.RequestRestore();
+    }
+
+    /// <summary>
+    /// A backup made where the music lived somewhere else (#112): for each of its music folders
+    /// that isn't on this computer, asks where it is now (offering the likeliest), and moves the
+    /// library there, so its songs keep everything the DJ gave them. One left as it was is
+    /// simply not found, as an unplugged drive isn't.
+    /// </summary>
+    private async Task FindMusicFoldersAsync(BackupInfo info, string dataDirectory)
+    {
+        var missing = LibraryBackup.MissingMusicFolders(info);
+        if (missing.Count == 0)
+            return;
+        var here = _owner.Database.GetRoots().Select(r => r.Path).ToList();
+        var moves = new List<(string From, string To)>();
+        var notes = new List<string>();
+        foreach (string from in missing)
+        {
+            var songs = await Task.Run(() => LibraryBackup.StagedSongs(dataDirectory, from));
+            string? suggested = await Task.Run(() => LibraryBackup.Suggest(from, songs, here));
+            string? to = null;
+            string isnt = $"The backup's music folder {from} isn't on this computer.";
+            if (suggested is not null && _owner.AskAsync is not null)
+            {
+                int found = await Task.Run(() => LibraryBackup.CountFound(songs, from, suggested));
+                if (await _owner.AskAsync("Where's this music now?",
+                        $"{isnt} It looks like it's {suggested} now: {found:N0} of its {songs.Count:N0} songs are there.",
+                        "Use that folder", "Choose another"))
+                    to = suggested;
+            }
+            if (to is null && _owner.PickFolderAsync is not null && (_owner.AskAsync is null || suggested is not null ||
+                    await _owner.AskAsync("Where's this music now?",
+                        $"{isnt} Choose where it is now, so its {songs.Count:N0} songs keep their hearts, labels, cues, EQ and History.",
+                        "Choose the folder", "Leave it")))
+                to = await _owner.PickFolderAsync($"Where's {from} now?");
+            if (to is null)
+            {
+                Log.Info($"Restore: {from} isn't on this computer, left as it was");
+                continue;
+            }
+            int there = await Task.Run(() => LibraryBackup.CountFound(songs, from, to));
+            Log.Info($"Restore: {from} is {to} on this computer ({there} of {songs.Count} songs there)");
+            moves.Add((from, to));
+            notes.Add($"{to} ({there:N0} of its {songs.Count:N0} songs found{(there < songs.Count ? "; GZJam looks for the rest as it scans" : "")})");
+        }
+        await Task.Run(() => LibraryBackup.MoveStaged(dataDirectory, moves, notes));
     }
 
     private static string Count(int n, string one, string? many = null) =>

@@ -97,7 +97,8 @@ public partial class App : Application
     {
         viewModel.KeepsAutomaticBackups = true;
         if (s_restored is { } info)
-            viewModel.ShowNotice($"The backup from {info.Created:d MMMM yyyy} is restored.", seconds: 10);
+            viewModel.ShowNotice($"The backup from {info.Created:d MMMM yyyy} is restored."
+                + (info.Moved is { Count: > 0 } moved ? $" Its music is in {string.Join(", ", moved)}." : ""), seconds: 15);
     }
 
     /// <summary>Opens GZJam again, once this one has closed (to start over, or restore a backup).</summary>

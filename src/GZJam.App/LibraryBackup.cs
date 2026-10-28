@@ -7,7 +7,11 @@ namespace GZJam.App;
 
 /// <summary>What a backup holds, as it says of itself: when, from which GZJam, and how much.</summary>
 public sealed record BackupInfo(DateTime Created, string GZJamVersion, int Songs, int Playlists, int Nights, int MarkedSongs,
-    IReadOnlyList<string> MusicFolders);
+    IReadOnlyList<string> MusicFolders)
+{
+    /// <summary>Restored where the music lives somewhere else (#112): each music folder moved, as said once it's open.</summary>
+    public IReadOnlyList<string>? Moved { get; init; }
+}
 
 /// <summary>
 /// Backing up and restoring the library (#84): everything the DJ has given their songs (hearts,
@@ -174,6 +178,121 @@ internal static class LibraryBackup
         {
             return false;
         }
+    }
+
+    // ───────────── Restoring where the music lives somewhere else (#112) ─────────────
+
+    /// <summary>The backup's music folders that aren't on this computer.</summary>
+    public static IReadOnlyList<string> MissingMusicFolders(BackupInfo info) => info.MusicFolders.Where(f => !Directory.Exists(f)).ToList();
+
+    /// <summary>The readied backup's songs in one of its music folders, by path.</summary>
+    public static IReadOnlyList<string> StagedSongs(string dataDirectory, string musicFolder)
+    {
+        using var c = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = Path.Combine(dataDirectory, PendingFolder, LibraryEntry),
+            Mode = SqliteOpenMode.ReadOnly,
+            Pooling = false,
+        }.ToString());
+        c.Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT t.path FROM tracks t JOIN roots r ON r.id = t.root_id WHERE r.path = $root;";
+        cmd.Parameters.AddWithValue("$root", musicFolder);
+        using var r = cmd.ExecuteReader();
+        var songs = new List<string>();
+        while (r.Read())
+            songs.Add(r.GetString(0));
+        return songs;
+    }
+
+    /// <summary>How many of a music folder's <paramref name="songs"/> are in their places under <paramref name="to"/>.</summary>
+    public static int CountFound(IReadOnlyList<string> songs, string from, string to) =>
+        songs.Count(song => LibraryDatabase.MovedPath(song, from, to) is { } moved && File.Exists(moved));
+
+    /// <summary>
+    /// Where a music folder that isn't on this computer likely is now: a folder of the same name
+    /// (among <paramref name="lookIn"/>, the Music folder, the home folder, each drive and outside
+    /// disk) with the backup's songs in it, the most of them. Null if none has any.
+    /// </summary>
+    public static string? Suggest(string from, IReadOnlyList<string> songs, IEnumerable<string> lookIn)
+    {
+        string name = from.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "";
+        if (name.Length == 0 || songs.Count == 0)
+            return null;
+        var sample = songs.Where((_, i) => i % Math.Max(1, songs.Count / 40) == 0).Take(40).ToList();
+        var places = new List<string>(lookIn);
+        string music = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        places.AddRange([music, home]);
+        if (name.Equals("Music", StringComparison.OrdinalIgnoreCase) || name.Equals("My Music", StringComparison.OrdinalIgnoreCase))
+            places.Add(Path.Combine(music, ".."));   // the Music folder itself, as a folder of that name
+        foreach (string disks in new[] { "/Volumes", $"/media/{Environment.UserName}", $"/run/media/{Environment.UserName}", "/mnt" })
+            places.AddRange(Children(disks));
+        try
+        {
+            places.AddRange(DriveInfo.GetDrives().Where(d => d.IsReady).Select(d => d.RootDirectory.FullName));
+        }
+        catch (IOException)
+        {
+        }
+
+        var candidates = new HashSet<string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+        foreach (string place in places.Where(p => p.Length > 0))
+        {
+            string full = Path.GetFullPath(place);
+            if (Path.GetFileName(full.TrimEnd(Path.DirectorySeparatorChar)).Equals(name, StringComparison.OrdinalIgnoreCase))
+                candidates.Add(full);
+            candidates.Add(Path.Combine(full, name));
+        }
+        return candidates.Where(Directory.Exists)
+            .Select(c => (Folder: c, Found: CountFound(sample, from, c)))
+            .Where(c => c.Found > 0)
+            .OrderByDescending(c => c.Found)
+            .Select(c => c.Folder)
+            .FirstOrDefault();
+    }
+
+    private static IEnumerable<string> Children(string folder)
+    {
+        try
+        {
+            return Directory.Exists(folder) ? Directory.GetDirectories(folder) : [];
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Moves the readied backup's music folders where they are on this computer (the library's
+    /// paths, and the folder its Settings had open), and notes it for saying once it's open.
+    /// </summary>
+    public static void MoveStaged(string dataDirectory, IReadOnlyList<(string From, string To)> moves, IReadOnlyList<string> notes)
+    {
+        string pending = Path.Combine(dataDirectory, PendingFolder);
+        if (moves.Count > 0)
+            LibraryDatabase.MoveMusicFolders(Path.Combine(pending, LibraryEntry), moves);
+
+        string settings = Path.Combine(pending, SettingsEntry);
+        if (moves.Count > 0 && File.Exists(settings) && System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(settings)) is System.Text.Json.Nodes.JsonObject json
+            && json["SelectedRootPath"]?.GetValue<string>() is { } open && moves.FirstOrDefault(m => m.From == open) is { To: { } to })
+        {
+            json["SelectedRootPath"] = to;
+            File.WriteAllText(settings, json.ToJsonString(JsonOptions));
+        }
+
+        string infoPath = Path.Combine(pending, InfoEntry);
+        BackupInfo info = JsonSerializer.Deserialize<BackupInfo>(File.ReadAllText(infoPath), JsonOptions)!;
+        File.WriteAllText(infoPath, JsonSerializer.Serialize(info with { Moved = notes }, JsonOptions));
+        SqliteConnection.ClearAllPools();
+    }
+
+    /// <summary>Lets go of a readied restore the DJ thought better of.</summary>
+    public static void Unstage(string dataDirectory)
+    {
+        SqliteConnection.ClearAllPools();
+        TryDelete(Path.Combine(dataDirectory, PendingFolder));
     }
 
     /// <summary>
