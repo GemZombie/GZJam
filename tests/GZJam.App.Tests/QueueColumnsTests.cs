@@ -106,7 +106,8 @@ public sealed class QueueColumnsTests
         foreach (string name in new[] { "AutoPlayRow", "QueueTabsRow" })
         {
             var row = plain.Window.FindControl<FitRow>(name)!;
-            Assert.DoesNotContain(row.Children, c => row.IsDropped(c));
+            Assert.False(row.Children.Any(row.IsDropped), $"{name}, {row.Bounds.Width} px: "
+                + string.Join(", ", row.Children.Select(c => $"{c.GetType().Name}{(row.IsDropped(c) ? " (gone)" : "")} {c.DesiredSize.Width}")));
         }
     }
 

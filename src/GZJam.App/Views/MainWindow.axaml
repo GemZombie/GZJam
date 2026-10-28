@@ -662,9 +662,11 @@
               <!-- In a narrow queue (#187) the GAP label gives way first, then the gap, then the options;
                    narrower still, the switch's name trims -->
               <c:FitRow x:Name="AutoPlayRow" Spacing="4">
-                <ToggleButton x:Name="AutoPlaySwitch" c:FitRow.Fills="True" HorizontalAlignment="Left" Classes="hw small"
+                <!-- A little closer in than other keys, so the whole strip fits at the queue's usual width
+                     with Linux's wider fonts too -->
+                <ToggleButton x:Name="AutoPlaySwitch" c:FitRow.Fills="True" HorizontalAlignment="Left" Classes="hw small" Padding="9,0"
                               IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}" ToolTip.Tip="{Binding SwitchTip}">
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                     <Border Classes="led green" Classes.on="{Binding IsOn}" />
                     <TextBlock Grid.Column="1" Text="AUTO-PLAY" TextTrimming="CharacterEllipsis" />
                   </Grid>
@@ -672,7 +674,7 @@
                 <TextBlock c:FitRow.DropOrder="1" Classes="fader-label" Text="GAP" VerticalAlignment="Center" Margin="0,0,1,0"
                            ToolTip.Tip="Silence between songs when auto-play moves to the next one" />
                 <Button c:FitRow.DropOrder="2" Classes="hw step" Content="−" Command="{Binding GapDownCommand}" />
-                <Border c:FitRow.DropOrder="2" Classes="readout-window" MinWidth="52">
+                <Border c:FitRow.DropOrder="2" Classes="readout-window" MinWidth="46" Padding="5,0">
                   <TextBlock Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold" FontSize="12.5"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
