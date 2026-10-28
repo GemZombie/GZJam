@@ -843,9 +843,11 @@
                         IsVisible="{Binding DecksInQueue}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:DeckViewModel">
-                <Border Classes="deck-row" Classes.air="{Binding IsOnAir}" ClipToBounds="True">
+                <Border Classes="deck-row" Classes.air="{Binding IsOnAir}" Classes.empty="{Binding !HasTrack}" ClipToBounds="True">
                   <Panel>
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8" Margin="8,7,10,7">
+                    <!-- What the queue shows of a song (its menu › Show, #131) shows here too (#189), giving
+                         way in the queue's order when there's no room; the time left is the deck's own -->
+                    <c:FitRow x:Name="DeckRow" Spacing="8" FillMinWidth="80" Margin="8,7,10,7">
                       <Button Classes="play deck-row-play" Width="30" Height="30" Classes.playing="{Binding IsPlaying}" Classes.armed="{Binding IsPauseArmed}"
                               Command="{Binding TogglePlayCommand}" IsEnabled="{Binding HasTrack}" ToolTip.Tip="{Binding PlayTip}"
                               Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}"
@@ -855,23 +857,44 @@
                           <PathIcon Data="{StaticResource IconPause}" Width="9" Height="9" IsVisible="{Binding IsPlaying}" />
                         </Panel>
                       </Button>
-                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" MinWidth="50">
+                      <!-- At the very narrowest, after everything else: the play key keeps the deck's color -->
+                      <StackPanel c:FitRow.DropOrder="12" VerticalAlignment="Center" Spacing="2" MinWidth="50">
                         <TextBlock Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
                                    Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
                         <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" FontSize="9.5" />
                       </StackPanel>
-                      <c:AlbumArt Grid.Column="2" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center"
-                                  SongPath="{Binding Track.Path, FallbackValue={x:Null}}" IsVisible="{Binding HasTrack}" />
-                      <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="1">
+                      <c:AlbumArt c:FitRow.DropOrder="7" Classes="q-art song" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center"
+                                  SongPath="{Binding Track.Path, FallbackValue={x:Null}}" />
+                      <StackPanel c:FitRow.Fills="True" VerticalAlignment="Center" Spacing="1">
                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis"
                                    Classes.muted="{Binding !HasTrack}" />
-                        <TextBlock Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis"
-                                   Text="{Binding Track.Artist, FallbackValue='Drag a song here'}" />
+                        <c:PriorityRow Spacing="5">
+                          <TextBlock Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                     Text="{Binding Track.Artist, FallbackValue='Drag a song here'}" />
+                          <c:LabelChips Classes="small q-labels song" ItemsSource="{Binding Track.Labels, FallbackValue={x:Null}}" />
+                        </c:PriorityRow>
                       </StackPanel>
-                      <TextBlock Grid.Column="4" Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}"
+                      <TextBlock c:FitRow.DropOrder="1" Classes="muted q-album song" Text="{Binding Track.Album, FallbackValue={x:Null}}" FontSize="11"
+                                 Width="140" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Album, FallbackValue={x:Null}}"
+                                 VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="2" Classes="muted q-genre song" Text="{Binding Track.Genre, FallbackValue={x:Null}}" FontSize="11"
+                                 Width="80" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Genre, FallbackValue={x:Null}}"
+                                 VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="3" Classes="muted mono q-year song" Text="{Binding Track.Year, FallbackValue={x:Null}}" FontSize="11"
+                                 Width="30" VerticalAlignment="Center" />
+                      <c:RatingIcon c:FitRow.DropOrder="6" Classes="q-rating song" Rating="{Binding Track.Rating}" ShowUnrated="False"
+                                    Width="12" Height="12" VerticalAlignment="Center" />
+                      <c:EnergyIcon c:FitRow.DropOrder="5" Classes="q-energy song" Energy="{Binding Track.Energy}" ShowUnset="False"
+                                    Width="12" Height="10" VerticalAlignment="Center" />
+                      <!-- As the room hears it: the song's BPM with the deck's pitch -->
+                      <TextBlock c:FitRow.DropOrder="10" Classes="muted mono q-bpm song" Text="{Binding BpmText}" FontSize="11" MinWidth="22"
+                                 TextAlignment="Right" VerticalAlignment="Center" ToolTip.Tip="{Binding BpmCaption}" />
+                      <!-- As wide as the queue's time and preview key, so the BPM and the rest line up with the
+                           queue's below -->
+                      <TextBlock Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}" MinWidth="53" TextAlignment="Right"
                                  Text="{Binding TimeLeftText}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
                                  Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
-                    </Grid>
+                    </c:FitRow>
                     <!-- How far into the song the room is (#165) -->
                     <c:AirBar Classes="deck-row-bar" Progress="{Binding AirProgress}" Fill="{StaticResource OnAirBrush}"
                               IsVisible="{Binding IsOnAir}" IsHitTestVisible="False" />

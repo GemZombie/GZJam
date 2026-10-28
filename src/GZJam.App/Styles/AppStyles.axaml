@@ -272,17 +272,21 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Padding" Value="0" />
   </Style>
-  <!-- What the queue shows of each song, chosen from its menu (MainWindow.QueueColumns, #131) -->
-  <Style Selector="ListBox.queue.hide-art c|AlbumArt.q-art"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-rating c|RatingIcon.q-rating"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-energy c|EnergyIcon.q-energy"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-labels c|LabelChips.q-labels"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-album TextBlock.q-album"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-genre TextBlock.q-genre"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-year TextBlock.q-year"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-played TextBlock.q-played"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-bpm TextBlock.q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector="ListBox.queue.hide-time TextBlock.q-time"><Setter Property="IsVisible" Value="False" /></Style>
+  <!-- What the queue shows of each song, chosen from its menu (MainWindow.QueueColumns, #131): in its
+       rows, and in the decks' rows atop it (#189) -->
+  <Style Selector=":is(ItemsControl).hide-art c|AlbumArt.q-art"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-rating c|RatingIcon.q-rating"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-energy c|EnergyIcon.q-energy"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-labels c|LabelChips.q-labels"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-album TextBlock.q-album"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-genre TextBlock.q-genre"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-year TextBlock.q-year"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-played TextBlock.q-played"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-bpm TextBlock.q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(ItemsControl).hide-time TextBlock.q-time"><Setter Property="IsVisible" Value="False" /></Style>
+
+  <!-- An empty deck atop the queue: only its name and "Drag a song here" -->
+  <Style Selector="Border.deck-row.empty :is(Control).song"><Setter Property="IsVisible" Value="False" /></Style>
 
   <Style Selector="ListBox.queue ListBoxItem">
     <Setter Property="Padding" Value="0" />

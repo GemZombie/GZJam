@@ -79,13 +79,7 @@ public sealed class QueueColumnsTests
                 app.Screenshot("queue-narrow");
             Assert.Equal(6, Rows().Count);
             foreach (var row in Rows())
-            {
-                var shown = row.Children.Where(c => c.IsVisible && !row.IsDropped(c)).OrderBy(c => c.Bounds.X).ToList();
-                for (int i = 1; i < shown.Count; i++)
-                    Assert.True(shown[i].Bounds.X >= shown[i - 1].Bounds.Right - 0.5,
-                        $"{width} px, {row.Name}: {shown[i]} over {shown[i - 1]}");
-                Assert.True(shown[^1].Bounds.Right <= row.Bounds.Width + 0.5, $"{width} px, {row.Name}: past the end");
-            }
+                AssertFits(row, $"{width} px");
         }
 
         // Narrowed, the album gives way before the BPM, and the title keeps its room while anything can still go.
@@ -109,6 +103,16 @@ public sealed class QueueColumnsTests
             Assert.False(row.Children.Any(row.IsDropped), $"{name}, {row.Bounds.Width} px: "
                 + string.Join(", ", row.Children.Select(c => $"{c.GetType().Name}{(row.IsDropped(c) ? " (gone)" : "")} {c.DesiredSize.Width}")));
         }
+    }
+
+    /// <summary>No shown part of <paramref name="row"/> is over another, or past its end.</summary>
+    internal static void AssertFits(FitRow row, string at)
+    {
+        var shown = row.Children.Where(c => c.IsVisible && !row.IsDropped(c)).OrderBy(c => c.Bounds.X).ToList();
+        for (int i = 1; i < shown.Count; i++)
+            Assert.True(shown[i].Bounds.X >= shown[i - 1].Bounds.Right - 0.5, $"{at}, {row.Name}: {shown[i]} over {shown[i - 1]}");
+        if (shown.Count > 0)
+            Assert.True(shown[^1].Bounds.Right <= row.Bounds.Width + 0.5, $"{at}, {row.Name}: past the end");
     }
 
     [AvaloniaFact]
