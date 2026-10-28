@@ -728,13 +728,15 @@
 
           <Border Grid.Row="1" Classes="panel-header" Padding="8,0,6,0">
             <!-- In a narrow queue (#187) the summary gives way, then the wide button, then the fold button
-                 (dragging the divider still folds it); the tabs close up (MainWindow.NarrowQueue) -->
+                 (dragging the divider still folds it); the tabs close up (MainWindow.NarrowQueue), and
+                 at the very narrowest (fonts are wider on Linux) History trims -->
             <c:FitRow x:Name="QueueTabsRow" Spacing="4">
               <ToggleButton x:Name="QueueTab" Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
-              <ToggleButton Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
-                            Click="OnHistoryTabClick" />
-              <Panel c:FitRow.Fills="True" />
+              <ToggleButton c:FitRow.Fills="True" HorizontalAlignment="Left" Classes="tab" IsChecked="{Binding ShowHistory, Mode=OneWay}"
+                            Click="OnHistoryTabClick">
+                <TextBlock Text="History" TextTrimming="CharacterEllipsis" />
+              </ToggleButton>
               <TextBlock x:Name="QueueSummary" c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
               <TextBlock c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
