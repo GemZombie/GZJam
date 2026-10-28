@@ -50,6 +50,17 @@ public partial class MainWindow
                 return dialog.ShowDialog<bool>(this);
             };
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
+            vm.AskAsync = (heading, message, yes, no) =>
+            {
+                var dialog = new ConfirmDialog(heading, message, yes, cancelText: no);
+                dialog.ConfirmIsHarmless();
+                return dialog.ShowDialog<bool>(this);
+            };
+            vm.PickFolderAsync = async title =>
+            {
+                var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false });
+                return folders is [var folder] ? folder.TryGetLocalPath() : null;
+            };
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName is nameof(MainWindowViewModel.FourDecks) or nameof(MainWindowViewModel.CompactDecks)

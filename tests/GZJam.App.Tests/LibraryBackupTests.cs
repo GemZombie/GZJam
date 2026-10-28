@@ -193,4 +193,74 @@ public sealed class LibraryBackupTests : IDisposable
         Assert.False(asked);
         Assert.Equal("Pause the music first: restoring a backup closes GZJam.", app.ViewModel.Notice);
     }
+
+    [AvaloniaFact]
+    public async Task Restored_where_the_music_lives_elsewhere_the_library_follows_it_there()
+    {
+        // Made on the old computer, its music in a folder that isn't on this one.
+        string backup = Path.Combine(_dir, "old laptop.gzjam");
+        string song, oldMusic;
+        using (var old = new AppHarness())
+        {
+            song = Mark(old);
+            oldMusic = old.MusicPath;
+            LibraryBackup.Create(old.Database, old.ViewModel.SettingsJson(), backup);
+        }
+        Assert.False(Directory.Exists(oldMusic));
+
+        // This computer: the same songs, in a Music folder somewhere else.
+        using var app = new AppHarness();
+        string? asked = null;
+        bool restarting = false;
+        app.ViewModel.ConfirmAsync = (_, _, _) => Task.FromResult(true);
+        app.ViewModel.AskAsync = (_, message, yes, _) => { asked = message; return Task.FromResult(yes == "Use that folder"); };
+        app.ViewModel.PickFolderAsync = _ => throw new InvalidOperationException("the suggestion was taken");
+        app.ViewModel.RestoreRequested += () => restarting = true;
+
+        await app.ViewModel.Settings.RestoreAsync(backup);
+
+        Assert.Contains($"{oldMusic} isn't on this computer", asked);
+        Assert.Contains($"It looks like it's {app.MusicPath} now", asked);
+        Assert.True(restarting);
+        SqliteConnection.ClearAllPools();
+        string staged = Path.Combine(app.WorkDirectory, "restore", "library.db");
+        var restored = new LibraryDatabase(staged);
+        Assert.Equal([app.MusicPath], restored.GetRoots().Select(r => r.Path));
+        string moved = LibraryDatabase.MovedPath(song, oldMusic, app.MusicPath)!;
+        Track t = restored.Search(null).Single(x => x.Path == moved);
+        Assert.Equal(Rating.Loved, t.Rating);
+        Assert.Equal(["Lindy"], t.Labels);
+        var info = LibraryBackup.Read(backup) with { };
+        string note = System.Text.Json.JsonSerializer.Deserialize<BackupInfo>(File.ReadAllText(Path.Combine(app.WorkDirectory, "restore", "backup.json")))!
+            .Moved!.Single();
+        Assert.StartsWith($"{app.MusicPath} ({info.Songs:N0} of its {info.Songs:N0} songs found", note);
+        SqliteConnection.ClearAllPools();
+    }
+
+    [AvaloniaFact]
+    public async Task A_music_folder_not_found_and_left_is_restored_as_it_was()
+    {
+        string backup = Path.Combine(_dir, "old laptop.gzjam");
+        string oldMusic;
+        using (var old = new AppHarness())
+        {
+            oldMusic = old.MusicPath;
+            LibraryBackup.Create(old.Database, old.ViewModel.SettingsJson(), backup);
+        }
+        using var app = new AppHarness(musicFolder: Directory.CreateDirectory(Path.Combine(_dir, "Other songs")).FullName, start: false);
+        string? asked = null, picked = null;
+        app.ViewModel.ConfirmAsync = (_, _, _) => Task.FromResult(true);
+        app.ViewModel.AskAsync = (_, message, yes, no) => { asked = $"{message} [{yes}] [{no}]"; return Task.FromResult(false); };
+        app.ViewModel.PickFolderAsync = title => { picked = title; return Task.FromResult<string?>(null); };
+
+        await app.ViewModel.Settings.RestoreAsync(backup);
+
+        Assert.Contains("Choose where it is now", asked);
+        Assert.EndsWith("[Choose the folder] [Leave it]", asked);
+        Assert.Null(picked);   // left, not asked for
+        SqliteConnection.ClearAllPools();
+        var restored = new LibraryDatabase(Path.Combine(app.WorkDirectory, "restore", "library.db"));
+        Assert.Equal([oldMusic], restored.GetRoots().Select(r => r.Path));
+        SqliteConnection.ClearAllPools();
+    }
 }

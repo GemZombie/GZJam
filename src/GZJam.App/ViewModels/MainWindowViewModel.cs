@@ -1106,6 +1106,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Asks the user to confirm something (heading, message, the confirm button's text); the window supplies the dialog.</summary>
     public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }
 
+    /// <summary>Asks a question with two harmless answers (heading, message, yes, no); the window supplies the dialog.</summary>
+    public Func<string, string, string, string, Task<bool>>? AskAsync { get; set; }
+
+    /// <summary>Asks for a folder (the picker's title); null if none was chosen. The window supplies the picker.</summary>
+    public Func<string, Task<string?>>? PickFolderAsync { get; set; }
+
     /// <summary>
     /// Asks whether to close GZJam while the room is hearing music (the message says what's
     /// playing); true to close. The window supplies the dialog, with "Keep playing" as its default.
