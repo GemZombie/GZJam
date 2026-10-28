@@ -116,7 +116,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.4.
+- [Narrow song list columns keep their names and their text](https://github.com/GemZombie/GZJam/issues/186),
+  ending in "…" when they don't fit.
+- [A narrow queue no longer overlaps](https://github.com/GemZombie/GZJam/issues/187): what it shows
+  gives way a part at a time, album first and BPM and time last.
 
 ## Planned next
 
@@ -171,6 +174,8 @@ to one you'd use.
 **Playing**
 - [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
   the library
+- [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189):
+  rating, energy, labels, BPM and the rest, as room allows
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search

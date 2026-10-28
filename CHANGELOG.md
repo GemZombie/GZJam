@@ -10,6 +10,18 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.5 (unreleased)
+
+Fixed:
+
+- **Narrow song list columns keep their names and their text.** A column made thin lost its name
+  long before it had to (BPM and Year went blank at about 50 pixels) and showed only a digit or two
+  of the BPM. Now the name and the text show while they fit, and end in "…" when they don't.
+- **A narrow queue no longer overlaps.** With the queue panel made thin, a song's title ran over its
+  number and the BPM and time ran off the edge. Now what the queue shows gives way a part at a time,
+  album first and BPM and time last, and the title and artist shorten with "…". The auto-play row
+  and the Queue and History tabs fit too.
+
 ## 0.9.4 (2026-10-27)
 
 New:
