@@ -664,26 +664,30 @@
                Above the tabs, so its status stays in view on the History tab too. -->
           <Border Classes="autoplay" DataContext="{Binding AutoPlay}" x:DataType="vm:AutoPlayViewModel">
             <StackPanel Spacing="6">
-              <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="5">
-                <ToggleButton x:Name="AutoPlaySwitch" Classes="hw small" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}"
-                              ToolTip.Tip="{Binding SwitchTip}">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
+              <!-- In a narrow queue (#187) the GAP label gives way first, then the gap, then the options;
+                   narrower still, the switch's name trims -->
+              <c:FitRow x:Name="AutoPlayRow" Spacing="4">
+                <!-- A little closer in than other keys, so the whole strip fits at the queue's usual width
+                     with Linux's wider fonts too -->
+                <ToggleButton x:Name="AutoPlaySwitch" c:FitRow.Fills="True" HorizontalAlignment="Left" Classes="hw small" Padding="9,0"
+                              IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggle}" ToolTip.Tip="{Binding SwitchTip}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                     <Border Classes="led green" Classes.on="{Binding IsOn}" />
-                    <TextBlock Text="AUTO-PLAY" />
-                  </StackPanel>
+                    <TextBlock Grid.Column="1" Text="AUTO-PLAY" TextTrimming="CharacterEllipsis" />
+                  </Grid>
                 </ToggleButton>
-                <TextBlock Grid.Column="2" Classes="fader-label" Text="GAP" VerticalAlignment="Center" Margin="0,0,3,0"
+                <TextBlock c:FitRow.DropOrder="1" Classes="fader-label" Text="GAP" VerticalAlignment="Center" Margin="0,0,1,0"
                            ToolTip.Tip="Silence between songs when auto-play moves to the next one" />
-                <Button Grid.Column="3" Classes="hw step" Content="−" Command="{Binding GapDownCommand}" />
-                <Border Grid.Column="4" Classes="readout-window" MinWidth="52">
+                <Button c:FitRow.DropOrder="2" Classes="hw step" Content="−" Command="{Binding GapDownCommand}" />
+                <Border c:FitRow.DropOrder="2" Classes="readout-window" MinWidth="46" Padding="5,0">
                   <TextBlock Classes="mono" Text="{Binding GapText}" FontWeight="SemiBold" FontSize="12.5"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <Button Grid.Column="5" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
+                <Button c:FitRow.DropOrder="2" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
 
                 <!-- For classes and practice nights: fade each song after a while, wait for the
                      teacher between songs, stop at a set time (#98, #100) -->
-                <Button x:Name="AutoPlayOptionsButton" Grid.Column="6" Classes="hw step" Content="⋯" FontSize="14"
+                <Button x:Name="AutoPlayOptionsButton" c:FitRow.DropOrder="3" Classes="hw step" Content="⋯" FontSize="14"
                         ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, stop at a set time">
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel" Opening="OnAutoPlayOptionsOpening">
@@ -720,7 +724,7 @@
                     </Flyout>
                   </Button.Flyout>
                 </Button>
-              </Grid>
+              </c:FitRow>
               <TextBlock Classes="muted" FontSize="11.5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"
                          IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               <TextBlock x:Name="AutoPlayOptionsText" Classes="dim" FontSize="11" Text="{Binding OptionsText}" TextTrimming="CharacterEllipsis"
@@ -730,26 +734,31 @@
           </Border>
 
           <Border Grid.Row="1" Classes="panel-header" Padding="8,0,6,0">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
+            <!-- In a narrow queue (#187) the summary gives way, then the wide button, then the fold button
+                 (dragging the divider still folds it); the tabs close up (MainWindow.NarrowQueue), and
+                 at the very narrowest (fonts are wider on Linux) History trims -->
+            <c:FitRow x:Name="QueueTabsRow" Spacing="4">
               <ToggleButton x:Name="QueueTab" Classes="tab" Content="Queue" IsChecked="{Binding ShowQueue, Mode=OneWay}"
                             Click="OnQueueTabClick" />
-              <ToggleButton Grid.Column="1" Classes="tab" Content="History" IsChecked="{Binding ShowHistory, Mode=OneWay}"
-                            Click="OnHistoryTabClick" />
-              <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+              <ToggleButton c:FitRow.Fills="True" HorizontalAlignment="Left" Classes="tab" IsChecked="{Binding ShowHistory, Mode=OneWay}"
+                            Click="OnHistoryTabClick">
+                <TextBlock Text="History" TextTrimming="CharacterEllipsis" />
+              </ToggleButton>
+              <TextBlock x:Name="QueueSummary" c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
-              <TextBlock Grid.Column="3" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+              <TextBlock c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding History.Summary}" IsVisible="{Binding ShowHistory}" />
               <!-- Give the queue the room in the middle, or the song list back (#178): the divider moves
                    left, or right again. The tip names the key (MainWindow.Panes). -->
-              <Button x:Name="QueueWideButton" Grid.Column="4" Classes="link panel-fold" Click="OnQueueWideClick">
+              <Button x:Name="QueueWideButton" c:FitRow.DropOrder="2" Classes="link panel-fold" Click="OnQueueWideClick">
                 <Path Classes="queue-wide" Data="M 0,0 H 1.6 V 12 H 0 Z M 3.5,6 8.3,1.2 9.4,2.3 6.5,5.2 H 15 V 6.8 H 6.5 L 9.4,9.7 8.3,10.8 Z" />
               </Button>
               <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
-              <Button x:Name="FoldQueueButton" Grid.Column="5" Classes="link panel-fold" Click="OnFoldQueueClick"
+              <Button x:Name="FoldQueueButton" c:FitRow.DropOrder="3" Classes="link panel-fold" Click="OnFoldQueueClick"
                       ToolTip.Tip="Fold the queue panel away">
                 <Path Classes="strip-chevron" Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
               </Button>
-            </Grid>
+            </c:FitRow>
           </Border>
 
           <!-- History: everything the room heard, by session -->
@@ -876,48 +885,55 @@
             <ListBox x:Name="QueueList" Classes="queue" ItemsSource="{Binding Queue.Items}" SelectionMode="Multiple">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
-                  <Grid ColumnDefinitions="Auto,20,Auto,*,Auto,Auto,Auto" ColumnSpacing="6" Margin="0,0,2,0" Background="Transparent"
-                        Opacity="{Binding Track.IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}">
-                    <Border Classes="next-bar" IsVisible="{Binding IsNext}" Grid.ColumnSpan="2" />
-                    <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
-                    <Border Classes="grip" Background="Transparent" Width="26" Cursor="SizeAll"
-                            ToolTip.Tip="Drag to reorder">
-                      <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Grid.Column="1" Classes="dim mono" Text="{Binding Number}" FontSize="11"
-                               HorizontalAlignment="Right" VerticalAlignment="Center" />
-                    <c:AlbumArt Grid.Column="2" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
-                                SongPath="{Binding Track.Path}" />
-                    <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,7" MinWidth="90">
-                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
-                      <!-- The artist, then the song's labels in what room is left -->
-                      <c:PriorityRow Spacing="5">
-                        <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                        <c:LabelChips x:Name="QueueLabels" Classes="small q-labels" ItemsSource="{Binding Track.Labels}" />
-                      </c:PriorityRow>
-                    </StackPanel>
-                    <!-- More of the song, chosen from the queue's menu (Show ›, #131): for a wide queue -->
-                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                      <TextBlock Classes="muted q-album" Text="{Binding Track.Album}" FontSize="11" Width="140"
-                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Album}" />
-                      <TextBlock Classes="muted q-genre" Text="{Binding Track.Genre}" FontSize="11" Width="80"
-                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Genre}" />
-                      <TextBlock Classes="muted mono q-year" Text="{Binding Track.Year}" FontSize="11" MinWidth="30" />
-                      <TextBlock Classes="muted mono q-played" FontSize="11" MinWidth="42" TextAlignment="Right" ToolTip.Tip="Last played"
+                  <Panel Margin="0,0,2,0" Background="Transparent"
+                         Opacity="{Binding Track.IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}">
+                    <Border Classes="next-bar" IsVisible="{Binding IsNext}" />
+                    <!-- However narrow the queue, nothing overlaps (#187): with too little room, the
+                         parts give way in their DropOrder (album first), and the title and artist trim -->
+                    <c:FitRow x:Name="QueueRow" Spacing="6" FillMinWidth="80">
+                      <!-- Drag handle: on touch, reorder by dragging here so swiping elsewhere scrolls. -->
+                      <Border Classes="grip" Background="Transparent" Width="26" Cursor="SizeAll"
+                              ToolTip.Tip="Drag to reorder">
+                        <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock c:FitRow.DropOrder="8" Classes="dim mono q-number" Text="{Binding Number}" FontSize="11" Width="20"
+                                 TextAlignment="Right" VerticalAlignment="Center" />
+                      <c:AlbumArt c:FitRow.DropOrder="7" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
+                                  SongPath="{Binding Track.Path}" />
+                      <StackPanel c:FitRow.Fills="True" Classes="q-title" VerticalAlignment="Center" Margin="0,7">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                        <!-- The artist, then the song's labels in what room is left -->
+                        <c:PriorityRow Spacing="5">
+                          <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                          <c:LabelChips x:Name="QueueLabels" Classes="small q-labels" ItemsSource="{Binding Track.Labels}" />
+                        </c:PriorityRow>
+                      </StackPanel>
+                      <!-- More of the song, chosen from the queue's menu (Show ›, #131): for a wide queue -->
+                      <TextBlock c:FitRow.DropOrder="1" Classes="muted q-album" Text="{Binding Track.Album}" FontSize="11" Width="140" Margin="4,0,0,0"
+                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Album}" VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="2" Classes="muted q-genre" Text="{Binding Track.Genre}" FontSize="11" Width="80" Margin="4,0,0,0"
+                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Track.Genre}" VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="3" Classes="muted mono q-year" Text="{Binding Track.Year}" FontSize="11" Width="30" Margin="4,0,0,0"
+                                 VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="4" Classes="muted mono q-played" FontSize="11" Width="42" Margin="4,0,0,0" TextAlignment="Right"
+                                 ToolTip.Tip="Last played" VerticalAlignment="Center"
                                  Text="{Binding Track.LastPlayedUtc, Converter={x:Static app:Converters.Ago}}" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-                      <c:RatingIcon Classes="q-rating" Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12" VerticalAlignment="Center" />
-                      <c:EnergyIcon Classes="q-energy" Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10" VerticalAlignment="Center" />
-                      <TextBlock Classes="muted mono q-bpm" Text="{Binding BpmText}" FontSize="11" />
-                      <TextBlock Classes="muted mono q-time" Text="{Binding DurationText}" FontSize="11" />
-                    </StackPanel>
-                    <Button Grid.Column="6" Classes="row-icon" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
-                            VerticalAlignment="Center">
-                      <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
-                            StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
-                    </Button>
-                  </Grid>
+                      <c:RatingIcon c:FitRow.DropOrder="6" Classes="q-rating" Rating="{Binding Track.Rating}" ShowUnrated="False" Width="12" Height="12"
+                                    VerticalAlignment="Center" />
+                      <c:EnergyIcon c:FitRow.DropOrder="5" Classes="q-energy" Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10"
+                                    Margin="3,0,0,0" VerticalAlignment="Center" />
+                      <!-- Widths kept steady, so every row gives way at much the same queue width -->
+                      <TextBlock c:FitRow.DropOrder="10" Classes="muted mono q-bpm" Text="{Binding BpmText}" FontSize="11" MinWidth="22" Margin="3,0,0,0"
+                                 TextAlignment="Right" VerticalAlignment="Center" />
+                      <TextBlock c:FitRow.DropOrder="11" Classes="muted mono q-time" Text="{Binding DurationText}" FontSize="11" MinWidth="28" Margin="3,0,0,0"
+                                 TextAlignment="Right" VerticalAlignment="Center" />
+                      <Button c:FitRow.DropOrder="9" Classes="row-icon q-preview" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
+                              VerticalAlignment="Center">
+                        <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                              StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+                      </Button>
+                    </c:FitRow>
+                  </Panel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
               <ListBox.ContextMenu>

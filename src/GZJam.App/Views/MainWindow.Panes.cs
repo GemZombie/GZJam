@@ -22,6 +22,9 @@ public partial class MainWindow
     /// <summary>With the queue wide, the song list is never narrower than this.</summary>
     internal const double LeastSongListWidth = 240;
 
+    /// <summary>A queue panel narrower than this has its tabs closer together, to fit (#187).</summary>
+    internal const double NarrowQueue = 175;
+
     private const double DefaultLibraryWidth = 260, DefaultQueueWidth = 320, MostPanelWidth = 560, DefaultWideSongListWidth = 420;
 
     private void InitializePanes()
@@ -29,6 +32,7 @@ public partial class MainWindow
         DataContextChanged += (_, _) => ApplyPanes();
         TreeSplitter.DragCompleted += (_, _) => PanelDragged(library: true);
         QueueSplitter.DragCompleted += (_, _) => PanelDragged(library: false);
+        QueuePanel.SizeChanged += (_, e) => QueuePanel.Classes.Set("narrow", e.NewSize.Width < NarrowQueue);
     }
 
     private void OnLibraryStripClick(object? sender, RoutedEventArgs e) => FoldPanel(library: true, folded: false);
