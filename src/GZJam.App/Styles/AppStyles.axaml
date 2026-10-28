@@ -273,17 +273,39 @@
     <Setter Property="Padding" Value="0" />
   </Style>
   <!-- What the queue shows of each song, chosen from its menu (MainWindow.QueueColumns, #131): in its
-       rows, and in the decks' rows atop it (#189) -->
-  <Style Selector=":is(ItemsControl).hide-art c|AlbumArt.q-art"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-rating c|RatingIcon.q-rating"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-energy c|EnergyIcon.q-energy"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-labels c|LabelChips.q-labels"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-album TextBlock.q-album"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-genre TextBlock.q-genre"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-year TextBlock.q-year"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-played TextBlock.q-played"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-bpm TextBlock.q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(ItemsControl).hide-time TextBlock.q-time"><Setter Property="IsVisible" Value="False" /></Style>
+       rows, the decks' rows atop it (#189) and its column names (#188), all in QueueLists -->
+  <Style Selector=":is(Control).hide-art :is(Control).q-art"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-rating :is(Control).q-rating"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-energy :is(Control).q-energy"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-labels :is(Control).q-labels"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-album :is(Control).q-album"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-genre :is(Control).q-genre"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-year :is(Control).q-year"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-played :is(Control).q-played"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-bpm :is(Control).q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-time :is(Control).q-time"><Setter Property="IsVisible" Value="False" /></Style>
+
+  <!-- The queue's column names (#188): drag one to move it, the line after it to resize it -->
+  <Style Selector="Border.queue-columns">
+    <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="0,4" />
+  </Style>
+  <Style Selector="Border.queue-columns TextBlock">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <!-- The long names end in "…" when narrowed; a short one (BPM, Year) stays whole, a pixel or two
+       into the gap beside it if a computer's font is wider -->
+  <Style Selector="Border.queue-columns TextBlock.trims">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="Border.queue-columns TextBlock.moving">
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
 
   <!-- An empty deck atop the queue: only its name and "Drag a song here" -->
   <Style Selector="Border.deck-row.empty :is(Control).song"><Setter Property="IsVisible" Value="False" /></Style>
