@@ -596,6 +596,8 @@
                           ToolTip.Tip="This song and the rest of the playlist after it" />
                 <Separator />
                 <MenuItem Header="Preview in headphones" InputGesture="Space" Click="OnPreviewSelectedClick" />
+                <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"
+                          ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                 <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />
                 <MenuItem x:Name="TrackLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadSelectedToDeckClick" />
                 <MenuItem x:Name="TrackLoad3" Header="Load to Deck 3" Tag="2" Click="OnLoadSelectedToDeckClick" />
@@ -820,6 +822,8 @@
                   <MenuItem Header="Add to queue" Click="OnHistoryAddToQueueClick" />
                   <Separator />
                   <MenuItem Header="Preview in headphones" Click="OnHistoryPreviewClick" />
+                  <MenuItem x:Name="HistoryEqItem" Header="EQ…" Click="OnHistoryEqClick"
+                            ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                   <MenuItem x:Name="HistoryLoad1" Header="Load to Deck 1" Tag="0" Click="OnHistoryLoadToDeckClick" />
                   <MenuItem x:Name="HistoryLoad2" Header="Load to Deck 2" Tag="1" Click="OnHistoryLoadToDeckClick" />
                   <MenuItem x:Name="HistoryLoad3" Header="Load to Deck 3" Tag="2" Click="OnHistoryLoadToDeckClick" />
@@ -965,6 +969,8 @@
                   <MenuItem Header="Remove" InputGesture="Delete" Click="OnQueueRemoveClick" />
                   <Separator />
                   <MenuItem Header="Preview in headphones" Click="OnPreviewQueueSelectedClick" />
+                  <MenuItem x:Name="QueueEqItem" Header="EQ…" Click="OnQueueEqClick"
+                            ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                   <MenuItem x:Name="QueueLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad3" Header="Load to Deck 3" Tag="2" Click="OnLoadQueueToDeckClick" />

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -287,7 +288,62 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The EQ the DJ set for a file.</summary>
     internal TrackEq GetEq(string path) => _database.GetEq(path);
 
-    internal void SaveEq(string path, TrackEq eq) => _database.SetEq(path, eq);
+    /// <summary>
+    /// Saves a song's EQ, and has everywhere playing it follow (#137): a deck holding it (other than
+    /// <paramref name="from"/>, where it was changed) and the headphone preview.
+    /// </summary>
+    internal void SaveEq(string path, TrackEq eq, object? from = null)
+    {
+        _database.SetEq(path, eq);
+        foreach (DeckViewModel deck in Decks)
+        {
+            if (deck != from && deck.Track?.Path == path)
+                deck.EqChangedElsewhere(eq);
+        }
+        Preview?.EqChanged(path, eq);
+    }
+
+    /// <summary>
+    /// The EQ panel for a song that isn't on a deck (#137): picked in the library, the queue, a
+    /// playlist or History, heard in the headphone preview, and used when the song is loaded.
+    /// </summary>
+    public EqEditor EqFor(Track track)
+    {
+        var (lufs, peakDb) = GetLoudness(track.Path);
+        EqEditor? editor = null;
+        editor = new EqEditor(() => "EQ", () => track.DisplayTitle, () => LevelText(lufs, peakDb), _ => { },
+            eq => SaveEq(track.Path, eq, editor))
+        {
+            PreviewCommand = new RelayCommand(() => Preview?.Toggle(track)),
+        };
+        editor.Set(GetEq(track.Path), save: false);
+        return editor;
+    }
+
+    // ───────────── Loudness matching ─────────────
+
+    /// <summary>A song's measured loudness and peak, from its analysis (null until it's measured).</summary>
+    internal (double? Lufs, double? PeakDb) GetLoudness(string path)
+    {
+        if (FileVersion.Of(path) is not { } version || _database.GetAnalysis(path, version) is not { } analysis)
+            return (null, null);
+        return (analysis.Lufs, analysis.PeakDb);
+    }
+
+    /// <summary>What loudness matching does to a song: 0 if it's off or the song isn't measured yet.</summary>
+    internal double MatchDb(double? lufs, double? peakDb) =>
+        _settings.MatchLoudness && lufs is { } measured ? LoudnessMatch.GainDb(measured, peakDb, _settings.LoudnessTarget) : 0;
+
+    /// <summary>"−14.2 LUFS · matching −2 dB", for the EQ panel.</summary>
+    internal string LevelText(double? lufs, double? peakDb, bool measuring = false)
+    {
+        if (lufs is not { } measured)
+            return measuring ? "Measuring loudness…" : "Loudness not measured";
+        string text = string.Create(CultureInfo.CurrentCulture, $"{measured:0.0} LUFS").Replace('-', '−');
+        return _settings.MatchLoudness
+            ? $"{text} · matching {EqEditor.Db(MatchDb(lufs, peakDb))}"
+            : $"{text} · loudness matching off";
+    }
 
     // ───────────── Ratings and energy ─────────────
 

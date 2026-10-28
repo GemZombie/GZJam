@@ -38,11 +38,11 @@ public sealed class LoudnessAppTests
         var deck = LoadAndMeasure(app, vm.Deck1!, song);
         double matched = deck.Deck.GainDb;
 
-        deck.EqGain = 2.3;
+        deck.Eq.Gain = 2.3;
 
-        Assert.Equal(2.5, deck.EqGain);   // half-dB steps
+        Assert.Equal(2.5, deck.Eq.Gain);   // half-dB steps
         Assert.Equal(matched + 2.5, deck.Deck.GainDb, 2);
-        Assert.True(deck.IsEqSet);
+        Assert.True(deck.Eq.IsSet);
         Assert.Equal(2.5, app.Database.GetEq(song.Path).Gain);
 
         var again = LoadAndMeasure(app, vm.Deck2!, song);

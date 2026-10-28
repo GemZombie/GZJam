@@ -171,6 +171,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             Log.Info($"Loudness matching {(value ? "on" : "off")}");
             foreach (DeckViewModel deck in _owner.Decks)
                 deck.LoudnessSettingChanged();
+            _owner.Preview?.LoudnessSettingChanged();
             OnPropertyChanged();
         }
     }
@@ -191,6 +192,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             Log.Info($"Loudness target {value.Value:0} LUFS");
             foreach (DeckViewModel deck in _owner.Decks)
                 deck.LoudnessSettingChanged();
+            _owner.Preview?.LoudnessSettingChanged();
             OnPropertyChanged();
         }
     }

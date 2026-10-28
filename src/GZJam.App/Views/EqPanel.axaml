@@ -3,10 +3,11 @@
              xmlns:vm="using:GZJam.App.ViewModels"
              xmlns:c="using:GZJam.App.Controls"
              x:Class="GZJam.App.Views.EqPanel"
-             x:DataType="vm:DeckViewModel">
-  <!-- A deck's EQ, laid out like a graphic EQ: a dB scale, three faders, the frequencies under
+             x:DataType="vm:EqEditor">
+  <!-- A song's EQ, laid out like a graphic EQ: a dB scale, three faders, the frequencies under
        them (the mid's can be moved), then the song's gain and how much it's evened out. Saved for
-       the song. Opens from the deck's EQ button. -->
+       the song. Opens from a deck's EQ button, or for a song that isn't on a deck from its
+       right-click menu (#137), with a key to hear it in the headphones. -->
   <UserControl.Styles>
     <Style Selector="c|Fader.eq">
       <Setter Property="Step" Value="0.5" />
@@ -79,7 +80,7 @@
 
   <StackPanel Width="396" Spacing="12">
     <StackPanel Spacing="2">
-      <TextBlock Classes="label" Text="{Binding Label, StringFormat='DECK {0} · EQ'}" />
+      <TextBlock Classes="label" Text="{Binding Heading}" />
       <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
     </StackPanel>
 
@@ -87,23 +88,23 @@
     <Border Background="{StaticResource WellBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
             CornerRadius="4" Padding="6,10,10,8">
       <Grid ColumnDefinitions="28,*,1.4*,*,13,*,13,*" RowDefinitions="160,Auto,Auto">
-        <c:EqScale Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" />
-        <c:Fader Classes="eq" x:Name="EqLowFader" Grid.Column="1" Value="{Binding EqLow}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="Bass, below about 150 Hz. Double-tap for 0 dB." />
-        <c:Fader Classes="eq" x:Name="EqMidFader" Grid.Column="2" Value="{Binding EqMid}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="The middle, around the frequency under it (move it with the arrows). Double-tap for 0 dB." />
-        <c:Fader Classes="eq" x:Name="EqHighFader" Grid.Column="3" Value="{Binding EqHigh}" Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}" ToolTip.Tip="Treble and hiss, above about 5 kHz. Double-tap for 0 dB." />
+        <c:EqScale Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" />
+        <c:Fader Classes="eq" x:Name="EqLowFader" Grid.Column="1" Value="{Binding Low}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" ToolTip.Tip="Bass, below about 150 Hz. Double-tap for 0 dB." />
+        <c:Fader Classes="eq" x:Name="EqMidFader" Grid.Column="2" Value="{Binding Mid}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" ToolTip.Tip="The middle, around the frequency under it (move it with the arrows). Double-tap for 0 dB." />
+        <c:Fader Classes="eq" x:Name="EqHighFader" Grid.Column="3" Value="{Binding High}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" ToolTip.Tip="Treble and hiss, above about 5 kHz. Double-tap for 0 dB." />
 
         <!-- Each band's level; tap it to put the band back to 0 dB -->
         <Button Grid.Row="1" Grid.Column="1" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
                 Command="{Binding FlatBandCommand}" CommandParameter="low" ToolTip.Tip="Tap for 0 dB">
-          <TextBlock Classes="eq-value" Text="{Binding EqLowText}" />
+          <TextBlock Classes="eq-value" Text="{Binding LowText}" />
         </Button>
         <Button Grid.Row="1" Grid.Column="2" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
                 Command="{Binding FlatBandCommand}" CommandParameter="mid" ToolTip.Tip="Tap for 0 dB">
-          <TextBlock Classes="eq-value" Text="{Binding EqMidText}" />
+          <TextBlock Classes="eq-value" Text="{Binding MidText}" />
         </Button>
         <Button Grid.Row="1" Grid.Column="3" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
                 Command="{Binding FlatBandCommand}" CommandParameter="high" ToolTip.Tip="Tap for 0 dB">
-          <TextBlock Classes="eq-value" Text="{Binding EqHighText}" />
+          <TextBlock Classes="eq-value" Text="{Binding HighText}" />
         </Button>
 
         <StackPanel Grid.Row="2" Grid.Column="1">
@@ -118,7 +119,7 @@
                     ToolTip.Tip="Move the mid band lower" Content="◀" />
             <Button Classes="link" Padding="1,0" Command="{Binding FlatBandCommand}" CommandParameter="midhz"
                     ToolTip.Tip="Where the mid band sits. Tap for 1 kHz.">
-              <TextBlock x:Name="MidHzText" Classes="eq-hz" Classes.moved="{Binding IsMidMoved}" Text="{Binding EqMidHzText}" />
+              <TextBlock x:Name="MidHzText" Classes="eq-hz" Classes.moved="{Binding IsMidMoved}" Text="{Binding MidHzText}" />
             </Button>
             <Button x:Name="MidUpButton" Classes="hz-step" Command="{Binding MoveMidCommand}" CommandParameter="up"
                     ToolTip.Tip="Move the mid band higher" Content="▶" />
@@ -131,12 +132,12 @@
 
         <!-- The song's level, on top of loudness matching -->
         <Border Grid.Column="4" Grid.RowSpan="3" Width="1" Background="{StaticResource LineBrush}" HorizontalAlignment="Center" />
-        <c:Fader x:Name="EqGainFader" Grid.Column="5" Classes="eq" Value="{Binding EqGain}"
-                 Minimum="{Binding EqMinDb}" Maximum="{Binding EqMaxDb}"
+        <c:Fader x:Name="EqGainFader" Grid.Column="5" Classes="eq" Value="{Binding Gain}"
+                 Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}"
                  ToolTip.Tip="This song's level, on top of loudness matching. Double-tap for 0 dB." />
         <Button Grid.Row="1" Grid.Column="5" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
                 Command="{Binding FlatBandCommand}" CommandParameter="gain" ToolTip.Tip="Tap for 0 dB">
-          <TextBlock Classes="eq-value" Text="{Binding EqGainText}" />
+          <TextBlock Classes="eq-value" Text="{Binding GainText}" />
         </Button>
         <StackPanel Grid.Row="2" Grid.Column="5">
           <TextBlock Classes="eq-band" Text="GAIN" />
@@ -146,11 +147,11 @@
         <!-- Evening out (a compressor): for a recording whose quiet and loud passages are far apart.
              Not in dB, so set apart from the faders on the dB scale. -->
         <Border Grid.Column="6" Grid.RowSpan="3" Width="1" Background="{StaticResource LineBrush}" HorizontalAlignment="Center" />
-        <c:Fader x:Name="EqEvenFader" Grid.Column="7" Classes="even" Value="{Binding EqEven}" Maximum="{Binding EqMaxEven}"
+        <c:Fader x:Name="EqEvenFader" Grid.Column="7" Classes="even" Value="{Binding Even}" Maximum="{Binding MaxEven}"
                  ToolTip.Tip="Evens out a recording whose quiet and loud passages are far apart: the loud parts come down, the quiet ones up. Off at the bottom. Double-tap for off." />
         <Button Grid.Row="1" Grid.Column="7" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
                 Command="{Binding FlatBandCommand}" CommandParameter="even" ToolTip.Tip="Tap for off">
-          <TextBlock Classes="eq-value" Text="{Binding EqEvenText}" />
+          <TextBlock Classes="eq-value" Text="{Binding EvenText}" />
         </Button>
         <StackPanel Grid.Row="2" Grid.Column="7">
           <TextBlock Classes="eq-band" Text="EVEN" />
@@ -163,9 +164,18 @@
     <Grid ColumnDefinitions="*,8,*">
       <Button x:Name="LessHissButton" Classes="eq-action" Command="{Binding LessHissCommand}"
               ToolTip.Tip="Turns the treble down 6 dB: a starting point for a hissy transfer" Content="Less hiss" />
-      <Button x:Name="FlatButton" Grid.Column="2" Classes="eq-action" Command="{Binding FlatEqCommand}"
+      <Button x:Name="FlatButton" Grid.Column="2" Classes="eq-action" Command="{Binding FlatCommand}"
               ToolTip.Tip="Everything back as it was: the bands and gain at 0 dB, the mid at 1 kHz, evening out off" Content="Flat" />
     </Grid>
+    <!-- A song that isn't on a deck: hear it with its EQ in the headphones -->
+    <Button x:Name="EqPreviewButton" Classes="eq-action" Command="{Binding PreviewCommand}" IsVisible="{Binding CanPreview}"
+            HorizontalAlignment="Stretch" ToolTip.Tip="Play this song in your headphones, with its EQ, or stop it">
+      <StackPanel Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center">
+        <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+              StrokeThickness="2.2" Stretch="Uniform" Width="13" Height="12" VerticalAlignment="Center" />
+        <TextBlock Text="Preview in headphones" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
     <TextBlock Classes="muted" FontSize="11" TextWrapping="Wrap"
                Text="Remembered for this song. The room and your headphones hear it alike." />
   </StackPanel>
