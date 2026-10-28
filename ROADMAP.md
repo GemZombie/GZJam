@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.3** (27 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.4** (27 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
 
 ## What GZJam does today
@@ -16,10 +16,13 @@ release.
   folder you pick. Nothing to import, and your music files are never changed.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:` and `played:` (`-played:7` leaves out the songs the room heard last week).
+- Choose the song list's columns, Grouping and Comment among them (as iTunes, Music and many
+  other players keep them in the song files), and what the queue shows of each song.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck.
   A song added to the queue or a playlist twice is still added, but GZJam says so, with Undo.
+  Ctrl+L gives the queue the room in the middle, for a night spent reordering a long one.
 - Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
   it, and add it to the queue. The queue or a night in History can be saved as one. Fold the
   folders away, or drag the playlists' grip, for a longer list of them.
@@ -36,9 +39,10 @@ release.
 **Decks**
 - Two decks, or four in the same space.
 - Compact decks for a laptop: smaller decks, so the library and queue show more songs. Or hide
-  the decks, for the most songs on screen: one line at the top keeps the song the room hears, its
-  play key, time left and what's next. A switch in the top bar picks full, compact or hidden in
-  one click (or a key, or the grip under the decks), as often as you like during a night.
+  the decks, for the most songs on screen: they sit at the top of the queue, in the order the room
+  will hear them, the song it hears now with its play key and time left. A switch in the top bar
+  picks full, compact or hidden in one click (or a key, or the grip under the decks), as often as
+  you like during a night.
 - The deck the room hears has a red on-air bar that fills as the song plays.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
@@ -112,17 +116,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- [The Energy column resizes](https://github.com/GemZombie/GZJam/issues/175) like the other
-  columns in the song list.
-- [A queue as big as the song list](https://github.com/GemZombie/GZJam/issues/178): Ctrl+L (Cmd+L
-  on a Mac) gives the queue the room in the middle, and the song list back, for nights spent
-  reordering a long queue.
-- [Choose what the queue shows](https://github.com/GemZombie/GZJam/issues/131): album art, ♥,
-  energy, labels, album, genre, year, when it was last played, BPM and time.
-- [Grouping and Comment columns in the song list](https://github.com/GemZombie/GZJam/issues/161),
-  read from the song files, where iTunes and Music keep them too, and Grouping searchable.
-- [Hidden decks sit at the top of the queue](https://github.com/GemZombie/GZJam/issues/177), in the
-  order the room will hear them: the song it hears now, then the next deck, then the queue.
+Nothing yet since 0.9.4.
 
 ## Planned next
 
