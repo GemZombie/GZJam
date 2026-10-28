@@ -123,12 +123,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Songs' album art, for the decks, queue and library.</summary>
     public AlbumArtCache Art { get; }
 
-    /// <summary>What's happening in the background (scanning, then analyzing), for the top bar.</summary>
-    public string? BackgroundStatus => Library.ScanStatus ?? Analysis?.Status;
-    public double BackgroundPercent => Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
+    /// <summary>What's happening in the background (copying songs out, scanning, then analyzing), for the top bar.</summary>
+    public string? BackgroundStatus => ExportStatus ?? Library.ScanStatus ?? Analysis?.Status;
+    public double BackgroundPercent => ExportStatus is not null ? ExportPercent
+        : Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
 
     /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
-    public string? BackgroundTip => Library.ScanStatus is not null
+    public string? BackgroundTip => _export is { } export
+        ? $"Copying the songs to {export.Folder}. Your own files aren't changed."
+        : Library.ScanStatus is not null
         ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
         : Analysis?.StatusTip;
 
