@@ -129,6 +129,18 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 couldn't be reproduced in 170 runs on five sound cards; if the activity log ever says the speakers
 ran dry, it's reopened.
 
+*New*
+- [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189):
+  rating, energy, labels, BPM (as the room hears it) and the rest, as room allows
+- [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
+  library, queue or a playlist, while preparing a set
+- [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
+  stick: a spare copy of the night's set, or one to hand to another DJ
+- [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
+  for a new laptop with a different drive or system
+- [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
+  the library
+
 *Testing*
 - A test pass with [the checklist](docs/TESTING.md) [on Linux](https://github.com/GemZombie/GZJam/issues/19),
   with a sound card used directly, as at a dance
@@ -140,15 +152,11 @@ ran dry, it's reopened.
   mock night on Windows and on Mac
 
 **After 1.0:**
-- [Restore a backup on a computer where the music lives somewhere else](https://github.com/GemZombie/GZJam/issues/112),
-  for a new laptop with a different drive or system
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
-- [EQ a song that isn't on a deck](https://github.com/GemZombie/GZJam/issues/137), from the
-  library, queue or a playlist
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
   only the usual ones (a dance in a custom tag, the composer)
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
@@ -172,15 +180,9 @@ to one you'd use.
 
 
 **Playing**
-- [Rearrange and resize the queue's columns](https://github.com/GemZombie/GZJam/issues/188), as in
-  the library
-- [The decks at the top of the queue show what the queue shows](https://github.com/GemZombie/GZJam/issues/189):
-  rating, energy, labels, BPM and the rest, as room allows
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
-- [Export a playlist as files](https://github.com/GemZombie/GZJam/issues/101), to a folder or USB
-  stick, to hand a set to another DJ
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
   a sequence of dances, or so many of each
 
