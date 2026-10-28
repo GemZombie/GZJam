@@ -10,7 +10,7 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
-## 0.9.5 (unreleased)
+## 0.9.5 (2026-10-28)
 
 New:
 
@@ -31,7 +31,6 @@ New:
 - **With the decks hidden, their rows atop the queue show what the queue shows:** labels, the ♥,
   energy, album and the rest, as you've chosen in the queue's menu › *Show*, lined up with the
   queue's. The BPM is the one the room hears, with the deck's pitch.
-
 - **Column names over the queue:** drag a name to put its column elsewhere (BPM before the title,
   say), and drag the line after album, genre, year, played, BPM or time to make it wider or
   narrower. Remembered, and the decks' rows atop the queue follow. They don't sort: the queue's
