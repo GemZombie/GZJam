@@ -143,7 +143,8 @@ ran dry, it's reopened.
   with dancers
 - With *Extra protection against crackles* on, a night with no "the sound buffer ran dry" in the
   activity log
-- Done: [the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18), and an hour's
+- Done: [the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18),
+  [on a Windows touch-screen laptop](https://github.com/GemZombie/GZJam/issues/94), and an hour's
   mock night on Windows and on Mac
 
 **After 1.0:**
