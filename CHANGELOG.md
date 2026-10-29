@@ -10,6 +10,16 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.6 (unreleased)
+
+Fixed:
+
+- **Resizing the queue's columns works:** dragging the line beside album, genre, year, played, BPM
+  or time didn't follow the mouse. The column grew the other way, and the line was nowhere to be
+  seen. Now each one shows a thin line, lit when the mouse is over it, on the side toward the
+  title (before the column, unless you've moved it in front of the title), and it stays under the
+  mouse as you drag. A column also stops short of pushing others out of sight.
+
 ## 0.9.5 (2026-10-28)
 
 New:

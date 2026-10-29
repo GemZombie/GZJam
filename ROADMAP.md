@@ -123,7 +123,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.5.
+- Resizing the queue's columns works: the lines to drag show between the column names, and stay
+  under the mouse as you drag ([#198](https://github.com/GemZombie/GZJam/issues/198)).
 
 ## Planned next
 
