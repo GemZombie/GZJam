@@ -9,6 +9,9 @@ decided by its maintainer, [@GemZombie](https://github.com/GemZombie).
 something (Q&A), talk an idea over with other DJs (Ideas), or show your setup (Show and tell). New
 releases are announced there too. Ideas the maintainer takes up become issues.
 
+On Facebook, [GZJam Support and Development](https://www.facebook.com/groups/2178840716051629/) is the same
+kind of place: ask a question, share an idea, and hear about new releases.
+
 ## Problems and requests
 
 [Open an issue](https://github.com/GemZombie/GZJam/issues) for something that's wrong, or a clear
