@@ -845,9 +845,10 @@
 
           <Grid x:Name="QueueLists" Grid.Row="2" RowDefinitions="Auto,Auto,*" IsVisible="{Binding ShowQueue}">
           <!-- The column names (#188), laid out as the rows are, so they give way alike: drag one to
-               move it, the line after it to resize it (MainWindow.QueueHeader). Not a sort: the
+               move it, the line beside it (on the title's side) to resize it (MainWindow.QueueHeader). Not a sort: the
                queue's order is the running order. -->
           <Border x:Name="QueueHeaderBar" Classes="queue-columns" IsVisible="{Binding ShowsQueueColumnNames}">
+            <Panel>
             <c:FitRow x:Name="QueueHeader" Spacing="6" FillMinWidth="74" Margin="0,0,2,0" Background="Transparent">
               <Panel Width="26" />
               <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="8" Classes="q-number" Text="#" Width="20" TextAlignment="Right" />
@@ -866,6 +867,10 @@
               <TextBlock c:FitRow.Key="Time" c:FitRow.DropOrder="11" Classes="q-time" Text="Time" Margin="3,0,0,0" TextAlignment="Right" />
               <Panel c:FitRow.DropOrder="9" Width="24" />
             </c:FitRow>
+            <!-- The lines to drag between the names, lit under the pointer (#198) -->
+            <c:FitRowLines x:Name="QueueColumnLines" Row="{Binding #QueueHeader}" Brush="{StaticResource DimBrush}"
+                           HotBrush="{StaticResource AccentBrush}" IsHitTestVisible="False" />
+            </Panel>
           </Border>
           <Border x:Name="QueueColumnDropLine" Grid.RowSpan="3" Width="2" HorizontalAlignment="Left" Background="{StaticResource AccentBrush}"
                   IsVisible="False" IsHitTestVisible="False" />

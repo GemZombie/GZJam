@@ -285,7 +285,7 @@
   <Style Selector=":is(Control).hide-bpm :is(Control).q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
   <Style Selector=":is(Control).hide-time :is(Control).q-time"><Setter Property="IsVisible" Value="False" /></Style>
 
-  <!-- The queue's column names (#188): drag one to move it, the line after it to resize it -->
+  <!-- The queue's column names (#188): drag one to move it, the line beside it (on the title's side) to resize it -->
   <Style Selector="Border.queue-columns">
     <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />

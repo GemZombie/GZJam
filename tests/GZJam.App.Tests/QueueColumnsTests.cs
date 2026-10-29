@@ -173,7 +173,7 @@ public sealed class QueueColumnsTests
     }
 
     [AvaloniaFact]
-    public void Dragging_a_name_moves_its_column_and_dragging_its_end_resizes_it_both_remembered()
+    public void Dragging_a_name_moves_its_column_and_dragging_the_line_beside_it_resizes_it_both_remembered()
     {
         using var app = new AppHarness();
         app.ViewModel.Queue.Add(app.Library.Results.Take(3).ToList());
@@ -196,18 +196,51 @@ public sealed class QueueColumnsTests
         Assert.Equal(["Number", "Art", "BPM", "Title"], app.Settings.QueueColumnOrder!.Take(4));
         Assert.False(app.Window.FindControl<Border>("QueueColumnDropLine")!.IsVisible);
 
-        // The line after Album dragged 40 to the right: wider in the names and the songs alike.
+        // Album, after the title, is resized by the line before it (#198): dragged 40 to the left, the
+        // line stays under the pointer and Album is wider in the names and the songs alike, its end
+        // where it was.
+        var line = app.Window.FindControl<Border>("QueueColumnDropLine")!;
         Control album = Part(Header(app), "Album");
-        double before = album.Bounds.Width;
-        Point edge = At(app, album, album.Bounds.Width - 1);
+        double before = album.Bounds.Width, end = At(app, album, album.Bounds.Width).X;
+        Point edge = At(app, album, -album.Margin.Left - Header(app).Spacing / 2);
         app.Window.MouseMove(edge);
         app.Window.MouseDown(edge, MouseButton.Left);
-        app.Window.MouseMove(edge + new Point(40, 0), RawInputModifiers.LeftMouseButton);
-        app.Window.MouseUp(edge + new Point(40, 0), MouseButton.Left);
+        app.Window.MouseMove(edge - new Point(40, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.UpdateLayout();
+        Assert.True(line.IsVisible);
+        Assert.Equal(edge.X - 40, line.TranslatePoint(new Point(1, 0), app.Window)!.Value.X, 1);
+        app.Window.MouseUp(edge - new Point(40, 0), MouseButton.Left);
         AppHarness.Settle(150);
-        Assert.Equal(before + 40, Part(Header(app), "Album").Bounds.Width, 1);
-        Assert.Equal(Part(Header(app), "Album").Bounds.Width, Part(FirstRow(app), "Album").Bounds.Width, 1);
+        album = Part(Header(app), "Album");
+        Assert.Equal(before + 40, album.Bounds.Width, 1);
+        Assert.Equal(end, At(app, album, album.Bounds.Width).X, 1);
+        Assert.Equal(album.Bounds.Width, Part(FirstRow(app), "Album").Bounds.Width, 1);
         Assert.Equal(before + 40 + 4, app.Settings.QueueColumnWidths["Album"], 1);   // its margin included
+        Assert.False(line.IsVisible);
+
+        // BPM, now before the title, by the line after it: 10 to the right, its start where it was.
+        Control bpmName = Part(Header(app), "BPM");
+        double bpmWidth = bpmName.Bounds.Width, bpmStart = Left(app, bpmName);
+        edge = At(app, bpmName, bpmName.Bounds.Width + Header(app).Spacing / 2);
+        app.Window.MouseMove(edge);
+        app.Window.MouseDown(edge, MouseButton.Left);
+        app.Window.MouseMove(edge + new Point(10, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseUp(edge + new Point(10, 0), MouseButton.Left);
+        AppHarness.Settle(150);
+        Assert.Equal(bpmWidth + 10, Part(Header(app), "BPM").Bounds.Width, 1);
+        Assert.Equal(bpmStart, Left(app, Part(Header(app), "BPM")), 1);
+
+        // Dragged far, Album takes no more than the title can spare: nothing gives way under the pointer.
+        album = Part(Header(app), "Album");
+        edge = At(app, album, -album.Margin.Left - Header(app).Spacing / 2);
+        app.Window.MouseMove(edge);
+        app.Window.MouseDown(edge, MouseButton.Left);
+        app.Window.MouseMove(edge - new Point(400, 0), RawInputModifiers.LeftMouseButton);
+        app.Window.MouseUp(edge - new Point(400, 0), MouseButton.Left);
+        AppHarness.Settle(150);
+        Assert.DoesNotContain(Header(app).Children, Header(app).IsDropped);
+        Assert.DoesNotContain(FirstRow(app).Children, FirstRow(app).IsDropped);
+        Assert.True(Part(Header(app), "Title").Bounds.Width >= Header(app).FillMinWidth - 1);
         app.Window.ResizeQueueColumn("Album", 2000);
         Assert.Equal(MainWindow.QueueColumnSizes["Album"].Most, app.Settings.QueueColumnWidths["Album"]);
         app.Screenshot("queue-columns-moved");
@@ -218,6 +251,39 @@ public sealed class QueueColumnsTests
         Assert.Null(app.Settings.QueueColumnOrder);
         Assert.Empty(app.Settings.QueueColumnWidths);
         Assert.True(Left(app, Part(FirstRow(app), "Title")) < Left(app, Part(FirstRow(app), "BPM")));
+    }
+
+    [AvaloniaFact]
+    public void The_lines_to_drag_show_between_the_names_and_light_up_under_the_pointer()
+    {
+        using var app = new AppHarness();
+        app.ViewModel.Queue.Add(app.Library.Results.Take(3).ToList());
+        app.Window.SetQueueColumnShown("Album", true);
+        app.Window.FindControl<Grid>("PanesGrid")!.ColumnDefinitions[4].Width = new GridLength(560);
+        AppHarness.Settle(200);
+
+        // A line beside each name that resizes, and only those: in the gap on the title's side.
+        var header = Header(app);
+        Assert.Equal(MainWindow.QueueColumnSizes.Keys.Order(), header.Children.Where(FitRow.GetDivided).Select(c => FitRow.GetKey(c)!).Order());
+        var shown = header.Ordered().Where(c => c.IsVisible && !header.IsDropped(c)).ToList();
+        Assert.Contains(shown, FitRow.GetDivided);
+        for (int i = 1; i < shown.Count; i++)
+        {
+            if (!FitRow.GetDivided(shown[i]))
+                continue;
+            var line = header.DividerOf(shown[i])!.Value;
+            Assert.True(line.Left);
+            Assert.InRange(line.X, shown[i - 1].Bounds.Right, shown[i].Bounds.Left);
+        }
+
+        // Under the pointer, Album's line lights up; away from it, it doesn't.
+        Control album = Part(header, "Album");
+        Point onLine = header.TranslatePoint(new Point(header.DividerOf(album)!.Value.X, header.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseMove(onLine);
+        Assert.Equal("Album", app.Window.FindControl<FitRowLines>("QueueColumnLines")!.Hot);
+        app.Screenshot("queue-column-lines");
+        app.Window.MouseMove(At(app, Part(header, "Title"), 10));
+        Assert.Null(app.Window.FindControl<FitRowLines>("QueueColumnLines")!.Hot);
     }
 
     [AvaloniaFact]
