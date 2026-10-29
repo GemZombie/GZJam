@@ -3,6 +3,9 @@ contact_links:
   - name: A question, or an idea to talk over
     url: https://github.com/GemZombie/GZJam/discussions
     about: Ask in Q&A, or share an idea in Ideas. Ideas that are taken up become issues.
+  - name: The Facebook group
+    url: https://www.facebook.com/groups/2178840716051629/
+    about: GZJam Support and Development, for questions, ideas and news on Facebook.
   - name: Security problem
     url: https://github.com/GemZombie/GZJam/security/advisories/new
     about: Report it privately, not in a public issue.

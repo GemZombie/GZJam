@@ -16,7 +16,8 @@ intuitive and useful: what you need to play music for dancers, without the clutt
 the file for your computer. How to use it, from your first song to a night's checklist, is in
 the [user guide](docs/GUIDE.md). What changed in each release is in [CHANGELOG.md](CHANGELOG.md);
 what GZJam does and what's coming is in [ROADMAP.md](ROADMAP.md).
-Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions).
+Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions),
+and on Facebook in [GZJam Support and Development](https://www.facebook.com/groups/2178840716051629/).
 
 | Computer | File | To install |
 |---|---|---|

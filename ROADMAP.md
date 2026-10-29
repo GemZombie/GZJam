@@ -7,7 +7,8 @@ GZJam can do today, what's coming, and what's being considered. It's brought up 
 release.
 
 **Up to date as of 0.9.6** (29 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
-[what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions)
+[what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
+[the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
 ## What GZJam does today
 
