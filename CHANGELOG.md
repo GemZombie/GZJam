@@ -10,6 +10,31 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.8 (2026-10-30)
+
+New:
+
+- **Add a song to a playlist from a deck or the queue:** right-click the song on a deck (or open
+  its ⋯ menu with four decks), or right-click songs in the queue, › *Add to playlist*. No more
+  finding the song again in the library first.
+
+Changed:
+
+- **Other music programs keep playing while GZJam is open (Windows), on new installs:**
+  *Speakers for GZJam alone* is now off to start with. On, it keeps notification sounds out of
+  the room, but it also stops a music player or editor using the same speakers, with only a
+  puzzling error there. Turn it on in Settings › Sound for a laptop kept for gigs. If you already
+  have GZJam, your setting stays as it is.
+
+Fixed:
+
+- **The playlists stay where you scrolled them:** adding a song to a playlist sent the list of
+  playlists back to the top, and with a playlist open, the song list too. Now both stay put, so
+  adding songs to several playlists one after another is easy.
+- **BPMs of 0 or 1 are gone:** some songs carry a junk BPM in their tags, and GZJam showed it
+  instead of the BPM it detected. Those tags are now ignored. The first time this version looks
+  through your music it reads the tags again, once, so the right BPMs appear.
+
 ## 0.9.7 (2026-10-29)
 
 New:

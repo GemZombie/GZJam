@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.7** (29 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.8** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -27,8 +27,8 @@ release.
   as the deck will play it: with its EQ and loudness matching.
   A song added to the queue or a playlist twice is still added, but GZJam says so, with Undo.
   Ctrl+L gives the queue the room in the middle, for a night spent reordering a long one.
-- Playlists: plan a set before the night, in order, saved by name. Drag songs onto one, reorder
-  it, and add it to the queue. The queue or a night in History can be saved as one, or copied
+- Playlists: plan a set before the night, in order, saved by name. Drag songs onto one (or add
+  the song on a deck, or songs in the queue, from their menu), reorder it, and add it to the queue. The queue or a night in History can be saved as one, or copied
   out as files, in order, to a folder or USB stick. Fold the folders away, or drag the playlists'
   grip, for a longer list of them.
 - A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
@@ -90,8 +90,8 @@ release.
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
   nights it can fade each song out after a set time, or wait for you between songs; and it can
   stop at a set time, so the night ends on time.
-- On Windows the speakers can be GZJam's alone, so no notification sound reaches the room. On Linux
-  a sound card can be used directly, for the same reason.
+- On Windows the speakers can be GZJam's alone (a switch, for a laptop kept for gigs), so no
+  notification sound reaches the room. On Linux a sound card can be used directly, for the same reason.
 - Headphones (or the booth) unplugged during a night go quiet, never move to the speakers, and come
   back by themselves when plugged in again.
 
@@ -125,7 +125,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.7.
+Nothing yet since 0.9.8.
 
 ## Planned next
 
@@ -174,6 +174,8 @@ to one you'd use.
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
+- [Import playlists saved as .txt files](https://github.com/GemZombie/GZJam/issues/208), many at
+  once, from an older computer
 
 
 **Playing**
