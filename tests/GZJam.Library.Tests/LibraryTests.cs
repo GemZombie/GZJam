@@ -45,6 +45,18 @@ public sealed class ScanningTests : IDisposable
         Assert.Equal(expected, Assert.Single(_lib.Database.Search(null)).Bpm);
     }
 
+    [Theory]
+    [InlineData("1")]
+    [InlineData("0.4")]
+    [InlineData("39")]
+    public void A_tag_bpm_too_slow_to_be_real_is_left_out(string tagValue)
+    {
+        // #206: junk like "1" outranked the detected BPM.
+        _lib.AddMp3("Swing/a.mp3", new TestMp3.Tags(Title: "A", Bpm: tagValue));
+        _lib.AddRootAndScan();
+        Assert.Null(Assert.Single(_lib.Database.Search(null)).TagBpm);
+    }
+
     [Fact]
     public void ITunes_data_frames_are_not_shown_as_comments()
     {

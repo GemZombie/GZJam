@@ -9,8 +9,15 @@ internal static class TagReader
     /// Which way of reading tags a song was read with. Raise it whenever tags are read better (a
     /// new field, a fix like BPMs stored x10): the next scan reads every song again, rather than
     /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back. 2: Grouping.
+    /// 3: tag BPMs too slow to be real (0.4, 1) ignored.
     /// </summary>
-    public const int Version = 2;
+    public const int Version = 3;
+
+    /// <summary>
+    /// The slowest tag BPM taken as real. Below it, a tag is junk left by some tool ("1", "0.4"),
+    /// and the BPM GZJam detects is shown instead (#206).
+    /// </summary>
+    internal const double MinTagBpm = 40;
 
     /// <summary>
     /// Builds a <see cref="Track"/> for a file. Files with unreadable or missing tags still get a
@@ -70,11 +77,13 @@ internal static class TagReader
             {
                 string? text = frame.Text.FirstOrDefault();
                 if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double bpm) && bpm > 0)
-                    return NormalizeBpm(bpm);
+                    return Plausible(NormalizeBpm(bpm));
             }
         }
-        return file.Tag.BeatsPerMinute > 0 ? NormalizeBpm(file.Tag.BeatsPerMinute) : null;
+        return file.Tag.BeatsPerMinute > 0 ? Plausible(NormalizeBpm(file.Tag.BeatsPerMinute)) : null;
     }
+
+    private static double? Plausible(double bpm) => bpm >= MinTagBpm ? bpm : null;
 
     /// <summary>Some taggers store BPM x 10 ("1320" for 132.0) or x 100 ("13200"). Scale those back.</summary>
     internal static double NormalizeBpm(double bpm) =>
