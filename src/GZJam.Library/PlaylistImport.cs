@@ -58,7 +58,8 @@ public sealed class PlaylistImport
             string name = Path.GetFileNameWithoutExtension(file).Trim();
             if (name.Length == 0)
                 name = "Imported playlist";
-            if (existing.Contains(name))
+            // Also the second of two files of the same name, picked together: not read, so not counted.
+            if (!existing.Add(name))
             {
                 alreadyThere.Add(name);
                 continue;
@@ -100,8 +101,6 @@ public sealed class PlaylistImport
             }
             if (paths.Count == 0)
                 nothing.Add(Path.GetFileName(file));
-            else if (!existing.Add(name))
-                alreadyThere.Add(name);   // two files of the same name, picked together
             else
                 planned.Add((name, paths));
         }
@@ -114,7 +113,7 @@ public sealed class PlaylistImport
             MovedFolders = foundElsewhere > 0 ? moved.Take(3).ToList() : [],
             MissingSongs = missing.Count,
             MissingFolders = missing
-                .GroupBy(p => Path.GetDirectoryName(p) ?? "")
+                .GroupBy(Folder)
                 .OrderByDescending(g => g.Count())
                 .Select(g => g.Key)
                 .Take(3)
@@ -123,6 +122,9 @@ public sealed class PlaylistImport
         import._playlists.AddRange(planned);
         return import;
     }
+
+    /// <summary>The folder a song was listed in, by either separator (a playlist from Windows, read anywhere).</summary>
+    private static string Folder(string path) => path.LastIndexOfAny(['\\', '/']) is var cut and > 0 ? path[..cut] : path;
 
     /// <summary>Makes the planned playlists. Returns how many were made (one named since the plan is skipped).</summary>
     public int Apply(LibraryDatabase gz)
