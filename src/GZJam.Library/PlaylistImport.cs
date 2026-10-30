@@ -3,8 +3,9 @@ namespace GZJam.Library;
 /// <summary>
 /// Bringing M3U playlists into GZJam (see <see cref="PlaylistFile"/>), planned first so the DJ
 /// sees what will come over, then applied. Each file becomes a playlist named after it, with the
-/// songs GZJam has, in order. Songs are matched by path; ones outside GZJam's music folders, or
-/// gone, are counted and left out. A name GZJam has already is skipped, so importing the same
+/// songs GZJam has, in order. Songs are matched by path, or where the playlist was made on another
+/// computer, by the end of their path (<see cref="MovedSongs"/>); ones outside GZJam's music
+/// folders, or gone, are counted and left out. A name GZJam has already is skipped, so importing the same
 /// files again adds nothing twice. The playlist files are only read.
 /// </summary>
 public sealed class PlaylistImport
@@ -26,6 +27,15 @@ public sealed class PlaylistImport
     /// <summary>Playlist files that couldn't be read, or held no song GZJam has.</summary>
     public IReadOnlyList<string> NothingToImport { get; private init; } = [];
 
+    /// <summary>
+    /// Songs listed by a path GZJam doesn't have, found elsewhere in its music folders: the same
+    /// file name in the same folder, on another drive or computer (#202). Counted once per listing.
+    /// </summary>
+    public int FoundElsewhere { get; private init; }
+
+    /// <summary>Where those songs' music moved, a folder then and now for each, most songs first (up to three).</summary>
+    public IReadOnlyList<(string Was, string Now)> MovedFolders { get; private init; } = [];
+
     /// <summary>Songs listed that aren't in GZJam's music folders (or aren't there any more).</summary>
     public int MissingSongs { get; private init; }
 
@@ -40,10 +50,9 @@ public sealed class PlaylistImport
             byPath.TryAdd(track.Path, track.Path);
 
         var existing = gz.GetPlaylists().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var planned = new List<(string, List<string>)>();
+        var read = new List<(string File, string Name, IReadOnlyList<string> Songs)>();
         var alreadyThere = new List<string>();
         var nothing = new List<string>();
-        var missing = new List<string>();
         foreach (string file in files)
         {
             string name = Path.GetFileNameWithoutExtension(file).Trim();
@@ -54,37 +63,55 @@ public sealed class PlaylistImport
                 alreadyThere.Add(name);
                 continue;
             }
-            IReadOnlyList<string> songs;
             try
             {
-                songs = PlaylistFile.Read(file);
+                read.Add((file, name, PlaylistFile.Read(file)));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 nothing.Add(Path.GetFileName(file));
-                continue;
             }
+        }
+
+        // Songs not where the playlists say: made on another computer, or the music moved since (#202).
+        var (elsewhere, moved) = MovedSongs.Find(read.SelectMany(r => r.Songs).Where(s => !byPath.ContainsKey(s)), byPath);
+
+        var planned = new List<(string, List<string>)>();
+        var missing = new List<string>();
+        int foundElsewhere = 0;
+        foreach (var (file, name, songs) in read)
+        {
             var paths = new List<string>();
             foreach (string song in songs)
             {
                 if (byPath.TryGetValue(song, out string? ours))
+                {
                     paths.Add(ours);   // as GZJam spells it, whatever the case in the playlist
+                }
+                else if (elsewhere.TryGetValue(song, out ours))
+                {
+                    paths.Add(ours);
+                    foundElsewhere++;
+                }
                 else
+                {
                     missing.Add(song);
+                }
             }
             if (paths.Count == 0)
-            {
                 nothing.Add(Path.GetFileName(file));
-                continue;
-            }
-            existing.Add(name);
-            planned.Add((name, paths));
+            else if (!existing.Add(name))
+                alreadyThere.Add(name);   // two files of the same name, picked together
+            else
+                planned.Add((name, paths));
         }
 
         var import = new PlaylistImport
         {
             AlreadyThere = alreadyThere,
             NothingToImport = nothing,
+            FoundElsewhere = foundElsewhere,
+            MovedFolders = foundElsewhere > 0 ? moved.Take(3).ToList() : [],
             MissingSongs = missing.Count,
             MissingFolders = missing
                 .GroupBy(p => Path.GetDirectoryName(p) ?? "")

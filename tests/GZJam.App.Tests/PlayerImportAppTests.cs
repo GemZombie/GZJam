@@ -46,6 +46,31 @@ public sealed class PlayerImportAppTests
     }
 
     [AvaloniaFact]
+    public void A_playlist_from_another_computer_says_where_its_songs_are_now()
+    {
+        using var app = new AppHarness();
+        Track song = app.Library.Results[0];
+        string folder = Path.GetDirectoryName(song.Path)!;
+        string playlist = Path.Combine(app.WorkDirectory, "Playlists", "2008.m3u");
+        Directory.CreateDirectory(Path.GetDirectoryName(playlist)!);
+        File.WriteAllLines(playlist, [$"X:\\Old PC\\{Path.GetFileName(folder)}\\{Path.GetFileName(song.Path)}"]);
+
+        string? asked = null;
+        app.ViewModel.ConfirmImportAsync = (_, message, _) =>
+        {
+            asked = message;
+            return Task.FromResult(true);
+        };
+        AppHarness.Await(app.ViewModel.ImportPlaylistsAsync([playlist]));
+
+        Assert.NotNull(asked);
+        Assert.Contains("1 song isn't where the playlists say, but is in GZJam's music folders, with the same file and folder names: ", asked);
+        Assert.Contains($" is now {folder}.", asked);
+        PlaylistInfo made = Assert.Single(app.Library.Playlists, p => p.Name == "2008");
+        Assert.Equal(1, made.Count);
+    }
+
+    [AvaloniaFact]
     public void Ratings_in_the_song_files_are_read_shown_and_given_as_hearts()
     {
         using var app = new AppHarness();

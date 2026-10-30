@@ -697,7 +697,12 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   becomes a playlist named after its file, in order (`PlaylistFile`, `PlaylistImport`). Absolute
   paths, paths relative to the playlist, and `file://` addresses; `#` lines and web addresses are
   skipped. UTF-8 (with or without a BOM), else the computer's code page (Windows players often
-  write plain `.m3u` that way). Songs are matched by path (any case on Windows); the rest are
+  write plain `.m3u` that way). Songs are matched by path (any case on Windows). A playlist made
+  on another computer, or before the music moved (#202), finds its songs by the end of their
+  path: the file name and at least its folder, if no other song of GZJam's ends as well
+  (`MovedSongs`). Once two songs agree where a folder went (`D:\Music` is now `C:\Music`), the
+  rest of it is looked for only there, so a file name in many folders is found and an ending like
+  `CD1\01.mp3` isn't taken from another album. GZJam says where it found them. The rest are
   counted, with the folders most of them are in. A name GZJam has already is skipped, so
   importing again adds nothing twice. GZJam asks first, saying what comes over and what doesn't.
 - **Settings › Library › Ratings in the song files.** A one-time import, not part of every scan:
