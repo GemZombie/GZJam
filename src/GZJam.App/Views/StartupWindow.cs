@@ -19,9 +19,12 @@ public sealed class StartupWindow : Window
 
     /// <summary>
     /// Windows and macOS. On Linux, a tiling desktop (Hyprland, for one) would give this a tile of
-    /// its own beside the main window, so Linux starts as before until that can be tried there.
+    /// its own beside the main window, and KDE Plasma holds back its first frame until the main
+    /// window is nearly ready, so it's hardly seen (#215): Linux starts as before.
+    /// GZJAM_STARTUP_SCREEN=1 shows it anyway, to try it on a desktop.
     /// </summary>
-    public static bool IsShown => OperatingSystem.IsWindows() || OperatingSystem.IsMacOS();
+    public static bool IsShown => OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
+        || Environment.GetEnvironmentVariable("GZJAM_STARTUP_SCREEN") == "1";
 
     public StartupWindow(AppSettings.WindowPlacement? placement)
     {
@@ -53,7 +56,7 @@ public sealed class StartupWindow : Window
                 {
                     Text = About.Version,
                     FontFamily = (FontFamily)app.FindResource("MonoFont")!,
-                    FontSize = 12,
+                    FontSize = 14,
                     Foreground = (IBrush)app.FindResource("DimBrush")!,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
