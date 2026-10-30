@@ -16,7 +16,7 @@ public sealed class FormatTests : IDisposable
         _lib.AddRootAndScan();
         var tracks = _lib.Database.Search(null).ToDictionary(t => t.FileName);
 
-        Assert.Equal(["tone-aac.m4a", "tone-alac.m4a", "tone.aac", "tone.flac", "tone.opus"], tracks.Keys.Order());
+        Assert.Equal(["tone-aac.m4a", "tone-alac.m4a", "tone.aac", "tone.flac", "tone.mp3", "tone.opus"], tracks.Keys.Order());
         foreach (var (file, title) in new[] { ("tone.flac", "Tone in FLAC"), ("tone.opus", "Tone in Opus"),
                      ("tone-aac.m4a", "Tone in AAC"), ("tone-alac.m4a", "Tone in ALAC") })
         {

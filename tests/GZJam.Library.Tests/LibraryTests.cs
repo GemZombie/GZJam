@@ -87,6 +87,32 @@ public sealed class ScanningTests : IDisposable
     }
 
     [Fact]
+    public void An_mp3_whose_audio_is_behind_a_damaged_tag_keeps_its_tags_and_the_length_they_give()
+    {
+        DamagedMp3.Write(Path.Combine(_lib.MusicPath, "Jazz", "Bloodest Saxophone - Copy.mp3"), "bloodest saxophone", "Bloodest Saxophone", 235093);
+        _lib.AddRootAndScan();
+
+        Track t = Assert.Single(_lib.Database.Search(null));
+        Assert.Equal("bloodest saxophone", t.Title);
+        Assert.Equal("Bloodest Saxophone", t.Artist);
+        Assert.Equal(TimeSpan.FromMilliseconds(235093), t.Duration);
+    }
+
+    [Fact]
+    public void A_song_whose_tags_give_no_length_is_as_long_as_its_analysis_found()
+    {
+        string path = Path.Combine(_lib.MusicPath, "Jazz", "No length.mp3");
+        DamagedMp3.Write(path, "No length", "Bloodest Saxophone");
+        _lib.AddRootAndScan();
+        Assert.Equal(TimeSpan.Zero, Assert.Single(_lib.Database.Search(null)).Duration);
+
+        _lib.Database.SaveAnalysis(path, FileVersion.Of(path)!.Value,
+            new StoredAnalysis(1, TimeSpan.FromSeconds(2), TimeSpan.Zero, TimeSpan.FromSeconds(2), null, null));
+
+        Assert.Equal(TimeSpan.FromSeconds(2), Assert.Single(_lib.Database.Search(null)).Duration);
+    }
+
+    [Fact]
     public void Ignores_non_audio_files()
     {
         _lib.AddMp3("Swing/a.mp3");

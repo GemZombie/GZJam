@@ -9,9 +9,10 @@ internal static class TagReader
     /// Which way of reading tags a song was read with. Raise it whenever tags are read better (a
     /// new field, a fix like BPMs stored x10): the next scan reads every song again, rather than
     /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back. 2: Grouping.
-    /// 3: tag BPMs too slow to be real (0.4, 1) ignored.
+    /// 3: tag BPMs too slow to be real (0.4, 1) ignored. 4: tags of a file whose audio TagLib
+    /// can't find, behind a damaged tag (#220).
     /// </summary>
-    public const int Version = 3;
+    public const int Version = 4;
 
     /// <summary>
     /// The slowest tag BPM taken as real. Below it, a tag is junk left by some tool ("1", "0.4"),
@@ -26,44 +27,66 @@ internal static class TagReader
     public static Track Read(long rootId, string rootPath, FileInfo file)
     {
         string folder = RelativeFolder(rootPath, file.DirectoryName!);
+        Track Build(TagLib.File? tagFile, TimeSpan duration)
+        {
+            TagLib.Tag? tag = tagFile?.Tag;
+            return new Track
+            {
+                RootId = rootId,
+                Path = file.FullName,
+                Folder = folder,
+                FileName = file.Name,
+                FileSize = file.Length,
+                ModifiedUtc = file.LastWriteTimeUtc,
+                Title = Clean(tag?.Title),
+                Artist = Clean(tag is null ? null : string.Join("; ", tag.Performers)),
+                Album = Clean(tag?.Album),
+                AlbumArtist = Clean(tag is null ? null : string.Join("; ", tag.AlbumArtists)),
+                Genre = Clean(tag is null ? null : string.Join("; ", tag.Genres)),
+                Comment = tagFile is null ? null : ReadComment(tagFile),
+                Grouping = tagFile is null ? null : ReadGrouping(tagFile),
+                Year = tag?.Year > 0 ? (int)tag.Year : null,
+                TrackNumber = tag?.Track > 0 ? (int)tag.Track : null,
+                TagBpm = tagFile is null ? null : ReadBpm(tagFile),
+                Duration = duration,
+            };
+        }
+
         try
         {
             using var tagFile = TagLib.File.Create(file.FullName);
-            TagLib.Tag tag = tagFile.Tag;
-            return new Track
-            {
-                RootId = rootId,
-                Path = file.FullName,
-                Folder = folder,
-                FileName = file.Name,
-                FileSize = file.Length,
-                ModifiedUtc = file.LastWriteTimeUtc,
-                Title = Clean(tag.Title),
-                Artist = Clean(string.Join("; ", tag.Performers)),
-                Album = Clean(tag.Album),
-                AlbumArtist = Clean(string.Join("; ", tag.AlbumArtists)),
-                Genre = Clean(string.Join("; ", tag.Genres)),
-                Comment = ReadComment(tagFile),
-                Grouping = ReadGrouping(tagFile),
-                Year = tag.Year > 0 ? (int)tag.Year : null,
-                TrackNumber = tag.Track > 0 ? (int)tag.Track : null,
-                TagBpm = ReadBpm(tagFile),
-                Duration = tagFile.Properties?.Duration ?? TimeSpan.Zero,
-            };
+            return Build(tagFile, tagFile.Properties?.Duration ?? TimeSpan.Zero);
         }
-        catch (Exception ex) when (ex is TagLib.CorruptFileException or TagLib.UnsupportedFormatException or IOException or UnauthorizedAccessException)
+        catch (TagLib.CorruptFileException)
         {
-            return new Track
+            // TagLib didn't find the audio near the tags (a damaged tag in front of it, #220): the
+            // tags without it, and the length they give, if any. The analysis finds the audio.
+            try
             {
-                RootId = rootId,
-                Path = file.FullName,
-                Folder = folder,
-                FileName = file.Name,
-                FileSize = file.Length,
-                ModifiedUtc = file.LastWriteTimeUtc,
-            };
+                using var tagFile = TagLib.File.Create(file.FullName, TagLib.ReadStyle.None);
+                return Build(tagFile, TagLength(tagFile));
+            }
+            catch (Exception ex) when (Unreadable(ex))
+            {
+                return Build(null, TimeSpan.Zero);
+            }
+        }
+        catch (Exception ex) when (Unreadable(ex))
+        {
+            return Build(null, TimeSpan.Zero);
         }
     }
+
+    private static bool Unreadable(Exception ex) =>
+        ex is TagLib.CorruptFileException or TagLib.UnsupportedFormatException or IOException or UnauthorizedAccessException;
+
+    /// <summary>The length an ID3 tag says the song is (TLEN, in milliseconds), or zero.</summary>
+    private static TimeSpan TagLength(TagLib.File file) =>
+        file.GetTag(TagLib.TagTypes.Id3v2) is TagLib.Id3v2.Tag id3
+        && id3.GetFrames<TagLib.Id3v2.TextInformationFrame>("TLEN").SelectMany(f => f.Text).FirstOrDefault() is { } text
+        && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long ms) && ms > 0
+            ? TimeSpan.FromMilliseconds(ms)
+            : TimeSpan.Zero;
 
     /// <summary>
     /// ID3 TBPM is text and DJ tools often write decimals ("156.5"), which TagLib's integer

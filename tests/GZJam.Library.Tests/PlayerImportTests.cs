@@ -13,7 +13,8 @@ public sealed class PlayerImportTests : IDisposable
     {
         string path = Path.Combine(_lib.Directory, "Playlists", name);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllBytes(path, (encoding ?? new UTF8Encoding(false)).GetBytes(text));
+        encoding ??= new UTF8Encoding(false);
+        File.WriteAllBytes(path, [.. encoding.GetPreamble(), .. encoding.GetBytes(text)]);   // UTF-16's byte-order mark, as iTunes writes it
         return path;
     }
 
@@ -223,6 +224,57 @@ public sealed class PlayerImportTests : IDisposable
     [InlineData("\\\\server\\music\\a.mp3")]
     public void A_windows_path_is_read_as_it_is_written_on_any_computer(string line) =>
         Assert.Equal(line, PlaylistFile.SongPath(line, Path.Combine(_lib.Directory, "Playlists")));
+
+    // ───────────── iTunes' text export (#221) ─────────────
+
+    private const string ItunesHeader = "Name\tArtist\tComposer\tAlbum\tGrouping\tGenre\tSize\tTime\tDisc Number\tDisc Count\tTrack Number\t" +
+        "Track Count\tYear\tDate Modified\tDate Added\tBit Rate\tSample Rate\tVolume Adjustment\tKind\tEqualizer\tComments\tPlays\t" +
+        "Last Played\tSkips\tLast Skipped\tMy Rating\tLocation";
+
+    private static string ItunesRow(string name, string location) =>
+        $"{name}\tGlenn Miller\tJerry Gray\tSpirit is Willing\t\tJazz\t7205159\t179\t\t\t13\t\t1938\t7/5/2016 10:29 PM\t1/10/2021 6:55 PM\t" +
+        $"320\t44100\t\tMPEG audio file\t\t\t1\t6/1/2024 8:48 PM\t\t\t\t{location}";
+
+    [Fact]
+    public void An_itunes_playlist_saved_as_text_imports_its_songs_from_the_location_column()
+    {
+        string here = _lib.AddMp3("100-150/Kalamazoo.mp3");
+        string moved = _lib.AddMp3("Balboa/13 Sun Valley Jump.mp3");
+        _lib.AddRootAndScan();
+        string txt = WriteM3u("Balboa 150.txt", string.Join("\r\n",
+            ItunesHeader,
+            ItunesRow("I've Got A Gal In Kalamazoo", here),
+            ItunesRow("Sun Valley Jump", "C:\\Users\\Costco\\Balboa\\13 Sun Valley Jump.mp3"),   // the old computer's
+            ItunesRow("A stream", "")) + "\r\n",                                                    // not a file: no location
+            Encoding.Unicode);   // UTF-16, with a byte-order mark, as iTunes writes it
+
+        PlaylistImport plan = PlaylistImport.Plan(_lib.Database, [txt]);
+
+        Assert.Equal([("Balboa 150", 2)], plan.Playlists);
+        Assert.Equal(1, plan.FoundElsewhere);
+        Assert.Equal(0, plan.MissingSongs);
+        plan.Apply(_lib.Database);
+        Assert.Equal([here, moved], _lib.Database.GetPlaylistEntries(_lib.Database.GetPlaylists().Single().Id).Select(e => e.Path));
+    }
+
+    [Fact]
+    public void A_table_from_itunes_in_another_language_finds_the_column_of_paths()
+    {
+        string song = _lib.AddMp3("Swing/a.mp3");
+        string txt = WriteM3u("Liste.txt", $"Name\tInterpret\tOrt\r\nA\tBasie\t{song}\r\n", Encoding.Unicode);
+
+        Assert.Equal([song], PlaylistFile.Read(txt));
+    }
+
+    [Fact]
+    public void A_text_file_that_isnt_a_table_is_read_as_an_m3u()
+    {
+        string a = _lib.AddMp3("Swing/a.mp3");
+        string b = _lib.AddMp3("Swing/b.mp3");
+        string txt = WriteM3u("List.txt", $"{a}\r\n../Music/Swing/b.mp3\r\n");
+
+        Assert.Equal([a, b], PlaylistFile.Read(txt));
+    }
 
     // ───────────── Ratings in the files ─────────────
 

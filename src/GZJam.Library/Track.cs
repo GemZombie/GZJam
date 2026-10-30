@@ -87,7 +87,21 @@ public sealed class Track : INotifyPropertyChanged
     /// <summary>The BPM to show: one typed by the DJ, else the tag's, unless the DJ asked for detection in a range.</summary>
     public double? Bpm => ManualBpm ?? (BpmRange is not null ? DetectedBpm ?? TagBpm : TagBpm ?? DetectedBpm);
 
-    public TimeSpan Duration { get; init; }
+    /// <summary>
+    /// How long the song is: from its tags, or, when they give none (its audio behind a damaged
+    /// tag, #220), as long as the analysis found, set when it finishes.
+    /// </summary>
+    public TimeSpan Duration
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Duration)));
+        }
+    }
 
     /// <summary>The DJ's rating. Kept in the library database, never written to the file.</summary>
     public Rating Rating

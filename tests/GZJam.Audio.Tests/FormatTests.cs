@@ -1,3 +1,5 @@
+using GZJam.Testing;
+
 namespace GZJam.Audio.Tests;
 
 /// <summary>
@@ -62,6 +64,32 @@ public sealed class FormatTests : IDisposable
         File.WriteAllText(path, "not audio");
         try
         {
+            var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
+            Assert.Equal("it's a kind of file GZJam can't play.", error.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void An_mp3_whose_audio_is_behind_a_damaged_tag_plays_from_where_its_audio_starts()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"gzjam-damaged-{Guid.NewGuid():N}.mp3");
+        long audio = DamagedMp3.Write(path, "Bloodest Saxophone", "Bloodest Saxophone", 2000);
+        try
+        {
+            _engine.UseNoSoundDevice();
+            Assert.Equal(0, ManagedBass.Bass.CreateStream(path, 0, 0, ManagedBass.BassFlags.Decode));   // BASS alone gives up
+            Assert.Equal(audio, SongFile.Mp3AudioStart(path));
+            TrackAnalysis result = new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
+            Assert.InRange(result.Length.TotalSeconds, 1.95, 2.15);
+            Assert.InRange(result.AudibleEnd.TotalSeconds, 1.8, 2.15);   // the tone, not the damaged tag as noise
+
+            // Something that isn't audio still says so, after looking.
+            File.WriteAllBytes(path, new byte[100_000]);
+            Assert.Null(SongFile.Mp3AudioStart(path));
             var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
             Assert.Equal("it's a kind of file GZJam can't play.", error.Message);
         }

@@ -270,12 +270,12 @@ public sealed class AudioException : Exception
     private static readonly HashSet<string> AacExtensions = new([".m4a", ".aac", ".mp4"], StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// A song BASS couldn't open (just after it failed), with a reason a DJ can act on: shown as
-    /// "Couldn't load {song}: {reason}".
+    /// A song BASS couldn't open (just after it failed, or for <paramref name="why"/>), with a
+    /// reason a DJ can act on: shown as "Couldn't load {song}: {reason}".
     /// </summary>
-    internal static AudioException CouldNotOpen(string path)
+    internal static AudioException CouldNotOpen(string path, Errors? why = null)
     {
-        Errors error = Bass.LastError;
+        Errors error = why ?? Bass.LastError;
         bool aac = AacExtensions.Contains(Path.GetExtension(path));
         string reason = error switch
         {

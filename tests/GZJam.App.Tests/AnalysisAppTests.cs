@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
 using GZJam.Library;
+using GZJam.Testing;
 
 namespace GZJam.App.Tests;
 
@@ -47,6 +48,31 @@ public sealed class AnalysisAppTests
 
         Assert.True(deck.IsFinished);   // so auto-play's gap starts now, not after 4 s of silence
         Assert.InRange(deck.Deck.Position.TotalSeconds, 2, 2.6);
+    }
+
+    [AvaloniaFact]
+    public void An_mp3_whose_audio_is_behind_a_damaged_tag_loads_plays_and_gets_its_length()
+    {
+        string music = Directory.CreateTempSubdirectory("gzjam-damaged-music-").FullName;
+        try
+        {
+            DamagedMp3.Write(Path.Combine(music, "Bloodest Saxophone - Copy.mp3"), "bloodest saxophone", "Bloodest Saxophone");
+            using var app = new AppHarness(musicFolder: music);
+            Track track = Assert.Single(app.Library.Results);
+            Assert.Equal("Bloodest Saxophone", track.Artist);   // its tags, though TagLib can't find its audio (#220)
+
+            DeckViewModel deck = app.ViewModel.Deck1!;
+            Assert.True(app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult(), app.ViewModel.Notice);
+            AppHarness.WaitFor(() => deck.Waveform is not null);
+            deck.TogglePlayCommand.Execute(null);
+            float level = app.Play(0.5).Main;
+            Assert.True(level > 0.01, $"level {level}");
+            Assert.InRange(track.Duration.TotalSeconds, 1.95, 2.15);   // the tags gave none: the analysis's
+        }
+        finally
+        {
+            Directory.Delete(music, recursive: true);
+        }
     }
 
     private static double Bpm(QueueItem item) => double.Parse(item.BpmText, CultureInfo.CurrentCulture);
