@@ -27,6 +27,8 @@ Windows, `~/.local/share/GZJam` on Linux, `~/Library/Application Support/GZJam` 
   and CI must pass on Windows, macOS and Linux. Workflows from a first-time contributor's fork wait
   for the maintainer to start them.
 - **Run the tests** before you send it: `dotnet test` (see the README).
+- **Say what a DJ would notice** under *Unreleased* in [CHANGELOG.md](CHANGELOG.md). How releases
+  are made from there: [docs/RELEASING.md](docs/RELEASING.md).
 - **Keep to what's there:** every feature works on all three systems and by touch, nothing is
   hover-only, and GZJam never writes to anyone's music files.
 - **License:** by sending a pull request you agree your change is published under the

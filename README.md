@@ -126,8 +126,7 @@ GitHub Actions, in `.github/workflows`:
 
 - **CI** (`ci.yml`) builds and runs the tests on each OS. Day to day, build and test locally; run
   CI at important times, from Actions › CI › *Run workflow* (Linux, Windows and macOS). Pull
-  requests run it on Linux and Windows: macOS minutes cost ten times as much in a private repo.
-  It makes no packages.
+  requests into `main` and `release/*` run it on all three, and must pass. It makes no packages.
 - **Release** (`release.yml`) runs the tests on each OS, then builds the packages:
 
   | | |
@@ -136,8 +135,10 @@ GitHub Actions, in `.github/workflows`:
   | macOS | `GZJam-<version>-macos-arm64.dmg` (Apple Silicon) and `-macos-x64.dmg` (Intel) |
   | Linux | `GZJam-<version>-linux-x64.tar.gz`: run `./install.sh` from it for a launcher entry and a `gzjam` command (`./install.sh --uninstall` removes it) |
 
-  First add the version's section to [CHANGELOG.md](CHANGELOG.md): what a DJ would notice since the
-  last release. It becomes the release's notes (with download instructions added by
+  The whole routine, with version numbers, fix branches and betas, is in
+  [docs/RELEASING.md](docs/RELEASING.md). In short: first rename *Unreleased* in
+  [CHANGELOG.md](CHANGELOG.md) to the version's section: what a DJ would notice since the last
+  release, added by each pull request. It becomes the release's notes (with download instructions added by
   `tools/release-notes.sh`), and a tag without one fails straight away. Bring
   [ROADMAP.md](ROADMAP.md) up to date too: the release's features move into "What GZJam does
   today", and "Up to date as of" gets the new version. And the [user guide](docs/GUIDE.md): what's
