@@ -38,9 +38,14 @@ public static class PlaylistFile
             return Uri.TryCreate(line, UriKind.Absolute, out Uri? uri) && uri.IsFile ? uri.LocalPath : null;
         if (line.Contains("://", StringComparison.Ordinal))
             return null;   // http://, a radio stream
-        // A playlist written on Windows uses '\'; elsewhere that's an ordinary character.
+        // A playlist written on Windows uses '\'; elsewhere that's an ordinary character. A full
+        // Windows path (X:\..., \\server\...) stays as it is, to be found by how it ends (#217).
         if (!OperatingSystem.IsWindows())
+        {
+            if (IsWindowsPath(line))
+                return line;
             line = line.Replace('\\', '/');
+        }
         try
         {
             return Path.GetFullPath(Path.IsPathRooted(line) ? line : Path.Combine(folder, line));
@@ -50,6 +55,10 @@ public static class PlaylistFile
             return null;
         }
     }
+
+    /// <summary>A full path on Windows: on a drive (<c>X:\</c>) or a shared folder (<c>\\server\</c>).</summary>
+    private static bool IsWindowsPath(string line) =>
+        (line.Length >= 3 && char.IsAsciiLetter(line[0]) && line[1] == ':' && line[2] is '\\' or '/') || line.StartsWith(@"\\", StringComparison.Ordinal);
 
     /// <summary>
     /// <c>.m3u8</c> is UTF-8. A plain <c>.m3u</c> with no byte-order mark is usually UTF-8 too, but
