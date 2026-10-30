@@ -460,7 +460,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         var before = _database.GetPlaylistEntries(playlist.Id);
         _database.AddToPlaylist(playlist.Id, songs.Select(t => t.Path), index);
         Log.Info($"Added {(songs.Count == 1 ? $"\"{songs[0].DisplayTitle}\"" : $"{songs.Count} songs")} to playlist \"{playlist.Name}\"");
-        Library.RefreshPlaylists();
+        Library.RefreshPlaylists(playlist.Id);
 
         // Already in it (#136): still added, but said, and Undo takes the new copies out again.
         var earlier = FirstPositions(before.Select(e => e.Path));
@@ -473,7 +473,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 _database.RemoveFromPlaylist(playlist.Id, repeats.Select(e => e.EntryId));
                 Log.Info($"Took {repeats.Count} repeated songs back out of playlist \"{playlist.Name}\"");
-                Library.RefreshPlaylists();
+                Library.RefreshPlaylists(playlist.Id);
             });
         }
         else if (Library.SelectedPlaylist?.Id != playlist.Id)
@@ -530,7 +530,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         _database.RemoveFromPlaylist(playlist.Id, entries);
         Log.Info($"Removed {entries.Count} from playlist \"{playlist.Name}\"");
-        Library.RefreshPlaylists();
+        Library.RefreshPlaylists(playlist.Id);
     }
 
     /// <summary>Moves rows of the open playlist to before its entry number <paramref name="index"/> (from 0).</summary>
@@ -539,7 +539,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (Library.SelectedPlaylist is not { } playlist || rows.Select(t => t.PlaylistEntryId).OfType<long>().ToList() is not { Count: > 0 } entries)
             return;
         _database.MovePlaylistEntries(playlist.Id, entries, index);
-        Library.RefreshPlaylists();
+        Library.RefreshPlaylists(playlist.Id);
     }
 
     public async Task RenamePlaylistAsync(PlaylistInfo playlist)
