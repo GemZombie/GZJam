@@ -90,7 +90,7 @@ internal sealed class StartupLogoHandler : CompositionCustomVisualHandler
     public static readonly ImmutableSolidColorBrush ToComeBrush = new(Color.Parse(LogoShapes.ToCome));
 
     /// <summary>Sizes, in device-independent pixels: the G, the name's cap height, and the space between.</summary>
-    public const double MarkSize = 84, NameCap = 30, Gap = 22;
+    public const double MarkSize = 168, NameCap = 60, Gap = 44;
 
     /// <summary>The sweep's first part goes round the ring; the rest along the name.</summary>
     private const double RingShare = 0.6;

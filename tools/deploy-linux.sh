@@ -38,6 +38,7 @@ tar xzf ~/gzjam-dev.tar.gz -C "$app" && rm ~/gzjam-dev.tar.gz
 chmod +x "$app/GZJam" "$app/createdump" 2> /dev/null || true
 
 entry="${XDG_DATA_HOME:-$HOME/.local/share}/applications/gzjam-dev.desktop"
+mkdir -p "$(dirname "$entry")"
 sed -e "s|^Exec=.*|Exec=$app/GZJam|" -e "s|^Name=.*|Name=GZJam (test build)|" "$app/gzjam.desktop" > "$entry"
 
 echo "Test build in $app."
