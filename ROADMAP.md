@@ -187,6 +187,9 @@ to one you'd use.
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
   other Subsonic servers), copied to the laptop ahead of the night, for a laptop too small for the
   whole library
+- [A visiting or remote DJ](https://github.com/GemZombie/GZJam/issues/204): sign in to your own
+  library on a borrowed laptop and leave nothing behind, or play a dance from somewhere else, the
+  songs sent ahead to a laptop in the room
 - [Two rooms](https://github.com/GemZombie/GZJam/issues/120): two GZJams on the same network, for
   schools with two floors, either one controlling the other
 - [GZJam in other languages](https://github.com/GemZombie/GZJam/issues/102)
