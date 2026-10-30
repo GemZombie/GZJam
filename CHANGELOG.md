@@ -10,6 +10,16 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.7 (2026-10-29)
+
+New:
+
+- **Playlists from another computer import with their songs:** an M3U made where the music was
+  somewhere else (`D:\Music\Swing` then, `C:\Music\Swing` now, or an old laptop's playlists from
+  years ago) used to find none of its songs. GZJam now finds each one by its file name and the
+  folder it's in, and says where it found them before importing. There's nothing to edit in the
+  playlist files, and a song whose name only matches another album's is left out, not guessed.
+
 ## 0.9.6 (2026-10-29)
 
 Fixed:
