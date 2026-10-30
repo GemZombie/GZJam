@@ -130,7 +130,7 @@ Nothing yet since 0.9.8.
 ## Planned next
 
 **1.0: a reliable night, everywhere. GZJam is there.** Everything planned for 1.0 is built and
-tested: on Linux with a sound card used directly, the splitter cable by ear, a library of 50-60
+tested: on Linux with a sound card used directly, the booth output and the splitter cable by ear, a library of 50-60
 thousand songs, and a real night with dancers, as well as
 [the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18),
 [on a Windows touch-screen laptop](https://github.com/GemZombie/GZJam/issues/94), and an hour's
