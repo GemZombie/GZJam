@@ -208,4 +208,50 @@ public sealed class PlaylistAppTests
         app.ViewModel.SaveState();
         Assert.Equal(playlist.Id, app.Settings.OpenPlaylist);
     }
+
+    [AvaloniaFact]
+    public void Adding_to_a_playlist_keeps_the_playlist_list_and_the_song_list_where_they_were()
+    {
+        // #205: every add rebuilt the list, and the open playlist, chosen again, scrolled it back up.
+        using var app = new AppHarness();
+        var songs = app.Library.Results.Take(3).ToList();
+        for (int i = 1; i <= 30; i++)
+            app.ViewModel.CreatePlaylist($"Set {i:00}", null);
+        var open = Make(app, "Building", songs[0]);   // near the top
+        app.Library.OpenPlaylist(open.Id);
+        AppHarness.Settle();
+        var list = app.Window.FindControl<ListBox>("PlaylistList")!;
+        var scroller = list.GetVisualDescendants().OfType<ScrollViewer>().First();
+        Assert.True(scroller.Extent.Height > scroller.Viewport.Height + 100);   // long enough to scroll
+        scroller.Offset = new Vector(0, scroller.Extent.Height);
+        AppHarness.Settle(150);
+        double scrolled = scroller.Offset.Y;
+        Assert.True(scrolled > 0);
+
+        // Dragged onto a playlist far down the list: it stays scrolled there, the song list untouched.
+        var shown = app.Library.Results;
+        var rowBefore = list.ContainerFromItem(app.Library.Playlists.Single(p => p.Name == "Set 30"));
+        app.MouseDrag(RowPoint(app, shown[0]), PlaylistPoint(app, "Set 29"));
+        AppHarness.Settle(150);
+        Assert.Equal(1, app.Library.Playlists.Single(p => p.Name == "Set 29").Count);
+        Assert.Equal(scrolled, scroller.Offset.Y);
+        Assert.Same(rowBefore, list.ContainerFromItem(app.Library.Playlists.Single(p => p.Name == "Set 30")));
+        Assert.Same(shown, app.Library.Results);
+        Assert.Equal(open.Id, app.Library.SelectedPlaylist?.Id);
+
+        // Added to the open playlist itself: the song list shows it, and it's still chosen.
+        app.ViewModel.AddToPlaylist(app.Library.SelectedPlaylist!, [songs[2]]);
+        AppHarness.Settle();
+        Assert.Equal(new[] { songs[0], songs[2] }.Select(s => s.DisplayTitle), Shown(app));
+        Assert.Equal(2, app.Library.SelectedPlaylist!.Count);
+        Assert.Equal(open.Id, ((PlaylistInfo)list.SelectedItem!).Id);
+
+        // Renamed, it moves to its place in the alphabet, still open.
+        app.ViewModel.PromptAsync = (_, _, _, _) => Task.FromResult<string?>("Warm-up");
+        AppHarness.Await(app.ViewModel.RenamePlaylistAsync(app.Library.SelectedPlaylist!));
+        AppHarness.Settle();
+        Assert.Equal("Warm-up", app.Library.Playlists[^1].Name);
+        Assert.Equal(app.Library.Playlists.Select(p => p.Name).Order(StringComparer.OrdinalIgnoreCase), app.Library.Playlists.Select(p => p.Name));
+        Assert.Equal(("Warm-up", 2), (app.Library.SelectedPlaylist!.Name, app.Library.Results.Count));
+    }
 }

@@ -115,17 +115,40 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Rows can be dragged into a new order: a playlist, shown whole and in its own order.</summary>
     public bool CanReorderPlaylist => IsPlaylistOpen && string.IsNullOrWhiteSpace(SearchText);
 
-    /// <summary>Reads the playlists again (one was made, renamed, deleted or changed), keeping the open one open.</summary>
-    public void RefreshPlaylists()
+    /// <summary>
+    /// Reads the playlists again (one was made, renamed, deleted or changed), keeping the open one
+    /// open. Only the rows that changed are touched, so the list stays where the DJ scrolled it
+    /// (#205). The song list is read again only when <paramref name="changed"/> is the open
+    /// playlist, so adding to another playlist keeps its search and place.
+    /// </summary>
+    public void RefreshPlaylists(long? changed = null)
     {
         long? open = SelectedPlaylist?.Id;
         var playlists = _database.GetPlaylists();
         _suppressSearch = true;
         try
         {
-            Playlists.Clear();
-            foreach (PlaylistInfo playlist in playlists)
-                Playlists.Add(playlist);
+            var wanted = playlists.Select(p => p.Id).ToHashSet();
+            for (int i = Playlists.Count - 1; i >= 0; i--)
+            {
+                if (!wanted.Contains(Playlists[i].Id))
+                    Playlists.RemoveAt(i);
+            }
+            for (int i = 0; i < playlists.Count; i++)
+            {
+                PlaylistInfo playlist = playlists[i];
+                int at = IndexOfPlaylist(playlist.Id, from: i);
+                if (at < 0)
+                {
+                    Playlists.Insert(i, playlist);
+                    continue;
+                }
+                if (at != i)
+                    Playlists.Move(at, i);   // renamed: its place in the alphabet changed
+                if (Playlists[i] != playlist)
+                    Playlists[i] = playlist;
+            }
+            // A changed row is a new one: the open playlist is selected again, as it is now.
             SelectedPlaylist = playlists.FirstOrDefault(p => p.Id == open);
         }
         finally
@@ -133,8 +156,18 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             _suppressSearch = false;
         }
         OnPlaylistShown();
-        if (open is not null)
+        if (open is not null && (changed == open || SelectedPlaylist is null))
             RunSearch();
+    }
+
+    private int IndexOfPlaylist(long id, int from)
+    {
+        for (int i = from; i < Playlists.Count; i++)
+        {
+            if (Playlists[i].Id == id)
+                return i;
+        }
+        return -1;
     }
 
     /// <summary>Opens a playlist in the song list (null: back to the library).</summary>
