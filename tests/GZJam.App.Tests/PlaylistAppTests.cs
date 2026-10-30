@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using GZJam.Library;
@@ -114,6 +115,51 @@ public sealed class PlaylistAppTests
         AppHarness.Settle(200);
         Assert.Equal(["Saturday", "Slow ones"], app.Library.Playlists.Select(p => p.Name));
         Assert.False(app.Library.IsPlaylistOpen);   // made from the menu: stays where the DJ is
+    }
+
+    [AvaloniaFact]
+    public void The_song_on_a_deck_or_in_the_queue_is_added_to_a_playlist_from_its_menu()
+    {
+        // #207: no need to find the song again in the library.
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var songs = app.Library.Results.Take(3).ToList();
+        Make(app, "Saturday");
+        Make(app, "Sunday");
+        int Count(string name) => app.Library.Playlists.Single(p => p.Name == name).Count;
+        static void Click(MenuItem menu, string header) =>
+            menu.Items.OfType<MenuItem>().Single(i => (string)i.Header! == header).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        // A deck: right-click the song.
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, songs[0]));
+        AppHarness.Settle(150);
+        var deck = app.Window.FindControl<GZJam.App.Views.DeckView>("Deck1View")!;
+        var songMenu = deck.FindControl<ContextMenu>("SongMenu")!;
+        var title = deck.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == songs[0].DisplayTitle && t.IsEffectivelyVisible);
+        title.RaiseEvent(new ContextRequestedEventArgs { RoutedEvent = Control.ContextRequestedEvent });   // a right-click on its title
+        AppHarness.Settle(150);
+        var add = songMenu.Items.OfType<MenuItem>().Single(i => (string)i.Header! == "Add to playlist");
+        Assert.Equal(["Saturday", "Sunday", "New playlist…"], add.Items.OfType<MenuItem>().Select(i => (string)i.Header!));
+        Click(add, "Sunday");
+        songMenu.Close();
+        AppHarness.Settle(150);
+        Assert.Equal(1, Count("Sunday"));
+
+        // The queue: every selected row.
+        vm.Queue.Add([songs[1], songs[2]]);
+        AppHarness.Settle(150);
+        var queue = app.Window.FindControl<ListBox>("QueueList")!;
+        queue.SelectAll();
+        var queueMenu = app.Window.FindControl<ContextMenu>("QueueMenu")!;
+        queueMenu.Open(queue);
+        AppHarness.Settle(150);
+        Click(app.Window.FindControl<MenuItem>("QueuePlaylistsMenu")!, "Saturday");
+        queueMenu.Close();
+        AppHarness.Settle(150);
+        Assert.Equal(2, Count("Saturday"));
+        app.Library.OpenPlaylist(app.Library.Playlists.Single(p => p.Name == "Saturday").Id);
+        AppHarness.Settle();
+        Assert.Equal(new[] { songs[1], songs[2] }.Select(s => s.DisplayTitle), Shown(app));
     }
 
     [AvaloniaFact]

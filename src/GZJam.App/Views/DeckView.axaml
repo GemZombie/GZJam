@@ -186,8 +186,11 @@
                   ToolTip.Tip="This deck's level, before the crossfader: it shows even when the room can't hear the deck. The top light: as loud as the speakers go." />
     <Grid Classes="deck-rows" RowDefinitions="Auto,*,Auto">
 
-      <!-- Number, track, readout -->
-      <Grid Classes="full-only" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+      <!-- Number, track, readout. Right-click (or long-press) the song for its menu, as ⋯ on four decks. -->
+      <Grid Classes="full-only" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Background="Transparent">
+        <Grid.ContextMenu>
+          <ContextMenu x:Name="SongMenu" />
+        </Grid.ContextMenu>
         <!-- Album art, to see at a glance that the right record is loaded; always there, so nothing moves when it appears -->
         <c:AlbumArt x:Name="Art" Width="64" Height="64" VerticalAlignment="Center" SongPath="{Binding Track?.Path}"
                     Accent="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
@@ -248,7 +251,10 @@
       </Grid>
 
       <!-- The same on one line, for four decks -->
-      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+      <Grid Classes="compact-only" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8" Background="Transparent">
+        <Grid.ContextMenu>
+          <ContextMenu x:Name="CompactSongMenu" />
+        </Grid.ContextMenu>
         <TextBlock x:Name="CompactDeckName" Classes="deck-number" Text="{Binding Label}" VerticalAlignment="Center"
                    Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
         <c:AlbumArt x:Name="CompactArt" Grid.Column="1" Width="24" Height="24" CornerRadius="2" VerticalAlignment="Center"
@@ -439,7 +445,7 @@
 
         <!-- Four decks: eject, rating, energy and BPM, which have no room on the deck itself -->
         <Button x:Name="MoreButton" Grid.Column="6" Classes="link compact-only" Padding="6,2" VerticalAlignment="Center"
-                ToolTip.Tip="More: eject, rating, energy, BPM">
+                ToolTip.Tip="More: rating, energy, BPM, add to playlist, eject">
           <TextBlock Text="⋯" FontSize="18" FontWeight="Bold" />
           <Button.Flyout>
             <MenuFlyout Placement="BottomEdgeAlignedRight" />
