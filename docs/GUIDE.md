@@ -380,6 +380,10 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   becomes a playlist of the same name, in order. GZJam says first how many songs it found, and
   where the ones it didn't are (add that folder with **+ Folder**, then import again). A playlist
   GZJam already has by that name is left alone, so importing again adds nothing twice.
+  **Playlists from another computer** work too, even old ones where the music was on another
+  drive (`D:\Music\Swing` then, `C:\Music\Swing` now): GZJam finds each song by its file name
+  and the folder it's in, and says where it found them before importing. There's nothing to edit
+  in the playlist files.
 - **Ratings saved in the song files:** Settings › Library › **Ratings in the song files**.
   MediaMonkey, foobar2000 (when it's set to write ratings to the files), Windows Media Player and
   others can keep a star rating inside each song file. GZJam reads them for your unrated songs

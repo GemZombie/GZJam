@@ -86,6 +86,63 @@ public sealed class PlayerImportTests : IDisposable
         Assert.Equal(["Friday", "Saturday"], again.AlreadyThere);
     }
 
+    [Fact]
+    public void A_playlist_from_another_computer_finds_its_songs_by_file_and_folder_name_and_where_the_music_moved()
+    {
+        string a = _lib.AddMp3("Swing/A.mp3");
+        string top = _lib.AddMp3("top.mp3");
+        _lib.AddMp3("Blues/top.mp3");              // the same name elsewhere: found only by the move
+        _lib.AddMp3("Lindy/dup.mp3");
+        _lib.AddMp3("More/Lindy/dup.mp3");         // two equally good: neither
+        _lib.AddMp3("Jazz/solo.mp3");              // the file name alone isn't enough
+        _lib.AddRootAndScan();
+        string old = WriteM3u("2008.m3u",
+            "X:\\Old PC\\Tunes\\swing\\a.mp3\r\n" +
+            "X:\\Old PC\\Tunes\\top.mp3\r\n" +
+            "Y:\\Else\\Lindy\\dup.mp3\r\n" +
+            "Z:\\solo.mp3\r\n" +
+            "X:\\Old PC\\Tunes\\Swing\\A.mp3\r\n");
+
+        PlaylistImport plan = PlaylistImport.Plan(_lib.Database, [old]);
+
+        Assert.Equal([("2008", 3)], plan.Playlists);
+        Assert.Equal(3, plan.FoundElsewhere);
+        Assert.Equal(2, plan.MissingSongs);
+        (string was, string now) = Assert.Single(plan.MovedFolders);
+        Assert.EndsWith("Swing", was, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(Path.GetDirectoryName(a), now);
+
+        plan.Apply(_lib.Database);
+        PlaylistInfo made = _lib.Database.GetPlaylists().Single();
+        Assert.Equal([a, top, a], _lib.Database.GetPlaylistEntries(made.Id).Select(e => e.Path));
+        Assert.True(File.Exists(old));   // only read
+    }
+
+    [Fact]
+    public void Once_songs_agree_where_a_folder_went_the_rest_of_it_is_looked_for_only_there()
+    {
+        string a = _lib.AddMp3("Swing/a.mp3");
+        string b = _lib.AddMp3("Swing/b.mp3");
+        string c = _lib.AddMp3("Archive/Blues/c.mp3");   // reorganized on the way
+        string d = _lib.AddMp3("Archive/Blues/d.mp3");
+        _lib.AddMp3("Ellington/Live/CD1/01.mp3");      // another album's, ending the same way
+        _lib.AddRootAndScan();
+        string old = WriteM3u("Old.m3u",
+            "X:\\Old\\Music\\Swing\\a.mp3\n" +
+            "X:\\Old\\Music\\Blues\\c.mp3\n" +
+            "X:\\Old\\Music\\Basie\\Live\\CD1\\01.mp3\n" +   // deleted since
+            "X:\\Old\\Music\\Swing\\b.mp3\n" +
+            "X:\\Old\\Music\\Blues\\d.mp3\n");
+
+        PlaylistImport plan = PlaylistImport.Plan(_lib.Database, [old]);
+
+        Assert.Equal(4, plan.FoundElsewhere);
+        Assert.Equal(1, plan.MissingSongs);
+        Assert.Equal([Path.GetDirectoryName(a), Path.GetDirectoryName(c)], plan.MovedFolders.Select(m => m.Now));
+        plan.Apply(_lib.Database);
+        Assert.Equal([a, c, b, d], _lib.Database.GetPlaylistEntries(_lib.Database.GetPlaylists().Single().Id).Select(e => e.Path));
+    }
+
     // ───────────── Ratings in the files ─────────────
 
     [Theory]

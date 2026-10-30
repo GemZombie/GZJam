@@ -29,7 +29,7 @@ public partial class MainWindowViewModel
         if (ConfirmImportAsync is not null && !await ConfirmImportAsync(heading, PlaylistsMessage(plan), "Import"))
             return;
         int made = plan.Apply(_database);
-        Log.Info($"Imported {made} playlists from {files.Count} M3U files ({plan.SongCount} songs, {plan.MissingSongs} not found)");
+        Log.Info($"Imported {made} playlists from {files.Count} M3U files ({plan.SongCount} songs, {plan.FoundElsewhere} found elsewhere, {plan.MissingSongs} not found)");
         Library.RefreshPlaylists();
         ShowNotice(made == 1 ? $"Imported the playlist \"{plan.Playlists[0].Name}\"." : $"Imported {made} playlists.");
     }
@@ -41,6 +41,9 @@ public partial class MainWindowViewModel
         {
             string.Join(", ", plan.Playlists.Select(p => $"{p.Name} ({Songs(p.Songs)})")) + ", in their order.",
         };
+        if (plan.FoundElsewhere > 0)
+            lines.Add($"{Songs(plan.FoundElsewhere)} {(plan.FoundElsewhere == 1 ? "isn't" : "aren't")} where the playlists say, but {(plan.FoundElsewhere == 1 ? "is" : "are")} in GZJam's music folders, with the same file and folder names: "
+                + string.Join(", ", plan.MovedFolders.Select(m => $"{m.Was} is now {m.Now}")) + ".");
         if (plan.MissingSongs > 0)
             lines.Add($"{Songs(plan.MissingSongs)} {(plan.MissingSongs == 1 ? "isn't" : "aren't")} in GZJam's music folders and {(plan.MissingSongs == 1 ? "is" : "are")} left out, e.g. from {string.Join(", ", plan.MissingFolders)}. Add those folders with + Folder, then import again.");
         if (plan.AlreadyThere.Count > 0)
