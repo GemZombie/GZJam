@@ -70,9 +70,12 @@ public sealed class AppSettings
     /// <summary>
     /// Windows: the speakers' sound card is GZJam's alone while it's open, so no other program's
     /// sound (a notification, a browser) can reach the room. Only for an output chosen by name,
-    /// not "Default"; the headphones stay shared. On by default.
+    /// not "Default"; the headphones stay shared. Off for new installs since 0.9.8 (#209): on a
+    /// DJ's everyday computer it stopped their other music software (an editor, a player), with
+    /// nothing there to say why. Settings files already hold a choice, which stays. For a laptop
+    /// kept for gigs, the guide recommends it.
     /// </summary>
-    public bool ExclusiveSpeakers { get; set; } = true;
+    public bool ExclusiveSpeakers { get; set; }
 
     /// <summary>
     /// Longer buffers on every output, for a computer where the sound crackles or drops out. Play

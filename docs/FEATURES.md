@@ -744,7 +744,7 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
 
 ### Status: speakers for GZJam alone on Windows (2026-10-22, issue #10)
 
-- **Settings › Sound › Speakers for GZJam alone** (Windows only; on by default): the speakers' sound
+- **Settings › Sound › Speakers for GZJam alone** (Windows only; off by default since 0.9.8, #209: on a DJ's everyday computer it stopped their other music software, with nothing there to say why): the speakers' sound
   card is opened in WASAPI exclusive mode (un4seen's BASSWASAPI, `ExclusiveOutput`), so no
   notification or browser can reach the room while GZJam is open. Linux already gets this by
   opening a chosen card directly.
