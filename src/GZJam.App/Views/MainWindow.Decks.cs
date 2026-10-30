@@ -277,6 +277,7 @@ public partial class MainWindow
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
         LabelsMenu.Fill(QueueLabelsMenu, Vm, tracks);
         BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
+        PlaylistsMenu.Fill(QueuePlaylistsMenu, Vm, tracks);
         FillQueueColumnsMenu();
     }
 

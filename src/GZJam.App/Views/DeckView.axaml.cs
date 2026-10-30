@@ -109,6 +109,17 @@ public partial class DeckView : UserControl
             menu.Opened += (_, _) => FillTrimMenu(menu, null);
         }
         FlyoutMenus.FillBeforeOpening(MoreButton, MoreMenu, FillMoreMenu);
+        foreach (ContextMenu menu in new[] { SongMenu, CompactSongMenu })
+        {
+            menu.Opening += (_, e) =>
+            {
+                if (Vm?.Track is null)
+                    e.Cancel = true;   // nothing loaded: no menu
+                else
+                    FillSongMenu(menu.Items);
+            };
+            menu.Opened += (_, _) => FillSongMenu(menu.Items);
+        }
         // Tap tempo: the pad takes the keyboard (Space taps it), and Escape puts it away.
         TapPanel.PropertyChanged += (_, e) =>
         {
@@ -199,9 +210,11 @@ public partial class DeckView : UserControl
     internal MenuFlyout MoreMenu => (MenuFlyout)MoreButton.Flyout!;
 
     /// <summary>The ⋯ menu on a compact deck: what the full deck has room to show.</summary>
-    private void FillMoreMenu()
+    private void FillMoreMenu() => FillSongMenu(MoreMenu.Items);
+
+    /// <summary>The loaded song's menu: ⋯ on four decks, right-click on the song on any deck.</summary>
+    private void FillSongMenu(ItemCollection items)
     {
-        var items = MoreMenu.Items;
         items.Clear();
         if (Vm is not { Track: { } track } vm)
         {
@@ -214,6 +227,8 @@ public partial class DeckView : UserControl
         MarksMenu.FillEnergy(energy, vm.Owner, [track]);
         var bpm = new MenuItem { Header = BpmMenu.Title };
         BpmMenu.Fill(bpm, vm.Owner, [track], deck: vm);
+        var playlists = new MenuItem { Header = "Add to playlist" };
+        PlaylistsMenu.Fill(playlists, vm.Owner, [track]);
         var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
         // The cue keys don't fit over a four-deck waveform: they're here instead.
         foreach (GZJam.Library.SongCue cue in vm.Cues)
@@ -223,6 +238,7 @@ public partial class DeckView : UserControl
         items.Add(rating);
         items.Add(energy);
         items.Add(bpm);
+        items.Add(playlists);
         items.Add(new Separator());
         items.Add(eject);
     }

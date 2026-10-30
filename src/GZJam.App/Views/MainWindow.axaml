@@ -1014,6 +1014,7 @@
                   <MenuItem x:Name="QueueLabelsMenu" Header="Labels" />
                   <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
                   <MenuItem x:Name="QueueBpmMenu" Header="BPM" />
+                  <MenuItem x:Name="QueuePlaylistsMenu" Header="Add to playlist" />
                   <Separator />
                   <MenuItem x:Name="QueueColumnsMenu" Header="Show" />
                   <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />

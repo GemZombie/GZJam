@@ -164,19 +164,7 @@ public partial class MainWindow
         TrackFromHereMenuItem.IsVisible = open;
         RemoveFromPlaylistMenuItem.IsVisible = open;
         TrackFromHereMenuItem.IsEnabled = RemoveFromPlaylistMenuItem.IsEnabled = tracks.Count > 0;
-
-        TrackPlaylistsMenu.Items.Clear();
-        foreach (PlaylistInfo playlist in Vm.Library.Playlists.Where(p => p.Id != Vm.Library.SelectedPlaylist?.Id))
-        {
-            var item = new MenuItem { Header = playlist.Name, IsEnabled = tracks.Count > 0 };
-            item.Click += (_, _) => Vm.AddToPlaylist(playlist, tracks);
-            TrackPlaylistsMenu.Items.Add(item);
-        }
-        if (TrackPlaylistsMenu.Items.Count > 0)
-            TrackPlaylistsMenu.Items.Add(new Separator());
-        var create = new MenuItem { Header = "New playlist…", IsEnabled = tracks.Count > 0 };
-        create.Click += (_, _) => _ = Vm.CreatePlaylistAsync(tracks, open: false);
-        TrackPlaylistsMenu.Items.Add(create);
+        PlaylistsMenu.Fill(TrackPlaylistsMenu, Vm, tracks, except: Vm.Library.SelectedPlaylist?.Id);
     }
 
     // ───────────── Dragging onto playlists, and within one ─────────────
