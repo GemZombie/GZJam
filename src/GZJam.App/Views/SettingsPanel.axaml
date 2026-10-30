@@ -255,9 +255,9 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Import playlists (M3U)" />
+                    <TextBlock Classes="setting" Text="Import playlists" />
                     <TextBlock Classes="setting-help"
-                               Text="Playlists saved from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other players, as .m3u or .m3u8 files. Each becomes a playlist of the same name, in order." />
+                               Text="Playlists saved from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other players, as .m3u or .m3u8 files, or as text from iTunes. Each becomes a playlist of the same name, in order." />
                   </StackPanel>
                   <Button x:Name="PlaylistImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
                           Click="OnPlaylistImportClick" />

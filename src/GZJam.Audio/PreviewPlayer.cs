@@ -29,9 +29,7 @@ public sealed class PreviewPlayer : IDisposable
     {
         Stop();
         _mix.Engine.UseNoSoundDevice();
-        int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
-        if (stream == 0)
-            throw AudioException.CouldNotOpen(path);
+        int stream = SongFile.Open(path);
 
         _stream = stream;
         TrackPath = path;

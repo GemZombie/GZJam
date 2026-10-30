@@ -12,7 +12,7 @@ public partial class MainWindowViewModel
     public Func<string, string, string, Task<bool>>? ConfirmImportAsync { get; set; }
 
     /// <summary>
-    /// Settings › Import playlists: reads the M3U files the DJ picked, says what would come over,
+    /// Settings › Import playlists: reads the playlist files the DJ picked, says what would come over,
     /// and makes the playlists once they confirm.
     /// </summary>
     public async Task ImportPlaylistsAsync(IReadOnlyList<string> files)

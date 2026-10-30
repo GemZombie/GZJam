@@ -71,9 +71,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     {
         // Decode-only work runs on BASS's "no sound" device so it never touches real outputs.
         engine.UseNoSoundDevice();
-        int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
-        if (stream == 0)
-            throw AudioException.CouldNotOpen(path);
+        int stream = SongFile.Open(path);
 
         try
         {
@@ -145,9 +143,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     public Waveform Detail(string path, CancellationToken cancellationToken = default)
     {
         engine.UseNoSoundDevice();
-        int stream = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
-        if (stream == 0)
-            throw AudioException.CouldNotOpen(path);
+        int stream = SongFile.Open(path);
         try
         {
             ChannelInfo info = Bass.ChannelGetInfo(stream);

@@ -71,10 +71,7 @@ public sealed class Deck : IDisposable
         _end = null;
         _mix.Engine.UseNoSoundDevice();
 
-        // Prescan gives exact length and seeking for VBR MP3s.
-        int source = Bass.CreateStream(path, 0, 0, BassFlags.Decode | BassFlags.Float | BassFlags.Prescan);
-        if (source == 0)
-            throw AudioException.CouldNotOpen(path);
+        int source = SongFile.Open(path);
 
         int tempo = BassFx.TempoCreate(source, BassFlags.Decode | BassFlags.FxFreeSource);
         if (tempo == 0)

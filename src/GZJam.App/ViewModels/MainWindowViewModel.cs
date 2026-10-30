@@ -195,11 +195,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>A track's analysis is in: show its detected BPM wherever the track is on screen.</summary>
+    /// <summary>
+    /// A track's analysis is in: show its detected BPM wherever the track is on screen, and its
+    /// length where the tags gave none (#220).
+    /// </summary>
     private void OnAnalyzed(string path, TrackAnalysis analysis)
     {
         foreach (Track track in TracksFor(path))
+        {
             track.DetectedBpm = analysis.Bpm;
+            if (track.Duration == TimeSpan.Zero)
+                track.Duration = analysis.Length;
+        }
     }
 
     /// <summary>

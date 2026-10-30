@@ -239,7 +239,7 @@ public partial class MainWindow
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Import playlists (M3U)",
+            Title = "Import playlists",
             AllowMultiple = true,
             FileTypeFilter = [new FilePickerFileType("Playlists") { Patterns = PlaylistFile.Patterns }],
         });

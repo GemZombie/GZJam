@@ -39,7 +39,7 @@ public partial class SettingsPanel : UserControl
     /// <summary>Library › IMPORT… was pressed.</summary>
     public event EventHandler? MixxxImportRequested;
 
-    /// <summary>Library › Import playlists (M3U) was pressed.</summary>
+    /// <summary>Library › Import playlists was pressed.</summary>
     public event EventHandler? PlaylistImportRequested;
 
     /// <summary>Library › Ratings in the song files was pressed.</summary>

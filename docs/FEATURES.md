@@ -693,11 +693,13 @@ not here. This file records what was decided and built, and why.
 For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input plays with both,
 50-60k songs): a cheap bridge before a full iTunes / Apple Music import (#97).
 
-- **Settings › Library › Import playlists (M3U).** Pick one or more `.m3u` / `.m3u8` files; each
+- **Settings › Library › Import playlists.** Pick one or more `.m3u` / `.m3u8` files; each
   becomes a playlist named after its file, in order (`PlaylistFile`, `PlaylistImport`). Absolute
   paths, paths relative to the playlist, and `file://` addresses; `#` lines and web addresses are
   skipped. UTF-8 (with or without a BOM), else the computer's code page (Windows players often
-  write plain `.m3u` that way). Songs are matched by path (any case on Windows). A playlist made
+  write plain `.m3u` that way). iTunes' text export (`.txt`, #221) too: UTF-16, tab-separated,
+  a header first, each song's path under *Location* (or, from iTunes in another language, the
+  column holding paths); a `.txt` that isn't a table is read as an M3U. Songs are matched by path (any case on Windows). A playlist made
   on another computer, or before the music moved (#202), finds its songs by the end of their
   path: the file name and at least its folder, if no other song of GZJam's ends as well
   (`MovedSongs`). Once two songs agree where a folder went (`D:\Music` is now `C:\Music`), the

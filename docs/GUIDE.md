@@ -379,12 +379,13 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
 
 ### Importing from other players
 
-- **Playlists:** Settings › Library › **Import playlists (M3U)**. Save your playlists as `.m3u`
+- **Playlists:** Settings › Library › **Import playlists**. Save your playlists as `.m3u`
   or `.m3u8` files from MediaMonkey, foobar2000, iTunes / Music (*File › Library › Export
-  Playlist*), VirtualDJ or most other players, then pick them (several at once is fine). Each
-  becomes a playlist of the same name, in order. GZJam says first how many songs it found, and
-  where the ones it didn't are (add that folder with **+ Folder**, then import again). A playlist
-  GZJam already has by that name is left alone, so importing again adds nothing twice.
+  Playlist*, as M3U or as text), VirtualDJ or most other players, then pick them (several at
+  once is fine). Each becomes a playlist of the same name, in order. GZJam says first how many
+  songs it found, and where the ones it didn't are (add that folder with **+ Folder**, then import
+  again). A playlist GZJam already has by that name is left alone, so importing again adds
+  nothing twice.
   **Playlists from another computer** work too, even old ones where the music was on another
   drive (`D:\Music\Swing` then, `C:\Music\Swing` now): GZJam finds each song by its file name
   and the folder it's in, and says where it found them before importing. There's nothing to edit
@@ -484,7 +485,7 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
-- **Library:** *Import from Mixxx*, *Import playlists (M3U)*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
+- **Library:** *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
 - **About:** the version, *Tell me when a new version is out* (at startup GZJam asks GitHub, and
   says so quietly in the top bar before the music starts; nothing about you or your music is sent),

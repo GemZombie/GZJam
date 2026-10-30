@@ -728,7 +728,7 @@ public sealed partial class LibraryDatabase
             Album = r.GetOrdinal("album"), AlbumArtist = r.GetOrdinal("album_artist"), Genre = r.GetOrdinal("genre"),
             Comment = r.GetOrdinal("comment"), Grouping = r.GetOrdinal("grouping"), Year = r.GetOrdinal("year"), TrackNumber = r.GetOrdinal("track_number"),
             TagBpm = r.GetOrdinal("bpm"), DetectedBpm = r.GetOrdinal("detected_bpm"), RangeMin = r.GetOrdinal("range_min"),
-            RangeMax = r.GetOrdinal("range_max"), ManualBpm = r.GetOrdinal("manual_bpm"), Duration = r.GetOrdinal("duration_ms"),
+            RangeMax = r.GetOrdinal("range_max"), ManualBpm = r.GetOrdinal("manual_bpm"), Duration = r.GetOrdinal("length_ms"),
             Rating = r.GetOrdinal("rating"), Energy = r.GetOrdinal("energy"), LastPlayed = r.GetOrdinal("last_played"),
             PlayCount = r.GetOrdinal("play_count"), Labels = r.GetOrdinal("labels");
     }
@@ -736,7 +736,9 @@ public sealed partial class LibraryDatabase
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>
     private const string TrackColumns =
         "t.*, a.bpm AS detected_bpm, r.min AS range_min, r.max AS range_max, mb.bpm AS manual_bpm, m.rating AS rating, m.energy AS energy, " +
-        "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels";
+        "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels, " +
+        // A file whose tags give no length (its audio behind a damaged tag, #220): as long as the analysis found.
+        "CASE WHEN t.duration_ms > 0 THEN t.duration_ms ELSE COALESCE(a.length_ms, 0) END AS length_ms";
     private const string TrackJoins =
         JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN manual_bpm mb ON mb.path = t.path LEFT JOIN marks m ON m.path = t.path " +
         "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path " +

@@ -18,6 +18,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Compile Include="..\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <None Include="..\Shared\Formats\tone.mp3" Link="Formats\tone.mp3" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
