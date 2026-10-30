@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.8** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.9** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -116,16 +116,16 @@ release.
 
 **Coming from other players**
 - From Mixxx: ratings, crates (as labels), playlists, history, locked BPMs and hot cues.
-- From MediaMonkey, foobar2000, iTunes and most other players: playlists saved as M3U (even ones
-  made on another computer, with the music somewhere else), and the star ratings they keep in the
-  song files.
+- From MediaMonkey, foobar2000, iTunes and most other players: playlists saved as M3U, or as text
+  from iTunes (even ones made on another computer, with the music somewhere else), and the star
+  ratings they keep in the song files.
 - The other player's files, and your music, are never changed.
 
 Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and AAC on Windows and Mac.
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.8.
+Nothing yet since 0.9.9.
 
 ## Planned next
 

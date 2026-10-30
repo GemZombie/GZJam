@@ -10,6 +10,28 @@ has no section, and uses the section as the release's notes (tools/release-notes
 Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
 -->
 
+## 0.9.9 (2026-10-30)
+
+New:
+
+- **iTunes playlists saved as text import too:** iTunes' *File › Library › Export Playlist* saves
+  plain text unless you choose M3U. Settings › Library › **Import playlists** (renamed from
+  *Import playlists (M3U)*) now takes those `.txt` files as well, including ones from another
+  computer.
+
+Fixed:
+
+- **MP3s with a damaged tag play:** some MP3s have a broken block of tag data (often the album
+  art) in front of the music. GZJam said it couldn't play them and listed them by file name only,
+  with a length of 0:00. They now play, with their title and artist, and their length once
+  they've been analyzed. The first time this version looks through your music it reads the tags
+  again, once.
+- **Playlists from another computer, more of their songs found:** a song moved deeper than the
+  rest of its folder (`Music\Blues` now `Music\Archive\Blues`) is found, the counts before
+  importing are right when two files have the same name, and playlists made on Windows work on a
+  Mac or Linux.
+- **The startup screen's logo is twice the size,** so it can be read.
+
 ## 0.9.8 (2026-10-30)
 
 New:
