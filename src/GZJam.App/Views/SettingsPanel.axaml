@@ -58,7 +58,7 @@
                     <StackPanel Spacing="2">
                       <TextBlock Classes="setting" Text="Speakers for GZJam alone" />
                       <TextBlock Classes="setting-help"
-                                 Text="While GZJam is open, other programs' sounds (a notification, a browser) can't reach the room. For an output chosen by name, not Default." />
+                                 Text="While GZJam is open, other programs' sounds (a notification, a browser) can't reach the room, and other music programs can't use these speakers. For a laptop kept for gigs. For an output chosen by name, not Default." />
                       <TextBlock x:Name="WindowsDefaultHint" Classes="setting-help" FontWeight="SemiBold" Margin="0,4,0,0"
                                  IsVisible="{Binding SpeakersAreWindowsDefault}"
                                  Text="These speakers are also Windows' default output, so other programs may refuse to play while GZJam is open. To keep them playing, choose another output in Windows' Sound settings." />

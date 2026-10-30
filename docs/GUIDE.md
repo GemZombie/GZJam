@@ -109,10 +109,15 @@ in mono. Hearing it the wrong way round? Swap the two plugs. The top bar shows *
 
 ### Speakers for GZJam alone (Windows)
 
-On by default. While GZJam is open, other programs' sounds (a notification, a browser) can't reach
-the room. It works for speakers chosen by name, not *Default*. If the speakers are also Windows'
-default output, other programs may refuse to play while GZJam is open: Settings says so, and how
-to avoid it (choose another output as Windows' default).
+Off by default. On, while GZJam is open, other programs' sounds (a notification, a browser) can't
+reach the room. Other music programs can't use those speakers either: a player or an editor
+refuses to play, or says the sound card can't be used, until GZJam closes. So turn it on for a
+laptop kept for gigs, and leave it off on a computer where you edit or play music in other
+programs too. It works for speakers chosen by name, not *Default*. If the speakers are also
+Windows' default output, every other program may refuse to play while GZJam is open: Settings
+says so, and how to avoid it (choose another output as Windows' default).
+
+(Before 0.9.8 it was on by default. Settings saved by an older GZJam keep what they had.)
 
 ### When something is unplugged
 
@@ -510,6 +515,9 @@ hisses. If a mic input is all there is, put a **DI box** in between.
 outputs, cables to match them. Keep it short: across a hall, use a DI box at the DJ table and a
 microphone cable to the mixer, which doesn't pick up hum on the way.
 
+**Nothing else in the room (Windows).** On a laptop kept for gigs, turn on *Speakers for GZJam
+alone* (Settings › Sound), so no notification or browser sound reaches the room mid-set.
+
 **Mono.** At most dances the speakers stand on both sides of the floor, and dancers near one hear
 mostly that side. In stereo, they'd lose whatever was recorded on the other (on many old
 recordings, half the band). With **Mono** on (Settings › Sound, on by default), both sides play
@@ -608,10 +616,13 @@ Never remove the ground pin from a power plug.
 - On Linux, the desktop's sound system keeps a card while other sound plays through it. Make
   another output the computer's default, or choose *Default* in GZJam.
 
-**Other programs go quiet while GZJam is open (Windows)**
+**Other programs can't play while GZJam is open (Windows)**
 
-The speakers GZJam has to itself are also Windows' default output. Choose another output as the
-default in Windows' Sound settings, or turn off *Speakers for GZJam alone*.
+*Speakers for GZJam alone* is on (Settings › Sound), so the speakers are GZJam's only. A music
+player or editor using the same speakers refuses to play, or says the sound card can't be used.
+Turn it off to share them. If every program has gone quiet, those speakers are also Windows'
+default output: choose another output as the default in Windows' Sound settings, or turn the
+switch off.
 
 **A song's BPM is wrong:** right-click it › **BPM** › *Detect in a range*, or *Type the BPM…*.
 

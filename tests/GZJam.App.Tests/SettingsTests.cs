@@ -93,19 +93,41 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
-    public void Speakers_for_gzjam_alone_is_on_by_default_shown_on_windows_and_remembered()
+    public void Speakers_for_gzjam_alone_is_off_by_default_shown_on_windows_and_remembered()
     {
         using var app = new AppHarness();
         app.Window.OpenSettings(SettingsSection.Sound);
         var toggle = Panel(app).FindControl<ToggleButton>("ExclusiveSpeakersSwitch")!;
         Assert.Equal(OperatingSystem.IsWindows(), toggle.IsEffectivelyVisible);
-        Assert.True(toggle.IsChecked);
-        Assert.True(app.ViewModel.Mix!.ExclusiveSpeakers);
-
-        app.ViewModel.Settings.ExclusiveSpeakers = false;
-        Assert.False(app.Settings.ExclusiveSpeakers);
-        Assert.False(app.ViewModel.Mix.ExclusiveSpeakers);
         Assert.False(toggle.IsChecked);
+        Assert.False(app.ViewModel.Mix!.ExclusiveSpeakers);
+
+        app.ViewModel.Settings.ExclusiveSpeakers = true;
+        Assert.True(app.Settings.ExclusiveSpeakers);
+        Assert.True(app.ViewModel.Mix.ExclusiveSpeakers);
+        Assert.True(toggle.IsChecked);
+    }
+
+    /// <summary>
+    /// #209: sharing the speakers is the default only where nothing was saved (a new install). A
+    /// settings file from before holds the old default, on, and keeps it.
+    /// </summary>
+    [Fact]
+    public void Shared_speakers_is_the_default_only_where_no_choice_was_saved()
+    {
+        string folder = Directory.CreateTempSubdirectory("gzjam-settings-").FullName;
+        try
+        {
+            string fresh = Path.Combine(folder, "fresh.json"), saved = Path.Combine(folder, "saved.json");
+            File.WriteAllText(fresh, "{ \"FadeOutSeconds\": 5 }");
+            File.WriteAllText(saved, "{ \"ExclusiveSpeakers\": true }");
+            Assert.False(AppSettings.Load(fresh).ExclusiveSpeakers);
+            Assert.True(AppSettings.Load(saved).ExclusiveSpeakers);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
     }
 
     [AvaloniaFact]
