@@ -27,6 +27,12 @@ New:
   holds songs from your music folders, so one from elsewhere (a USB stick) is left out, and GZJam
   says so.
 
+Fixed:
+
+- **Right-click menus no longer come out cut off:** the first time the song list's menu opened
+  (in a playlist, say), its right edge could be cut off, hiding key hints such as *Del* and the
+  arrows of its submenus. Opening it again showed it right. Now it's right the first time.
+
 ## 0.9.10 (2026-10-30)
 
 Changed:
