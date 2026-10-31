@@ -230,27 +230,38 @@ public partial class MainWindow
     }
 
     /// <summary>
+    /// The playlist songs dropped at <paramref name="at"/> would go into: one whose name is there
+    /// (at its end, Index null), or the open playlist, before entry Index. Null for neither.
+    /// </summary>
+    private (PlaylistInfo Playlist, int? Index)? PlaylistTargetAt(Point at)
+    {
+        if (PlaylistItemAt(at)?.DataContext is PlaylistInfo playlist)
+            return (playlist, null);
+        if (PlaylistDropAt(at) is { } drop && Vm.Library.SelectedPlaylist is { } open)
+            return (open, drop.Index);
+        return null;
+    }
+
+    private static string PlaylistPlace((PlaylistInfo Playlist, int? Index) target) => target.Index is { } index
+        ? $"position {index + 1} in playlist \"{target.Playlist.Name}\""
+        : $"playlist \"{target.Playlist.Name}\"";
+
+    /// <summary>
     /// Drops songs on a playlist's name (added at its end) or into the open playlist (moved, if
     /// they're its own rows; else added there). True if it was a playlist drop.
     /// </summary>
     private bool DropOnPlaylist(TrackDrag drag, Point at, out string where)
     {
-        if (PlaylistItemAt(at)?.DataContext is PlaylistInfo playlist)
+        if (PlaylistTargetAt(at) is not { } target)
         {
-            where = $"playlist \"{playlist.Name}\"";
-            Vm.AddToPlaylist(playlist, drag.Tracks);
-            return true;
+            where = "";
+            return false;
         }
-        if (PlaylistDropAt(at) is { } drop && Vm.Library.SelectedPlaylist is { } open)
-        {
-            where = $"position {drop.Index + 1} in playlist \"{open.Name}\"";
-            if (drag.Tracks.All(t => t.PlaylistEntryId is not null) && drag.FromQueue is null)
-                Vm.MoveInPlaylist(drag.Tracks, drop.Index);
-            else
-                Vm.AddToPlaylist(open, drag.Tracks, drop.Index);
-            return true;
-        }
-        where = "";
-        return false;
+        where = PlaylistPlace(target);
+        if (target.Index is { } index && drag.Tracks.All(t => t.PlaylistEntryId is not null) && drag.FromQueue is null)
+            Vm.MoveInPlaylist(drag.Tracks, index);
+        else
+            Vm.AddToPlaylist(target.Playlist, drag.Tracks, target.Index);
+        return true;
     }
 }

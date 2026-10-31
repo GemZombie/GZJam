@@ -21,6 +21,12 @@ New:
   they play only on Windows. A WMA bought online years ago may be copy-protected: GZJam says so,
   since only the player it was bought for can play it.
 
+- **Drag songs from your file manager onto a playlist:** files and whole folders from Explorer,
+  Finder or a Linux file manager went onto a deck or into the queue, but not onto a playlist. Now
+  they can go onto a playlist's name, or into an open playlist where the line shows. A playlist
+  holds songs from your music folders, so one from elsewhere (a USB stick) is left out, and GZJam
+  says so.
+
 ## 0.9.10 (2026-10-30)
 
 Changed:
