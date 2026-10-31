@@ -13,7 +13,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.12.
+Fixed:
+
+- **A button's tooltip no longer gets in the way of clicking it:** near the bottom of the screen
+  (*+ New* under PLAYLISTS, say), a tooltip could move up over the pointer, so a click closed the
+  tooltip instead of pressing the button, and it took two or three tries. Now a button's tooltip
+  sits just below it, or just above it where there's no room below.
 
 ## 0.9.12 (2026-10-31)
 
