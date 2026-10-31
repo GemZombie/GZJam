@@ -98,4 +98,42 @@ public sealed class FormatTests : IDisposable
             File.Delete(path);
         }
     }
+
+    [Fact]
+    public void An_m4a_whose_first_box_runs_past_its_end_is_damaged_and_said_so_without_waiting_on_bass()
+    {
+        byte[] good = File.ReadAllBytes(Sample("tone-alac.m4a"));   // ftyp, free, mdat, then moov
+        string path = Path.Combine(Path.GetTempPath(), $"gzjam-damaged-{Guid.NewGuid():N}.m4a");
+        try
+        {
+            // As in the DJ's file: the first box's size damaged, 646 MB in a small file. BASS takes
+            // minutes over one, holding up every other sound call (#224).
+            byte[] damaged = [.. good];
+            damaged[0] = 0x26; damaged[1] = 0x89;
+            File.WriteAllBytes(path, damaged);
+            Assert.True(SongFile.Mp4Damaged(path));
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
+            Assert.Equal("the file is damaged, so GZJam can't find its sound.", error.Message);
+            Assert.True(watch.Elapsed < TimeSpan.FromSeconds(5), $"{watch.Elapsed}");
+
+            // Cut short before its index: damaged too.
+            File.WriteAllBytes(path, good[..(good.Length / 2)]);
+            Assert.True(SongFile.Mp4Damaged(path));
+
+            // Cut short after its index (moov first): BASS plays what's there, as before.
+            int moov = 28 + 8 + 34060;
+            byte[] indexFirst = [.. good[..36], .. good[moov..], .. good[36..moov]];
+            File.WriteAllBytes(path, indexFirst[..(indexFirst.Length * 3 / 4)]);
+            Assert.False(SongFile.Mp4Damaged(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+
+        // Whole files, and files that aren't MP4, aren't damaged here.
+        foreach (string file in new[] { "tone-alac.m4a", "tone-aac.m4a", "tone.flac", "tone.mp3", "tone.opus", "tone.aac" })
+            Assert.False(SongFile.Mp4Damaged(Sample(file)), file);
+    }
 }

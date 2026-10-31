@@ -125,7 +125,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.9.
+- A damaged .m4a no longer freezes GZJam: it says the file is damaged, at once
+  ([#224](https://github.com/GemZombie/GZJam/issues/224)).
 
 ## Planned next
 
