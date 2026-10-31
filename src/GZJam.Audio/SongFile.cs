@@ -7,7 +7,9 @@ namespace GZJam.Audio;
 /// for a file's audio only near its start (16 KB). An MP3 whose audio starts further in, behind a
 /// damaged tag nothing reads as one (#220), is opened again from where its audio really starts.
 /// Only files BASS refuses are searched: looking further into every file would make it likelier
-/// that a FLAC or a broken file is taken for MP3 and played as noise.
+/// that a FLAC or a broken file is taken for MP3 and played as noise. An MP4 (.m4a) whose boxes
+/// run past its end before its index is never handed to BASS (#224): BASS spends minutes giving up
+/// on one, and every other sound call waits behind it.
 /// </summary>
 internal static class SongFile
 {
@@ -22,6 +24,8 @@ internal static class SongFile
     /// <summary>A decoding stream for <paramref name="path"/>. Throws, saying why, if it can't be played.</summary>
     public static int Open(string path)
     {
+        if (Mp4Damaged(path))
+            throw AudioException.Damaged();
         int stream = Bass.CreateStream(path, 0, 0, Flags);
         if (stream != 0)
             return stream;
@@ -33,6 +37,54 @@ internal static class SongFile
                 return stream;
         }
         throw AudioException.CouldNotOpen(path, error);
+    }
+
+    /// <summary>Box types an MP4 file starts with, to know one by its first box rather than its name.</summary>
+    private static readonly HashSet<string> Mp4Boxes = ["ftyp", "moov", "mdat", "free", "skip", "wide", "pdin", "uuid"];
+
+    /// <summary>
+    /// Whether <paramref name="path"/> is an MP4 file whose top-level boxes don't add up before its
+    /// index (<c>moov</c>): one that claims to run past the end of the file, or is too short to be a
+    /// box. A file cut short after its index isn't damaged here: it plays what's there.
+    /// </summary>
+    internal static bool Mp4Damaged(string path)
+    {
+        try
+        {
+            using var file = File.OpenRead(path);
+            Span<byte> header = stackalloc byte[16];
+            long at = 0, length = file.Length;
+            bool first = true;
+            while (at + 8 <= length)
+            {
+                file.Position = at;
+                file.ReadExactly(header[..8]);
+                string type = System.Text.Encoding.ASCII.GetString(header[4..8]);
+                if (first && !Mp4Boxes.Contains(type))
+                    return false;   // not an MP4: BASS knows what it is
+                first = false;
+                if (type == "moov")
+                    return false;   // the index is there; past it, BASS copes
+                long size = (uint)(header[0] << 24 | header[1] << 16 | header[2] << 8 | header[3]);
+                if (size == 0)
+                    return true;    // "to the end of the file", before the index: it isn't there
+                if (size == 1)
+                {
+                    if (at + 16 > length)
+                        return true;
+                    file.ReadExactly(header[8..16]);
+                    size = (long)System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(header[8..16]);
+                }
+                if (size < 8 || size > length - at)
+                    return true;
+                at += size;
+            }
+            return !first;   // boxes all through, and no index
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;   // BASS says why
+        }
     }
 
     /// <summary>

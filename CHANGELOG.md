@@ -13,7 +13,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.9.
+Fixed:
+
+- **A damaged .m4a no longer freezes GZJam:** when the start of an .m4a file is damaged, the
+  part of GZJam that plays sound spent over two minutes trying to read it, and everything else
+  waited: GZJam stopped responding, as if it had crashed. Now GZJam sees the damage at once and
+  says so ("the file is damaged") when you load or preview the song.
 
 ## 0.9.9 (2026-10-30)
 

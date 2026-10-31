@@ -290,6 +290,9 @@ public sealed class AudioException : Exception
         return new AudioException(error, reason);
     }
 
+    /// <summary>A song whose file is damaged, found before BASS is asked (#224).</summary>
+    internal static AudioException Damaged() => new(Errors.FileFormat, "the file is damaged, so GZJam can't find its sound.");
+
     /// <summary>An output another program has, said so a DJ can free it.</summary>
     internal static AudioException Busy(string device) => new(Errors.Busy, OperatingSystem.IsLinux()
         ? $"{device} is in use. The desktop's sound system keeps a card while other sound plays through it: " +
