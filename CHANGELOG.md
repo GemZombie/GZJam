@@ -13,7 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.11.
+Fixed:
+
+- **Right-click menus really no longer come out cut off:** 0.9.11's fix for this didn't reach the
+  cause. On Windows the menu's window could take its size before the menu had worked out how wide
+  it needed to be, and keep it, so the first right-click after starting (or after a new kind of
+  menu, such as the first one in a playlist) cut off the right edge. Now a menu that comes out too
+  small opens again straight away, the right size.
 
 ## 0.9.11 (2026-10-31)
 

@@ -8,8 +8,10 @@ using GZJam.App.Views;
 namespace GZJam.App.Tests;
 
 /// <summary>
-/// Right-click menus are filled once as they open, never again once showing: changed then, a
-/// menu's rows outgrew the size it opened at, and the song menu came out cut off on the right.
+/// Right-click menus are filled once as they open. Opened again because one came out smaller
+/// than its rows (on Windows, by a real right-click: #232), it isn't filled again. That only
+/// happens with the system's own menu windows, so it's checked by hand there (headless menus are
+/// drawn inside the window, and never too small: <see cref="FlyoutMenus.TooSmall"/>).
 /// </summary>
 public sealed class MenuFillTests
 {
@@ -36,6 +38,7 @@ public sealed class MenuFillTests
             AppHarness.Settle(200);
             Assert.True(menu.IsOpen);
             Assert.Equal(2, fills);
+            Assert.False(FlyoutMenus.TooSmall(menu));   // drawn in the window: never reopened here
             menu.Close();
         }
         finally
