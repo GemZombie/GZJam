@@ -300,4 +300,22 @@ public sealed class PlaylistAppTests
         Assert.Equal(app.Library.Playlists.Select(p => p.Name).Order(StringComparer.OrdinalIgnoreCase), app.Library.Playlists.Select(p => p.Name));
         Assert.Equal(("Warm-up", 2), (app.Library.SelectedPlaylist!.Name, app.Library.Results.Count));
     }
+
+    /// <summary>A playlist added to the queue leaves behind a song whose file is missing: it couldn't play (#237).</summary>
+    [AvaloniaFact]
+    public void Adding_a_playlist_to_the_queue_leaves_out_a_missing_song_but_takes_one_from_outside()
+    {
+        using var app = new AppHarness();
+        var songs = app.Library.Results.Take(2).ToList();
+        string outside = app.ToneTrack("From Downloads").Path;
+        string gone = System.IO.Path.Combine(app.WorkDirectory, "gone.mp3");
+        var playlist = Make(app, "Saturday", songs[0]);
+        app.Database.AddToPlaylist(playlist.Id, [gone, outside, songs[1].Path]);
+        app.Library.RefreshPlaylists(playlist.Id);
+
+        app.ViewModel.AddPlaylistToQueue(app.Library.Playlists.Single());
+
+        Assert.Equal([songs[0].Path, outside, songs[1].Path], app.ViewModel.Queue.Items.Select(i => i.Track.Path));
+        Assert.Equal("3 songs added to the queue", app.ViewModel.Notice);
+    }
 }

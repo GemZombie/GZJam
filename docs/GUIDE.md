@@ -340,8 +340,9 @@ The song list shows your music; the folder tree shows it as it is on disk.
 - **Energy:** low, medium or high (the three bars).
 - **Labels** cut across your folders: "Lindy", "Balboa", "Female vocals", "Requests". Right-click
   songs › **Labels** › tick a label, or *New label…*. *Rename a label* is there too.
-- **Played** shows when the room last heard a song ("3 days", "2 wk"). Songs played tonight are
-  dimmed everywhere.
+- **Played** shows when the room last heard a song ("3 days", "2 wk"). Songs played tonight have
+  a green check before the title, everywhere. A grayed-out song with a ring and "!" is one whose
+  file is missing (hover it to see where GZJam last saw it).
 
 Select several songs to mark them all at once from the menu. None of this is written into your
 music files.
@@ -356,7 +357,10 @@ the song plays on while your finger is down, and moves there when you let go.
 
 Plan a set before the night. Under the folder tree, **+ New** makes a playlist; drag songs onto its
 name, or right-click songs › **Add to playlist**. Songs and folders dragged from your file manager
-go onto a playlist too, as long as they're in your music folders. Open it to see it in order: drag to reorder,
+go onto a playlist too, **even from outside your music folders**: they
+join the playlist, not your library, so your collection stays as you've curated it. A song whose
+file has been moved or deleted stays in the playlist, grayed out as missing, and is left out when
+the playlist goes into the queue. Open it to see it in order: drag to reorder,
 Delete to take a song out (the file isn't touched). **Add to queue** puts the whole playlist in the
 queue; right-click a song › *Add to queue from here* puts the rest. The queue's menu has *Save queue
 as playlist…*, and History's ⋯ has *Save as playlist…*.

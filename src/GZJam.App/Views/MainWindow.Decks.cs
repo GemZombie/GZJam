@@ -258,6 +258,7 @@ public partial class MainWindow
         UpdateLoadMenuItems([TrackLoad1, TrackLoad2, TrackLoad3, TrackLoad4], SelectedTracks().Count == 1);
         var tracks = SelectedTracks();
         TrackEqItem.IsEnabled = tracks.Count == 1;
+        TrackShowInTreeItem.IsEnabled = tracks.FirstOrDefault() is { IsOutsideLibrary: false };   // one outside the music folders isn't in the tree
         MarksMenu.FillRating(TrackRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
         LabelsMenu.Fill(TrackLabelsMenu, Vm, tracks);

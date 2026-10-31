@@ -94,15 +94,60 @@ public sealed class PlaylistTests : IDisposable
         Assert.Equal(3, _lib.Database.Search(null).Count);
     }
 
+    /// <summary>
+    /// A playlist holds songs from anywhere (#237): one outside the music folders is listed with
+    /// its own tags and the DJ's marks, without joining the library; one whose file is gone stays,
+    /// missing, by its file name.
+    /// </summary>
     [Fact]
-    public void A_song_gone_from_the_library_is_kept_but_not_shown()
+    public void A_song_outside_the_library_is_listed_with_its_tags_and_a_gone_one_as_missing()
     {
         var (a, b, _) = ThreeSongs();
-        var p = _lib.Database.CreatePlaylist("Kept");
-        _lib.Database.AddToPlaylist(p.Id, [a, @"C:\elsewhere\gone.mp3", b]);
+        string elsewhere = Path.Combine(_lib.Directory, "Downloads");
+        System.IO.Directory.CreateDirectory(elsewhere);
+        string outside = Path.Combine(elsewhere, "outside.mp3");
+        TestMp3.Write(outside, new TestMp3.Tags(Title: "From Downloads", Artist: "Someone", Duration: TimeSpan.FromSeconds(150)));
+        string gone = Path.Combine(elsewhere, "Old Set", "gone song.mp3");
+        var p = _lib.Database.CreatePlaylist("Anywhere");
+        _lib.Database.AddToPlaylist(p.Id, [a, outside, gone, b]);
+        _lib.Database.SetRating([outside], Rating.Loved);
 
-        Assert.Equal(["A", "B"], Titles(p.Id));
-        Assert.Equal(2, _lib.Database.GetPlaylists()[0].Count);
-        Assert.Equal(3, _lib.Database.GetPlaylistEntries(p.Id).Count);   // back if the file comes back
+        var rows = _lib.Database.Search(null, playlist: p.Id);
+
+        Assert.Equal(["a.mp3", "outside.mp3", "gone song.mp3", "b.mp3"], rows.Select(t => t.FileName));
+        Assert.Equal([1, 2, 3, 4], rows.Select(t => t.PlaylistNumber!.Value));
+        Assert.Equal(4, rows.Select(t => t.PlaylistEntryId).Distinct().Count());
+        Track from = rows[1];
+        Assert.Equal(("From Downloads", "Someone"), (from.Title, from.Artist));
+        Assert.True(from.IsOutsideLibrary);
+        Assert.False(from.IsMissing);
+        Assert.Equal(Rating.Loved, from.Rating);   // marks are kept by path, as for any song
+        Assert.InRange(from.Duration.TotalSeconds, 149, 151);
+        Track missing = rows[2];
+        Assert.True(missing.IsMissing);
+        Assert.Equal("gone song", missing.DisplayTitle);
+        Assert.False(rows[0].IsMissing || rows[0].IsOutsideLibrary);
+
+        Assert.Equal(4, _lib.Database.GetPlaylists()[0].Count);
+        Assert.Equal(3, _lib.Database.Search(null).Count);   // the library stays as it was
+        Assert.Null(_lib.Database.FindTrack(outside));
+        // Searched, a playlist looks through its library songs: the others have no indexed tags.
+        Assert.Equal(["A"], _lib.Database.Search("a", playlist: p.Id).Select(t => t.Title));
+    }
+
+    [Fact]
+    public void A_song_outside_the_library_is_read_again_once_its_file_changes()
+    {
+        ThreeSongs();
+        string outside = Path.Combine(_lib.Directory, "outside.mp3");
+        TestMp3.Write(outside, new TestMp3.Tags(Title: "First"));
+        var p = _lib.Database.CreatePlaylist("Changing");
+        _lib.Database.AddToPlaylist(p.Id, [outside]);
+        Assert.Equal(["First"], Titles(p.Id));
+
+        TestMp3.Write(outside, new TestMp3.Tags(Title: "Second title"));
+        File.SetLastWriteTimeUtc(outside, DateTime.UtcNow.AddMinutes(1));
+
+        Assert.Equal(["Second title"], Titles(p.Id));
     }
 }

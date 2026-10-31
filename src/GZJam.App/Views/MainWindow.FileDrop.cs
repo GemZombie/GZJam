@@ -10,8 +10,7 @@ namespace GZJam.App.Views;
 /// Songs dragged in from the file manager (Explorer, Finder, a Linux file manager): one onto a
 /// deck, or any number (and whole folders) into the queue or a playlist (#229), lit up as they
 /// come over like songs from the library. A song outside the music folders, say one a dancer
-/// brings on a USB stick, plays without joining the library. A playlist shows only the library's
-/// songs, so those are left out of one, saying why.
+/// brings on a USB stick, plays without joining the library, and joins a playlist the same way.
 /// </summary>
 public partial class MainWindow
 {
@@ -109,19 +108,13 @@ public partial class MainWindow
     }
 
     /// <summary>
-    /// Adds the library's songs among <paramref name="tracks"/> to a playlist; the rest (outside the
-    /// music folders, or not scanned yet) are left out, as a playlist shows only the library's.
+    /// Adds the songs to a playlist, from anywhere: one outside the music folders joins the
+    /// playlist, not the library (#237).
     /// </summary>
     private void DropOnPlaylist((PlaylistInfo Playlist, int? Index) into, IReadOnlyList<Track> tracks, IReadOnlyList<string> skipped)
     {
-        var library = tracks.Where(t => t.Id != 0).ToList();
-        var outside = tracks.Where(t => t.Id == 0).ToList();
-        Vm.AddToPlaylist(into.Playlist, library, into.Index);
-        if (outside.Count > 0)
-            Vm.ShowNotice(outside is [var song]
-                ? $"\"{song.DisplayTitle}\" was left out: a playlist holds songs from your music folders (Settings › Library)."
-                : $"{outside.Count} songs were left out: a playlist holds songs from your music folders (Settings › Library).");
-        else if (skipped.Count > 0)
+        Vm.AddToPlaylist(into.Playlist, tracks, into.Index);
+        if (skipped.Count > 0)
             Vm.ShowNotice(skipped is [var file]
                 ? $"{Path.GetFileName(file)} was left out: it isn't a song GZJam can play."
                 : $"{skipped.Count} files were left out: they aren't songs GZJam can play.");

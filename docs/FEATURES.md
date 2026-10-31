@@ -620,9 +620,11 @@ stand for, color only where it means something, tighter corners. Pass 1 (decks a
   library query; nothing extra to keep in step).
 - **Played** column in the library: "Today", "3 days", "2 wk", "5 mo", "2 yr", blank for never;
   sorts by date.
-- **Played tonight** (since the current session began) is dimmed in the library and the queue, as
-  soon as it counts as played (30 s in the room), and in any later search. Restarting mid-gig keeps
-  the session, so the dimming survives.
+- **Played tonight** (since the current session began) gets a green check before its title in the
+  library and the queue, as soon as it counts as played (30 s in the room), and in any later
+  search. Restarting mid-gig keeps the session, so the check survives. It was dimmed until #238:
+  people took the gray for a missing file, as players show one. Gray (40%) now means missing,
+  with a ring-and-"!" mark and "Not found: <path>" on hover.
 - **`played:` filter:** `played:7` (heard in the last 7 days), `-played:7` (leave out last week's
   set; never-played songs stay), `played:never`, `played:yes`. Listed in the BPM button's hint.
 - **Naming a session:** History tab › NAME next to the session picker: "Friday Night, Oct 14". The
@@ -1020,7 +1022,8 @@ live list, which a playlist feeds and which can be saved as one.
   order with song counts; no folders of playlists yet. A playlist is opened in the song list
   instead of a folder (one or the other), shown in its order with its number before each title,
   under a bar with its name, length, how many were played tonight, *Add to queue* and ⋯
-  (Rename…, Delete…). Search filters within it; played tonight dims, as everywhere. The open
+  (Rename…, Delete…), and how many are missing. Search filters within it; played tonight gets its
+  check, as everywhere. The open
   playlist is remembered (`OpenPlaylist`).
 - **Adding:** drag songs onto a playlist's name (it lights as a target), or the songs' menu ›
   *Add to playlist* › a name or *New playlist…*. A song can be in a playlist twice: each entry is
@@ -1030,13 +1033,25 @@ live list, which a playlist feeds and which can be saved as one.
   library entry are untouched.
 - **Playing it:** *Add to queue* appends the whole playlist, never replacing the queue; *Add to
   queue from here* the rest from a song on. It's a plan, not a record: no progress of its own
-  beyond songs played tonight dimming; History is the record.
+  beyond songs played tonight being checked; History is the record. Missing songs stay behind.
 - **Saving:** the queue's menu › *Save queue as playlist…*, and History's ⋯ › *Save as playlist…*
   (the night in the order it was played).
 - **Data:** `playlists` and `playlist_entries` (upgrade 18), entries by path, numbered from 0,
   renumbered on every change. Names are unique ignoring case; a taken name gets a number
-  ("Saturday 2"), so playlists are never merged. A song no longer in the library is kept but not
-  shown, and comes back if the file does.
+  ("Saturday 2"), so playlists are never merged.
+- **Songs from anywhere** (#237, asked for by a DJ whose curated collection is his music folder,
+  with many other files all over): a playlist holds any song. Dropped from the file manager or
+  another player, or imported, a song outside the music folders joins the playlist, not the
+  library: it isn't in searches or the folder tree. It's listed with its own tags, read from the
+  file and kept in memory until the file changes (`LibraryDatabase.OutsideEntries`), and with the
+  DJ's marks, kept by path as for any song; its analysis counts if it's for the file as it is. A
+  song whose file is gone (moved or deleted outside the music folders, or on an unplugged drive)
+  stays, by its file name, missing (`Track.IsMissing`), and comes back when the file does.
+  Searched, a playlist looks through its library songs (the others have no indexed tags).
+  *Show in folder tree* is grayed out for an outside song. The playlist's count is every entry.
+- **Importing** (M3U, iTunes text): a listed song that's on this computer, where the playlist
+  says, comes along even outside the music folders (`PlaylistImport.OutsideSongs`); only songs not
+  on this computer are left out. The confirm says which.
 - **Mixxx import:** the DJ's own Mixxx playlists (`Playlists.hidden = 0`: not Auto DJ's queue,
   nor History) come over in their order, songs GZJam doesn't have left out; a name GZJam already
   has is skipped, so importing again adds nothing twice.

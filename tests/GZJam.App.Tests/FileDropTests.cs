@@ -117,11 +117,11 @@ public sealed class FileDropTests
     }
 
     /// <summary>
-    /// Songs from the file manager go onto a playlist's name, lit up as they come over. A playlist
-    /// shows only the library's songs, so one from outside the music folders is left out, saying why.
+    /// Songs from the file manager go onto a playlist's name, lit up as they come over, from
+    /// anywhere (#237): one from outside the music folders joins the playlist, not the library.
     /// </summary>
     [AvaloniaFact]
-    public void Files_dropped_on_a_playlists_name_are_added_but_songs_outside_the_library_are_left_out()
+    public void Files_dropped_on_a_playlists_name_are_added_even_from_outside_the_library()
     {
         using var app = new AppHarness();
         var songs = app.Library.Results.Take(2).ToList();
@@ -139,10 +139,10 @@ public sealed class FileDropTests
         Assert.DoesNotContain(app.Window.FindControl<ListBox>("PlaylistList")!.GetVisualDescendants().OfType<ListBoxItem>(),
             i => i.Classes.Contains("drop-target"));
         var playlist = app.Library.Playlists.Single();
-        Assert.Equal([songs[1].Path, songs[0].Path], app.Database.GetPlaylistEntries(playlist.Id).Select(e => e.Path));
-        Assert.Equal("\"From a USB stick\" was left out: a playlist holds songs from your music folders (Settings › Library).",
-            app.ViewModel.Notice);
+        Assert.Equal([songs[1].Path, songs[0].Path, outside], app.Database.GetPlaylistEntries(playlist.Id).Select(e => e.Path));
+        Assert.Equal("3 songs added to Saturday", app.ViewModel.Notice);
         Assert.Null(app.Database.FindTrack(outside));
+        Assert.Equal(3, app.Library.Playlists.Single().Count);
     }
 
     [AvaloniaFact]

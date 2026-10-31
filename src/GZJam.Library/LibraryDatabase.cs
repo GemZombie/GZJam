@@ -656,8 +656,80 @@ public sealed partial class LibraryDatabase
                 track = track.InPlaylist(r.GetInt64(entryId), r.GetInt32(entryPosition) + 1);
             results.Add(track);
         }
+        r.Close();
+
+        // A playlist shown whole also lists its songs from outside the library, and the missing.
+        // Searched, it looks through the library's songs alone: the others have no tags indexed.
+        if (playlist is { } id && query.Conditions.Count == 0 && scope is null)
+        {
+            results.AddRange(OutsideEntries(c, id, cancellationToken));
+            results.Sort((x, y) => x.PlaylistNumber!.Value.CompareTo(y.PlaylistNumber!.Value));
+        }
         return results;
     }
+
+    /// <summary>Tags of songs outside the library, read once per version of the file (#237).</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Track> _outsideTags = new();
+
+    /// <summary>
+    /// A playlist's songs that aren't in the library (#237): read from their files' tags, with the
+    /// marks the DJ gave them (kept by path, as for any song), or by file name alone, missing.
+    /// </summary>
+    private List<Track> OutsideEntries(SqliteConnection c, long playlist, CancellationToken cancellationToken)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText =
+            "SELECT e.id AS entry_id, e.position AS entry_position, e.path AS entry_path, " +
+            "a.bpm AS detected_bpm, a.length_ms AS analyzed_ms, a.file_size AS analyzed_size, a.modified_utc AS analyzed_modified, " +
+            "r.min AS range_min, r.max AS range_max, mb.bpm AS manual_bpm, m.rating AS rating, m.energy AS energy, " +
+            "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels " +
+            "FROM playlist_entries e LEFT JOIN tracks t ON t.path = e.path " +
+            "LEFT JOIN analysis a ON a.path = e.path " + TrackJoins[(TrackJoins.IndexOf(" LEFT JOIN bpm_ranges", StringComparison.Ordinal) + 1)..].Replace("t.path", "e.path") +
+            " WHERE e.playlist_id = $playlist AND t.id IS NULL;";
+        cmd.Parameters.AddWithValue("$playlist", playlist);
+        using var r = cmd.ExecuteReader();
+        var entries = new List<Track>();
+        while (r.Read())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string path = r.GetString(r.GetOrdinal("entry_path"));
+            var file = new FileInfo(path);
+            Track track = (file.Exists ? OutsideTags(file) : Missing(path)).CopyOfTags();
+            if (file.Exists && !r.IsDBNull(r.GetOrdinal("analyzed_size")) && r.GetInt64(r.GetOrdinal("analyzed_size")) == file.Length
+                && r.GetInt64(r.GetOrdinal("analyzed_modified")) == file.LastWriteTimeUtc.Ticks)
+            {
+                track.DetectedBpm = GetDouble(r, r.GetOrdinal("detected_bpm"));
+                if (track.Duration <= TimeSpan.Zero)
+                    track.Duration = TimeSpan.FromMilliseconds(r.GetInt64(r.GetOrdinal("analyzed_ms")));
+            }
+            track.BpmRange = r.IsDBNull(r.GetOrdinal("range_min")) ? null : new BpmRange(r.GetInt32(r.GetOrdinal("range_min")), r.GetInt32(r.GetOrdinal("range_max")));
+            track.ManualBpm = GetDouble(r, r.GetOrdinal("manual_bpm"));
+            track.Rating = (Rating)(GetInt(r, "rating") ?? 0);
+            track.Energy = (Energy)(GetInt(r, "energy") ?? 0);
+            track.LastPlayedUtc = r.IsDBNull(r.GetOrdinal("last_played")) ? null : new DateTime(r.GetInt64(r.GetOrdinal("last_played")), DateTimeKind.Utc);
+            track.PlayCount = GetInt(r, "play_count") ?? 0;
+            track.Labels = ReadLabels(GetString(r, "labels"));
+            entries.Add(track.InPlaylist(r.GetInt64(r.GetOrdinal("entry_id")), r.GetInt32(r.GetOrdinal("entry_position")) + 1));
+        }
+        return entries;
+    }
+
+    private Track OutsideTags(FileInfo file)
+    {
+        if (_outsideTags.TryGetValue(file.FullName, out Track? known) && known.FileSize == file.Length && known.ModifiedUtc == file.LastWriteTimeUtc)
+            return known;
+        Track read = TagReader.Read(0, file.DirectoryName!, file);
+        _outsideTags[file.FullName] = read;
+        return read;
+    }
+
+    private static Track Missing(string path) => new()
+    {
+        Path = path,
+        Folder = System.IO.Path.GetDirectoryName(path) ?? "",
+        FileName = System.IO.Path.GetFileName(path),
+        IsMissing = true,
+    };
 
     /// <summary>
     /// Turns user input into an FTS5 expression: each word becomes a quoted prefix term, all ANDed.

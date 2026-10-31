@@ -32,7 +32,7 @@ public sealed class PlayerImportAppTests
         AppHarness.Settle();
 
         Assert.Equal("Import the playlist \"Friday Lindy\"?\nFriday Lindy (2 songs), in their order.\n\n" +
-                     $"1 song isn't in GZJam's music folders and is left out, e.g. from {Path.GetDirectoryName(lost)}. Add those folders with + Folder, then import again.\n\n" +
+                     $"1 song isn't on this computer and is left out, e.g. from {Path.GetDirectoryName(lost)}. On a drive that isn't plugged in? Plug it in, then import again.\n\n" +
                      "The playlist files aren't changed.", asked);
         PlaylistInfo made = Assert.Single(app.Library.Playlists, p => p.Name == "Friday Lindy");
         Assert.Equal(2, made.Count);
