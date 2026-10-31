@@ -127,6 +127,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 - A damaged .m4a no longer freezes GZJam: it says the file is damaged, at once
   ([#224](https://github.com/GemZombie/GZJam/issues/224)).
+- Load the next song onto the deck you've crossfaded away from, without pausing it first
+  ([#226](https://github.com/GemZombie/GZJam/issues/226)).
 
 ## Planned next
 

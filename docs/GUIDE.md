@@ -171,9 +171,11 @@ the decks back.
 - **Load:** drag a song onto a deck, or right-click it › *Load to Deck N*. Songs dragged in from
   Explorer, Finder or your Linux file manager load too, even from outside your music folders (a song
   a dancer brings on a USB stick).
-- **A playing deck is protected:** by default GZJam won't load a song over one that's playing. The
-  deck shows a "not allowed" outline as you drag over it, and the menu says *(playing)*. Change it in
-  Settings › Decks › *Loading a playing deck*.
+- **The deck on air is protected:** by default GZJam won't load a song over the one the room hears.
+  The deck shows a "not allowed" outline as you drag over it, and the menu says *(on air)*. Change it
+  in Settings › Decks › *Loading a playing deck*. Once you've crossfaded over, the other deck (OFF
+  AIR, still playing quietly) takes the next song straight away, with no need to pause it. In a
+  blend, both decks are on air, so both are protected.
 - **Play/pause:** the round key. **ON AIR** (red) means the room hears this deck; **OFF AIR** means
   it's playing but the crossfader is on the other side.
 - **The red bar along the top** of the deck the room hears fills up as the song plays, so you can

@@ -115,12 +115,86 @@ public sealed class DeckTests
 
         Assert.Equal(first, a.Track);
         Assert.True(a.IsPlaying);
-        Assert.Equal("Deck 1 is playing. Pause it first to load a new track.", app.ViewModel.Notice);
+        Assert.Equal("Deck 1 is on air. Pause it, or crossfade away from it, to load a new track.", app.ViewModel.Notice);
         Assert.False(app.ViewModel.CanLoad(a));
 
         // Paused, the same deck takes the track.
         a.HoldPause();
         Drop(app, "Deck1View", app.ToneTrack("Second"));
+        Assert.Equal("Second", a.Title);
+    }
+
+    /// <summary>
+    /// Crossfaded over to Deck 2, Deck 1 plays on quietly out of the room: it takes the next song
+    /// straight away, without being paused, by drag or by its menu (#226).
+    /// </summary>
+    [AvaloniaFact]
+    public void A_deck_playing_off_air_takes_a_new_track()
+    {
+        using var app = new AppHarness();
+        var (a, b) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        Drop(app, "Deck1View", app.ToneTrack("Old"));
+        Drop(app, "Deck2View", app.ToneTrack("Now"));
+        a.TogglePlayCommand.Execute(null);
+        b.TogglePlayCommand.Execute(null);
+        app.ViewModel.Mixer!.Crossfader = 1;
+        app.Play(0.2);
+        Assert.True(a.IsOffAir);
+
+        Assert.True(app.ViewModel.CanLoad(a));
+        Assert.False(app.ViewModel.CanLoad(b));
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        grid.SelectedIndex = 0;
+        app.Window.FindControl<ContextMenu>("TrackMenu")!.Open(grid);
+        AppHarness.Settle(100);
+        var load1 = app.Window.FindControl<MenuItem>("TrackLoad1")!;
+        Assert.True(load1.IsEnabled);
+        Assert.Equal("Load to Deck 1", load1.Header);
+        app.Window.FindControl<ContextMenu>("TrackMenu")!.Close();
+
+        Drop(app, "Deck1View", app.ToneTrack("Next"));
+
+        Assert.Equal("Next", a.Title);
+        Assert.DoesNotContain("on air", app.ViewModel.Notice ?? "");
+        Assert.True(b.IsOnAir);   // the room's song plays on
+    }
+
+    [AvaloniaFact]
+    public void In_a_blend_both_decks_are_protected()
+    {
+        using var app = new AppHarness();
+        var (a, b) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        Drop(app, "Deck1View", app.ToneTrack("One"));
+        Drop(app, "Deck2View", app.ToneTrack("Two"));
+        a.TogglePlayCommand.Execute(null);
+        b.TogglePlayCommand.Execute(null);
+        app.ViewModel.Mixer!.Crossfader = 0.5;
+        app.Play(0.2);
+
+        Assert.False(app.ViewModel.CanLoad(a));
+        Assert.False(app.ViewModel.CanLoad(b));
+        Drop(app, "Deck2View", app.ToneTrack("Three"));
+        Assert.Equal("Two", b.Title);
+    }
+
+    [AvaloniaFact]
+    public async Task Ask_mode_doesnt_ask_for_a_deck_off_air()
+    {
+        using var app = new AppHarness();
+        app.Settings.LoadOntoPlayingDeck = PlayingDeckLoad.Ask;
+        DeckViewModel a = app.ViewModel.Deck1!;
+        await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("First"));
+        a.TogglePlayCommand.Execute(null);
+        app.ViewModel.Mixer!.Crossfader = 1;
+        bool asked = false;
+        app.ViewModel.ConfirmAsync = (_, _, _) =>
+        {
+            asked = true;
+            return Task.FromResult(false);
+        };
+
+        Assert.True(await app.ViewModel.LoadToDeckAsync(a, app.ToneTrack("Second")));
+        Assert.False(asked);
         Assert.Equal("Second", a.Title);
     }
 
@@ -391,7 +465,7 @@ public sealed class DeckTests
         var loadA = app.Window.FindControl<MenuItem>("TrackLoad1")!;
         var loadB = app.Window.FindControl<MenuItem>("TrackLoad2")!;
         Assert.False(loadA.IsEnabled);
-        Assert.Equal("Load to Deck 1  (playing)", loadA.Header);
+        Assert.Equal("Load to Deck 1  (on air)", loadA.Header);
         Assert.True(loadB.IsEnabled);
     }
 }
