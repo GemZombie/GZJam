@@ -159,11 +159,16 @@ is out of scope until it earns a place.
 
 ### Deck protection
 
-- **A playing deck is protected.** By default, loading a track onto a deck that is playing is
-  blocked, whether by drag or by right-click. A paused or stopped deck accepts loads normally.
-- Blocked loads are visible, not silent: the right-click item is grayed out ("playing"), and
-  dragging over the deck shows a "not allowed" outline and cursor.
-- **Setting: "Loading onto a playing deck"**: *Block* (default), *Ask to confirm*, or *Allow*.
+- **The deck on air is protected.** By default, loading a track onto a deck the room hears (playing,
+  and the crossfader lets it into the room) is blocked, whether by drag, by right-click or by key.
+  A paused or stopped deck accepts loads normally, and so does one playing OFF AIR (the crossfader
+  has it below about -20 dB): crossfaded over, the DJ loads the next song onto the old deck without
+  pausing it (#226, asked for by a DJ). In a blend both decks are on air, so both are protected.
+- Blocked loads are visible, not silent: the right-click item is grayed out ("on air"), and
+  dragging over the deck shows a "not allowed" outline and cursor. The notice says to pause the
+  deck or crossfade away from it.
+- **Setting: "Loading a playing deck"**: *Block* (default), *Ask to confirm*, or *Allow*. *Ask*
+  asks only for a deck on air.
 
 ### Deck display
 

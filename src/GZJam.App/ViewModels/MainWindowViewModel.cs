@@ -1154,13 +1154,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
     }
 
-    /// <summary>Whether a load onto this deck would go ahead without being refused outright.</summary>
-    public bool CanLoad(DeckViewModel deck) => !deck.IsPlaying || _settings.LoadOntoPlayingDeck != PlayingDeckLoad.Block;
-
     /// <summary>
-    /// Loads a track onto a deck, protecting a deck that's playing as configured in Settings.
-    /// Returns whether the track was loaded.
+    /// Whether a load onto this deck would go ahead without being refused outright. Only the deck
+    /// the room hears is protected: one the crossfader has out of the room (OFF AIR) takes a song
+    /// while it plays on quietly, as a paused one does (#226).
     /// </summary>
+    public bool CanLoad(DeckViewModel deck) => !deck.IsOnAir || _settings.LoadOntoPlayingDeck != PlayingDeckLoad.Block;
+
     /// <summary>
     /// Songs for files and folders dragged in from the file manager, in the order given (a
     /// folder's songs in order of their paths). A song in the library comes with its marks; one
@@ -1192,21 +1192,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         return (tracks, skipped);
     }
 
+    /// <summary>
+    /// Loads a track onto a deck, protecting the deck the room hears as configured in Settings.
+    /// Returns whether the track was loaded.
+    /// </summary>
     public async Task<bool> LoadToDeckAsync(DeckViewModel deck, Track track)
     {
-        if (deck.IsPlaying)
+        if (deck.IsOnAir)
         {
             switch (_settings.LoadOntoPlayingDeck)
             {
                 case PlayingDeckLoad.Block:
-                    Log.Info($"Deck {deck.Label}: refused load of \"{track.DisplayTitle}\" (deck is playing)");
-                    ShowNotice($"Deck {deck.Label} is playing. Pause it first to load a new track.");
+                    Log.Info($"Deck {deck.Label}: refused load of \"{track.DisplayTitle}\" (deck is on air)");
+                    ShowNotice($"Deck {deck.Label} is on air. Pause it, or crossfade away from it, to load a new track.");
                     return false;
                 case PlayingDeckLoad.Ask:
-                    string where = deck.IsOnAir ? " to the room" : "";
                     if (ConfirmAsync is null || !await ConfirmAsync(
                             $"Replace the track on Deck {deck.Label}?",
-                            $"\"{deck.Title}\" is still playing{where}. Loading \"{track.DisplayTitle}\" will stop it.",
+                            $"\"{deck.Title}\" is still playing to the room. Loading \"{track.DisplayTitle}\" will stop it.",
                             "Load anyway"))
                         return false;
                     break;

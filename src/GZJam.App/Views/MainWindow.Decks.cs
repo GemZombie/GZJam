@@ -290,8 +290,8 @@ public partial class MainWindow
             item.IsVisible = index < Vm.ActiveDecks.Count;
             bool canLoad = deck is not null && Vm.CanLoad(deck);
             item.IsEnabled = oneTrackSelected && canLoad;
-            item.Header = deck is { IsPlaying: true } && !canLoad
-                ? $"Load to Deck {deck.Label}  (playing)"
+            item.Header = deck is not null && !canLoad
+                ? $"Load to Deck {deck.Label}  (on air)"
                 : $"Load to Deck {index + 1}";
         }
     }

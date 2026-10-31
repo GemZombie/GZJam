@@ -205,7 +205,7 @@
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
                     <TextBlock Classes="setting" Text="Loading a playing deck" />
-                    <TextBlock Classes="setting-help" Text="When a song is dropped on a deck that's playing." />
+                    <TextBlock Classes="setting-help" Text="When a song is dropped on the deck the room hears (ON AIR). One playing OFF AIR always takes it." />
                   </StackPanel>
                   <ComboBox Grid.Column="1" ItemsSource="{Binding LoadChoices}" SelectedItem="{Binding LoadChoice}" />
                 </Grid>

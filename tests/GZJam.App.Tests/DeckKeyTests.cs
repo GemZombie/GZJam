@@ -111,7 +111,7 @@ public sealed class DeckKeyTests
         AppHarness.Settle();
 
         Assert.Equal("One", d1.Track!.Title);
-        Assert.Equal("Deck 1 is playing. Pause it first to load a new track.", app.ViewModel.Notice);
+        Assert.Equal("Deck 1 is on air. Pause it, or crossfade away from it, to load a new track.", app.ViewModel.Notice);
     }
 
     [AvaloniaFact]

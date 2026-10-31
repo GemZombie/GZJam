@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Changed:
+
+- **Load the next song onto the deck you've crossfaded away from:** GZJam protects the deck the
+  room hears, so a song isn't loaded over it by accident. It protected a deck playing OFF AIR too,
+  so after crossfading over you had to pause the old deck first. Now only the deck on air is
+  protected: the other one takes the next song straight away, while it plays on quietly. In a
+  blend, both decks are on air, so both stay protected.
+
 Fixed:
 
 - **A damaged .m4a no longer freezes GZJam:** when the start of an .m4a file is damaged, the

@@ -4,10 +4,10 @@ using GZJam.Audio;
 
 namespace GZJam.App;
 
-/// <summary>What happens when a track is loaded onto a deck that's playing.</summary>
+/// <summary>What happens when a track is loaded onto the deck the room hears (ON AIR).</summary>
 public enum PlayingDeckLoad
 {
-    /// <summary>Refuse; the deck must be paused first. The safe default.</summary>
+    /// <summary>Refuse; the deck must be paused, or crossfaded out of the room, first. The safe default.</summary>
     Block,
     /// <summary>Ask for confirmation.</summary>
     Ask,
