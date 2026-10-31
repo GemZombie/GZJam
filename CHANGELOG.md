@@ -4,11 +4,16 @@ What changed in each release, newest first. Downloads are on the
 [Releases page](https://github.com/GemZombie/GZJam/releases).
 
 <!--
-Before tagging a release, add its section here: "## <version> (<date>)", then what a DJ would
-notice, under "New", "Changed" and "Fixed" as needed. The release workflow refuses a version that
-has no section, and uses the section as the release's notes (tools/release-notes.sh).
-Bring ROADMAP.md up to date at the same time: it's the big picture, this is what changed.
+Each pull request adds what a DJ would notice to "## Unreleased", under "New", "Changed" and
+"Fixed" as needed. Releasing renames it "## <version> (<date>)" and starts a new, empty one. The
+release workflow refuses a version that has no section, and uses the section as the release's
+notes (tools/release-notes.sh). Bring ROADMAP.md up to date at the same time: it's the big
+picture, this is what changed. The whole routine: docs/RELEASING.md.
 -->
+
+## Unreleased
+
+Nothing yet since 0.9.9.
 
 ## 0.9.9 (2026-10-30)
 
