@@ -12,7 +12,7 @@
     <RootNamespace>GZJam.App</RootNamespace>
     <!-- Shown in Settings › About. Release builds set both from the tag (v0.2.0 → 0.2.0); a build
          made here says "-dev". -->
-    <VersionPrefix>0.9.10</VersionPrefix>
+    <VersionPrefix>0.9.11</VersionPrefix>
     <VersionSuffix>dev</VersionSuffix>
     <!-- Published packages are compiled ahead of time, so GZJam starts about a second sooner
          (it no longer compiles its code as it starts). Only a publish for a platform can. -->

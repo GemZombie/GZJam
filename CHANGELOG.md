@@ -13,6 +13,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 0.9.10.
+
+## 0.9.10 (2026-10-30)
+
 Changed:
 
 - **Load the next song onto the deck you've crossfaded away from:** GZJam protects the deck the

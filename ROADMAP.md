@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.9** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.10** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -59,7 +59,8 @@ release.
   phrase coming and find the exact spot for a cue or a jump. Zoom with the mouse wheel or a pinch;
   drag it like a record. It glides smoothly, even zoomed in tight.
 - The time readout blinks in the last 30 seconds of the song the room hears, as on CDJs.
-- Protection against loading a new song over one the room is hearing.
+- Protection against loading a new song over one the room is hearing. Once you've crossfaded over,
+  the other deck takes the next song while it plays on quietly, with no need to pause it.
 - Songs start at their first note: silence (or applause) at either end is found automatically, or
   set by hand.
 - Jumps: skip a part, or play one again, at the end of a phrase, without a gap.
@@ -125,10 +126,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and 
 
 ## Finished, coming in the next release
 
-- A damaged .m4a no longer freezes GZJam: it says the file is damaged, at once
-  ([#224](https://github.com/GemZombie/GZJam/issues/224)).
-- Load the next song onto the deck you've crossfaded away from, without pausing it first
-  ([#226](https://github.com/GemZombie/GZJam/issues/226)).
+Nothing yet since 0.9.10.
 
 ## Planned next
 
