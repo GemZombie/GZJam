@@ -91,11 +91,7 @@ public partial class DeckView : UserControl
         PlayButton.AddHandler(PointerCaptureLostEvent, (_, _) => CancelHold(), RoutingStrategies.Tunnel, handledEventsToo: true);
         PlayButton.Click += OnPlayClick;
         foreach (ContextMenu menu in new[] { BpmContextMenu, ReadoutBpmMenu })
-        {
-            // Opening covers right-click and long-press; Opened also covers menus opened from code.
-            menu.Opening += (_, e) => FillBpmMenu(menu, e);
-            menu.Opened += (_, _) => FillBpmMenu(menu, null);
-        }
+            FlyoutMenus.FillAsItOpens(menu, e => FillBpmMenu(menu, e));
         // Remember where on the waveform the menu was asked for, so "here" means that spot.
         Seek.AddHandler(ContextRequestedEvent, (_, e) =>
             _trimMenuAt = e.TryGetPosition(Seek, out Point point) ? Seek.FractionAt(point) : null,
@@ -104,21 +100,17 @@ public partial class DeckView : UserControl
             _trimMenuAt = e.TryGetPosition(CloseUp, out Point point) ? CloseUp.FractionAt(point) : null,
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
         foreach (ContextMenu menu in new[] { TrimMenu, CloseUpMenu })
-        {
-            menu.Opening += (_, e) => FillTrimMenu(menu, e);
-            menu.Opened += (_, _) => FillTrimMenu(menu, null);
-        }
+            FlyoutMenus.FillAsItOpens(menu, e => FillTrimMenu(menu, e));
         FlyoutMenus.FillBeforeOpening(MoreButton, MoreMenu, FillMoreMenu);
         foreach (ContextMenu menu in new[] { SongMenu, CompactSongMenu })
         {
-            menu.Opening += (_, e) =>
+            FlyoutMenus.FillAsItOpens(menu, e =>
             {
-                if (Vm?.Track is null)
+                if (Vm?.Track is null && e is not null)
                     e.Cancel = true;   // nothing loaded: no menu
                 else
                     FillSongMenu(menu.Items);
-            };
-            menu.Opened += (_, _) => FillSongMenu(menu.Items);
+            });
         }
         // Tap tempo: the pad takes the keyboard (Space taps it), and Escape puts it away.
         TapPanel.PropertyChanged += (_, e) =>

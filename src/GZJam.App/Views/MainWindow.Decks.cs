@@ -16,11 +16,8 @@ public partial class MainWindow
     private void InitializeDecks()
     {
         PreviewSeek.SeekRequested += (_, fraction) => Vm.Preview?.SeekTo(fraction);
-        // Opening covers right-click and long-press; Opened also covers menus opened from code.
-        TrackMenu.Opening += (_, _) => OnTrackMenuOpening();
-        TrackMenu.Opened += (_, _) => OnTrackMenuOpening();
-        QueueMenu.Opening += (_, _) => OnQueueMenuOpening();
-        QueueMenu.Opened += (_, _) => OnQueueMenuOpening();
+        FlyoutMenus.FillAsItOpens(TrackMenu, _ => OnTrackMenuOpening());
+        FlyoutMenus.FillAsItOpens(QueueMenu, _ => OnQueueMenuOpening());
         SettingsPanel.CloseRequested += (_, _) => CloseSettings();
         SettingsPanel.QuitRequested += (_, _) =>
         {

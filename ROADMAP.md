@@ -130,6 +130,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   ([#228](https://github.com/GemZombie/GZJam/issues/228)).
 - Songs dragged from the file manager onto a playlist
   ([#229](https://github.com/GemZombie/GZJam/issues/229)).
+- Right-click menus no longer come out cut off on the right the first time they open
+  ([#232](https://github.com/GemZombie/GZJam/issues/232)).
 
 ## Planned next
 
