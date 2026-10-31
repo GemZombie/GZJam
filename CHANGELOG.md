@@ -13,6 +13,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 0.9.12.
+
+## 0.9.12 (2026-10-31)
+
 Fixed:
 
 - **Right-click menus really no longer come out cut off:** 0.9.11's fix for this didn't reach the
