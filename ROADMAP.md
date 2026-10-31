@@ -34,7 +34,7 @@ release.
 - A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
   marks, labels, cues, playlists and plays; one in the queue or on a deck follows it.
 - Songs can be dragged straight from the file manager onto a deck or into the queue, even ones
-  from outside your music folders (a song on a dancer's USB stick).
+  from outside your music folders (a song on a dancer's USB stick), and onto a playlist.
 - Back up your library (hearts, labels, cues, playlists, History and Settings) to one file, and
   restore it, on another computer too, with the music somewhere else (GZJam asks where); GZJam
   also keeps a copy of its own each day it's opened.
@@ -128,6 +128,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - WMA files play on Windows, with their star ratings from Windows Media Player and MediaMonkey
   ([#228](https://github.com/GemZombie/GZJam/issues/228)).
+- Songs dragged from the file manager onto a playlist
+  ([#229](https://github.com/GemZombie/GZJam/issues/229)).
 
 ## Planned next
 

@@ -355,7 +355,8 @@ the song plays on while your finger is down, and moves there when you let go.
 ### Playlists
 
 Plan a set before the night. Under the folder tree, **+ New** makes a playlist; drag songs onto its
-name, or right-click songs › **Add to playlist**. Open it to see it in order: drag to reorder,
+name, or right-click songs › **Add to playlist**. Songs and folders dragged from your file manager
+go onto a playlist too, as long as they're in your music folders. Open it to see it in order: drag to reorder,
 Delete to take a song out (the file isn't touched). **Add to queue** puts the whole playlist in the
 queue; right-click a song › *Add to queue from here* puts the rest. The queue's menu has *Save queue
 as playlist…*, and History's ⋯ has *Save as playlist…*.

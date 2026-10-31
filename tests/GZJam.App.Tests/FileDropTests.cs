@@ -5,12 +5,13 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using GZJam.App.Views;
 using GZJam.Library;
 
 namespace GZJam.App.Tests;
 
-/// <summary>Songs dragged in from the file manager: onto a deck, or into the queue (#99).</summary>
+/// <summary>Songs dragged in from the file manager: onto a deck, into the queue (#99), or onto a playlist (#229).</summary>
 public sealed class FileDropTests
 {
     /// <summary>Files and folders as the file manager hands them over.</summary>
@@ -35,6 +36,13 @@ public sealed class FileDropTests
         Center(app, app.Window.FindControl<DeckView>(name)!);
 
     private static Point QueuePoint(AppHarness app) => Center(app, app.Window.FindControl<Panel>("QueueArea")!);
+
+    private static Point PlaylistPoint(AppHarness app, string name)
+    {
+        var item = app.Window.FindControl<ListBox>("PlaylistList")!.GetVisualDescendants().OfType<ListBoxItem>()
+            .First(i => ((PlaylistInfo)i.DataContext!).Name == name);
+        return item.TranslatePoint(new Point(40, item.Bounds.Height / 2), app.Window)!.Value;
+    }
 
     /// <summary>Drags <paramref name="data"/> in from outside the window, over <paramref name="at"/>, as the system does.</summary>
     private static void DragOver(AppHarness app, Point at, DataTransfer data)
@@ -106,6 +114,53 @@ public sealed class FileDropTests
         Assert.DoesNotContain("drop-blocked", frame.Classes);
         Assert.Null(app.ViewModel.Deck1!.Track);
         Assert.Equal("A deck takes one song. Drop several on the queue.", app.ViewModel.Notice);
+    }
+
+    /// <summary>
+    /// Songs from the file manager go onto a playlist's name, lit up as they come over. A playlist
+    /// shows only the library's songs, so one from outside the music folders is left out, saying why.
+    /// </summary>
+    [AvaloniaFact]
+    public void Files_dropped_on_a_playlists_name_are_added_but_songs_outside_the_library_are_left_out()
+    {
+        using var app = new AppHarness();
+        var songs = app.Library.Results.Take(2).ToList();
+        app.ViewModel.CreatePlaylist("Saturday", []);
+        AppHarness.Settle(150);
+        string outside = app.ToneTrack("From a USB stick").Path;
+        var data = Files(app, songs[1].Path, songs[0].Path, outside);
+
+        DragOver(app, PlaylistPoint(app, "Saturday"), data);
+        Assert.Contains(app.Window.FindControl<ListBox>("PlaylistList")!.GetVisualDescendants().OfType<ListBoxItem>(),
+            i => i.Classes.Contains("drop-target"));
+        app.Window.DragDrop(PlaylistPoint(app, "Saturday"), RawDragEventType.Drop, data, DragDropEffects.Copy, RawInputModifiers.None);
+        AppHarness.Settle(300);
+
+        Assert.DoesNotContain(app.Window.FindControl<ListBox>("PlaylistList")!.GetVisualDescendants().OfType<ListBoxItem>(),
+            i => i.Classes.Contains("drop-target"));
+        var playlist = app.Library.Playlists.Single();
+        Assert.Equal([songs[1].Path, songs[0].Path], app.Database.GetPlaylistEntries(playlist.Id).Select(e => e.Path));
+        Assert.Equal("\"From a USB stick\" was left out: a playlist holds songs from your music folders (Settings › Library).",
+            app.ViewModel.Notice);
+        Assert.Null(app.Database.FindTrack(outside));
+    }
+
+    [AvaloniaFact]
+    public void Files_dropped_into_an_open_playlist_go_where_they_were_dropped()
+    {
+        using var app = new AppHarness();
+        var songs = app.Library.Results.Take(3).ToList();
+        var playlist = app.ViewModel.CreatePlaylist("Saturday", [songs[0], songs[1]])!;
+        app.Library.OpenPlaylist(playlist.Id);
+        AppHarness.Settle();
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        var second = grid.GetVisualDescendants().OfType<DataGridRow>().First(r => ((Track)r.DataContext!).PlaylistNumber == 2);
+        Point between = second.TranslatePoint(new Point(200, 2), app.Window)!.Value;   // the top of the second row
+
+        Drop(app, between, Files(app, songs[2].Path));
+
+        Assert.Equal([songs[0].Path, songs[2].Path, songs[1].Path], app.Database.GetPlaylistEntries(playlist.Id).Select(e => e.Path));
+        Assert.Equal([songs[0].DisplayTitle, songs[2].DisplayTitle, songs[1].DisplayTitle], app.Library.Results.Select(t => t.DisplayTitle));
     }
 
     [AvaloniaFact]

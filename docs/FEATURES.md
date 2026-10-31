@@ -1194,6 +1194,11 @@ rest of it.
 - **How:** the system's drag and drop (Avalonia `DragDrop`, files as `IStorageItem`s with local
   paths), on all three systems; GZJam's own drags stay in-app. Tags are read off the UI thread
   (`MainWindowViewModel.TracksFromFiles`, `LibraryDatabase.TrackForFile`).
+- **Onto a playlist** (#229, asked for by a DJ): files and folders dropped on a playlist's name
+  go at its end, and into the open playlist where the line shows, lit up as for a drag from the
+  library. A playlist lists only the library's songs (its song list joins the library), so a
+  song from outside the music folders, or not scanned yet, is left out, saying so ("a playlist
+  holds songs from your music folders"). The usual "already in this playlist" notice, with Undo.
 
 ### Status: starting over, and a library that says what it's doing (2026-10-24)
 

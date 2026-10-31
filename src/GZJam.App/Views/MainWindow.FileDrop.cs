@@ -8,9 +8,10 @@ namespace GZJam.App.Views;
 
 /// <summary>
 /// Songs dragged in from the file manager (Explorer, Finder, a Linux file manager): one onto a
-/// deck, or any number (and whole folders) into the queue, lit up as they come over like songs
-/// from the library. A song outside the music folders, say one a dancer brings on a USB stick,
-/// plays without joining the library.
+/// deck, or any number (and whole folders) into the queue or a playlist (#229), lit up as they
+/// come over like songs from the library. A song outside the music folders, say one a dancer
+/// brings on a USB stick, plays without joining the library. A playlist shows only the library's
+/// songs, so those are left out of one, saying why.
 /// </summary>
 public partial class MainWindow
 {
@@ -18,7 +19,11 @@ public partial class MainWindow
     {
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DragOverEvent, OnFileDragOver);
-        AddHandler(DragDrop.DragLeaveEvent, (_, _) => HideDropTarget());
+        AddHandler(DragDrop.DragLeaveEvent, (_, _) =>
+        {
+            HideDropTarget();
+            EndPlaylistDrop();
+        });
         AddHandler(DragDrop.DropEvent, OnFileDrop);
     }
 
@@ -37,8 +42,11 @@ public partial class MainWindow
             e.DragEffects = DragDropEffects.None;
             return;
         }
-        object? target = ShowDropTarget(e.GetPosition(this), SongsIn(paths), out bool blocked);
-        e.DragEffects = target is not null && !blocked ? DragDropEffects.Copy : DragDropEffects.None;
+        Point at = e.GetPosition(this);
+        object? target = ShowDropTarget(at, SongsIn(paths), out bool blocked);
+        UpdatePlaylistDrop(at);
+        bool playlist = target is null && PlaylistTargetAt(at) is not null;
+        e.DragEffects = (target is not null && !blocked) || playlist ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 
@@ -48,7 +56,9 @@ public partial class MainWindow
         Point at = e.GetPosition(this);
         object? target = DropTargetAt(at);
         int index = target == QueueArea && this.TranslatePoint(at, QueueArea) is { } queuePoint ? DropIndex(queuePoint, out _) : 0;
+        var playlist = target is null ? PlaylistTargetAt(at) : null;
         HideDropTarget();
+        EndPlaylistDrop();
         if (paths.Count == 0)
             return;
         e.Handled = true;
@@ -60,7 +70,8 @@ public partial class MainWindow
         {
             DeckView { DataContext: DeckViewModel d } => $"Deck {d.Label}",
             _ when target == QueueArea => "the queue",
-            _ => "nowhere (dropped outside the decks and queue)",
+            _ when playlist is { } p => PlaylistPlace(p),
+            _ => "nowhere (dropped outside the decks, queue and playlists)",
         };
         Log.Info($"Dropped {what} from the file manager on {where}" + (skipped.Count > 0 ? $"; {skipped.Count} not playable" : ""));
 
@@ -69,6 +80,11 @@ public partial class MainWindow
             Vm.ShowNotice(skipped is [var file]
                 ? $"{Path.GetFileName(file)} isn't a song GZJam can play."
                 : "None of those are songs GZJam can play.");
+            return;
+        }
+        if (playlist is { } into)
+        {
+            DropOnPlaylist(into, tracks, skipped);
             return;
         }
         switch (target)
@@ -83,10 +99,29 @@ public partial class MainWindow
                 Vm.AddToQueue(tracks, index);
                 break;
             default:
-                Vm.ShowNotice("Drop songs on a deck, or on the queue.");
+                Vm.ShowNotice("Drop songs on a deck, the queue or a playlist.");
                 return;
         }
         if (skipped.Count > 0)
+            Vm.ShowNotice(skipped is [var file]
+                ? $"{Path.GetFileName(file)} was left out: it isn't a song GZJam can play."
+                : $"{skipped.Count} files were left out: they aren't songs GZJam can play.");
+    }
+
+    /// <summary>
+    /// Adds the library's songs among <paramref name="tracks"/> to a playlist; the rest (outside the
+    /// music folders, or not scanned yet) are left out, as a playlist shows only the library's.
+    /// </summary>
+    private void DropOnPlaylist((PlaylistInfo Playlist, int? Index) into, IReadOnlyList<Track> tracks, IReadOnlyList<string> skipped)
+    {
+        var library = tracks.Where(t => t.Id != 0).ToList();
+        var outside = tracks.Where(t => t.Id == 0).ToList();
+        Vm.AddToPlaylist(into.Playlist, library, into.Index);
+        if (outside.Count > 0)
+            Vm.ShowNotice(outside is [var song]
+                ? $"\"{song.DisplayTitle}\" was left out: a playlist holds songs from your music folders (Settings › Library)."
+                : $"{outside.Count} songs were left out: a playlist holds songs from your music folders (Settings › Library).");
+        else if (skipped.Count > 0)
             Vm.ShowNotice(skipped is [var file]
                 ? $"{Path.GetFileName(file)} was left out: it isn't a song GZJam can play."
                 : $"{skipped.Count} files were left out: they aren't songs GZJam can play.");
