@@ -9,7 +9,8 @@ namespace GZJam.Audio;
 /// Only files BASS refuses are searched: looking further into every file would make it likelier
 /// that a FLAC or a broken file is taken for MP3 and played as noise. An MP4 (.m4a) whose boxes
 /// run past its end before its index is never handed to BASS (#224): BASS spends minutes giving up
-/// on one, and every other sound call waits behind it.
+/// on one, and every other sound call waits behind it. A WMA that won't open is checked for copy
+/// protection, to say so (#228).
 /// </summary>
 internal static class SongFile
 {
@@ -36,7 +37,39 @@ internal static class SongFile
             if (stream != 0)
                 return stream;
         }
+        if (AsfProtected(path))
+            throw AudioException.CopyProtected();
         throw AudioException.CouldNotOpen(path, error);
+    }
+
+    /// <summary>The ASF (WMA) header object, and the objects in it that say the content is encrypted.</summary>
+    private static readonly byte[] AsfHeader = new Guid("75B22630-668E-11CF-A6D9-00AA0062CE6C").ToByteArray();
+
+    private static readonly byte[][] AsfEncryption =
+    [
+        new Guid("2211B3FB-BD23-11D2-B4B7-00AA00A9D9A9").ToByteArray(),   // content encryption (DRM 1)
+        new Guid("298AE614-2622-4C17-B935-DAE07EE9289C").ToByteArray(),   // extended content encryption (DRM 7 and later)
+        new Guid("43058533-6981-49E6-9B74-AD12CB86D58C").ToByteArray(),   // advanced content encryption (PlayReady)
+    ];
+
+    /// <summary>Whether <paramref name="path"/> is an ASF (WMA) file whose header says it's copy-protected.</summary>
+    internal static bool AsfProtected(string path)
+    {
+        try
+        {
+            using var file = File.OpenRead(path);
+            Span<byte> start = stackalloc byte[24];
+            if (file.Read(start) < 24 || !start[..16].SequenceEqual(AsfHeader))
+                return false;
+            long size = (long)System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(start[16..24]);
+            byte[] header = new byte[(int)Math.Clamp(size - 24, 0, Math.Min(LookWithin, file.Length - 24))];
+            file.ReadExactly(header);
+            return AsfEncryption.Any(guid => header.AsSpan().IndexOf(guid) >= 0);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Box types an MP4 file starts with, to know one by its first box rather than its name.</summary>

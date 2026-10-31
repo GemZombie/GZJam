@@ -277,9 +277,14 @@ public sealed class AudioException : Exception
     {
         Errors error = why ?? Bass.LastError;
         bool aac = AacExtensions.Contains(Path.GetExtension(path));
+        bool wma = string.Equals(Path.GetExtension(path), ".wma", StringComparison.OrdinalIgnoreCase);
         string reason = error switch
         {
             Errors.FileOpen => "the file couldn't be read. Has it been moved or deleted?",
+            Errors.FileFormat or Errors.Codec or Errors.NotAvailable when wma && !OperatingSystem.IsWindows() =>
+                "it's WMA, which GZJam plays only on Windows.",
+            Errors.FileFormat or Errors.Codec or Errors.NotAvailable when wma && !HasMediaFoundation =>
+                "it's WMA, which needs Windows' Media Feature Pack (missing from Windows \"N\" editions).",
             Errors.FileFormat or Errors.Codec or Errors.NotAvailable when aac && OperatingSystem.IsLinux() =>
                 "it's AAC, which GZJam can't play on Linux (Apple Lossless .m4a files play).",
             Errors.FileFormat or Errors.Codec or Errors.NotAvailable when aac && OperatingSystem.IsWindows() && !HasMediaFoundation =>
@@ -289,6 +294,10 @@ public sealed class AudioException : Exception
         };
         return new AudioException(error, reason);
     }
+
+    /// <summary>A WMA song locked to the player it was bought for (#228).</summary>
+    internal static AudioException CopyProtected() => new(Errors.FileFormat,
+        "it's copy-protected (DRM), so only the player it was bought for can play it.");
 
     /// <summary>A song whose file is damaged, found before BASS is asked (#224).</summary>
     internal static AudioException Damaged() => new(Errors.FileFormat, "the file is damaged, so GZJam can't find its sound.");

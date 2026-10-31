@@ -307,6 +307,31 @@ public sealed class PlayerImportTests : IDisposable
     public void Ratings_written_as_text_become_stars(string field, string text, int? stars) =>
         Assert.Equal(stars, FileRatings.StarsFromText(field, text));
 
+    [Theory]
+    [InlineData(0u, null)]
+    [InlineData(1u, 1)]     // Windows Media Player / MediaMonkey steps
+    [InlineData(25u, 2)]
+    [InlineData(50u, 3)]
+    [InlineData(75u, 4)]
+    [InlineData(99u, 5)]
+    public void Wma_ratings_become_stars(uint rating, int? stars) => Assert.Equal(stars, FileRatings.StarsFromWmp(rating));
+
+    [Fact]
+    public void A_wma_files_rating_is_read()
+    {
+        string wma = Path.Combine(_lib.MusicPath, "tone.wma");
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "Formats", "tone.wma"), wma);
+        Assert.Null(FileRatings.Read(wma));
+        using (var file = TagLib.File.Create(wma))
+        {
+            ((TagLib.Asf.Tag)file.GetTag(TagLib.TagTypes.Asf)).SetDescriptors("WM/SharedUserRating",
+                new TagLib.Asf.ContentDescriptor("WM/SharedUserRating", 99u));
+            file.Save();
+        }
+
+        Assert.Equal(5, FileRatings.Read(wma));
+    }
+
     private static void Popm(string path, byte rating)
     {
         using var file = TagLib.File.Create(path);

@@ -398,6 +398,7 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   and shows what it found: 4-5 stars become ♥, 1-2 stars a broken heart, 3 stay unrated. Songs
   you've rated in GZJam keep their rating. In a big library reading takes a few minutes. iTunes /
   Music keeps its ratings in its own library rather than the files, so there's nothing to read there.
+  WMA files' ratings are read too.
 - **Grouping and Comments,** as iTunes, Music and many other players keep them, are in the song
   files themselves, so GZJam reads them without any import: show the *Grouping* and *Comment*
   columns, and search them (`grouping:balboa`). Handy if you sort your music by dance, feel or era
@@ -632,9 +633,10 @@ switch off.
 **A song starts late or ends early:** set its start and end yourself (right-click the waveform ›
 *Song starts* / *Song ends*).
 
-**A song won't play:** it may have been moved or deleted, or (on Linux) be AAC, which GZJam can't
-play there; the notice says which. GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple
-Lossless everywhere, and AAC on Windows and Mac.
+**A song won't play:** it may have been moved or deleted, be AAC on Linux or WMA on a Mac or Linux,
+which GZJam can't play there, or be a copy-protected WMA bought years ago, which only the player it
+was bought for can play; the notice says which. GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus
+and Apple Lossless everywhere, AAC on Windows and Mac, and WMA on Windows.
 
 **"The library is from a newer GZJam":** a newer version (or a test build) upgraded your library.
 Install the newest GZJam.

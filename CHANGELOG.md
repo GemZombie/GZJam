@@ -13,7 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.10.
+New:
+
+- **WMA files play on Windows:** GZJam left `.wma` files out of the library altogether. Now they
+  appear and play on Windows, with their tags, and **Ratings in the song files** reads the stars
+  Windows Media Player and MediaMonkey keep in them. On a Mac or Linux they're listed, and say
+  they play only on Windows. A WMA bought online years ago may be copy-protected: GZJam says so,
+  since only the player it was bought for can play it.
 
 ## 0.9.10 (2026-10-30)
 

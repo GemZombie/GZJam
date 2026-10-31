@@ -12,6 +12,7 @@ namespace GZJam.Library;
 /// <item>MP3 (and WAV / AIFF with an ID3 tag): the <c>POPM</c> frame, 0-255, or a
 /// <c>TXXX:RATING</c> / <c>TXXX:FMPS_Rating</c> frame.</item>
 /// <item>FLAC, Ogg Vorbis and Opus: a <c>RATING</c> or <c>FMPS_RATING</c> comment.</item>
+/// <item>WMA: <c>WM/SharedUserRating</c>, as Windows Media Player and MediaMonkey write it.</item>
 /// <item>AAC / Apple Lossless: iTunes keeps ratings in its own library, not the file: nothing to read.</item>
 /// </list>
 /// Mapped as the Mixxx import does (<see cref="RatingFromStars"/>).
@@ -19,7 +20,7 @@ namespace GZJam.Library;
 public sealed class FileRatings
 {
     private static readonly HashSet<string> Readable = new(StringComparer.OrdinalIgnoreCase)
-        { ".mp3", ".flac", ".ogg", ".oga", ".opus", ".wav", ".aif", ".aiff" };
+        { ".mp3", ".flac", ".ogg", ".oga", ".opus", ".wav", ".aif", ".aiff", ".wma" };
 
     private readonly List<(string Path, Rating Rating)> _ratings = [];
 
@@ -116,6 +117,14 @@ public sealed class FileRatings
                         return stars;
                 }
             }
+            if (file.GetTag(TagLib.TagTypes.Asf) is TagLib.Asf.Tag asf)
+            {
+                foreach (var rating in asf.GetDescriptors("WM/SharedUserRating"))
+                {
+                    if (StarsFromWmp(rating.ToDWord()) is { } stars)
+                        return stars;
+                }
+            }
             return null;
         }
         catch (Exception ex) when (ex is TagLib.CorruptFileException or TagLib.UnsupportedFormatException or IOException or UnauthorizedAccessException)
@@ -135,6 +144,20 @@ public sealed class FileRatings
         < 96 => 2,
         < 160 => 3,
         < 224 => 4,
+        _ => 5,
+    };
+
+    /// <summary>
+    /// A WMA file's <c>WM/SharedUserRating</c>, 0-99 (0 is "not rated"): Windows Media Player and
+    /// MediaMonkey write 1 / 25 / 50 / 75 / 99 for 1-5 stars.
+    /// </summary>
+    internal static int? StarsFromWmp(uint rating) => rating switch
+    {
+        0 => null,
+        < 13 => 1,
+        < 38 => 2,
+        < 63 => 3,
+        < 87 => 4,
         _ => 5,
     };
 

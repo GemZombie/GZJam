@@ -51,7 +51,12 @@ is out of scope until it earns a place.
   computer's own decoder: Media Foundation on Windows (missing from "N" editions), Core Audio on a
   Mac (which also plays ALAC, so there's no Mac bassalac). **Linux has no AAC:** the add-on for it,
   BASS_AAC, is GPL and third-party, so it isn't included. AAC songs are still listed there, and
-  say why when loaded ("it's AAC, which GZJam can't play on Linux"). Tests decode a two-second tone
+  say why when loaded ("it's AAC, which GZJam can't play on Linux").
+- **WMA on Windows** (#228), through Media Foundation as AAC is. Listed on a Mac and Linux too,
+  saying why when loaded ("it's WMA, which GZJam plays only on Windows"). A WMA that won't open is
+  checked for copy protection (an encryption object in its ASF header: DRM 1, DRM 7 and later,
+  PlayReady), to say "it's copy-protected (DRM), so only the player it was bought for can play
+  it" rather than "can't play" (`SongFile.AsfProtected`). Tests decode a two-second tone
   in each format on all three systems (`tests/Shared/Formats`, made with ffmpeg).
 - Skips macOS `._name.mp3` metadata files (24 of them in the real library).
 - **Reading tags again** (2026-10-23, issue #26): each song remembers which way of reading tags it
@@ -717,7 +722,8 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   become, then gives the hearts (`FileRatings`). ID3 `POPM` (0-255: Windows Media Player and
   MediaMonkey write 1 / 64 / 128 / 196 / 255; read in bands, so evenly spread steps work too),
   `TXXX:RATING` / `TXXX:FMPS_Rating`; Vorbis `RATING` (1-5, 0-100 or 0.0-1.0) / `FMPS_RATING`
-  (0.0-1.0). Mapped as the Mixxx import does: 4-5 stars ♥, 1-2 a broken heart, 3 unrated. A song
+  (0.0-1.0); WMA `WM/SharedUserRating` (Windows Media Player and MediaMonkey write 1 / 25 / 50 /
+  75 / 99). Mapped as the Mixxx import does: 4-5 stars ♥, 1-2 a broken heart, 3 unrated. A song
   rated in GZJam meanwhile keeps its rating. AAC / ALAC: iTunes doesn't write ratings to files.
 - Nothing is written to the playlist or music files.
 
