@@ -13,6 +13,20 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **Playlists take songs from anywhere:** drop songs onto a playlist from your file manager, even
+  from outside your music folders. They join the
+  playlist, not your library, so your collection stays as you've curated it. Importing playlists
+  brings those songs along too, when they're on this computer. A song whose file has been moved
+  or deleted stays in the playlist, shown as missing, rather than disappearing.
+
+Changed:
+
+- **A check for played tonight, gray for missing:** songs played tonight were grayed out, which
+  looked like a missing file. Now they have a green check before the title, and gray (with a "!"
+  mark) means the file is missing.
+
 Fixed:
 
 - **A button's tooltip no longer gets in the way of clicking it:** near the bottom of the screen

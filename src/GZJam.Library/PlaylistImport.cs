@@ -36,7 +36,13 @@ public sealed class PlaylistImport
     /// <summary>Where those songs' music moved, a folder then and now for each, most songs first (up to three).</summary>
     public IReadOnlyList<(string Was, string Now)> MovedFolders { get; private init; } = [];
 
-    /// <summary>Songs listed that aren't in GZJam's music folders (or aren't there any more).</summary>
+    /// <summary>
+    /// Songs listed that are on this computer, where the playlist says, but outside GZJam's music
+    /// folders: they come along in the playlist, and stay out of the library (#237).
+    /// </summary>
+    public int OutsideSongs { get; private init; }
+
+    /// <summary>Songs listed that aren't on this computer, in GZJam's music folders or where the playlist says.</summary>
     public int MissingSongs { get; private init; }
 
     /// <summary>Where the most of those are, most first (up to three).</summary>
@@ -74,12 +80,15 @@ public sealed class PlaylistImport
             }
         }
 
+        // Songs outside the library, there on this computer: they come as they are (#237).
+        var onDisk = read.SelectMany(r => r.Songs).Where(s => !byPath.ContainsKey(s)).Distinct()
+            .Where(s => LibraryScanner.IsAudioFile(s) && File.Exists(s)).ToHashSet();
         // Songs not where the playlists say: made on another computer, or the music moved since (#202).
-        var (elsewhere, moved) = MovedSongs.Find(read.SelectMany(r => r.Songs).Where(s => !byPath.ContainsKey(s)), byPath);
+        var (elsewhere, moved) = MovedSongs.Find(read.SelectMany(r => r.Songs).Where(s => !byPath.ContainsKey(s) && !onDisk.Contains(s)), byPath);
 
         var planned = new List<(string, List<string>)>();
         var missing = new List<string>();
-        int foundElsewhere = 0;
+        int foundElsewhere = 0, outside = 0;
         foreach (var (file, name, songs) in read)
         {
             var paths = new List<string>();
@@ -88,6 +97,11 @@ public sealed class PlaylistImport
                 if (byPath.TryGetValue(song, out string? ours))
                 {
                     paths.Add(ours);   // as GZJam spells it, whatever the case in the playlist
+                }
+                else if (onDisk.Contains(song))
+                {
+                    paths.Add(song);
+                    outside++;
                 }
                 else if (elsewhere.TryGetValue(song, out ours))
                 {
@@ -111,6 +125,7 @@ public sealed class PlaylistImport
             NothingToImport = nothing,
             FoundElsewhere = foundElsewhere,
             MovedFolders = foundElsewhere > 0 ? moved.Take(3).ToList() : [],
+            OutsideSongs = outside,
             MissingSongs = missing.Count,
             MissingFolders = missing
                 .GroupBy(Folder)

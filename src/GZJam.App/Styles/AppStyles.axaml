@@ -194,9 +194,33 @@
     <Setter Property="FontSize" Value="9.5" />
   </Style>
 
-  <!-- Played tonight: dimmed, so it isn't played again by mistake -->
+  <!-- A missing file: grayed out, as players show one. Played tonight is a check by the title
+       instead (it was dimmed, and taken for missing). -->
   <Style Selector="DataGrid.tracks DataGridRow" x:DataType="lib:Track">
-    <Setter Property="Opacity" Value="{Binding IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}" />
+    <Setter Property="Opacity" Value="{Binding IsMissing, Converter={x:Static app:Converters.Dimmed}}" />
+  </Style>
+  <Style Selector="Path.played-check">
+    <Setter Property="Data" Value="{StaticResource IconPlayed}" />
+    <Setter Property="Stroke" Value="{StaticResource OkBrush}" />
+    <Setter Property="StrokeThickness" Value="2.6" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Width" Value="10" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="Margin" Value="0,0,5,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Path.missing-mark">
+    <Setter Property="Data" Value="{StaticResource IconMissing}" />
+    <Setter Property="Stroke" Value="{StaticResource TextBrush}" />
+    <Setter Property="StrokeThickness" Value="2.2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Width" Value="11" />
+    <Setter Property="Height" Value="11" />
+    <Setter Property="Margin" Value="0,0,5,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="DataGrid.tracks DataGridCell">
     <Setter Property="Padding" Value="8,0" />

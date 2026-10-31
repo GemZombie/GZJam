@@ -540,7 +540,20 @@
                       </Grid.ColumnDefinitions>
                       <TextBlock Classes="dim mono playlist-number" Text="{Binding PlaylistNumber}" FontSize="11"
                                  IsVisible="{Binding PlaylistNumber, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                      <TextBlock Grid.Column="1" Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <!-- A check: played tonight. A ring with "!": the file is missing (the row is grayed out). -->
+                      <DockPanel Grid.Column="1">
+                        <Path DockPanel.Dock="Left" Classes="missing-mark" IsVisible="{Binding IsMissing}"
+                              ToolTip.Tip="{Binding Path, StringFormat='Not found: {0}'}" />
+                        <Path DockPanel.Dock="Left" Classes="played-check" ToolTip.Tip="Played tonight">
+                          <Path.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                              <Binding Path="IsPlayedTonight" />
+                              <Binding Path="!IsMissing" />
+                            </MultiBinding>
+                          </Path.IsVisible>
+                        </Path>
+                        <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      </DockPanel>
                       <c:LabelChips Grid.Column="2" ItemsSource="{Binding Labels}" MaxWidth="140" HorizontalAlignment="Left" />
                     </Grid>
                   </DataTemplate>
@@ -605,7 +618,7 @@
                 <MenuItem x:Name="TrackLoad3" Header="Load to Deck 3" Tag="2" Click="OnLoadSelectedToDeckClick" />
                 <MenuItem x:Name="TrackLoad4" Header="Load to Deck 4" Tag="3" Click="OnLoadSelectedToDeckClick" />
                 <Separator />
-                <MenuItem Header="Show in folder tree" Click="OnShowInTreeClick" />
+                <MenuItem x:Name="TrackShowInTreeItem" Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
                 <Separator />
                 <MenuItem x:Name="TrackRatingMenu" Header="Rating" />
@@ -947,7 +960,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:QueueItem">
                   <Panel Margin="0,0,2,0" Background="Transparent"
-                         Opacity="{Binding Track.IsPlayedTonight, Converter={x:Static app:Converters.Dimmed}}">
+                         Opacity="{Binding Track.IsMissing, Converter={x:Static app:Converters.Dimmed}}">
                     <Border Classes="next-bar" IsVisible="{Binding IsNext}" />
                     <!-- However narrow the queue, nothing overlaps (#187): with too little room, the
                          parts give way in their DropOrder (album first), and the title and artist trim -->
@@ -962,7 +975,10 @@
                       <c:AlbumArt c:FitRow.Key="Art" c:FitRow.DropOrder="7" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
                                   SongPath="{Binding Track.Path}" />
                       <StackPanel c:FitRow.Key="Title" c:FitRow.Fills="True" Classes="q-title" VerticalAlignment="Center" Margin="0,7">
-                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                        <DockPanel>
+                          <Path DockPanel.Dock="Left" Classes="played-check" IsVisible="{Binding Track.IsPlayedTonight}" ToolTip.Tip="Played tonight" />
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
                         <!-- The artist, then the song's labels in what room is left -->
                         <c:PriorityRow Spacing="5">
                           <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />

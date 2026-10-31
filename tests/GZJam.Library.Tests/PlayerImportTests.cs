@@ -276,6 +276,32 @@ public sealed class PlayerImportTests : IDisposable
         Assert.Equal([a, b], PlaylistFile.Read(txt));
     }
 
+    /// <summary>
+    /// A listed song on this computer, where the playlist says, but outside the music folders,
+    /// comes along in the playlist (#237); one that isn't anywhere is left out.
+    /// </summary>
+    [Fact]
+    public void A_song_outside_the_music_folders_but_on_this_computer_comes_along()
+    {
+        string a = _lib.AddMp3("Swing/a.mp3", new GZJam.Testing.TestMp3.Tags(Title: "A"));
+        _lib.AddRootAndScan();
+        string outside = Path.Combine(_lib.Directory, "Elsewhere", "outside.mp3");
+        Directory.CreateDirectory(Path.GetDirectoryName(outside)!);
+        GZJam.Testing.TestMp3.Write(outside, new GZJam.Testing.TestMp3.Tags(Title: "Outside"));
+        string gone = Path.Combine(_lib.Directory, "Unplugged", "gone.mp3");
+        string m3u = WriteM3u("Mixed.m3u", string.Join(Environment.NewLine, a, outside, gone));
+
+        var plan = PlaylistImport.Plan(_lib.Database, [m3u]);
+
+        Assert.Equal([("Mixed", 2)], plan.Playlists);
+        Assert.Equal(1, plan.OutsideSongs);
+        Assert.Equal(1, plan.MissingSongs);
+        plan.Apply(_lib.Database);
+        long id = _lib.Database.GetPlaylists().Single().Id;
+        Assert.Equal([a, outside], _lib.Database.GetPlaylistEntries(id).Select(e => e.Path));
+        Assert.Null(_lib.Database.FindTrack(outside));   // in the playlist, not the library
+    }
+
     // ───────────── Ratings in the files ─────────────
 
     [Theory]

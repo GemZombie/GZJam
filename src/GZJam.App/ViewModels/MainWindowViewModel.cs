@@ -578,7 +578,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null)
     {
-        var songs = _database.Search(null, playlist: playlist.Id).ToList();
+        // A song whose file is missing stays behind: it couldn't play (#237).
+        var songs = _database.Search(null, playlist: playlist.Id).Where(t => !t.IsMissing).ToList();
         if (from?.PlaylistNumber is { } number)
             songs = songs.Where(t => t.PlaylistNumber >= number).ToList();
         if (songs.Count == 0)

@@ -27,7 +27,8 @@ release.
   as the deck will play it: with its EQ and loudness matching.
   A song added to the queue or a playlist twice is still added, but GZJam says so, with Undo.
   Ctrl+L gives the queue the room in the middle, for a night spent reordering a long one.
-- Playlists: plan a set before the night, in order, saved by name. Drag songs onto one (or add
+- Playlists: plan a set before the night, in order, saved by name, with songs from anywhere,
+  even outside your music folders (they stay out of the library). Drag songs onto one (or add
   the song on a deck, or songs in the queue, from their menu), reorder it, and add it to the queue. The queue or a night in History can be saved as one, or copied
   out as files, in order, to a folder or USB stick. Fold the folders away, or drag the playlists'
   grip, for a longer list of them.
@@ -128,6 +129,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - A button's tooltip no longer covers it near the bottom of the screen
   ([#235](https://github.com/GemZombie/GZJam/issues/235)).
+- Playlists hold songs from anywhere, not only your library; a missing file stays, shown as missing
+  ([#237](https://github.com/GemZombie/GZJam/issues/237)).
+- Gray means a missing file; songs played tonight get a check instead
+  ([#238](https://github.com/GemZombie/GZJam/issues/238)).
 
 ## Planned next
 

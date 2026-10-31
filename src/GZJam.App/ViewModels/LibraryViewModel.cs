@@ -107,8 +107,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 return $"{Results.Count} of {songs} match";
             if (count == 0)
                 return "Empty: drag songs onto its name, or right-click songs › Add to playlist";
-            int played = Results.Count(t => t.IsPlayedTonight);
-            return $"{songs} · {Format.Duration(playlist.Length)}" + (played > 0 ? $" · {played} played tonight" : "");
+            int played = Results.Count(t => t.IsPlayedTonight), missing = Results.Count(t => t.IsMissing);
+            return $"{songs} · {Format.Duration(playlist.Length)}" + (played > 0 ? $" · {played} played tonight" : "")
+                + (missing > 0 ? $" · {missing} missing" : "");
         }
     }
 

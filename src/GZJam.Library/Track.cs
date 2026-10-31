@@ -168,7 +168,16 @@ public sealed class Track : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Played in the session going on now (tonight's gig): shown dimmed so it isn't repeated.</summary>
+    /// <summary>
+    /// The file isn't there any more: a song in a playlist that was moved or deleted outside GZJam's
+    /// music folders. Shown grayed out, as players show a missing file.
+    /// </summary>
+    public bool IsMissing { get; init; }
+
+    /// <summary>Not in the library: a song from outside the music folders, in a playlist or the queue.</summary>
+    public bool IsOutsideLibrary => Id == 0;
+
+    /// <summary>Played in the session going on now (tonight's gig): shown with a check so it isn't repeated (#238).</summary>
     public bool IsPlayedTonight
     {
         get;
@@ -188,6 +197,14 @@ public sealed class Track : INotifyPropertyChanged
     public long? PlaylistEntryId { get; private set; }
 
     public int? PlaylistNumber { get; private set; }
+
+    /// <summary>A new track with this one's file and tags, without the DJ's marks or a playlist place.</summary>
+    internal Track CopyOfTags() => new()
+    {
+        Id = Id, RootId = RootId, Path = Path, Folder = Folder, FileName = FileName, FileSize = FileSize, ModifiedUtc = ModifiedUtc,
+        Title = Title, Artist = Artist, Album = Album, AlbumArtist = AlbumArtist, Genre = Genre, Comment = Comment, Grouping = Grouping,
+        Year = Year, TrackNumber = TrackNumber, TagBpm = TagBpm, Duration = Duration, IsMissing = IsMissing,
+    };
 
     internal Track InPlaylist(long entryId, int number)
     {

@@ -18,7 +18,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT p.id, p.name, COUNT(t.id), COALESCE(SUM(t.duration_ms), 0)
+            SELECT p.id, p.name, COUNT(e.id), COALESCE(SUM(t.duration_ms), 0)
             FROM playlists p LEFT JOIN playlist_entries e ON e.playlist_id = p.id LEFT JOIN tracks t ON t.path = e.path
             GROUP BY p.id ORDER BY p.name COLLATE NOCASE;
             """;
