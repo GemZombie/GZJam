@@ -126,7 +126,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.11.
+- Right-click menus no longer come out cut off on the right, for real this time
+  ([#232](https://github.com/GemZombie/GZJam/issues/232)).
 
 ## Planned next
 
