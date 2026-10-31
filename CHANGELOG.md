@@ -13,6 +13,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 0.9.11.
+
+## 0.9.11 (2026-10-31)
+
 New:
 
 - **WMA files play on Windows:** GZJam left `.wma` files out of the library altogether. Now they

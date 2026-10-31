@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.10** (30 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.11** (31 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -126,12 +126,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-- WMA files play on Windows, with their star ratings from Windows Media Player and MediaMonkey
-  ([#228](https://github.com/GemZombie/GZJam/issues/228)).
-- Songs dragged from the file manager onto a playlist
-  ([#229](https://github.com/GemZombie/GZJam/issues/229)).
-- Right-click menus no longer come out cut off on the right the first time they open
-  ([#232](https://github.com/GemZombie/GZJam/issues/232)).
+Nothing yet since 0.9.11.
 
 ## Planned next
 
