@@ -43,6 +43,15 @@
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
   </Style>
 
+  <!-- A button's tooltip goes just below it, or above it where there's no room below: never over
+       it. At the pointer (the default), near the bottom of the screen it slid up over the pointer,
+       and the click went to the tooltip, not the button. No gap: flipped above, a gap isn't
+       turned around, and would cover the button's top edge. -->
+  <Style Selector=":is(Button)">
+    <Setter Property="ToolTip.Placement" Value="Bottom" />
+    <Setter Property="ToolTip.VerticalOffset" Value="0" />
+  </Style>
+
   <!-- Quiet text-style buttons ("+ Folder", "Clear") -->
   <Style Selector="Button.link">
     <Setter Property="Background" Value="Transparent" />

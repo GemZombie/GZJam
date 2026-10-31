@@ -126,7 +126,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.12.
+- A button's tooltip no longer covers it near the bottom of the screen
+  ([#235](https://github.com/GemZombie/GZJam/issues/235)).
 
 ## Planned next
 
