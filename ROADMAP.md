@@ -122,11 +122,12 @@ release.
   ratings they keep in the song files.
 - The other player's files, and your music, are never changed.
 
-Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, and AAC on Windows and Mac.
+Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC on Windows and Mac, and WMA on Windows.
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.10.
+- WMA files play on Windows, with their star ratings from Windows Media Player and MediaMonkey
+  ([#228](https://github.com/GemZombie/GZJam/issues/228)).
 
 ## Planned next
 

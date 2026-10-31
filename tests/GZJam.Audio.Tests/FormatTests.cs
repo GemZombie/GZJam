@@ -51,6 +51,56 @@ public sealed class FormatTests : IDisposable
     }
 
     [Fact]
+    public void Plays_wma_on_windows_and_says_why_not_elsewhere()
+    {
+        var analyzer = new TrackAnalyzer(_engine);
+        if (!OperatingSystem.IsWindows())
+        {
+            var error = Assert.Throws<AudioException>(() => analyzer.Analyze(Sample("tone.wma"), detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
+            Assert.Equal("it's WMA, which GZJam plays only on Windows.", error.Message);
+            return;
+        }
+        Assert.SkipUnless(AudioException.HasMediaFoundation, "This copy of Windows has no Media Foundation (a server or an \"N\" edition).");
+
+        TrackAnalysis result = analyzer.Analyze(Sample("tone.wma"), detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.InRange(result.Length.TotalSeconds, 1.95, 2.15);
+        Assert.InRange(result.AudibleEnd.TotalSeconds, 1.8, 2.15);
+    }
+
+    /// <summary>
+    /// A WMA locked to the player it was bought for (its header holds a content encryption object)
+    /// says so, rather than "can't play", on every system (#228).
+    /// </summary>
+    [Fact]
+    public void A_copy_protected_wma_says_so()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"gzjam-drm-{Guid.NewGuid():N}.wma");
+        byte[] encryption = new Guid("2211B3FB-BD23-11D2-B4B7-00AA00A9D9A9").ToByteArray();
+        var header = new List<byte>();
+        header.AddRange(new Guid("75B22630-668E-11CF-A6D9-00AA0062CE6C").ToByteArray());
+        header.AddRange(BitConverter.GetBytes(30L + 24 + 64));   // the header object's size
+        header.AddRange(BitConverter.GetBytes(1));               // one object in it
+        header.AddRange([1, 2]);
+        header.AddRange(encryption);
+        header.AddRange(BitConverter.GetBytes(24L + 64));
+        header.AddRange(new byte[64]);
+        File.WriteAllBytes(path, [.. header, .. new byte[4096]]);
+        try
+        {
+            Assert.True(SongFile.AsfProtected(path));
+            var error = Assert.Throws<AudioException>(() => new TrackAnalyzer(_engine).Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
+            Assert.Equal("it's copy-protected (DRM), so only the player it was bought for can play it.", error.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+        Assert.False(SongFile.AsfProtected(Sample("tone.wma")));
+        Assert.False(SongFile.AsfProtected(Sample("tone.mp3")));
+    }
+
+    [Fact]
     public void The_add_ons_for_this_system_load()
     {
         string[] expected = OperatingSystem.IsMacOS() ? ["bassflac", "bassopus"] : ["bassflac", "bassopus", "bassalac"];
@@ -133,7 +183,7 @@ public sealed class FormatTests : IDisposable
         }
 
         // Whole files, and files that aren't MP4, aren't damaged here.
-        foreach (string file in new[] { "tone-alac.m4a", "tone-aac.m4a", "tone.flac", "tone.mp3", "tone.opus", "tone.aac" })
+        foreach (string file in new[] { "tone-alac.m4a", "tone-aac.m4a", "tone.flac", "tone.mp3", "tone.opus", "tone.aac", "tone.wma" })
             Assert.False(SongFile.Mp4Damaged(Sample(file)), file);
     }
 }

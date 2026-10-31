@@ -38,8 +38,8 @@ Your hearts, labels, cues, playlists and History live in GZJam's library, not in
 files: back them up now and then with Settings › Library › *Back up…* (GZJam also keeps a copy of
 its own each day it's opened, in its data folder under `backups`).
 
-GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless (`.m4a`) everywhere, and
-AAC (`.m4a`, `.aac`) on Windows and Mac. Linux can't play AAC yet.
+GZJam plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless (`.m4a`) everywhere, AAC
+(`.m4a`, `.aac`) on Windows and Mac, and WMA on Windows. Linux can't play AAC yet.
 
 GZJam is free and isn't signed with a paid certificate, so the first time you open it:
 
