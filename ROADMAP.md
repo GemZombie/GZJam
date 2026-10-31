@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.12** (31 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.13** (31 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -127,12 +127,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-- A button's tooltip no longer covers it near the bottom of the screen
-  ([#235](https://github.com/GemZombie/GZJam/issues/235)).
-- Playlists hold songs from anywhere, not only your library; a missing file stays, shown as missing
-  ([#237](https://github.com/GemZombie/GZJam/issues/237)).
-- Gray means a missing file; songs played tonight get a check instead
-  ([#238](https://github.com/GemZombie/GZJam/issues/238)).
+Nothing yet since 0.9.13.
 
 ## Planned next
 

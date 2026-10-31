@@ -13,6 +13,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 0.9.13.
+
+## 0.9.13 (2026-10-31)
+
 New:
 
 - **Playlists take songs from anywhere:** drop songs onto a playlist from your file manager, even
