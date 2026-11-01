@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using GZJam.Library;
 
 namespace GZJam.App.ViewModels;
@@ -37,7 +39,50 @@ public sealed partial class LibraryViewModel
     /// <summary>The decades the library's songs come from, for Filter › Year.</summary>
     public IReadOnlyList<ValueCount> Decades() => _database.GetDecades();
 
-    private void ForgetSuggestionValues() => _suggestionValues.Clear();
+    private void ForgetSuggestionValues()
+    {
+        _suggestionValues.Clear();
+        _searchWords = null;
+    }
+
+    // ───────────── Did you mean...? (#242) ─────────────
+
+    private volatile IReadOnlyList<SearchWord>? _searchWords;
+
+    /// <summary>When a search finds nothing because of a typo: the search with it corrected ("duke ellington"), else null.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDidYouMean))]
+    public partial string? DidYouMean { get; private set; }
+
+    /// <summary>What the empty list offers: "Did you mean duke ellington?  12 songs".</summary>
+    [ObservableProperty]
+    public partial string? DidYouMeanText { get; private set; }
+
+    public bool HasDidYouMean => DidYouMean is not null;
+
+    [RelayCommand]
+    private void UseDidYouMean()
+    {
+        if (DidYouMean is { } better)
+            SearchText = better;
+    }
+
+    /// <summary>
+    /// On the search's own thread, once it found nothing: the search with its misspelled words
+    /// corrected, and how many songs that finds, where it was searched. Null if no word was
+    /// misspelled, or the corrected search finds nothing either.
+    /// </summary>
+    private (string Text, int Count)? DidYouMeanFor(string text, FolderScope? scope, CancellationToken cancel, double near, long? playlist)
+    {
+        if (!HasWords(text))
+            return null;
+        var words = _searchWords ??= _database.GetSearchWords();
+        cancel.ThrowIfCancellationRequested();
+        if (SearchSpelling.Suggest(text, words) is not { } better)
+            return null;
+        int count = _database.Search(better, scope, cancel, near, playlist).Count;
+        return count > 0 ? (better, count) : null;
+    }
 
     /// <summary>The Filter button lights up while one of its filters (energy, hearts, played, year, a field) is in the search.</summary>
     public bool HasMoreFilters => LibraryDatabase.SearchTokens(SearchText).Any(t => !t.EndsWith(':')   // artist: still being typed

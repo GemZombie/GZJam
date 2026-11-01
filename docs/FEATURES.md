@@ -49,6 +49,12 @@ is out of scope until it earns a place.
   filters, binding tighter than the spaces between the rest, as in Gmail. Words alone stay one
   index search (ranked as usual); with a filter among them, an SQL OR. The BPM, Label and Filter
   buttons take a replaced filter's OR with it, so nothing is joined by mistake.
+- **"Did you mean...?"** (#242): only when a search finds nothing. Each word (3+ letters, not a
+  number, not left out with `-`) that no indexed word starts with is swapped for the nearest
+  indexed word (Damerau-Levenshtein, 1 edit up to 4 letters, 2 beyond; a word's start counts, as
+  the search matches word starts; ties go to the word more songs have). Offered only if the
+  corrected search finds songs, with how many. The index's words come from a temporary fts5vocab
+  table (no change to the library file), cached until a scan: ~15 ms each on a 12,700-song library.
 - **Built for 100,000+ tracks.** Indexed search (SQLite FTS5) updates as you type.
 - **Rescan on start, and watch folders for changes** while running, so new albums added in
   Explorer show up without a manual import. Tracks are keyed by path; since files rarely

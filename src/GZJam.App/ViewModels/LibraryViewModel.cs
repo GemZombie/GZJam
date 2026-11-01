@@ -652,7 +652,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         double near = NearBpm;
 
         var started = System.Diagnostics.Stopwatch.StartNew();
-        Task.Run(() => _database.Search(text, scope, cancel.Token, near, playlist), cancel.Token).ContinueWith(t =>
+        (string Text, int Count)? didYouMean = null;
+        Task.Run(() =>
+        {
+            var found = _database.Search(text, scope, cancel.Token, near, playlist);
+            if (found.Count == 0)
+                didYouMean = DidYouMeanFor(text, scope, cancel.Token, near, playlist);
+            return found;
+        }, cancel.Token).ContinueWith(t =>
         {
             if (t.IsFaulted && t.Exception?.InnerException is not OperationCanceledException)
                 Log.Error($"Search \"{text}\" failed", t.Exception);
@@ -667,7 +674,13 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                     if (version != _searchVersion)
                         return;
                     if (t.IsCompletedSuccessfully)
+                    {
+                        DidYouMean = didYouMean?.Text;
+                        DidYouMeanText = didYouMean is var (better, count)
+                            ? $"Did you mean {better}?  {(count == 1 ? "1 song" : $"{Format.Count(count)} songs")}"
+                            : null;
                         Results = t.Result;
+                    }
                     IsSearching = false;
                 });
         }, TaskScheduler.Default);
