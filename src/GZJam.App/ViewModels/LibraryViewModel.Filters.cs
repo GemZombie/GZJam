@@ -95,7 +95,7 @@ public sealed partial class LibraryViewModel
     private static string? WordsField(string token)
     {
         string word = token.TrimStart('-');
-        if (word.Length == 0)
+        if (word.Length == 0 || token == LibraryDatabase.OrWord)
             return null;
         if (word.StartsWith('"'))
             return "";

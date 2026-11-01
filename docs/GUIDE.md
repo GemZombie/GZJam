@@ -328,6 +328,7 @@ The song list shows your music; the folder tree shows it as it is on disk.
   | `label:lindy`, `label:none` | labels |
   | `played:7`, `played:never`, `-played:7` | played in the last 7 days, never, or not this week |
   | `-live` | leave out a word or a filter |
+  | `label:balboa OR label:charleston` | either one, words or filters (`OR` in capitals; `jump label:balboa OR label:charleston` is *jump*, and either label) |
 
 - **Suggestions as you type:** start a filter's name (`ar`) and the box offers `artist:`; after
   one, it lists what's in your library: your labels after `label:`, the artists after `artist:`

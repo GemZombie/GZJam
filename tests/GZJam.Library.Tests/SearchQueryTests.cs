@@ -95,6 +95,33 @@ public sealed class SearchQueryTests : IDisposable
         Assert.Equal(expected.Split('|', StringSplitOptions.RemoveEmptyEntries), Titles(query));
 
     [Theory]
+    [InlineData("basie OR mcshann", "Basie Blues|Corner Pocket|Hootie Blues|Jumpin' at the Woodside")]
+    [InlineData("rating:no OR energy:high", "Jumpin' at the Woodside|Stompin' at the Savoy")]
+    [InlineData("bpm:<100 OR bpm:>200", "Hootie Blues|Jumpin' at the Woodside")]
+    [InlineData("artist:webb OR year:1956", "Corner Pocket|Stompin' at the Savoy")]
+    [InlineData("blues rating:yes OR energy:high", "Hootie Blues")]   // blues, and either: OR binds tighter
+    [InlineData("hootie OR energy:high OR year:1934", "Hootie Blues|Jumpin' at the Woodside|Stompin' at the Savoy")]
+    [InlineData("-rating:no OR energy:low", "Basie Blues|Corner Pocket|Hootie Blues|Jumpin' at the Woodside")]
+    [InlineData("savoy OR -live", "Basie Blues|Corner Pocket|Hootie Blues|Jumpin' at the Woodside|Stompin' at the Savoy")]
+    public void Or_takes_either(string query, string expected) => Assert.Equal(expected.Split('|'), Titles(query));
+
+    [Theory]
+    [InlineData("basie OR")]          // still typing
+    [InlineData("OR basie")]
+    [InlineData("basie OR OR")]
+    [InlineData("basie OR bpm:")]     // the other side half typed
+    [InlineData("basie OR \"")]
+    public void An_or_with_nothing_on_one_side_is_ignored(string query) =>
+        Assert.Equal(["Basie Blues", "Corner Pocket", "Jumpin' at the Woodside"], Titles(query));
+
+    [Fact]
+    public void A_lowercase_or_is_a_word()
+    {
+        Assert.Equal(["Corner Pocket"], Titles("basie or"));   // "or" starts Orchestra
+        Assert.Equal(["Corner Pocket"], Titles("basie \"OR\""));
+    }
+
+    [Theory]
     [InlineData("bpm:")]           // half typed
     [InlineData("bpm:1")]          // still typing 140: nothing at 1 BPM
     [InlineData("rating:")]

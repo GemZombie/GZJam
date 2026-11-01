@@ -36,6 +36,13 @@ public sealed class SearchRankingTests : IDisposable
     }
 
     [Fact]
+    public void Either_word_ranks_the_same_way()
+    {
+        // Bigard is an artist and Ellington a title or artist: all first; then the folder.
+        Assert.Equal(["Sideman Stomp", "Ellington Tribute", "Caravan", "Mood Indigo"], Titles("ellington OR bigard"));
+    }
+
+    [Fact]
     public void Without_words_the_list_stays_in_folder_order()
     {
         string[] folderOrder = ["Sideman Stomp", "Ellington Tribute", "Mood Indigo", "Caravan"];

@@ -45,6 +45,10 @@ is out of scope until it earns a place.
   (energy, hearts, played, decade, *Search only in*) and the **?** cheat sheet only write into the
   search text, like BPM and Label, so the box is always the whole search; no advanced-search dialog
   (it would cover the decks mid-set and could disagree with the box).
+- **OR** (#245), in capitals only (a lowercase "or" is a word: "Now or Never"), joins two words or
+  filters, binding tighter than the spaces between the rest, as in Gmail. Words alone stay one
+  index search (ranked as usual); with a filter among them, an SQL OR. The BPM, Label and Filter
+  buttons take a replaced filter's OR with it, so nothing is joined by mistake.
 - **Built for 100,000+ tracks.** Indexed search (SQLite FTS5) updates as you type.
 - **Rescan on start, and watch folders for changes** while running, so new albums added in
   Explorer show up without a manual import. Tracks are keyed by path; since files rarely
