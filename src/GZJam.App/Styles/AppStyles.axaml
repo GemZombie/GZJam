@@ -113,6 +113,95 @@
     <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
   </Style>
 
+  <!-- The search box's "?" (the cheat sheet), a small ring where the ✕ goes while the box is empty -->
+  <Style Selector="Button.search-help">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{StaticResource MutedBrush}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.search-help:pointerover /template/ ContentPresenter, Button.search-help:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+
+  <!-- Suggestions under the search box (#241): rows to tap, the chosen one tinted -->
+  <Style Selector="Border.suggestions">
+    <Setter Property="Background" Value="{StaticResource SettingsBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource SettingsLineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="5" />
+    <Setter Property="MinWidth" Value="280" />
+    <Setter Property="MaxWidth" Value="460" />
+  </Style>
+  <Style Selector="Border.suggestion">
+    <Setter Property="Padding" Value="10,7" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.suggestion:pointerover">
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+  </Style>
+  <Style Selector="Border.suggestion.chosen">
+    <Setter Property="Background" Value="#3A5F8A" />
+  </Style>
+  <Style Selector="Border.suggestion TextBlock.name">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="Border.suggestion TextBlock.filter">
+    <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.suggestion.chosen TextBlock.filter">
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Border.suggestion TextBlock.detail">
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.suggestion.chosen TextBlock.detail">
+    <Setter Property="Foreground" Value="#D5DDEA" />
+  </Style>
+  <Style Selector="Border.suggestion.hint">
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+  <Style Selector="Border.suggestion.hint:pointerover">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.suggestions-hint">
+    <Setter Property="BorderBrush" Value="{StaticResource SettingsLineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+    <Setter Property="Padding" Value="10,6,10,3" />
+  </Style>
+  <Style Selector="Border.suggestions-hint TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+    <Setter Property="FontSize" Value="11.5" />
+  </Style>
+
+  <!-- The cheat sheet of filters: examples to tap -->
+  <Style Selector="Button.cheat">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.cheat:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+  </Style>
+
   <!-- Folder tree -->
   <Style Selector="TreeView.folders TreeViewItem">
     <Setter Property="MinHeight" Value="26" />

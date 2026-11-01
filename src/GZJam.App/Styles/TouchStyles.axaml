@@ -53,6 +53,18 @@
     <Setter Property="Padding" Value="14,5" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
+  <!-- The search box's suggestions and cheat sheet: rows a finger can hit -->
+  <Style Selector="Border.suggestion">
+    <Setter Property="Padding" Value="12,11" />
+  </Style>
+  <Style Selector="Button.cheat">
+    <Setter Property="Padding" Value="6,9" />
+  </Style>
+  <Style Selector="Button.search-help">
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="CornerRadius" Value="13" />
+  </Style>
   <Style Selector="Button.row-icon">
     <Setter Property="MinWidth" Value="40" />
     <Setter Property="MinHeight" Value="40" />

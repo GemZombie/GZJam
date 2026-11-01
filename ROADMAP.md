@@ -129,6 +129,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - [Search: best matches first, phrases in quotes, `file:`](https://github.com/GemZombie/GZJam/issues/240):
   songs that only mention your words in a comment come last.
+- [Search filters you don't have to memorize](https://github.com/GemZombie/GZJam/issues/241):
+  suggestions as you type, a Filter button, and a cheat sheet behind a **?** in the search box
 
 ## Planned next
 
@@ -172,8 +174,6 @@ to one you'd use.
   that are gone, and clean it up
 - [Import playlists saved as .txt files](https://github.com/GemZombie/GZJam/issues/208), many at
   once, from an older computer
-- [Search filters you don't have to memorize](https://github.com/GemZombie/GZJam/issues/241):
-  suggestions as you type, a Filter button, and a cheat sheet
 - ["Did you mean...?"](https://github.com/GemZombie/GZJam/issues/242) when a typo in a search
   finds nothing
 
