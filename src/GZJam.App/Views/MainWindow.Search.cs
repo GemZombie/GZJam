@@ -148,6 +148,7 @@ public partial class MainWindow
         sheet.Children.Add(Line("basie jump", "both words, anywhere; best matches first", tap: false));
         sheet.Children.Add(Line("\"duke ellington\"", "the words together", tap: false));
         sheet.Children.Add(Line("-live", "leave out a word, or a filter", tap: false));
+        sheet.Children.Add(Line("basie OR webb", "either one, words or filters (OR in capitals)", tap: false));
         sheet.Children.Add(Heading("OR FILTER"));
         sheet.Children.Add(Line("bpm:130-150", "a BPM range; ~bpm:140 near 140, bpm:>200"));
         sheet.Children.Add(Line("artist:basie", "one field: also title, album, genre, comment, grouping, folder, file"));

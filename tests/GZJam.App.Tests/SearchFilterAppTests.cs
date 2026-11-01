@@ -18,6 +18,7 @@ public sealed class SearchFilterAppTests
     [InlineData("artist:basie title:jump", "album", "album:basie album:jump")]   // words already in a field move too
     [InlineData("artist:basie -title:live rating:yes", null, "basie -live rating:yes")]   // back to everywhere
     [InlineData("rating:yes pocket:corner", "artist", "rating:yes pocket:corner")]   // nothing to move
+    [InlineData("basie OR ellington", "artist", "artist:basie OR artist:ellington")]   // OR isn't a word (#245)
     public void Search_only_in_moves_the_words_into_a_field(string text, string? field, string expected) =>
         Assert.Equal(expected, LibraryViewModel.MoveWordsInto(text, field));
 
@@ -33,8 +34,23 @@ public sealed class SearchFilterAppTests
     [InlineData("basie energy:low", "energy", "energy:high", "basie energy:high")]
     [InlineData("basie -played:7", "played", "played:never", "basie played:never")]   // either way round
     [InlineData("basie rating:yes", "rating", null, "basie")]
+    [InlineData("rating:yes OR energy:high basie", "energy", null, "rating:yes basie")]   // no OR left behind (#245)
+    [InlineData("energy:low OR energy:high", "energy", "energy:medium", "energy:medium")]
     public void A_filter_from_the_menu_replaces_the_one_on_its_field(string text, string field, string? filter, string expected) =>
         Assert.Equal(expected, LibraryViewModel.ReplaceFieldFilter(text, field, filter));
+
+    [AvaloniaFact]
+    public void The_label_button_shows_either_of_two_labels_and_replaces_them_both()
+    {
+        using var app = new AppHarness();
+        app.Library.SearchText = "jump label:balboa OR label:charleston";
+        Assert.Equal("charleston +1", app.Library.LabelFilterLabel);
+        Assert.True(app.Library.HasLabelFilter);
+
+        app.Library.SetLabelFilter("Lindy");
+        Assert.Equal("jump label:Lindy", app.Library.SearchText);
+        Assert.Equal("Lindy", app.Library.LabelFilterLabel);
+    }
 
     private static TextBox SearchBox(AppHarness app) => app.Window.FindControl<TextBox>("SearchBox")!;
 

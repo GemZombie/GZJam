@@ -25,6 +25,9 @@ New:
   how many songs each. A new **Filter** button beside BPM and Label taps in energy, hearts, when
   the room heard a song, the decade, or which field to search (*Search only in* › Artist). And the
   **?** in the empty search box shows how to search.
+- **OR in a search:** `label:balboa OR label:charleston` finds songs with either label;
+  `basie OR webb`, `energy:high OR rating:yes` work too. Type it in capitals: a lowercase "or"
+  is still an ordinary word.
 
 Changed:
 

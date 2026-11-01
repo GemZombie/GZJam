@@ -20,8 +20,11 @@ namespace GZJam.Library;
 /// <item><c>played:7</c> (the room heard it in the last 7 days), <c>played:never</c>, <c>played:yes</c>;
 /// <c>-played:7</c> leaves out last week's songs</item>
 /// </list>
-/// A leading <c>-</c> excludes: <c>-rating:no</c>, <c>-live</c>. Anything that isn't a complete
-/// filter (say, <c>bpm:</c> half typed) is ignored rather than emptying the results.
+/// A leading <c>-</c> excludes: <c>-rating:no</c>, <c>-live</c>. <c>OR</c>, in capitals, between two
+/// words or filters takes either (<c>label:balboa OR label:charleston</c>), binding tighter than the
+/// spaces between the rest, as in Gmail (#245). Anything that isn't a complete filter (say,
+/// <c>bpm:</c> half typed, or an <c>OR</c> with nothing after it yet) is ignored rather than
+/// emptying the results.
 /// </summary>
 internal sealed class SearchQuery
 {
@@ -72,8 +75,13 @@ internal sealed class SearchQuery
     public static SearchQuery Parse(string? text, DateTime? nowUtc = null, double nearBpm = LibraryDatabase.DefaultNearBpm)
     {
         var query = new SearchQuery(nowUtc ?? DateTime.UtcNow, nearBpm);
-        foreach (string token in Tokenize(text ?? ""))
-            query.Add(token);
+        foreach (var group in OrGroups(Tokenize(text ?? "")))
+        {
+            if (group.Count == 1)
+                query.Add(group[0]);
+            else
+                query.AddEither(group);
+        }
         if (query._terms.Count > 0)
         {
             string match = string.Join(' ', query._terms);
@@ -82,6 +90,69 @@ internal sealed class SearchQuery
                             $"WHEN {query.MatchSql($"{AllButCommentColumns} : ({match})")} THEN 1 ELSE 2 END";
         }
         return query;
+    }
+
+    /// <summary>What <c>OR</c> joins in a search, in capitals only: a lowercase "or" is a word ("Now or Never").</summary>
+    public const string Or = "OR";
+
+    /// <summary>
+    /// The tokens in groups of either-or: <c>jump a OR b c</c> is [jump], [a, b], [c]. An
+    /// <c>OR</c> with nothing on one side is ignored.
+    /// </summary>
+    internal static List<List<string>> OrGroups(IEnumerable<string> tokens)
+    {
+        var groups = new List<List<string>>();
+        bool joining = false;
+        foreach (string token in tokens)
+        {
+            if (token == Or)
+            {
+                joining = groups.Count > 0;
+                continue;
+            }
+            if (joining)
+                groups[^1].Add(token);
+            else
+                groups.Add([token]);
+            joining = false;
+        }
+        return groups;
+    }
+
+    /// <summary>
+    /// Songs matching any of <paramref name="tokens"/>: each is read as on its own, and what it
+    /// would have added is joined with OR instead. Words alone stay one search of the index (so
+    /// best matches still come first); with a filter among them, an SQL condition.
+    /// </summary>
+    private void AddEither(List<string> tokens)
+    {
+        var parts = new List<(List<string> Conditions, List<string> Terms)>();
+        foreach (string token in tokens)
+        {
+            int conditions = _conditions.Count, terms = _terms.Count;
+            Add(token);
+            var part = (_conditions[conditions..], _terms[terms..]);
+            _conditions.RemoveRange(conditions, _conditions.Count - conditions);
+            _terms.RemoveRange(terms, _terms.Count - terms);
+            if (part.Item1.Count + part.Item2.Count > 0)
+                parts.Add(part);
+        }
+        if (parts.Count == 0)
+            return;
+        if (parts.Count == 1)
+        {
+            _conditions.AddRange(parts[0].Conditions);
+            _terms.AddRange(parts[0].Terms);
+        }
+        else if (parts.All(p => p.Conditions.Count == 0))
+        {
+            _terms.Add($"({string.Join(" OR ", parts.Select(p => $"({string.Join(' ', p.Terms)})"))})");
+        }
+        else
+        {
+            _conditions.Add($"({string.Join(" OR ", parts.Select(p =>
+                $"({string.Join(" AND ", p.Conditions.Concat(p.Terms.Select(MatchSql)))})"))})");
+        }
     }
 
     private void Add(string token)

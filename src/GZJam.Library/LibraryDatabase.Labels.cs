@@ -168,4 +168,7 @@ public sealed partial class LibraryDatabase
     /// text together (<c>label:"female vocals"</c> is one token).
     /// </summary>
     public static IEnumerable<string> SearchTokens(string text) => SearchQuery.Tokenize(text);
+
+    /// <summary>The word that joins two words or filters in a search as either-or: <c>OR</c>, in capitals (#245).</summary>
+    public const string OrWord = SearchQuery.Or;
 }

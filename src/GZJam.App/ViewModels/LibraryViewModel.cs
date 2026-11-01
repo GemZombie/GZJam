@@ -328,10 +328,37 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Swaps the filters <paramref name="matches"/> picks out of the search text for <paramref name="filter"/> (null: just removes them).</summary>
     private static string ReplaceFilter(string text, Func<string, bool> matches, string? filter)
     {
-        var tokens = LibraryDatabase.SearchTokens(text).Where(t => !matches(t)).ToList();
+        var tokens = WithoutFilters(LibraryDatabase.SearchTokens(text).ToList(), matches);
         if (filter is not null)
             tokens.Add(filter);
         return string.Join(' ', tokens);
+    }
+
+    /// <summary>
+    /// The tokens without those <paramref name="matches"/> picks, each taking the <c>OR</c> that
+    /// joined it with it, so what's left isn't joined by mistake (<c>rating:yes OR energy:high
+    /// basie</c> without energy is <c>rating:yes basie</c>) and no <c>OR</c> is left behind (#245).
+    /// </summary>
+    private static List<string> WithoutFilters(List<string> tokens, Func<string, bool> matches)
+    {
+        const string or = LibraryDatabase.OrWord;
+        var kept = new List<string>();
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            if (!matches(tokens[i]))
+            {
+                if (tokens[i] != or || (kept.Count > 0 && kept[^1] != or))
+                    kept.Add(tokens[i]);
+                continue;
+            }
+            if (kept.Count > 0 && kept[^1] == or)
+                kept.RemoveAt(kept.Count - 1);   // "a OR this"
+            else if (i + 1 < tokens.Count && tokens[i + 1] == or)
+                i++;                             // "this OR b"
+        }
+        if (kept.Count > 0 && kept[^1] == or)
+            kept.RemoveAt(kept.Count - 1);
+        return kept;
     }
 
     // ───────────── Label filter ─────────────
@@ -340,11 +367,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public string? LabelFilter => LibraryDatabase.SearchTokens(SearchText).Where(IsLabelFilter)
         .Select(t => t[(t.IndexOf(':') + 1)..].Trim('"')).LastOrDefault(v => v.Length > 0);
 
-    /// <summary>The label button's text: "Label", or the label it's filtering on.</summary>
+    /// <summary>The label button's text: "Label", the label it's filtering on, or "Balboa +1" for either of two (#245).</summary>
     public string LabelFilterLabel => LabelFilter switch
     {
         null => "Label",
         var l when l.Equals("none", StringComparison.OrdinalIgnoreCase) => "No label",
+        var l when LibraryDatabase.SearchTokens(SearchText).Count(t => IsLabelFilter(t) && !t.EndsWith(':')) is var n and > 1 => $"{l} +{n - 1}",
         var l => l,
     };
 
