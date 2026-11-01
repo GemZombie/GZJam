@@ -4,11 +4,12 @@ using System.Text;
 namespace GZJam.Library;
 
 /// <summary>
-/// What the DJ typed in the search box, turned into SQL conditions. Plain words match tags and
-/// folder names as word prefixes; filters narrow by field, much like Mixxx's:
+/// What the DJ typed in the search box, turned into SQL conditions. Plain words match tags, folder
+/// and file names as word prefixes; words in quotes match as a phrase (<c>"duke ellington"</c>: those
+/// words together, in one field). Filters narrow by field, much like Mixxx's:
 /// <list type="bullet">
-/// <item><c>artist:basie</c>, <c>title:</c>, <c>album:</c>, <c>genre:</c>, <c>comment:</c>, <c>grouping:</c>, <c>folder:</c>
-/// (quote several words: <c>artist:"count basie"</c>)</item>
+/// <item><c>artist:basie</c>, <c>title:</c>, <c>album:</c>, <c>genre:</c>, <c>comment:</c>, <c>grouping:</c>, <c>folder:</c>,
+/// <c>file:</c> (the file name; quote a phrase: <c>artist:"count basie"</c>)</item>
 /// <item><c>bpm:140</c>, <c>bpm:130-150</c>, <c>bpm:&gt;200</c>; <c>~bpm:140</c> is near 140: within 8%
 /// either side (as far as the tempo slider reaches) unless the DJ chose otherwise in Settings, or
 /// for one search <c>~bpm:140/5</c> (5%)</item>
@@ -37,11 +38,18 @@ internal sealed class SearchQuery
         ["comment"] = "comment",
         ["grouping"] = "grouping",
         ["folder"] = "folder",
+        ["file"] = "file_name",
     };
+
+    /// <summary>Where plain words count most: they name the song.</summary>
+    private const string BestColumns = "{title artist album_artist}";
+
+    /// <summary>Everything searched but the comment, which can mention anyone ("worked with Duke Ellington", #240).</summary>
+    private const string AllButCommentColumns = "{title artist album_artist album genre grouping folder file_name}";
 
     private readonly List<string> _conditions = [];
     private readonly Dictionary<string, object> _parameters = [];
-    private readonly List<string> _words = [];
+    private readonly List<string> _terms = [];
     private readonly DateTime _nowUtc;
     private readonly double _nearBpm;
 
@@ -52,6 +60,13 @@ internal sealed class SearchQuery
 
     public IReadOnlyDictionary<string, object> Parameters => _parameters;
 
+    /// <summary>
+    /// When the search has plain words: an SQL expression to sort by first, 0 for songs whose title,
+    /// artist or album artist hold the words, 1 for songs that have them elsewhere but the comment,
+    /// 2 for songs that only match through their comment. Null otherwise (folder order alone).
+    /// </summary>
+    public string? Ranking { get; private set; }
+
     /// <param name="nowUtc">For <c>played:</c> filters; defaults to now.</param>
     /// <param name="nearBpm">How far <c>~bpm:</c> reaches either side, as a fraction.</param>
     public static SearchQuery Parse(string? text, DateTime? nowUtc = null, double nearBpm = LibraryDatabase.DefaultNearBpm)
@@ -59,8 +74,13 @@ internal sealed class SearchQuery
         var query = new SearchQuery(nowUtc ?? DateTime.UtcNow, nearBpm);
         foreach (string token in Tokenize(text ?? ""))
             query.Add(token);
-        if (LibraryDatabase.BuildMatchExpression(string.Join(' ', query._words)) is { } match)
+        if (query._terms.Count > 0)
+        {
+            string match = string.Join(' ', query._terms);
             query.Match(match, negated: false);
+            query.Ranking = $"CASE WHEN {query.MatchSql($"{BestColumns} : ({match})")} THEN 0 " +
+                            $"WHEN {query.MatchSql($"{AllButCommentColumns} : ({match})")} THEN 1 ELSE 2 END";
+        }
         return query;
     }
 
@@ -71,12 +91,12 @@ internal sealed class SearchQuery
             token = token[1..];
 
         int colon = token.IndexOf(':');
-        if (colon <= 0)
+        if (colon <= 0 || token[0] == '"')
         {
             AddWords(token, negated);
             return;
         }
-        string field = token[..colon], value = Unquote(token[(colon + 1)..]);
+        string field = token[..colon], typed = token[(colon + 1)..], value = Unquote(typed);
         bool near = field.StartsWith('~');
         if (near)
             field = field[1..];
@@ -90,7 +110,7 @@ internal sealed class SearchQuery
             "energy" => EnergyCondition(value),
             "played" => PlayedCondition(value),
             "label" or "labels" => LabelCondition(value),
-            var f when TextColumns.TryGetValue(f, out string? column) => TextCondition(column, value, negated),
+            var f when TextColumns.TryGetValue(f, out string? column) => TextCondition(column, value, phrase: typed.StartsWith('"'), negated),
             _ => null,
         };
         if (condition is null)
@@ -107,28 +127,36 @@ internal sealed class SearchQuery
     private static bool IsKnownField(string field) =>
         TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy" or "played" or "label" or "labels";
 
+    /// <summary>Plain words, or a phrase in quotes (<c>"duke ellington"</c>, its closing quote maybe still to come).</summary>
     private void AddWords(string token, bool negated)
     {
-        if (!negated)
-            _words.Add(token);
-        else if (LibraryDatabase.BuildMatchExpression(token) is { } match)
+        string? match = token.StartsWith('"')
+            ? LibraryDatabase.BuildPhraseExpression(Unquote(token))
+            : LibraryDatabase.BuildMatchExpression(token);
+        if (match is null)
+            return;
+        if (negated)
             Match(match, negated: true);
+        else
+            _terms.Add(match);
     }
 
-    private void Match(string expression, bool negated)
-    {
-        string name = Parameter(expression);
-        _conditions.Add($"t.id {(negated ? "NOT IN" : "IN")} (SELECT rowid FROM tracks_fts WHERE tracks_fts MATCH {name})");
-    }
+    private void Match(string expression, bool negated) =>
+        _conditions.Add(negated ? $"NOT {MatchSql(expression)}" : MatchSql(expression));
 
-    /// <summary>Every word must appear in that column (as a prefix). Returns "" once handled.</summary>
-    private string? TextCondition(string column, string value, bool negated)
+    private string MatchSql(string expression) =>
+        $"t.id IN (SELECT rowid FROM tracks_fts WHERE tracks_fts MATCH {Parameter(expression)})";
+
+    /// <summary>
+    /// Every word must appear in that column (as a prefix), or with <paramref name="phrase"/> the
+    /// words together, in order. Returns "" once handled.
+    /// </summary>
+    private string? TextCondition(string column, string value, bool phrase, bool negated)
     {
-        string? words = LibraryDatabase.BuildMatchExpression(value);
+        string? words = phrase ? LibraryDatabase.BuildPhraseExpression(value) : LibraryDatabase.BuildMatchExpression(value);
         if (words is null)
             return null;
-        // Each term gets the column filter: artist : "count"* artist : "basie"*
-        Match(string.Join(' ', words.Split(' ').Select(term => $"{column} : {term}")), negated);
+        Match($"{column} : ({words})", negated);
         return "";
     }
 

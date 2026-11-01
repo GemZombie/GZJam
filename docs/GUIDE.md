@@ -310,15 +310,18 @@ The song list shows your music; the folder tree shows it as it is on disk.
 
 - **Choosing a folder** narrows the list (and searches) to everything beneath it. Click it again to
   close it; the chip above the list shows the scope, and its ✕ goes back to the whole library.
-- **Search** as you type, across titles, artists, albums, comments, Grouping and folder names
-  (`balboa` finds songs in a *Balboa* folder). Ctrl+F (Cmd+F on a Mac) jumps to the search box; Escape clears it.
+- **Search** as you type, across titles, artists, albums, comments, Grouping, folder names and
+  file names (`balboa` finds songs in a *Balboa* folder). The best matches come first: songs whose
+  title or artist has your words, then songs that have them somewhere else, and last, songs that
+  only mention them in a comment. Put words in quotes to find them together: `"duke ellington"`.
+  Ctrl+F (Cmd+F on a Mac) jumps to the search box; Escape clears it.
 - **Filters** you can type:
 
   | Type | For |
   |---|---|
   | `bpm:140`, `bpm:130-150`, `bpm:>200` | a BPM, or a range |
   | `~bpm:140` | songs that can be pitched to 140 (within 8%; `~bpm:140/5` for 5%) |
-  | `artist:basie`, `title:`, `album:`, `genre:`, `comment:`, `grouping:`, `folder:` | one field (`artist:"count basie"` for several words) |
+  | `artist:basie`, `title:`, `album:`, `genre:`, `comment:`, `grouping:`, `folder:`, `file:` | one field (`artist:"count basie"` for words together; `file:` is the file name) |
   | `year:1938`, `year:1935-1940`, `year:<1950` | the year |
   | `rating:yes`, `rating:no`, `rating:none` | hearts |
   | `energy:high`, `energy:2-3` | energy |

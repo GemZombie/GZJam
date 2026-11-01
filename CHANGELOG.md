@@ -13,7 +13,20 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.13.
+New:
+
+- **Search the file name:** `file:` finds words in the file name alone. File names were already
+  searched along with everything else; the guide now says so.
+- **Words in quotes find a phrase:** `"duke ellington"` finds those words together, not one in
+  the title and the other in a comment. Works in field filters too: `artist:"count basie"`.
+
+Changed:
+
+- **Best matches first:** a search with words in it lists the songs whose title or artist has
+  them first, then the ones that have them somewhere else, and last the ones that only mention
+  them in a comment, so "worked with Duke Ellington" no longer sits among Ellington's own songs.
+  Each group is in folder order, as before. A search by filters alone (`bpm:130-150`) and a
+  playlist keep their order.
 
 ## 0.9.13 (2026-10-31)
 

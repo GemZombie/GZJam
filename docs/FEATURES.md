@@ -33,7 +33,11 @@ is out of scope until it earns a place.
 - **Selected folder = search scope.** Select `Lindy Hop` and type `basie` to get every Basie
   track anywhere under `Lindy Hop`. Select the root (or clear the selection) to search everything.
 - **Folder names are searchable** alongside tags, so `balboa` finds tracks in a `Balboa`
-  folder even if their tags don't say so.
+  folder even if their tags don't say so. File names too (`file:` for the file name alone).
+- **Best matches first** (#240): with words in the search, songs whose title, artist or album
+  artist hold them come first, then those with them in other fields, then comment-only matches
+  (a comment can mention anyone: "worked with Duke Ellington"). Folder order within each group;
+  filter-only searches stay in folder order. Words in quotes are a phrase.
 - **Built for 100,000+ tracks.** Indexed search (SQLite FTS5) updates as you type.
 - **Rescan on start, and watch folders for changes** while running, so new albums added in
   Explorer show up without a manual import. Tracks are keyed by path; since files rarely
