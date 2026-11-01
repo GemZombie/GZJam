@@ -13,13 +13,16 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 0.9.14.
+
+## 0.9.14 (2026-11-01)
+
 New:
 
 - **Search the file name:** `file:` finds words in the file name alone. File names were already
   searched along with everything else; the guide now says so.
 - **Words in quotes find a phrase:** `"duke ellington"` finds those words together, not one in
   the title and the other in a comment. Works in field filters too: `artist:"count basie"`.
-
 - **Search filters you don't have to memorize:** start typing a filter's name and the search box
   suggests it; after `label:`, `artist:`, `genre:` and others it lists what's in your library, with
   how many songs each. A new **Filter** button beside BPM and Label taps in energy, hearts, when

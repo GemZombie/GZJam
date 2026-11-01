@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.13** (31 October 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 0.9.14** (1 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -16,7 +16,11 @@ release.
 - Your music folders are the library: a folder tree, with search covering everything under the
   folder you pick. Nothing to import, and your music files are never changed.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
-  `year:`, `label:`, `rating:`, `energy:` and `played:` (`-played:7` leaves out the songs the room heard last week).
+  `year:`, `label:`, `rating:`, `energy:`, `played:` (`-played:7` leaves out the songs the room heard last week)
+  and `file:`. Words in quotes are a phrase, and `OR` finds either of two (`label:balboa OR label:charleston`).
+- Search puts the best matches first (title and artist), and songs that only mention your words in a
+  comment last. Filters are suggested as you type, with what your library holds; a Filter button
+  taps them in, a **?** shows how to search, and a typo that finds nothing gets "Did you mean...?"
 - Choose the song list's columns, Grouping and Comment among them (as iTunes, Music and many
   other players keep them in the song files), and what the queue shows of each song. The queue's
   columns can be dragged into another order and width, and a narrow queue (or a thin song list
@@ -127,14 +131,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-- [Search: best matches first, phrases in quotes, `file:`](https://github.com/GemZombie/GZJam/issues/240):
-  songs that only mention your words in a comment come last.
-- [Search filters you don't have to memorize](https://github.com/GemZombie/GZJam/issues/241):
-  suggestions as you type, a Filter button, and a cheat sheet behind a **?** in the search box
-- ["Did you mean...?"](https://github.com/GemZombie/GZJam/issues/242) when a typo in a search
-  finds nothing
-- [OR in a search](https://github.com/GemZombie/GZJam/issues/245): `label:balboa OR label:charleston`
-  finds songs with either label
+Nothing yet since 0.9.14.
 
 ## Planned next
 
