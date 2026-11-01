@@ -600,10 +600,12 @@ public sealed partial class LibraryDatabase
     public const double DefaultNearBpm = 0.08;
 
     /// <summary>
-    /// Finds tracks matching every word of <paramref name="text"/> (as word prefixes) in any tag or
-    /// folder name, and any filters in it (<c>bpm:130-150</c>, <c>artist:basie</c>, <c>-rating:no</c>;
+    /// Finds tracks matching every word of <paramref name="text"/> (as word prefixes) in any tag,
+    /// folder or file name, and any filters in it (<c>bpm:130-150</c>, <c>artist:basie</c>, <c>-rating:no</c>;
     /// see <see cref="SearchQuery"/>), within <paramref name="scope"/> and everything beneath it.
-    /// Empty text lists everything in scope. Results are in folder order, as they appear on disk.
+    /// Empty text lists everything in scope. Results are in folder order, as they appear on disk;
+    /// with words, the best matches come first (title or artist, then other fields, then comments),
+    /// each in folder order. A playlist keeps its own order.
     /// <paramref name="nearBpm"/> is how far <c>~bpm:</c> reaches either side (a fraction), unless
     /// the search says (<c>~bpm:140/5</c>).
     /// </summary>
@@ -626,7 +628,7 @@ public sealed partial class LibraryDatabase
                 sql.Append(" AND (t.folder = $folder OR substr(t.folder, 1, $prefixLength) = $prefix)");
         }
         sql.Append(playlist is null
-            ? " ORDER BY t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;"
+            ? $" ORDER BY {(query.Ranking is { } ranking ? ranking + ", " : "")}t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;"
             : " ORDER BY e.position;");
 
         using var c = Open();
@@ -758,6 +760,13 @@ public sealed partial class LibraryDatabase
         }
         return terms.Count == 0 ? null : string.Join(' ', terms);
     }
+
+    /// <summary>
+    /// Turns quoted input into an FTS5 phrase: the words together, in order, the last one a prefix
+    /// ("duke ellin" finds Duke Ellington). Split and cleaned like <see cref="BuildMatchExpression"/>.
+    /// </summary>
+    internal static string? BuildPhraseExpression(string? text) =>
+        BuildMatchExpression(text) is { } words ? $"\"{words.Replace("\"", "").Replace("*", "")}\"*" : null;
 
     private static Track ReadTrack(SqliteDataReader r) => ReadTrack(r, new TrackOrdinals(r));
 
