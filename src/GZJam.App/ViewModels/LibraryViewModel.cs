@@ -290,6 +290,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(LabelFilter));
         OnPropertyChanged(nameof(LabelFilterLabel));
         OnPropertyChanged(nameof(HasLabelFilter));
+        OnPropertyChanged(nameof(HasMoreFilters));
         // Debounce typing: each keystroke restarts the delay, so a fast typist triggers one search.
         _typingDelay?.Cancel();
         if (_suppressSearch)
@@ -361,6 +362,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>A label was renamed: a search for it follows the new name (else its results may have changed).</summary>
     public void LabelRenamed(string name, string newName)
     {
+        ForgetSuggestionValues();
         if (name.Equals(LabelFilter, StringComparison.OrdinalIgnoreCase))
             SetLabelFilter(newName);
         else
@@ -384,6 +386,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Labels were added or taken off: a label filter's results may have changed.</summary>
     public void LabelsChanged()
     {
+        ForgetSuggestionValues();
         if (HasLabelFilter)
             RunSearch();
     }
@@ -547,6 +550,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var expanded = Roots.SelectMany(r => r.SelfAndDescendants()).Where(n => n.IsExpanded).Select(n => n.Key).ToHashSet();
         var selected = SelectedFolder?.Key;
         bool firstBuild = Roots.Count == 0;
+        ForgetSuggestionValues();   // the songs, so their artists and genres, may have changed
 
         var tree = FolderTree.Build(_database.GetRoots(), _database.GetFolderCounts());
         Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");

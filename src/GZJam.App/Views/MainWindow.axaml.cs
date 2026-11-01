@@ -191,6 +191,11 @@ public partial class MainWindow : Window
 
     private void OnSearchKeyDown(object? sender, KeyEventArgs e)
     {
+        if (OnSuggestionKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
         switch (e.Key)
         {
             case Key.Escape:

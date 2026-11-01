@@ -20,6 +20,12 @@ New:
 - **Words in quotes find a phrase:** `"duke ellington"` finds those words together, not one in
   the title and the other in a comment. Works in field filters too: `artist:"count basie"`.
 
+- **Search filters you don't have to memorize:** start typing a filter's name and the search box
+  suggests it; after `label:`, `artist:`, `genre:` and others it lists what's in your library, with
+  how many songs each. A new **Filter** button beside BPM and Label taps in energy, hearts, when
+  the room heard a song, the decade, or which field to search (*Search only in* › Artist). And the
+  **?** in the empty search box shows how to search.
+
 Changed:
 
 - **Best matches first:** a search with words in it lists the songs whose title or artist has

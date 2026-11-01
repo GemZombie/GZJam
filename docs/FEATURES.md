@@ -38,6 +38,13 @@ is out of scope until it earns a place.
   artist hold them come first, then those with them in other fields, then comment-only matches
   (a comment can mention anyone: "worked with Duke Ellington"). Folder order within each group;
   filter-only searches stay in folder order. Words in quotes are a phrase.
+- **Filters without memorizing them** (#241): the search box suggests filter names from two
+  letters (one would pop the list up at nearly every word), then the library's values (labels,
+  artists, albums, genres, Grouping, with counts) or a filter's choices. Suggestions never take the
+  keyboard: nothing is chosen until ↓, so Enter and typing on behave as before. The Filter button
+  (energy, hearts, played, decade, *Search only in*) and the **?** cheat sheet only write into the
+  search text, like BPM and Label, so the box is always the whole search; no advanced-search dialog
+  (it would cover the decks mid-set and could disagree with the box).
 - **Built for 100,000+ tracks.** Indexed search (SQLite FTS5) updates as you type.
 - **Rescan on start, and watch folders for changes** while running, so new albums added in
   Explorer show up without a manual import. Tracks are keyed by path; since files rarely

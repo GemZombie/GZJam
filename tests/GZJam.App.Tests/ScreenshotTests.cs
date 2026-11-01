@@ -154,6 +154,34 @@ public sealed class ScreenshotTests
         AppHarness.Settle();
         app.Screenshot("12-bpm-filtered");
 
+        // Suggestions as you type, the Filter button, and the cheat sheet (#241).
+        var searchBox = app.Window.FindControl<TextBox>("SearchBox")!;
+        library.SearchText = "";
+        AppHarness.Settle();
+        searchBox.Focus();
+        app.Window.KeyTextInput("artist:");
+        AppHarness.Settle(300);
+        app.Screenshot("12b-search-suggestions");
+        app.Window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        library.SearchText = "basie";
+        AppHarness.Settle();
+        var more = app.Window.FindControl<Button>("FilterButton")!;
+        var moreAt = more.TranslatePoint(new Avalonia.Point(more.Bounds.Width / 2, more.Bounds.Height / 2), app.Window)!.Value;
+        app.Window.MouseDown(moreAt, MouseButton.Left, RawInputModifiers.None);
+        app.Window.MouseUp(moreAt, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(300);
+        ((MenuFlyout)more.Flyout!).Items.OfType<MenuItem>().First().Open();
+        AppHarness.Settle(300);
+        app.Screenshot("12c-filter-menu");
+        more.Flyout.Hide();
+        library.SearchText = "";
+        AppHarness.Settle();
+        var help = app.Window.FindControl<Button>("SearchHelpButton")!;
+        help.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        AppHarness.Settle(300);
+        app.Screenshot("12d-search-help");
+        app.Window.SearchHelp.Hide();
+
         // Deck 2: the song set to start a few seconds in (say, after applause); its waveform menu.
         vm.Deck2.SetStart(TimeSpan.FromSeconds(12));
         // ...and a jump that skips a middle chorus.

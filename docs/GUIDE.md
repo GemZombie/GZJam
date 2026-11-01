@@ -329,9 +329,17 @@ The song list shows your music; the folder tree shows it as it is on disk.
   | `played:7`, `played:never`, `-played:7` | played in the last 7 days, never, or not this week |
   | `-live` | leave out a word or a filter |
 
+- **Suggestions as you type:** start a filter's name (`ar`) and the box offers `artist:`; after
+  one, it lists what's in your library: your labels after `label:`, the artists after `artist:`
+  (with how many songs each), the genres after `genre:`, the choices after `energy:`, `rating:` and
+  `played:`. Tap one, or press ↓ and Enter. Escape closes the list; just keep typing to ignore it.
 - **The BPM button** beside the search box fills in a BPM filter by tap: *Near Deck 1* (the deck's
   tempo as the room hears it), a tempo range, or *Any BPM*. **The Label button** does the same for
-  labels.
+  labels, and **the Filter button** for energy, hearts, when the room heard a song, and the
+  decade. Its *Search only in* puts the words you've typed into one field (`basie` becomes
+  `artist:basie`), or back to everywhere. Each button writes its filter into the search box, so the
+  box always shows the whole search, and lights up while one of its filters is there.
+- **The ? in the empty search box** shows how to search, with the filters; tap one to try it.
 - **Columns:** right-click a column header to show or hide ♥, Album, Genre, Grouping, Comment,
   Year, BPM, Energy, Played and Art. Click a header to sort. Long Grouping and Comment text is cut
   off with "…"; point at it (or hold a finger on it) for the whole text.
