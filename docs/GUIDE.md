@@ -314,6 +314,8 @@ The song list shows your music; the folder tree shows it as it is on disk.
   file names (`balboa` finds songs in a *Balboa* folder). The best matches come first: songs whose
   title or artist has your words, then songs that have them somewhere else, and last, songs that
   only mention them in a comment. Put words in quotes to find them together: `"duke ellington"`.
+  If a typo finds nothing, the empty list offers the search corrected (*Did you mean duke
+  ellington?*), with how many songs it finds; tap it to search that.
   Ctrl+F (Cmd+F on a Mac) jumps to the search box; Escape clears it.
 - **Filters** you can type:
 

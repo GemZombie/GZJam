@@ -195,6 +195,9 @@ internal sealed class SearchQuery
             _conditions.Add(negated && !TextColumns.ContainsKey(field) ? $"NOT COALESCE({condition}, 0)" : condition);
     }
 
+    /// <summary>Whether a filter's field holds words (<c>artist:</c>, <c>title:</c>...), not a number or a choice.</summary>
+    internal static bool IsTextField(string field) => TextColumns.ContainsKey(field);
+
     private static bool IsKnownField(string field) =>
         TextColumns.ContainsKey(field) || field.ToLowerInvariant() is "bpm" or "year" or "rating" or "energy" or "played" or "label" or "labels";
 

@@ -131,6 +131,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   songs that only mention your words in a comment come last.
 - [Search filters you don't have to memorize](https://github.com/GemZombie/GZJam/issues/241):
   suggestions as you type, a Filter button, and a cheat sheet behind a **?** in the search box
+- ["Did you mean...?"](https://github.com/GemZombie/GZJam/issues/242) when a typo in a search
+  finds nothing
 - [OR in a search](https://github.com/GemZombie/GZJam/issues/245): `label:balboa OR label:charleston`
   finds songs with either label
 
@@ -176,8 +178,6 @@ to one you'd use.
   that are gone, and clean it up
 - [Import playlists saved as .txt files](https://github.com/GemZombie/GZJam/issues/208), many at
   once, from an older computer
-- ["Did you mean...?"](https://github.com/GemZombie/GZJam/issues/242) when a typo in a search
-  finds nothing
 
 
 **Playing**

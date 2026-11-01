@@ -672,8 +672,14 @@
             <Button Content="Add folder…" HorizontalAlignment="Center" Padding="16,8" Click="OnAddFolderClick"
                     Background="{StaticResource AccentBrush}" Foreground="White" />
           </StackPanel>
-          <TextBlock Grid.Row="2" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center"
-                     Text="{Binding Library.EmptyMessage}" IsVisible="{Binding Library.HasNoResults}" />
+          <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
+                      IsVisible="{Binding Library.HasNoResults}">
+            <TextBlock Classes="muted" HorizontalAlignment="Center" Text="{Binding Library.EmptyMessage}" />
+            <!-- A typo found nothing: the search corrected, a tap away (#242) -->
+            <Button x:Name="DidYouMeanButton" Classes="link" HorizontalAlignment="Center" FontSize="13"
+                    Foreground="{StaticResource AccentBrush}" Content="{Binding Library.DidYouMeanText}"
+                    Command="{Binding Library.UseDidYouMeanCommand}" IsVisible="{Binding Library.HasDidYouMean}" />
+          </StackPanel>
 
           <!-- Headphone preview -->
           <Border Grid.Row="3" Classes="preview-bar" DataContext="{Binding Preview}" x:DataType="vm:PreviewViewModel"

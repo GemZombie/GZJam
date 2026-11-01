@@ -52,6 +52,32 @@ public sealed class SearchFilterAppTests
         Assert.Equal("Lindy", app.Library.LabelFilterLabel);
     }
 
+    [AvaloniaFact]
+    public void A_typo_that_finds_nothing_offers_the_search_corrected()
+    {
+        using var app = new AppHarness();
+        AppHarness.Settle(200);
+        var button = app.Window.FindControl<Button>("DidYouMeanButton")!;
+
+        app.Library.SearchText = "chik webb";
+        AppHarness.WaitFor(() => app.Library.HasDidYouMean);
+        Assert.Empty(app.Library.Results);
+        Assert.Equal("chick webb", app.Library.DidYouMean);
+        Assert.Equal("Did you mean chick webb?  3 songs", app.Library.DidYouMeanText);
+        Assert.True(button.IsEffectivelyVisible);
+
+        button.Command!.Execute(null);
+        AppHarness.Settle();
+        Assert.Equal("chick webb", app.Library.SearchText);
+        Assert.Equal(3, app.Library.Results.Count);
+        Assert.False(app.Library.HasDidYouMean);
+
+        app.Library.SearchText = "basie savoy";   // both real, just never together: nothing to correct
+        AppHarness.Settle();
+        Assert.Empty(app.Library.Results);
+        Assert.False(app.Library.HasDidYouMean);
+    }
+
     private static TextBox SearchBox(AppHarness app) => app.Window.FindControl<TextBox>("SearchBox")!;
 
     private static string[] Shown(AppHarness app) => app.Window.ShownSuggestions.Select(s => s.Text).ToArray();
