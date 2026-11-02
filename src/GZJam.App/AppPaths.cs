@@ -18,12 +18,20 @@ internal static class AppPaths
     /// <summary>Small settings that follow the user.</summary>
     public static string SettingsDirectory { get; } = Override ?? (OperatingSystem.IsMacOS()
         ? MacAppSupport
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GZJam"));
+        : Path.Combine(Folder(Environment.SpecialFolder.ApplicationData), "GZJam"));
 
     /// <summary>The library database, which is machine-specific.</summary>
     public static string DataDirectory { get; } = Override ?? (OperatingSystem.IsMacOS()
         ? MacAppSupport
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GZJam"));
+        : Path.Combine(Folder(Environment.SpecialFolder.LocalApplicationData), "GZJam"));
+
+    /// <summary>
+    /// The OS's folder, made if it isn't there yet (#250): a new Linux account may have no
+    /// ~/.local/share, and asked for one that's missing, .NET gives "", which would put GZJam's
+    /// library in whatever folder it was started from.
+    /// </summary>
+    private static string Folder(Environment.SpecialFolder folder) =>
+        Environment.GetFolderPath(folder, Environment.SpecialFolderOption.Create);
 
     public static string SettingsFile => Path.Combine(SettingsDirectory, "settings.json");
     public static string LibraryDatabase => Path.Combine(DataDirectory, "library.db");

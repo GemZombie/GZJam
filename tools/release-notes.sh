@@ -34,7 +34,10 @@ cat <<EOF
 | Windows | \`GZJam-$version-windows-x64-setup.exe\` (installs for you alone, no administrator needed), or the \`.zip\` to run without installing |
 | Mac with Apple Silicon (M1 or later) | \`GZJam-$version-macos-arm64.dmg\` |
 | Mac with Intel | \`GZJam-$version-macos-x64.dmg\` |
-| Linux (x64) | \`GZJam-$version-linux-x64.tar.gz\`: unpack it and run \`./install.sh\` |
+| Ubuntu, Mint, Debian (x64) | \`GZJam-$version-linux-x64.deb\`: open it, or \`sudo apt install ./GZJam-$version-linux-x64.deb\` |
+| Fedora, openSUSE (x64) | \`GZJam-$version-linux-x64.rpm\`: \`sudo dnf install ./GZJam-$version-linux-x64.rpm\` |
+| Arch, Manjaro (x64) | \`GZJam-$version-linux-x64.pkg.tar.zst\`: \`sudo pacman -U GZJam-$version-linux-x64.pkg.tar.zst\` |
+| Any other Linux (x64) | \`GZJam-$version-linux-x64.tar.gz\`: unpack it and run \`./install.sh\` |
 
 GZJam isn't signed with a paid certificate, so the first time you open it:
 

@@ -167,6 +167,9 @@ Do each while a song is playing to the room.
 
 ## Linux
 
+- [ ] **The package for the system** (`.deb`, `.rpm` or Arch's `.pkg.tar.zst`): it installs, GZJam
+      appears in the app menu with its icon, and `gzjam` starts it. Removing the package removes
+      GZJam, and keeps its settings and library.
 - [ ] **The tarball:** unpack, `./install.sh`, and GZJam appears in the app menu with its icon and
       description. `./install.sh --uninstall` removes it.
 - [ ] **Outputs** (Settings › Sound): "Default" (through PipeWire or PulseAudio), "Built-in: …"

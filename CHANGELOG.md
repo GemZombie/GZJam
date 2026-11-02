@@ -13,7 +13,19 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 0.9.14.
+New:
+
+- **Linux packages:** each release now has a `.deb` (Ubuntu, Mint, Debian), an `.rpm` (Fedora,
+  openSUSE) and an Arch package (Arch, Manjaro), alongside the `.tar.gz`. Install it as your system
+  installs any package, and remove it the same way; your settings and library stay. Installing a
+  newer one over it upgrades GZJam. If you used `./install.sh` before, run `./install.sh --uninstall`
+  from that folder first, so the menu has one GZJam.
+
+Fixed:
+
+- **On a new Linux account, GZJam keeps its library where it belongs:** if `~/.local/share` didn't
+  exist yet, GZJam kept its library, settings and log in a `GZJam` folder wherever it was started
+  from, and could seem to lose them the next time. Now it makes the usual folders.
 
 ## 0.9.14 (2026-11-01)
 
