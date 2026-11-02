@@ -43,12 +43,17 @@ sed "s|^Exec=.*|Exec=/usr/bin/gzjam|" "$here/gzjam.desktop" > "$pkg/gzjam.deskto
 cp "$root/src/GZJam.App/Assets/gzjam.png" "$pkg/"
 cp "$root/LICENSE" "$pkg/"
 
+# A pre-release (1.0.0-beta.2) becomes 1.0.0~beta.2 in the .deb and .rpm, which sorts before
+# 1.0.0. nFPM leaves it out of the Arch package (1.0.0-1, the same as the release), and Arch
+# versions can't have a "-", so the Arch package gets 1.0.0beta.2: pacman sorts that before
+# 1.0.0 too.
 for packager in deb rpm archlinux; do
+  pkgversion="$version"
   case "$packager" in
     deb) file="$name.deb" ;;
     rpm) file="$name.rpm" ;;
-    archlinux) file="$name.pkg.tar.zst" ;;
+    archlinux) file="$name.pkg.tar.zst"; pkgversion="${version/-/}" ;;
   esac
-  (cd "$pkg" && VERSION="$version" nfpm package --config "$here/nfpm.yaml" --packager "$packager" \
+  (cd "$pkg" && VERSION="$pkgversion" nfpm package --config "$here/nfpm.yaml" --packager "$packager" \
     --target "$out/$file")
 done
