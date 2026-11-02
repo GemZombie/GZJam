@@ -173,9 +173,6 @@ to one you'd use.
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
-- [Import playlists saved as .txt files](https://github.com/GemZombie/GZJam/issues/208), many at
-  once, from an older computer
-
 
 **Playing**
 - [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
