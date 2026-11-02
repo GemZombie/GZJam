@@ -142,7 +142,14 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next:**
+**1.1:**
+- [Play a playlist shuffled](https://github.com/GemZombie/GZJam/issues/254): *Add to queue
+  shuffled*, and *Shuffle queue*
+- [Repeat](https://github.com/GemZombie/GZJam/issues/255): an auto-play option that sends each
+  song back to the end of the queue, so a playlist plays over and over, for classes, practice
+  nights and background music (for tonight only)
+
+**Later:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
