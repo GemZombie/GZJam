@@ -26,7 +26,8 @@ and on Facebook in [GZJam Support and Development](https://www.facebook.com/grou
 | Mac with Apple Silicon (M1 or later) | `GZJam-<version>-macos-arm64.dmg` | Open it and drag GZJam to Applications. |
 | Mac with Intel | `GZJam-<version>-macos-x64.dmg` | The same. |
 | Ubuntu, Mint, Debian (x64) | `GZJam-<version>-linux-x64.deb` | Open it, or `sudo apt install ./GZJam-<version>-linux-x64.deb`. |
-| Fedora, openSUSE (x64) | `GZJam-<version>-linux-x64.rpm` | `sudo dnf install ./GZJam-<version>-linux-x64.rpm` |
+| Fedora (x64) | `GZJam-<version>-linux-x64.rpm` | `sudo dnf install ./GZJam-<version>-linux-x64.rpm` |
+| openSUSE (x64) | `GZJam-<version>-linux-x64.rpm` | `sudo zypper install --allow-unsigned-rpm ./GZJam-<version>-linux-x64.rpm` |
 | Arch, Manjaro (x64) | `GZJam-<version>-linux-x64.pkg.tar.zst` | `sudo pacman -U GZJam-<version>-linux-x64.pkg.tar.zst` |
 | Any other Linux (x64) | `GZJam-<version>-linux-x64.tar.gz` | Unpack it and run `./install.sh` in the folder. |
 
