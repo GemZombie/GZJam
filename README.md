@@ -25,9 +25,14 @@ and on Facebook in [GZJam Support and Development](https://www.facebook.com/grou
 | Windows, without installing | `GZJam-<version>-windows-x64.zip` | Unzip anywhere and run `GZJam.exe`. |
 | Mac with Apple Silicon (M1 or later) | `GZJam-<version>-macos-arm64.dmg` | Open it and drag GZJam to Applications. |
 | Mac with Intel | `GZJam-<version>-macos-x64.dmg` | The same. |
-| Linux (x64) | `GZJam-<version>-linux-x64.tar.gz` | Unpack it and run `./install.sh` in the folder. |
+| Ubuntu, Mint, Debian (x64) | `GZJam-<version>-linux-x64.deb` | Open it, or `sudo apt install ./GZJam-<version>-linux-x64.deb`. |
+| Fedora, openSUSE (x64) | `GZJam-<version>-linux-x64.rpm` | `sudo dnf install ./GZJam-<version>-linux-x64.rpm` |
+| Arch, Manjaro (x64) | `GZJam-<version>-linux-x64.pkg.tar.zst` | `sudo pacman -U GZJam-<version>-linux-x64.pkg.tar.zst` |
+| Any other Linux (x64) | `GZJam-<version>-linux-x64.tar.gz` | Unpack it and run `./install.sh` in the folder. |
 
 Everything GZJam needs comes with it, .NET included. Your music is only ever read, never changed.
+On Linux, a newer package installs over the older one. If you installed GZJam with `./install.sh`
+before, run `./install.sh --uninstall` from that folder first, so the menu has one GZJam.
 
 At startup GZJam asks GitHub whether there's a newer release, and says so in the top bar before
 the music starts. That one request sends nothing about you or your music, and GZJam never
@@ -133,7 +138,7 @@ GitHub Actions, in `.github/workflows`:
   |---|---|
   | Windows | `GZJam-<version>-windows-x64-setup.exe`: installs for the current user, no admin prompt; also a portable `.zip` |
   | macOS | `GZJam-<version>-macos-arm64.dmg` (Apple Silicon) and `-macos-x64.dmg` (Intel) |
-  | Linux | `GZJam-<version>-linux-x64.tar.gz`: run `./install.sh` from it for a launcher entry and a `gzjam` command (`./install.sh --uninstall` removes it) |
+  | Linux | `GZJam-<version>-linux-x64.deb`, `.rpm` and `.pkg.tar.zst` (Arch), made by [nFPM](https://nfpm.goreleaser.com/) from `packaging/linux/nfpm.yaml`: GZJam in `/opt/gzjam`, a `gzjam` command and a launcher entry. Also `GZJam-<version>-linux-x64.tar.gz`, for any other distro: run `./install.sh` from it (`./install.sh --uninstall` removes it) |
 
   The whole routine, with version numbers, fix branches and betas, is in
   [docs/RELEASING.md](docs/RELEASING.md). In short: first rename *Unreleased* in

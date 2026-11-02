@@ -1,7 +1,7 @@
 # Builds GZJam's install packages on each OS, after its tests pass there:
 #   Windows  GZJam-<version>-windows-x64-setup.exe (installer) and a portable .zip
 #   macOS    GZJam-<version>-macos-arm64.dmg (Apple Silicon) and -macos-x64.dmg (Intel)
-#   Linux    GZJam-<version>-linux-x64.tar.gz (with install.sh)
+#   Linux    GZJam-<version>-linux-x64.deb, .rpm and .pkg.tar.zst (Arch), and a .tar.gz (with install.sh)
 #
 # Pushing a version tag (git tag v0.2.0 && git push origin v0.2.0) builds them and drafts a GitHub
 # release with them attached, its notes taken from the version's section of CHANGELOG.md (a tag
@@ -129,8 +129,25 @@ jobs:
             bash packaging/macos/package.sh "publish/osx-$arch" "$VERSION" "$arch" dist
           done
 
+      # nFPM makes the .deb, .rpm and Arch package (packaging/linux/nfpm.yaml). A fixed version,
+      # checked against its published checksum.
+      - name: Install nFPM
+        if: matrix.name == 'linux'
+        env:
+          NFPM_VERSION: 2.48.0
+          NFPM_SHA256: 6d7f9a28b2f397934403950fcbba83f598b08d02edbe79a0815b3b4897341750
+        run: |
+          file="nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz"
+          curl -sSfL --retry 3 -o "$RUNNER_TEMP/$file" \
+            "https://github.com/goreleaser/nfpm/releases/download/v$NFPM_VERSION/$file"
+          echo "$NFPM_SHA256  $RUNNER_TEMP/$file" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$file" -C "$RUNNER_TEMP" nfpm
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
       - name: Package for Linux
         if: matrix.name == 'linux'
+        env:
+          GZJAM_PACKAGES: required
         run: |
           dotnet publish src/GZJam.App $PUBLISH_ARGS -r linux-x64 -o publish/linux-x64
           bash packaging/linux/package.sh publish/linux-x64 "$VERSION" dist

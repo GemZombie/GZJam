@@ -131,7 +131,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 0.9.14.
+- [Linux packages](https://github.com/GemZombie/GZJam/issues/249): a `.deb`, an `.rpm` and an
+  Arch package with each release
+- [On a new Linux account, the library is kept in the usual folder](https://github.com/GemZombie/GZJam/issues/250)
 
 ## Planned next
 
