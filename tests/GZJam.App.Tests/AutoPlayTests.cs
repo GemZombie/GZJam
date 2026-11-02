@@ -476,8 +476,63 @@ public sealed class AutoPlayTests
         for (int i = 0; i < 3; i++)
             auto.FadeAfterUpCommand.Execute(null);
         auto.WaitAfterEach = true;
+        auto.Repeat = true;
         auto.StopAt = new DateTime(2026, 10, 30, 23, 0, 0);
 
-        Assert.Equal($"Fade after 1:30 · Waits after each song · Stops at {auto.StopAt:t}", auto.OptionsText);
+        Assert.Equal($"Fade after 1:30 · Waits after each song · Repeats the queue · Stops at {auto.StopAt:t}", auto.OptionsText);
     }
+
+    [AvaloniaFact]
+    public void With_repeat_each_song_goes_back_to_the_end_of_the_queue_and_it_goes_round()
+    {
+        var (app, auto, tracks) = Setup(queued: 2, gap: 0);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.Repeat = true;
+        auto.IsOn = true;
+        app.Play(0.1);
+
+        Assert.Equal(tracks[0], d1.Track);
+        Assert.Equal(tracks[1], d2.Track);
+        Assert.Equal(tracks, app.ViewModel.Queue.Items.Select(i => i.Track));   // both back at the end
+
+        PlayUntil(app, () => d2.IsPlaying);
+        app.Play(0.1);
+        Assert.Equal(tracks[0], d1.Track);   // round again
+        Assert.True(d1.IsReady);
+        Assert.Equal([tracks[1], tracks[0]], app.ViewModel.Queue.Items.Select(i => i.Track));
+        Assert.Null(app.ViewModel.Notice);   // going round isn't a repeat to warn about (#136)
+    }
+
+    [AvaloniaFact]
+    public void With_repeat_one_song_plays_over_and_over_and_auto_play_carries_on()
+    {
+        var (app, auto, tracks) = Setup(queued: 1, gap: 0);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.Repeat = true;
+        auto.IsOn = true;
+
+        PlayUntil(app, () => d2.IsPlaying);
+        Assert.Equal(tracks[0], d2.Track);
+        Assert.True(auto.IsOn);
+        Assert.Equal("Repeats the queue", auto.OptionsText);
+    }
+
+    [AvaloniaFact]
+    public void With_repeat_a_song_loaded_from_the_queue_by_hand_goes_to_its_end()
+    {
+        using var app = new AppHarness();
+        var queue = app.ViewModel.Queue;
+        var songs = app.Library.Results.Take(3).ToList();
+        queue.Add(songs);
+
+        queue.Loaded([queue.Items[0]]);
+        Assert.Equal(songs.Skip(1), queue.Items.Select(i => i.Track));   // off: it leaves
+
+        app.ViewModel.AutoPlay!.Repeat = true;
+        queue.Loaded([queue.Items[0]]);
+        Assert.Equal([songs[2], songs[1]], queue.Items.Select(i => i.Track));
+    }
+
 }

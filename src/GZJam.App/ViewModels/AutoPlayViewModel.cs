@@ -116,6 +116,14 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     public partial bool WaitAfterEach { get; set; }
 
     /// <summary>
+    /// The queue goes round (#255): each song taken from it for a deck goes back to its end, so a
+    /// playlist plays over and over, for classes, practice nights and background music. Not
+    /// remembered: a queue that loops, at a dance next week, would be a surprise.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool Repeat { get; set; }
+
+    /// <summary>
     /// Auto-play finishes the song playing at this time, then stops, so the night ends on time
     /// (#100). Null: it doesn't. Not remembered: it's for tonight.
     /// </summary>
@@ -168,6 +176,13 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         Changed();
     }
 
+    partial void OnRepeatChanged(bool value)
+    {
+        _queue.Repeat = value;
+        Log.Info(value ? "Auto-play: repeats the queue" : "Auto-play: plays the queue once");
+        Changed();
+    }
+
     partial void OnStopAtChanged(DateTime? value)
     {
         Log.Info(value is { } at ? $"Auto-play: stops after the song playing at {ClockTime(at)}" : "Auto-play: no stop time");
@@ -175,11 +190,12 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         Changed();
     }
 
-    /// <summary>The options that are set, e.g. "Fade after 1:30 · Waits after each song · Stops at 11:00 PM".</summary>
+    /// <summary>The options that are set, e.g. "Fade after 1:30 · Waits after each song · Repeats the queue · Stops at 11:00 PM".</summary>
     public string OptionsText => string.Join(" · ", new[]
     {
         IsFadeAfterOn ? $"Fade after {FadeAfterText}" : null,
         WaitAfterEach ? "Waits after each song" : null,
+        Repeat ? "Repeats the queue" : null,
         StopAt is { } at ? $"Stops at {ClockTime(at)}" : null,
     }.OfType<string>());
 
@@ -358,7 +374,10 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         LoadNextOnto(next);
     }
 
-    /// <summary>Loads the top of the queue onto a deck, skipping tracks that won't open.</summary>
+    /// <summary>
+    /// Loads the top of the queue onto a deck, skipping tracks that won't open (which leave the
+    /// queue even with Repeat, so a queue of songs that won't open can't go round for ever).
+    /// </summary>
     private void LoadNextOnto(DeckViewModel deck)
     {
         while (_queue.TakeNext() is Track track)
@@ -366,6 +385,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             try
             {
                 deck.Load(track);
+                _queue.Took(track);   // with Repeat, back to the end of the queue
                 return;
             }
             catch (AudioException ex)

@@ -43,6 +43,12 @@ public sealed partial class QueueViewModel : ObservableObject
 
     public ObservableCollection<QueueItem> Items { get; } = [];
 
+    /// <summary>
+    /// Repeat (#255), set from auto-play's options: a song taken from the queue for a deck goes
+    /// back to its end (<see cref="Took"/>), so the queue goes round and a playlist plays over and over.
+    /// </summary>
+    public bool Repeat { get; set; }
+
     public bool IsEmpty => Items.Count == 0;
 
     public string Summary
@@ -80,6 +86,59 @@ public sealed partial class QueueViewModel : ObservableObject
         Track track = Items[0].Track;
         Items.RemoveAt(0);
         return track;
+    }
+
+    /// <summary>A song taken from the queue is on a deck now: with <see cref="Repeat"/>, it goes back to the end.</summary>
+    public void Took(Track track)
+    {
+        if (Repeat)
+            Items.Add(new QueueItem(track));
+    }
+
+    /// <summary>Songs loaded from the queue onto a deck: they leave it (or, with <see cref="Repeat"/>, go to its end).</summary>
+    public void Loaded(IReadOnlyList<QueueItem> items)
+    {
+        Remove(items);
+        foreach (QueueItem item in items)
+            Took(item.Track);
+    }
+
+    /// <summary>
+    /// Puts the queue in a random order (#254), never the order it was in when there are two or
+    /// more songs. Returns the order before, for <see cref="Reorder"/> to undo it.
+    /// </summary>
+    public IReadOnlyList<QueueItem> Shuffle(Random? random = null)
+    {
+        random ??= Random.Shared;
+        var before = Items.ToList();
+        if (before.Count < 2)
+            return before;
+        QueueItem[] order;
+        do
+        {
+            order = [.. before];
+            random.Shuffle(order);
+        }
+        while (order.SequenceEqual(before));
+        Reorder(order);
+        return before;
+    }
+
+    /// <summary>
+    /// Puts the songs in <paramref name="order"/> in that order, at the top; any added since go
+    /// after them, as they were. Songs taken out since stay out.
+    /// </summary>
+    public void Reorder(IReadOnlyList<QueueItem> order)
+    {
+        var present = Items.ToHashSet();
+        var ordered = order.ToHashSet();
+        var wanted = order.Where(present.Contains).Concat(Items.Where(i => !ordered.Contains(i))).ToList();
+        for (int i = 0; i < wanted.Count; i++)
+        {
+            int at = Items.IndexOf(wanted[i]);
+            if (at != i)
+                Items.Move(at, i);
+        }
     }
 
     /// <summary>Moves items to a new position, keeping their relative order. <paramref name="index"/> is in terms of the list before the move.</summary>

@@ -113,6 +113,12 @@ public partial class MainWindow
             Vm.AddPlaylistToQueue(playlist);
     }
 
+    private void OnPlaylistToQueueShuffledClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.Library.SelectedPlaylist is { } playlist)
+            Vm.AddPlaylistToQueue(playlist, shuffled: true);
+    }
+
     private void OnRenameOpenPlaylistClick(object? sender, RoutedEventArgs e)
     {
         if (Vm.Library.SelectedPlaylist is { } playlist)
@@ -131,6 +137,12 @@ public partial class MainWindow
     {
         if (PlaylistOf(sender) is { } playlist)
             Vm.AddPlaylistToQueue(playlist);
+    }
+
+    private void OnPlaylistItemToQueueShuffledClick(object? sender, RoutedEventArgs e)
+    {
+        if (PlaylistOf(sender) is { } playlist)
+            Vm.AddPlaylistToQueue(playlist, shuffled: true);
     }
 
     private void OnRenamePlaylistItemClick(object? sender, RoutedEventArgs e)

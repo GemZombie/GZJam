@@ -379,6 +379,8 @@ public partial class MainWindow : Window
 
     private void OnQueueRemoveClick(object? sender, RoutedEventArgs e) => Vm.Queue.Remove(SelectedQueueItems());
 
+    private void OnQueueShuffleClick(object? sender, RoutedEventArgs e) => Vm.ShuffleQueue();
+
     private void OnQueueClearClick(object? sender, RoutedEventArgs e) => Vm.Queue.Clear();
 
     // ───────────── Library folders ─────────────
