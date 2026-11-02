@@ -160,10 +160,10 @@ GitHub Actions, in `.github/workflows`:
   *Run workflow* builds test packages without a release; they're kept with the run for 14 days.
 
   **Version numbers:** every release build gets a new one; a tag is never moved or reused, even
-  for a draft nobody has seen. The patch number is for fixes only (0.2.0 → 0.2.1), the minor
-  number for anything new (0.2.x → 0.3.0), and 1.0 for when GZJam is ready for any DJ to pick up.
+  for a draft nobody has seen. The patch number is for fixes only (1.0.0 → 1.0.1), the minor
+  number for anything new (1.0.x → 1.1.0); [docs/RELEASING.md](docs/RELEASING.md) has the rest.
   After a release, `VersionPrefix` in `src/GZJam.App/GZJam.App.csproj` goes up to the next minor
-  version, so builds made in between read "0.3.0-dev". A test fails until it does
+  version, so builds made in between read "1.1.0-dev". A test fails until it does
   (`A_build_made_here_is_ahead_of_the_newest_release`).
 
 Uninstalling never removes settings, the library database or the DJ's data, and never touches music.

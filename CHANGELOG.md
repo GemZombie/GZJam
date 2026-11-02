@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.0.0.
+
+## 1.0.0 (2026-11-02)
+
+GZJam is 1.0: ready for your next dance, on Windows, Mac and Linux. From here on, fixes come as
+1.0.1, 1.0.2 and so on, and new features as 1.1. What's next:
+[the roadmap](https://github.com/GemZombie/GZJam/blob/main/ROADMAP.md).
+
 New:
 
 - **Linux packages:** each release now has a `.deb` (Ubuntu, Mint, Debian), an `.rpm` (Fedora,

@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 0.9.14** (1 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.0.0** (2 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -116,6 +116,8 @@ release.
   Mac).
 - On Windows and Mac, GZJam's own bar is the window's title bar, leaving more room for the decks
   and library.
+- Installs as each system expects: an installer (or a `.zip`) on Windows, a `.dmg` on Mac, and on
+  Linux a `.deb`, an `.rpm` or an Arch package, or a `.tar.gz` for any other.
 - GZJam says quietly, at startup, when a new version is out (never during a set), and a
   [user guide](docs/GUIDE.md) covers everything, from your first song to plugging into the venue's
   mixer or PA and a checklist for the night.
@@ -131,25 +133,16 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-- [Linux packages](https://github.com/GemZombie/GZJam/issues/249): a `.deb`, an `.rpm` and an
-  Arch package with each release
-- [On a new Linux account, the library is kept in the usual folder](https://github.com/GemZombie/GZJam/issues/250)
+Nothing yet since 1.0.0.
 
 ## Planned next
 
-**1.0: a reliable night, everywhere. GZJam is there.** Everything planned for 1.0 is built and
-tested: on Linux with a sound card used directly, the booth output and the splitter cable by ear, a library of 50-60
-thousand songs, and a real night with dancers, as well as
-[the checklist on a real Mac](https://github.com/GemZombie/GZJam/issues/18),
-[on a Windows touch-screen laptop](https://github.com/GemZombie/GZJam/issues/94), and an hour's
-mock night on Windows and on Mac.
-
-What's left is a short wait for reports from DJs using the latest release. Any bug worth fixing
-before 1.0 gets fixed; then it's 1.0 officially. Found something? Say so in
+**1.0 is out** (2 November 2026): ready for your next dance, on Windows, Mac and Linux. From here
+on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**After 1.0:**
+**Next:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
