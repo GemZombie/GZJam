@@ -150,8 +150,10 @@ public sealed class ScreenshotTests
         Assert.True(filter.Flyout!.IsOpen, "BPM filter menu didn't open");
         app.Screenshot("11-bpm-filter");
         filter.Flyout.Hide();
+        // The pointer off the buttons, so no tooltip or hover is half drawn over the list
+        app.Window.MouseMove(new Avalonia.Point(app.Window.Bounds.Width - 20, app.Window.Bounds.Height - 20), RawInputModifiers.None);
         library.SearchText = "~bpm:180 -rating:no";
-        AppHarness.Settle();
+        AppHarness.Settle(600);
         app.Screenshot("12-bpm-filtered");
 
         // Suggestions as you type, the Filter button, and the cheat sheet (#241).
