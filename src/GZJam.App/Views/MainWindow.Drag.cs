@@ -137,11 +137,11 @@ public partial class MainWindow
         {
             case DeckView { DataContext: DeckViewModel deck } when drag.Tracks is [var track]:
                 if (await Vm.LoadToDeckAsync(deck, track) && drag.FromQueue is { } fromQueue)
-                    Vm.Queue.Remove(fromQueue);
+                    Vm.Queue.Loaded(fromQueue);
                 break;
             case Border { DataContext: DeckViewModel rowDeck } when drag.Tracks is [var rowTrack]:
                 if (await Vm.LoadToDeckAsync(rowDeck, rowTrack) && drag.FromQueue is { } fromQueueToRow)
-                    Vm.Queue.Remove(fromQueueToRow);
+                    Vm.Queue.Loaded(fromQueueToRow);
                 break;
             case Panel when target == QueueArea:
                 int index = DropIndex(queuePoint, out _);

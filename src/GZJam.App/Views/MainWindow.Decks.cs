@@ -271,6 +271,7 @@ public partial class MainWindow
         UpdateLoadMenuItems([QueueLoad1, QueueLoad2, QueueLoad3, QueueLoad4], SelectedQueueItems().Count == 1);
         var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
         QueueEqItem.IsEnabled = tracks.Count == 1;
+        QueueShuffleItem.IsEnabled = Vm.Queue.Items.Count > 1;
         MarksMenu.FillRating(QueueRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);
         LabelsMenu.Fill(QueueLabelsMenu, Vm, tracks);
@@ -304,7 +305,7 @@ public partial class MainWindow
     {
         if (SelectedQueueItems() is [var item] && DeckAt(int.Parse((string)((MenuItem)sender!).Tag!)) is { } deck
             && await Vm.LoadToDeckAsync(deck, item.Track))
-            Vm.Queue.Remove([item]);   // loaded: it's no longer waiting in the queue
+            Vm.Queue.Loaded([item]);   // loaded: it's no longer waiting in the queue (with Repeat, it goes to the end)
     }
 
     // ───────────── Headphone preview ─────────────

@@ -574,9 +574,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Adds a playlist's songs to the end of the queue (from row <paramref name="from"/> on, if
-    /// given), never replacing what's there. Songs no longer in the library are skipped.
+    /// given), never replacing what's there; in a random order if <paramref name="shuffled"/>
+    /// (#254). Songs no longer in the library are skipped.
     /// </summary>
-    public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null)
+    public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null, bool shuffled = false)
     {
         // A song whose file is missing stays behind: it couldn't play (#237).
         var songs = _database.Search(null, playlist: playlist.Id).Where(t => !t.IsMissing).ToList();
@@ -591,13 +592,29 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             foreach (Track track in shown)
                 track.IsPlayedTonight = track.LastPlayedUtc >= since;
         }
+        if (shuffled)
+            Random.Shared.Shuffle(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(shown));
         var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
         var repeats = Queue.Add(shown).Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
-        Log.Info($"Playlist \"{playlist.Name}\" added to the queue: {shown.Count} songs{(from is null ? "" : $" from number {from.PlaylistNumber}")}");
+        Log.Info($"Playlist \"{playlist.Name}\" added to the queue{(shuffled ? ", shuffled" : "")}: {shown.Count} songs{(from is null ? "" : $" from number {from.PlaylistNumber}")}");
         if (repeats.Count > 0)
             NoticeRepeatsInQueue(repeats, shown.Count, earlier);
         else
-            ShowNotice(shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue");
+            ShowNotice((shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue") + (shuffled && shown.Count > 1 ? ", shuffled" : ""));
+    }
+
+    /// <summary>Puts the queue in a random order (#254), with Undo to put it back.</summary>
+    public void ShuffleQueue()
+    {
+        if (Queue.Items.Count < 2)
+            return;
+        var before = Queue.Shuffle();
+        Log.Info($"Queue shuffled: {before.Count} songs");
+        ShowNotice($"Queue shuffled: {before.Count} songs", 6, undo: () =>
+        {
+            Queue.Reorder(before);
+            Log.Info("Queue put back in the order it was in before shuffling");
+        });
     }
 
     private DateTime? TonightSince() => History.CurrentSessionStartUtc;

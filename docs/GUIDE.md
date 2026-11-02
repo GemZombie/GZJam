@@ -376,7 +376,8 @@ join the playlist, not your library, so your collection stays as you've curated 
 file has been moved or deleted stays in the playlist, grayed out as missing, and is left out when
 the playlist goes into the queue. Open it to see it in order: drag to reorder,
 Delete to take a song out (the file isn't touched). **Add to queue** puts the whole playlist in the
-queue; right-click a song › *Add to queue from here* puts the rest. The queue's menu has *Save queue
+queue; right-click a song › *Add to queue from here* puts the rest. For a random order, a
+playlist's right-click menu (or the ⋯ beside *Add to queue*) has **Add to queue shuffled**. The queue's menu has *Save queue
 as playlist…*, and History's ⋯ has *Save as playlist…*.
 
 **More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
@@ -437,9 +438,11 @@ The queue is tonight's list of songs to come.
   Stockings" is in the queue already (5th)*), with **Undo** to take the new copy out again. The same
   goes for a playlist.
 - **Reordering:** drag a row by its ⋮⋮ grip. Right-click › *Move to top*, *Remove*, *Clear queue*.
+  *Shuffle queue* puts it in a random order, with **Undo** in the top bar to put it back.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
-- **Loading from it:** drag a queued song onto a deck; it leaves the queue.
+- **Loading from it:** drag a queued song onto a deck; it leaves the queue (with *Repeat*, it goes
+  to the end).
 - **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
   and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
   time. Album, genre, year and played start off; they fit best in a queue given the room with
@@ -466,12 +469,16 @@ and cue it in the headphones.
     moves to it, but it waits: *Deck 2 is ready: press play*. Press play on it when you (or the
     teacher) are ready, and auto-play carries on from there. Turn it off while a song is waiting
     and that song starts.
+  - **Repeat:** each song goes back to the end of the queue as it's loaded onto a deck, so the
+    queue goes round and a playlist plays over and over: for a class, a practice night or music
+    between sets. With **Add to queue shuffled**, it's a shuffled playlist on repeat. *Stop at*
+    still ends the night.
   - **Stop at** (*Off*, or a time, every quarter hour for the next 8 hours): the song playing then
     is the last; auto-play turns itself off when it ends, and says so.
-  - *Wait for me* and *Stop at* are for tonight: they're off again the next time you open GZJam,
-    so a dance next week isn't left waiting or cut short.
+  - *Wait for me*, *Repeat* and *Stop at* are for tonight: they're off again the next time you
+    open GZJam, so a dance next week isn't left waiting, looping or cut short.
 - **Turning auto-play off** never touches the song that's playing: it only stops the next one
-  starting. It turns itself off, with a notice, when the queue runs out.
+  starting. It turns itself off, with a notice, when the queue runs out (never, with *Repeat*).
 - During the gap, grabbing the crossfader stops its glide; the next song still starts.
 
 ---

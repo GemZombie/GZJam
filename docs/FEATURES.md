@@ -245,6 +245,13 @@ is out of scope until it earns a place.
 - **Stop at:** checked when the room's song ends: past the time, auto-play turns off with a
   notice and the stop time clears. Neither is saved in settings: forgotten, either would surprise
   a DJ at the next dance (a silence, or the night cut short).
+- **Repeat** (#255, 1.1): a switch in the options, after *Wait for me*. Each song taken from the
+  queue for a deck goes back to its end (`QueueViewModel.Repeat`, `Took`, `Loaded`), so the queue
+  goes round and a playlist plays over and over, for classes, practice nights and background
+  music. By auto-play and by hand alike: dragging, the menus' *Load to Deck* and the load keys.
+  A song that won't open still leaves the queue, so a queue of broken files can't go round for
+  ever. Going round doesn't bring up the "in the queue already" notice. Not saved, like the two
+  above: a queue that loops at next week's dance would be a surprise. Shows as *Repeats the queue*.
 
 ### Changed after the first hardware test (2026-10-20)
 
@@ -273,7 +280,13 @@ is out of scope until it earns a place.
 ## Queue as a crate
 
 - In manual DJing the queue is a "box" of songs being considered. Tracks can be dragged (or
-  right-click loaded) from it onto a deck; once loaded they leave the queue, as with auto-play.
+  right-click loaded) from it onto a deck; once loaded they leave the queue, as with auto-play
+  (or, with Repeat, go to its end).
+- **Shuffle** (#254, 1.1): rather than a hidden shuffle mode, songs go into the queue shuffled, so
+  what's next stays in sight, can be reordered and cued. A playlist's right-click menu and the open
+  playlist's ⋯ have *Add to queue shuffled*; the queue's menu has *Shuffle queue* (never the same
+  order again, with two or more songs), with **Undo** in the top bar for 6 s. Undo puts the songs
+  back in the order they were; any added since stay after them, any taken out stay out.
 
 ## History
 

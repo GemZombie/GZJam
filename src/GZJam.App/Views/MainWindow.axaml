@@ -380,6 +380,8 @@
                     <Grid.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
+                        <MenuItem Header="Add to queue shuffled" Click="OnPlaylistItemToQueueShuffledClick"
+                                  ToolTip.Tip="Add every song in this playlist to the end of the queue, in a random order" />
                         <MenuItem Header="Export as files…" Click="OnExportPlaylistClick"
                                   ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
                         <Separator />
@@ -501,9 +503,12 @@
               <Button x:Name="PlaylistToQueueButton" Grid.Column="2" Classes="eq-action" Click="OnPlaylistToQueueClick"
                       ToolTip.Tip="Add every song in this playlist to the end of the queue" Content="Add to queue" />
               <Button x:Name="PlaylistMoreButton" Grid.Column="3" Classes="eq-action" Content="⋯" Padding="10,5"
-                      ToolTip.Tip="Rename or delete this playlist">
+                      ToolTip.Tip="Add it to the queue shuffled, rename or delete this playlist">
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem x:Name="PlaylistToQueueShuffledItem" Header="Add to queue shuffled" Click="OnPlaylistToQueueShuffledClick"
+                              ToolTip.Tip="Add every song in this playlist to the end of the queue, in a random order" />
+                    <Separator />
                     <MenuItem Header="Rename…" Click="OnRenameOpenPlaylistClick" />
                     <MenuItem Header="Delete…" Click="OnDeleteOpenPlaylistClick" />
                   </MenuFlyout>
@@ -735,9 +740,9 @@
                 <Button c:FitRow.DropOrder="2" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
 
                 <!-- For classes and practice nights: fade each song after a while, wait for the
-                     teacher between songs, stop at a set time (#98, #100) -->
+                     teacher between songs, repeat the queue, stop at a set time (#98, #100, #255) -->
                 <Button x:Name="AutoPlayOptionsButton" c:FitRow.DropOrder="3" Classes="hw step" Content="⋯" FontSize="14"
-                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, stop at a set time">
+                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, repeat the queue, stop at a set time">
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel" Opening="OnAutoPlayOptionsOpening">
                       <StackPanel Width="270" Spacing="12">
@@ -760,6 +765,13 @@
                             <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="The next song is lined up; press play when you're ready" />
                           </StackPanel>
                           <ToggleButton x:Name="WaitAfterEachSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding WaitAfterEach}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <StackPanel Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="setting" Text="Repeat" />
+                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="Each song goes back to the end of the queue, so it plays over and over" />
+                          </StackPanel>
+                          <ToggleButton x:Name="RepeatSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Repeat}" />
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                           <StackPanel Spacing="1" VerticalAlignment="Center">
@@ -1068,6 +1080,8 @@
                   <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />
                   <MenuItem Header="Export as files…" Click="OnExportQueueClick"
                             ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
+                  <MenuItem x:Name="QueueShuffleItem" Header="Shuffle queue" Click="OnQueueShuffleClick"
+                            ToolTip.Tip="Put the queue in a random order (Undo puts it back)" />
                   <MenuItem Header="Clear queue" Click="OnQueueClearClick" />
                 </ContextMenu>
               </ListBox.ContextMenu>

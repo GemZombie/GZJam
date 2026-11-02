@@ -82,7 +82,7 @@ public partial class MainWindow
             if (SelectedQueueItems() is [var item])
             {
                 if (await Vm.LoadToDeckAsync(deck, item.Track))
-                    Vm.Queue.Remove([item]);
+                    Vm.Queue.Loaded([item]);
             }
             else
             {
