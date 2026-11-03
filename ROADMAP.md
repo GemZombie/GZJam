@@ -149,6 +149,10 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **Next:**
+- [Play a playlist](https://github.com/GemZombie/GZJam/issues/259) in one step (1.1): *Play* or
+  *Play shuffled* replaces the queue and starts auto-play, with Undo
+- [Double-click a song](https://github.com/GemZombie/GZJam/issues/260) (1.1) to load it onto the
+  deck the room isn't hearing (with auto-play on: *Play next*), never the one on air
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
