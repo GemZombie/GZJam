@@ -1499,6 +1499,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>Library columns the DJ has hidden (by header); changed by the column menu, saved with the settings.</summary>
     public List<string> HiddenColumns => _settings.HiddenColumns;
+
+    /// <summary>The tags shown as library columns, by key (#119).</summary>
+    public List<string> TagColumns => _settings.TagColumns;
     public List<string> HiddenQueueColumns => _settings.HiddenQueueColumns;
 
     /// <summary>Copies state worth remembering into the settings before they're saved.</summary>

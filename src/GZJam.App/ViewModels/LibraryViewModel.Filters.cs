@@ -32,9 +32,17 @@ public sealed partial class LibraryViewModel
             return cached;
         IReadOnlyList<ValueCount> values = field.Equals("label", StringComparison.OrdinalIgnoreCase)
             ? _database.GetLabels().Select(l => new ValueCount(l.Name, l.Count)).ToList()
-            : LibraryDatabase.SuggestedFields.Contains(field) ? _database.GetFieldValues(field) : [];
+            : LibraryDatabase.SuggestedFields.Contains(field) ? _database.GetFieldValues(field)
+            : TagNames().Any(t => t.Key == field.ToLowerInvariant()) ? _database.GetTagValues(field.ToLowerInvariant())
+            : [];
         return _suggestionValues[field] = values;
     }
+
+    /// <summary>
+    /// The other tags the library's songs have (#119), most songs first: for the column menu and
+    /// the suggestions. Kept by the library until the songs change.
+    /// </summary>
+    public IReadOnlyList<TagName> TagNames() => _database.GetTagNames();
 
     /// <summary>The decades the library's songs come from, for Filter › Year.</summary>
     public IReadOnlyList<ValueCount> Decades() => _database.GetDecades();

@@ -133,7 +133,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-To try them now: [1.1.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.1.0-beta.1).
+**In 1.1,** to try now in [1.1.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.1.0-beta.1):
 
 - [Play a playlist shuffled](https://github.com/GemZombie/GZJam/issues/254): *Add to queue
   shuffled*, and *Shuffle queue*
@@ -149,6 +149,10 @@ To try them now: [1.1.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/
 - [A song bumped off the waiting deck goes back to the top of the queue](https://github.com/GemZombie/GZJam/issues/261):
   with auto-play on, change the very next song without losing the one you had ready
 
+**In 1.2:**
+- [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
+  ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
+
 ## Planned next
 
 **1.0 is out** (2 November 2026): ready for your next dance, on Windows, Mac and Linux. From here
@@ -160,8 +164,6 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
-- [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
-  only the usual ones (a dance in a custom tag, the composer)
 - [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
   only, or written to the files too if you turn that on
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)

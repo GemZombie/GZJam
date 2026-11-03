@@ -1602,6 +1602,39 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
+### Status: every tag in the song files (#119, 1.2)
+
+- Asked by an evaluator ("display and filter by any non-standard tag") and DJs, first in a
+  Facebook group vote. Ballroom DJs often keep the dance in a custom tag (#103).
+- **Read, not chosen:** the issue suggested choosing tags to read in Settings. Instead every tag is
+  read (`SongTags.Read`), so the column menu can offer what the library actually has, and nothing
+  needs setting up or a rescan when a DJ wants another. `TagReader.Version` 5: the next scan
+  reads every song again, once.
+- **Each format:** ID3 TXXX by description and a list of known frames (TCOM, TPE3, TMOO, TKEY...;
+  MVNM, unknown to TagLib#, through `FrameText`), Vorbis comments, M4A freeform `----` tags by
+  name and a few atoms (©wrt, ©wrk...), APE text items, WMA (`WM/` stripped). One tag however it's
+  spelled: `SongTags.Names` maps keys (a name's letters and digits, lowercase) to the name shown
+  (INITIALKEY and TKEY are "Key"; LABEL and ORGANIZATION "Publisher", so it can't be mistaken
+  for GZJam's own labels). The first spelling found in a file wins.
+- **Left out:** the tags GZJam has columns for, tags for programs (MusicBrainz, ReplayGain,
+  AcoustID, encoders, sort names, iTunes' iTunNORM..., names ending in "id"), values over 500
+  characters (lyrics, cue sheets, rip logs), at most 40 per song. Names are tidied: all capitals
+  or all lowercase become "Band leader"; mixed case stays as written.
+- **Kept** in `tracks.tags` (names and values) and `tracks.tag_text` (values only, in the
+  full-text index, so plain words find them, ranked with Grouping, and `mood` doesn't find every
+  song with a Mood). Upgrade 22 adds both and remakes the index. It only adds, so `OldestReader`
+  stays 19 and 1.1 opens the library; songs it writes keep their old tags until the next scan here.
+- **Search:** `key:words` for any tag the library has (`LibraryDatabase.GetTagNames`, kept until
+  the songs change); the full-text index narrows to songs with the words in some tag, then
+  `gz_tag_matches` (a function registered on each connection, `SongTags.Matches`) checks it's in
+  that tag, with the index's rules: word starts, any case, accents ignored, phrases in quotes.
+  GZJam's own filters win over a tag of the same name. A tag no song has is plain words, as
+  before. Suggestions offer tag names and their values.
+- **Columns:** the column menu's *Tags in your songs* lists the most used (12), the rest under
+  *More tags*; chosen ones are `AppSettings.TagColumns`, by key, added in code before Year, sorted
+  with a `CustomSortComparer`. A tag sharing a name with one of GZJam's columns is "Energy (tag)".
+- Not in the queue's parts, *Search only in* or exports yet.
+
 ### Status: hidden decks atop the queue (#177, 0.9.4)
 
 - A DJ's suggestion after trying hidden decks (#164): the line at the top said what's playing and

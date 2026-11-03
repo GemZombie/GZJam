@@ -44,7 +44,7 @@ public partial class MainWindow
             return;
         }
         string text = SearchBox.Text ?? "";
-        var list = SearchSuggestions.For(text, SearchBox.CaretIndex, Vm.Library.SuggestionValues);
+        var list = SearchSuggestions.For(text, SearchBox.CaretIndex, Vm.Library.SuggestionValues, Vm.Library.TagNames());
         if (list is null)
         {
             CloseSuggestions();

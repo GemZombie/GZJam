@@ -59,10 +59,13 @@ public static class SearchSuggestions
     /// <summary>
     /// What to suggest for the word that ends at <paramref name="caret"/> in <paramref name="text"/>,
     /// or null for nothing (the list stays closed). <paramref name="values"/> gives what the library
-    /// holds for a field ("label", "artist", "genre"...), most useful first.
+    /// holds for a field ("label", "artist", "genre"...), most useful first. <paramref name="tags"/>
+    /// are the song files' other tags (#119), offered as filters too (<c>da</c> offers <c>dance:</c>).
     /// </summary>
-    public static SearchSuggestionList? For(string text, int caret, Func<string, IReadOnlyList<ValueCount>> values)
+    public static SearchSuggestionList? For(string text, int caret, Func<string, IReadOnlyList<ValueCount>> values,
+        IReadOnlyList<TagName>? tags = null)
     {
+        tags ??= [];
         if (caret < 0 || caret > text.Length || (caret < text.Length && !char.IsWhiteSpace(text[caret])))
             return null;   // only at the end of a word
         int start = WordStart(text, caret);
@@ -81,8 +84,8 @@ public static class SearchSuggestions
 
         int colon = core.IndexOf(':');
         var items = colon < 0
-            ? FilterNames(core, near: prefix.EndsWith('~'), prefix)
-            : Values(core[..colon].ToLowerInvariant(), core[(colon + 1)..], prefix, values);
+            ? FilterNames(core, near: prefix.EndsWith('~'), prefix, tags)
+            : Values(core[..colon].ToLowerInvariant(), core[(colon + 1)..], prefix, values, tags);
         return items.Count == 0 ? null : new SearchSuggestionList(items, start, word.Length);
     }
 
@@ -114,19 +117,31 @@ public static class SearchSuggestions
         return quoted ? -1 : start;
     }
 
-    private static List<SearchSuggestion> FilterNames(string typed, bool near, string prefix)
+    private static List<SearchSuggestion> FilterNames(string typed, bool near, string prefix, IReadOnlyList<TagName> tags)
     {
         if (typed.Length < MinNameLength && !near)
             return [];
-        return Filters
+        var names = Filters
             .Where(f => (!near || f.Name == "bpm") && f.Name.StartsWith(typed, StringComparison.OrdinalIgnoreCase))
             .Select(f => near
                 ? new SearchSuggestion("~bpm:", "near a BPM, as far as the tempo slider reaches", Insert: prefix + "bpm:")
                 : new SearchSuggestion(f.Name + ":", f.Detail, Insert: prefix + f.Name + ":"))
             .ToList();
+        if (!near)
+        {
+            names.AddRange(tags
+                .Where(t => t.Key.StartsWith(typed, StringComparison.OrdinalIgnoreCase) && !IsFilter(t.Key))
+                .Take(MaxValues)
+                .Select(t => new SearchSuggestion(t.Key + ":", $"only the {t.Name} tag", t.Count, Insert: prefix + t.Key + ":")));
+        }
+        return names;
     }
 
-    private static List<SearchSuggestion> Values(string field, string typed, string prefix, Func<string, IReadOnlyList<ValueCount>> values)
+    private static bool IsFilter(string name) =>
+        Filters.Any(f => f.Name == name) || name is "labels" || Choices.ContainsKey(name) || Hints.ContainsKey(name);
+
+    private static List<SearchSuggestion> Values(string field, string typed, string prefix, Func<string, IReadOnlyList<ValueCount>> values,
+        IReadOnlyList<TagName> tags)
     {
         if (typed.Length > 1 && typed.StartsWith('"') && typed.EndsWith('"'))
             return [];   // a quoted value, finished
@@ -141,7 +156,7 @@ public static class SearchSuggestions
         else if (field is "label" or "labels")
             candidates = values("label").Select(v => new SearchSuggestion(v.Value, Count: v.Count))
                 .Append(new SearchSuggestion("none", "songs without a label"));
-        else if (LibraryDatabase.SuggestedFields.Contains(field))
+        else if (LibraryDatabase.SuggestedFields.Contains(field) || !IsFilter(field) && tags.Any(t => t.Key == field))
             candidates = values(field).Select(v => new SearchSuggestion(v.Value, Count: v.Count));
         else
             return [];
