@@ -1611,6 +1611,10 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   the queue and History (one song selected), or Ctrl+I (Cmd+I, the Mac's Get Info) for the one
   selected where the keyboard is. Not modal, so the decks are a click away; one at a time, another
   song's replacing it (`MainWindow.ShowSongInfo`).
+- **Layout:** a header with the cover art, the title and artist, and a line of what a DJ looks
+  for first (BPM · length · format · rating · energy); below, two columns, so most songs need no
+  scrolling: the tags on the left (the part that becomes editable in step 2), the file and what
+  GZJam knows on the right.
 - **Tags:** GZJam's own fields (empty ones a faint dash), then the song's other tags as the
   library keeps them (#119).
 - **Show all tags** (`AppSettings.ShowAllTags`): the ones the library leaves out, read from the
@@ -1618,7 +1622,7 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   names the file gives them (`REPLAYGAIN_TRACK_GAIN`; ID3 frames and M4A atoms named, TSSE is
   "Encoder settings"), values cut off at 400 characters. `SongTags.Visit` walks every format's
   tags for both this and `Read`.
-- **File:** the path (selectable, *Show in Explorer*), the kind of audio as DJs say it (AAC and
+- **File:** the path (on one line, cut at the start so the file name shows; all of it on hover), the kind of audio as DJs say it (AAC and
   Apple Lossless rather than M4A; bits for lossless, kbps for the rest, "(variable)" for a VBR
   MP3), the sample rate, mono or stereo, length, size, when it changed.
 - **In GZJam:** BPM and where it came from (typed, the tag's, detected, in a range), rating,

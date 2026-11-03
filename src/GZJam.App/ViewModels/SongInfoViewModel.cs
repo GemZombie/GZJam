@@ -46,6 +46,7 @@ public sealed partial class SongInfoViewModel : ObservableObject
         File = FileRows(null);
         InGZJam = GZJamRows();
         Problem = track.IsMissing || !System.IO.File.Exists(track.Path) ? "The file isn't there any more." : null;
+        Summary = SummaryText(null);
     }
 
     public Track Track { get; }
@@ -54,6 +55,13 @@ public sealed partial class SongInfoViewModel : ObservableObject
     public string Heading => Track.DisplayTitle;
 
     public string? Artist => Track.Artist;
+
+    /// <summary>Under the title, what a DJ looks for first: "225 BPM · 3:48 · MP3 128 kbps · ♥ · High energy".</summary>
+    [ObservableProperty]
+    public partial string Summary { get; private set; }
+
+    /// <summary>The cover art's cache, for the header.</summary>
+    public AlbumArtCache Art => _main.Art;
 
     /// <summary>GZJam's own fields for the tags every player knows.</summary>
     public IReadOnlyList<InfoRow> Tags { get; }
@@ -119,11 +127,30 @@ public sealed partial class SongInfoViewModel : ObservableObject
             else
             {
                 File = FileRows(file);
+                Summary = SummaryText(file);
                 LeftOutTags = [.. file.LeftOut.Select(t => new InfoRow(t.Name, t.Value))];
                 OnPropertyChanged(nameof(IsLeftOutShown));
             }
         }
         IsRead = true;
+    }
+
+    private string SummaryText(SongFile? file)
+    {
+        var parts = new List<string>();
+        if (Track.Bpm is { } bpm)
+            parts.Add(GZJam.App.Format.Bpm(bpm) + " BPM");
+        if (Track.Duration > TimeSpan.Zero)
+            parts.Add(GZJam.App.Format.Duration(Track.Duration));
+        if (file is not null)
+            parts.Add(file.Lossless || file.Kbps == 0 ? file.Format : $"{file.Format} {file.Kbps.ToString(CultureInfo.CurrentCulture)} kbps");
+        if (Track.Rating == Rating.Loved)
+            parts.Add("♥");
+        else if (Track.Rating == Rating.Rejected)
+            parts.Add("wouldn't play it");
+        if (Track.Energy != Energy.Unset)
+            parts.Add(Track.Energy + " energy");
+        return string.Join(" · ", parts);
     }
 
     private IReadOnlyList<InfoRow> FileRows(SongFile? file) =>
@@ -173,7 +200,7 @@ public sealed partial class SongInfoViewModel : ObservableObject
             cues = string.Join(", ", _main.Database.GetCues(t.Path).Select(c => $"{c.Number}: {GZJam.App.Format.Duration(c.At)}"));
             EqEditor editor = _main.EqFor(t);
             eq = editor.IsSet ? editor.Describe() : "";
-            loudness = editor.LevelText;
+            loudness = editor.LevelText.Replace("Loudness not measured", "Not measured yet");
             playlists = string.Join(", ", _main.Database.GetPlaylistsWith(t.Path));
         }
         return

@@ -70,6 +70,7 @@ public sealed class SongInfoTests
         Assert.Equal("Never", gzjam["Played"]);
         Assert.EndsWith("(the tag's)", gzjam["BPM"]);
         Assert.Null(window.Vm.Problem);
+        Assert.Matches(@"^\d+ BPM · \d+:\d\d · MP3 \d+ kbps · ♥ · High energy$", window.Vm.Summary);   // the header: what a DJ looks for first
         window.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "song-info.png"), new PngBitmapEncoderOptions());
         window.Close();
     }
