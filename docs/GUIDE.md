@@ -441,8 +441,8 @@ The queue is tonight's list of songs to come.
   *Shuffle queue* puts it in a random order, with **Undo** in the top bar to put it back.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
-- **Loading from it:** drag a queued song onto a deck; it leaves the queue (with *Repeat*, it goes
-  to the end).
+- **Loading from it:** drag a queued song onto a deck; it leaves the queue (with *Repeat: The
+  queue*, it goes to the end).
 - **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
   and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
   time. Album, genre, year and played start off; they fit best in a queue given the room with
@@ -469,10 +469,15 @@ and cue it in the headphones.
     moves to it, but it waits: *Deck 2 is ready: press play*. Press play on it when you (or the
     teacher) are ready, and auto-play carries on from there. Turn it off while a song is waiting
     and that song starts.
-  - **Repeat:** each song goes back to the end of the queue as it's loaded onto a deck, so the
-    queue goes round and a playlist plays over and over: for a class, a practice night or music
-    between sets. With **Add to queue shuffled**, it's a shuffled playlist on repeat. *Stop at*
-    still ends the night.
+  - **Repeat** (*Off*, *The queue* or *This song*):
+    - *The queue:* each song goes back to the end of the queue as it's loaded onto a deck, so the
+      queue goes round and a playlist plays over and over: for a class, a practice night or music
+      between sets. With **Add to queue shuffled**, it's a shuffled playlist on repeat.
+    - *This song:* the song playing plays again and again, with the gap between: it goes on the
+      other deck instead of the next song in the queue. The song that was waiting there goes back
+      to the top of the queue, and the queue waits. Choose *Off* or *The queue* and the next song
+      in the queue is lined up again.
+    - *Stop at* still ends the night.
   - **Stop at** (*Off*, or a time, every quarter hour for the next 8 hours): the song playing then
     is the last; auto-play turns itself off when it ends, and says so.
   - *Wait for me*, *Repeat* and *Stop at* are for tonight: they're off again the next time you

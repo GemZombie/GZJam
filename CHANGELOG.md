@@ -18,9 +18,10 @@ New:
 - **Play a playlist shuffled:** a playlist's right-click menu (and the ⋯ beside *Add to queue*) has
   *Add to queue shuffled*, and the queue's menu has *Shuffle queue*, with Undo. The songs go into
   the queue in a random order, so you still see what's next and can change it.
-- **Repeat:** a new auto-play option (the ⋯ beside the gap). Each song goes back to the end of the
-  queue as it's loaded, so a playlist plays over and over, for a class, a practice night or music
-  between sets. Like *Wait for me* and *Stop at*, it's for tonight only.
+- **Repeat:** a new auto-play option (the ⋯ beside the gap). *The queue*: each song goes back to
+  the end of the queue as it's loaded, so a playlist plays over and over, for a class, a practice
+  night or music between sets. *This song*: the song playing plays again and again, and the queue
+  waits for when you switch back. Like *Wait for me* and *Stop at*, it's for tonight only.
 
 ## 1.0.0 (2026-11-02)
 

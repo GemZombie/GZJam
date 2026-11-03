@@ -476,7 +476,7 @@ public sealed class AutoPlayTests
         for (int i = 0; i < 3; i++)
             auto.FadeAfterUpCommand.Execute(null);
         auto.WaitAfterEach = true;
-        auto.Repeat = true;
+        auto.Repeat = RepeatMode.Queue;
         auto.StopAt = new DateTime(2026, 10, 30, 23, 0, 0);
 
         Assert.Equal($"Fade after 1:30 · Waits after each song · Repeats the queue · Stops at {auto.StopAt:t}", auto.OptionsText);
@@ -488,7 +488,7 @@ public sealed class AutoPlayTests
         var (app, auto, tracks) = Setup(queued: 2, gap: 0);
         using var _ = app;
         var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
-        auto.Repeat = true;
+        auto.Repeat = RepeatMode.Queue;
         auto.IsOn = true;
         app.Play(0.1);
 
@@ -510,7 +510,7 @@ public sealed class AutoPlayTests
         var (app, auto, tracks) = Setup(queued: 1, gap: 0);
         using var _ = app;
         var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
-        auto.Repeat = true;
+        auto.Repeat = RepeatMode.Queue;
         auto.IsOn = true;
 
         PlayUntil(app, () => d2.IsPlaying);
@@ -530,9 +530,102 @@ public sealed class AutoPlayTests
         queue.Loaded([queue.Items[0]]);
         Assert.Equal(songs.Skip(1), queue.Items.Select(i => i.Track));   // off: it leaves
 
-        app.ViewModel.AutoPlay!.Repeat = true;
+        app.ViewModel.AutoPlay!.Repeat = RepeatMode.Queue;
         queue.Loaded([queue.Items[0]]);
         Assert.Equal([songs[2], songs[1]], queue.Items.Select(i => i.Track));
     }
 
+    [AvaloniaFact]
+    public void Repeat_this_song_plays_the_song_again_and_again_and_leaves_the_queue_alone()
+    {
+        var (app, auto, tracks) = Setup(queued: 2, gap: 0);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.RepeatChoice = auto.RepeatChoices.Single(c => c.Label == "This song");
+        Assert.Equal(RepeatMode.Song, auto.Repeat);
+        Assert.Equal("Repeats the song", auto.OptionsText);
+        auto.IsOn = true;
+        app.Play(0.1);
+
+        Assert.Equal(tracks[0], d1.Track);
+        Assert.Equal(tracks[0], d2.Track);   // the same song again, next
+        Assert.Equal([tracks[1]], app.ViewModel.Queue.Items.Select(i => i.Track));
+
+        PlayUntil(app, () => d2.IsPlaying);
+        app.Play(0.1);
+        Assert.Equal(tracks[0], d1.Track);   // and again
+        Assert.True(d1.IsReady);
+        Assert.Equal([tracks[1]], app.ViewModel.Queue.Items.Select(i => i.Track));
+        Assert.True(auto.IsOn);
+    }
+
+    [AvaloniaFact]
+    public void Choosing_this_song_puts_the_song_waiting_back_at_the_top_of_the_queue_and_off_brings_it_back()
+    {
+        var (app, auto, tracks) = Setup(queued: 3, gap: 0);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.Equal(tracks[1], d2.Track);
+
+        auto.Repeat = RepeatMode.Song;
+        Assert.Equal(tracks[0], d2.Track);
+        Assert.Equal([tracks[1], tracks[2]], app.ViewModel.Queue.Items.Select(i => i.Track));
+
+        auto.Repeat = RepeatMode.Off;
+        Assert.Equal(tracks[1], d2.Track);
+        Assert.Equal([tracks[2]], app.ViewModel.Queue.Items.Select(i => i.Track));
+        Assert.Equal(tracks[0], d1.Track);
+        Assert.True(d1.IsPlaying);   // the song playing is never touched
+    }
+
+    [AvaloniaFact]
+    public void From_repeat_the_queue_to_this_song_the_waiting_song_is_still_in_the_queue_once()
+    {
+        var (app, auto, tracks) = Setup(queued: 2, gap: 0);
+        using var _ = app;
+        var d2 = app.ViewModel.Deck2!;
+        auto.Repeat = RepeatMode.Queue;
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.Equal(tracks, app.ViewModel.Queue.Items.Select(i => i.Track));
+
+        auto.Repeat = RepeatMode.Song;
+        Assert.Equal(tracks[0], d2.Track);
+        Assert.Equal(tracks, app.ViewModel.Queue.Items.Select(i => i.Track));   // not added twice
+        Assert.False(app.ViewModel.Queue.Repeat);
+    }
+
+    [AvaloniaFact]
+    public void Turning_this_song_off_with_nothing_queued_lets_auto_play_stop_after_it()
+    {
+        var (app, auto, tracks) = Setup(queued: 1, gap: 0);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.Repeat = RepeatMode.Song;
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.Equal(tracks[0], d2.Track);
+
+        auto.Repeat = RepeatMode.Off;
+        Assert.Null(d2.Track);   // the copy is gone
+
+        PlayUntil(app, () => !auto.IsOn);
+        Assert.False(d2.IsPlaying);
+        Assert.Equal("Auto-play stopped: the queue is empty.", app.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public void This_song_chosen_before_auto_play_is_turned_on_repeats_the_song_it_starts()
+    {
+        var (app, auto, tracks) = Setup(queued: 2, gap: 0);
+        using var _ = app;
+        auto.Repeat = RepeatMode.Song;
+        auto.IsOn = true;
+        app.Play(0.1);
+
+        Assert.Equal(tracks[0], app.ViewModel.Deck1!.Track);
+        Assert.Equal(tracks[0], app.ViewModel.Deck2!.Track);
+    }
 }

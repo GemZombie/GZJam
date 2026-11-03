@@ -740,9 +740,9 @@
                 <Button c:FitRow.DropOrder="2" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
 
                 <!-- For classes and practice nights: fade each song after a while, wait for the
-                     teacher between songs, repeat the queue, stop at a set time (#98, #100, #255) -->
+                     teacher between songs, repeat the queue or a song, stop at a set time (#98, #100, #255, #257) -->
                 <Button x:Name="AutoPlayOptionsButton" c:FitRow.DropOrder="3" Classes="hw step" Content="⋯" FontSize="14"
-                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, repeat the queue, stop at a set time">
+                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, repeat the queue or a song, stop at a set time">
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel" Opening="OnAutoPlayOptionsOpening">
                       <StackPanel Width="270" Spacing="12">
@@ -769,9 +769,10 @@
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                           <StackPanel Spacing="1" VerticalAlignment="Center">
                             <TextBlock Classes="setting" Text="Repeat" />
-                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="Each song goes back to the end of the queue, so it plays over and over" />
+                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="The queue goes round, or the song playing plays over and over" />
                           </StackPanel>
-                          <ToggleButton x:Name="RepeatSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding Repeat}" />
+                          <ComboBox x:Name="RepeatBox" Grid.Column="1" MinWidth="110" VerticalAlignment="Center"
+                                    ItemsSource="{Binding RepeatChoices}" SelectedItem="{Binding RepeatChoice}" />
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                           <StackPanel Spacing="1" VerticalAlignment="Center">

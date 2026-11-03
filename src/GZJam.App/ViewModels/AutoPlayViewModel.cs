@@ -117,11 +117,26 @@ public sealed partial class AutoPlayViewModel : ObservableObject
 
     /// <summary>
     /// The queue goes round (#255): each song taken from it for a deck goes back to its end, so a
-    /// playlist plays over and over, for classes, practice nights and background music. Not
-    /// remembered: a queue that loops, at a dance next week, would be a surprise.
+    /// playlist plays over and over, for classes, practice nights and background music. Or the
+    /// song the room hears plays again and again (#257). Not remembered: a queue that loops, at a
+    /// dance next week, would be a surprise.
     /// </summary>
     [ObservableProperty]
-    public partial bool Repeat { get; set; }
+    [NotifyPropertyChangedFor(nameof(RepeatChoice))]
+    public partial RepeatMode Repeat { get; set; }
+
+    public IReadOnlyList<Choice<RepeatMode>> RepeatChoices { get; } =
+        [new(RepeatMode.Off, "Off"), new(RepeatMode.Queue, "The queue"), new(RepeatMode.Song, "This song")];
+
+    public Choice<RepeatMode> RepeatChoice
+    {
+        get => RepeatChoices.First(c => c.Value == Repeat);
+        set
+        {
+            if (value is not null)
+                Repeat = value.Value;
+        }
+    }
 
     /// <summary>
     /// Auto-play finishes the song playing at this time, then stops, so the night ends on time
@@ -176,11 +191,52 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         Changed();
     }
 
-    partial void OnRepeatChanged(bool value)
+    partial void OnRepeatChanged(RepeatMode oldValue, RepeatMode newValue)
     {
-        _queue.Repeat = value;
-        Log.Info(value ? "Auto-play: repeats the queue" : "Auto-play: plays the queue once");
+        _queue.Repeat = newValue == RepeatMode.Queue;
+        Log.Info(newValue switch
+        {
+            RepeatMode.Queue => "Auto-play: repeats the queue",
+            RepeatMode.Song => "Auto-play: repeats the song playing",
+            _ => "Auto-play: plays the queue once",
+        });
+        if (newValue == RepeatMode.Song)
+            LineUpRepeat();
+        else if (oldValue == RepeatMode.Song)
+            EndRepeat();
         Changed();
+    }
+
+    /// <summary>The deck after the live one, if auto-play is free to change it: on, and that deck not playing, counting down or waiting for play.</summary>
+    private DeckViewModel? FreeNextDeck =>
+        IsOn && _pending is null && _waiting is null && NextDeck is { IsPlaying: false } next ? next : null;
+
+    /// <summary>
+    /// Repeat this song, chosen: the song the room hears goes on the next deck. The song that was
+    /// waiting there goes back to the top of the queue (unless it's still in the queue: with
+    /// Repeat the queue, it went back to its end), so nothing is lost.
+    /// </summary>
+    private void LineUpRepeat()
+    {
+        if (FreeNextDeck is not { } next || LiveDeck.Track is not { } song || next.Track?.Path == song.Path)
+            return;
+        Track? waiting = next.Track;
+        if (TryLoad(next, song) && waiting is not null && !_queue.Items.Any(i => i.Track.Path == waiting.Path))
+            _queue.PlayNext([waiting]);
+    }
+
+    /// <summary>
+    /// Repeat this song, turned off: the copy waiting on the next deck gives way to the next song
+    /// in the queue; with nothing queued, it's ejected, so auto-play stops after this song.
+    /// </summary>
+    private void EndRepeat()
+    {
+        if (FreeNextDeck is not { } next || next.Track is null || next.Track.Path != LiveDeck.Track?.Path)
+            return;
+        if (_queue.Items.Count > 0)
+            LoadNextOnto(next);
+        else
+            next.EjectCommand.Execute(null);
     }
 
     partial void OnStopAtChanged(DateTime? value)
@@ -195,7 +251,12 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     {
         IsFadeAfterOn ? $"Fade after {FadeAfterText}" : null,
         WaitAfterEach ? "Waits after each song" : null,
-        Repeat ? "Repeats the queue" : null,
+        Repeat switch
+        {
+            RepeatMode.Queue => "Repeats the queue",
+            RepeatMode.Song => "Repeats the song",
+            _ => null,
+        },
         StopAt is { } at ? $"Stops at {ClockTime(at)}" : null,
     }.OfType<string>());
 
@@ -279,6 +340,8 @@ public sealed partial class AutoPlayViewModel : ObservableObject
                 live.Start();
             }
         }
+        if (Repeat == RepeatMode.Song)
+            LineUpRepeat();
         Refill();
     }
 
@@ -375,24 +438,42 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Loads the top of the queue onto a deck, skipping tracks that won't open (which leave the
-    /// queue even with Repeat, so a queue of songs that won't open can't go round for ever).
+    /// Loads the next song onto a deck: with Repeat this song, the song the room hears again;
+    /// otherwise the top of the queue, skipping tracks that won't open (which leave the queue even
+    /// with Repeat, so a queue of songs that won't open can't go round for ever).
     /// </summary>
     private void LoadNextOnto(DeckViewModel deck)
     {
+        if (Repeat == RepeatMode.Song && deck != LiveDeck && LiveDeck.Track is { } song)
+        {
+            if (TryLoad(deck, song))
+                return;
+            Repeat = RepeatMode.Off;   // it won't open next time either: on with the queue
+            if (deck.IsReady)
+                return;   // turning it off loaded the next song in the queue
+        }
         while (_queue.TakeNext() is Track track)
         {
-            try
+            if (TryLoad(deck, track))
             {
-                deck.Load(track);
-                _queue.Took(track);   // with Repeat, back to the end of the queue
+                _queue.Took(track);   // with Repeat the queue, back to its end
                 return;
             }
-            catch (AudioException ex)
-            {
-                Log.Error($"Auto-play couldn't load {track.Path}", ex);
-                _owner.ShowNotice($"Skipped {track.DisplayTitle}: {ex.Message}");
-            }
+        }
+    }
+
+    private bool TryLoad(DeckViewModel deck, Track track)
+    {
+        try
+        {
+            deck.Load(track);
+            return true;
+        }
+        catch (AudioException ex)
+        {
+            Log.Error($"Auto-play couldn't load {track.Path}", ex);
+            _owner.ShowNotice($"Skipped {track.DisplayTitle}: {ex.Message}");
+            return false;
         }
     }
 
@@ -407,4 +488,12 @@ public sealed partial class AutoPlayViewModel : ObservableObject
 
     /// <summary>Called when decks load or eject, which can make the switch usable.</summary>
     public void Refresh() => Changed();
+}
+
+/// <summary>Auto-play's Repeat (#255, #257): off, the queue goes round, or the song the room hears plays again.</summary>
+public enum RepeatMode
+{
+    Off,
+    Queue,
+    Song,
 }

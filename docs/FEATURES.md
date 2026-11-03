@@ -252,6 +252,16 @@ is out of scope until it earns a place.
   A song that won't open still leaves the queue, so a queue of broken files can't go round for
   ever. Going round doesn't bring up the "in the queue already" notice. Not saved, like the two
   above: a queue that loops at next week's dance would be a surprise. Shows as *Repeats the queue*.
+- **Repeat one song** (#257, 1.1, after Omar: shuffle, repeat and repeat-one are what anyone
+  expects of a player): Repeat became a drop-down, *Off / The queue / This song* (`RepeatMode`),
+  rather than a second switch that could contradict the first. *This song*: auto-play loads the
+  live deck's song onto the next deck instead of taking from the queue, so the queue is untouched.
+  Chosen while a song plays (or before auto-play is turned on), the song already waiting on the
+  next deck goes back to the top of the queue, unless it's still in it (with *The queue*, it went
+  back to the end); the deck is left alone while it plays, counts down the gap or waits for play.
+  Switched back, the copy gives way to the top of the queue, or is ejected when the queue is empty,
+  so auto-play stops after the song as it would have. A song that won't open again turns Repeat
+  off and carries on with the queue. Shows as *Repeats the song*.
 
 ### Changed after the first hardware test (2026-10-20)
 
