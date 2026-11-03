@@ -56,6 +56,7 @@ public static class SongTags
         ["comment"] = null, ["description"] = null, ["date"] = null, ["year"] = null, ["tracknumber"] = null,
         ["track"] = null, ["tracktotal"] = null, ["totaltracks"] = null, ["bpm"] = null, ["tempo"] = null,
         ["grouping"] = null, ["contentgroup"] = null, ["author"] = null,
+        ["albumtitle"] = null, ["beatsperminute"] = null, ["contentgroupdescription"] = null,   // WMA's names
         // The same tag, spelled other ways
         ["composer"] = "Composer", ["writer"] = "Composer",
         ["conductor"] = "Conductor",
@@ -66,9 +67,10 @@ public static class SongTags
         ["publisher"] = "Publisher", ["label"] = "Publisher", ["organization"] = "Publisher",
         ["copyright"] = "Copyright",
         ["subtitle"] = "Subtitle",
-        ["discnumber"] = "Disc", ["disc"] = "Disc",
-        ["originalartist"] = "Original artist", ["originalalbum"] = "Original album",
+        ["discnumber"] = "Disc", ["disc"] = "Disc", ["partofset"] = "Disc",
+        ["originalartist"] = "Original artist", ["originalalbum"] = "Original album", ["originalalbumtitle"] = "Original album",
         ["originalyear"] = "Original year", ["originaldate"] = "Original year", ["originalreleasedate"] = "Original year",
+        ["originalreleaseyear"] = "Original year",
         ["language"] = "Language", ["media"] = "Media", ["work"] = "Work", ["movement"] = "Movement",
         ["discsubtitle"] = "Disc subtitle", ["setsubtitle"] = "Disc subtitle", ["performer"] = "Performer",
         // For programs, or not for a column
@@ -106,20 +108,107 @@ public static class SongTags
         ["©con"] = "Conductor",
     };
 
+    /// <summary>The tags GZJam has fields of its own for, which a song's info shows there (#129): by name, ID3 frame or M4A atom.</summary>
+    private static readonly HashSet<string> UsualKeys = new(StringComparer.Ordinal)
+    {
+        "title", "artist", "album", "albumartist", "genre", "comment", "description", "date", "year",
+        "tracknumber", "track", "bpm", "tempo", "grouping", "contentgroup", "author", "albumtitle",
+        "beatsperminute", "contentgroupdescription",
+    };
+
+    private static readonly HashSet<string> UsualFrames = new(StringComparer.Ordinal)
+    {
+        "TIT2", "TPE1", "TALB", "TPE2", "TCON", "TYER", "TDRC", "TDAT", "TRCK", "TBPM", "TIT1", "GRP1",
+    };
+
+    private static readonly HashSet<string> UsualAtoms = new(StringComparer.Ordinal)
+    {
+        "©nam", "©ART", "©alb", "aART", "©gen", "©cmt", "©day", "trkn", "tmpo", "©grp", "gnre",
+    };
+
+    /// <summary>Names for the ID3 frames and M4A atoms only other programs use, in a song's info; the rest go by their IDs.</summary>
+    private static readonly Dictionary<string, string> ProgramFrameNames = new(StringComparer.Ordinal)
+    {
+        ["TSSE"] = "Encoder settings", ["TENC"] = "Encoded by", ["TSOP"] = "Artist sort", ["TSOA"] = "Album sort",
+        ["TSOT"] = "Title sort", ["TSO2"] = "Album artist sort", ["TSOC"] = "Composer sort", ["TSRC"] = "ISRC",
+        ["TLEN"] = "Length", ["TFLT"] = "File type", ["TCMP"] = "Compilation", ["TDTG"] = "Tagging time",
+        ["TDRL"] = "Release time", ["TDEN"] = "Encoding time", ["TOWN"] = "Owner", ["TOFN"] = "Original file name",
+        ["©too"] = "Encoder", ["©enc"] = "Encoded by", ["soar"] = "Artist sort", ["sonm"] = "Title sort",
+        ["soal"] = "Album sort", ["soaa"] = "Album artist sort", ["soco"] = "Composer sort", ["©lyr"] = "Lyrics",
+        ["desc"] = "Description",
+    };
+
+    /// <summary>How a file names a tag: by a name of its own (TXXX, Vorbis, freeform M4A, APE, WMA), or by an ID3 frame's or M4A atom's ID.</summary>
+    private enum Naming { Named, Id3Frame, AppleAtom }
+
     /// <summary>The extra tags in a file, sorted by name. The first spelling found of a tag wins.</summary>
     internal static IReadOnlyList<SongTag> Read(TagLib.File file)
     {
         var found = new Dictionary<string, SongTag>(StringComparer.Ordinal);
-        void Add(string? name, IEnumerable<string?> values)
+        Visit(file, (naming, name, values) =>
         {
-            if (found.Count >= MaxTags || ShownName(name) is not { } shown)
+            if (found.Count >= MaxTags || Shown(naming, name) is not { } shown)
                 return;
             string key = KeyOf(shown);
             if (key.Length == 0 || found.ContainsKey(key) || Value(values) is not { } value)
                 return;
             found[key] = new SongTag(shown, value);
-        }
+        });
+        return [.. found.Values.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)];
+    }
 
+    /// <summary>The longest value shown of a tag the library leaves out (lyrics, a rip log), in a song's info: longer ones are cut off with "…".</summary>
+    internal const int MaxOtherValueLength = 400;
+
+    /// <summary>
+    /// The tags in a file that the library leaves out (#129): the ones only other programs use
+    /// (MusicBrainz IDs, ReplayGain, the encoder, sort names), lyrics and other long ones, by the
+    /// names the file gives them. For a song's info, with <em>Show all tags</em>. Sorted by name.
+    /// </summary>
+    public static IReadOnlyList<SongTag> ReadLeftOut(TagLib.File file)
+    {
+        var kept = Read(file).ToDictionary(t => t.Key, t => t.Value, StringComparer.Ordinal);
+        var leftOut = new List<SongTag>();
+        Visit(file, (naming, name, values) =>
+        {
+            name = name?.Trim().TrimEnd('\0');
+            if (string.IsNullOrEmpty(name) || leftOut.Count >= 100 || Value(values, int.MaxValue) is not { } value)
+                return;
+            if (Shown(naming, name) is { } shown)
+            {
+                if (kept.TryGetValue(KeyOf(shown), out string? keptValue) && keptValue == value)
+                    return;   // among the song's other tags already
+            }
+            else if (naming switch
+            {
+                Naming.Id3Frame => UsualFrames.Contains(name),
+                Naming.AppleAtom => UsualAtoms.Contains(name),
+                _ => UsualKeys.Contains(KeyOf(name)),
+            })
+            {
+                return;   // one of GZJam's own fields
+            }
+            if (naming != Naming.Named)
+                name = ProgramFrameNames.GetValueOrDefault(name, name);
+            if (value.Length > MaxOtherValueLength)
+                value = value[..MaxOtherValueLength].TrimEnd() + "…";
+            if (!leftOut.Any(t => t.Name == name && t.Value == value))
+                leftOut.Add(new SongTag(name, value));
+        });
+        return [.. leftOut.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)];
+    }
+
+    /// <summary>The name a tag goes by among a song's other tags, or null if it isn't one.</summary>
+    private static string? Shown(Naming naming, string? name) => naming switch
+    {
+        Naming.Id3Frame => Id3Frames.GetValueOrDefault(name ?? ""),
+        Naming.AppleAtom => AppleAtoms.GetValueOrDefault(name ?? ""),
+        _ => ShownName(name),
+    };
+
+    /// <summary>Every text tag in a file, whatever its format: how it's named, its name, its values.</summary>
+    private static void Visit(TagLib.File file, Action<Naming, string?, IEnumerable<string?>> add)
+    {
         try
         {
             if (file.GetTag(TagLib.TagTypes.Id3v2) is TagLib.Id3v2.Tag id3)
@@ -127,20 +216,20 @@ public static class SongTags
                 foreach (var frame in id3.GetFrames<TagLib.Id3v2.TextInformationFrame>())
                 {
                     if (frame is TagLib.Id3v2.UserTextInformationFrame user)
-                        Add(user.Description, user.Text);
-                    else if (Id3Frames.TryGetValue(frame.FrameId.ToString(TagLib.StringType.Latin1), out string? name))
-                        Add(name, frame.Text);
+                        add(Naming.Named, user.Description, user.Text);
+                    else
+                        add(Naming.Id3Frame, frame.FrameId.ToString(TagLib.StringType.Latin1), frame.Text);
                 }
                 foreach (TagLib.Id3v2.Frame frame in id3.GetFrames("MVNM"))   // TagLib# doesn't know it
                 {
                     if (frame is TagLib.Id3v2.UnknownFrame unknown)
-                        Add("Movement", [TagReader.FrameText(unknown.Data)]);
+                        add(Naming.Id3Frame, "MVNM", [TagReader.FrameText(unknown.Data)]);
                 }
             }
             if (file.GetTag(TagLib.TagTypes.Xiph) is TagLib.Ogg.XiphComment xiph)
             {
                 foreach (string name in xiph)
-                    Add(name, xiph.GetField(name));
+                    add(Naming.Named, name, xiph.GetField(name));
             }
             if (file.GetTag(TagLib.TagTypes.Apple) is TagLib.Mpeg4.AppleTag apple)
             {
@@ -148,9 +237,9 @@ public static class SongTags
                 {
                     string type = box.BoxType.ToString(TagLib.StringType.Latin1);
                     if (type == "----")
-                        Add(FreeformName(box), DataTexts(box));
-                    else if (AppleAtoms.TryGetValue(type, out string? name))
-                        Add(name, DataTexts(box));
+                        add(Naming.Named, FreeformName(box), DataTexts(box));
+                    else
+                        add(Naming.AppleAtom, type, DataTexts(box));
                 }
             }
             if (file.GetTag(TagLib.TagTypes.Ape) is TagLib.Ape.Tag ape)
@@ -158,7 +247,7 @@ public static class SongTags
                 foreach (string name in ape)
                 {
                     if (ape.GetItem(name) is { Type: TagLib.Ape.ItemType.Text } item)
-                        Add(name, item.ToStringArray());
+                        add(Naming.Named, name, item.ToStringArray());
                 }
             }
             if (file.GetTag(TagLib.TagTypes.Asf) is TagLib.Asf.Tag asf)
@@ -166,7 +255,7 @@ public static class SongTags
                 foreach (TagLib.Asf.ContentDescriptor descriptor in asf)
                 {
                     if (descriptor.Type == TagLib.Asf.DataType.Unicode)
-                        Add(descriptor.Name.StartsWith("WM/", StringComparison.OrdinalIgnoreCase) ? descriptor.Name[3..] : descriptor.Name,
+                        add(Naming.Named, descriptor.Name.StartsWith("WM/", StringComparison.OrdinalIgnoreCase) ? descriptor.Name[3..] : descriptor.Name,
                             [descriptor.ToString()]);
                 }
             }
@@ -175,7 +264,6 @@ public static class SongTags
         {
             // A damaged tag: what was read before it is kept, like the usual tags.
         }
-        return [.. found.Values.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)];
     }
 
     /// <summary>A freeform M4A tag's name (----:com.apple.iTunes:MOOD is "MOOD").</summary>
@@ -206,7 +294,7 @@ public static class SongTags
         if (Names.TryGetValue(key, out string? known))
             return known;
         if (ProgramPrefixes.Any(p => key.StartsWith(p, StringComparison.Ordinal))
-            || key.EndsWith("sort", StringComparison.Ordinal) || key.Length > 4 && key.EndsWith("id", StringComparison.Ordinal))
+            || key.EndsWith("sort", StringComparison.Ordinal) || key.EndsWith("sortorder", StringComparison.Ordinal) || key.Length > 4 && key.EndsWith("id", StringComparison.Ordinal))
             return null;
         string tidy = string.Join(' ', name.Replace('_', ' ').Split(' ', StringSplitOptions.RemoveEmptyEntries));
         bool hasUpper = tidy.Any(char.IsUpper), hasLower = tidy.Any(char.IsLower);
@@ -214,7 +302,7 @@ public static class SongTags
     }
 
     /// <summary>A tag's values as one ("Count Basie; Joe Williams"), or null if it has none worth showing.</summary>
-    private static string? Value(IEnumerable<string?> values)
+    private static string? Value(IEnumerable<string?> values, int maxLength = MaxValueLength)
     {
         var kept = new List<string>();
         foreach (string? value in values)
@@ -224,7 +312,7 @@ public static class SongTags
                 kept.Add(clean);
         }
         string joined = string.Join("; ", kept);
-        return joined.Length is 0 or > MaxValueLength ? null : joined;
+        return joined.Length == 0 || joined.Length > maxLength ? null : joined;
     }
 
     // ───────────── In the library ─────────────

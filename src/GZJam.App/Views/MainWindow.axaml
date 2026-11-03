@@ -658,6 +658,8 @@
                 <MenuItem x:Name="TrackLoad3" Header="Load to Deck 3" Tag="2" Click="OnLoadSelectedToDeckClick" />
                 <MenuItem x:Name="TrackLoad4" Header="Load to Deck 4" Tag="3" Click="OnLoadSelectedToDeckClick" />
                 <Separator />
+                <MenuItem x:Name="TrackInfoItem" Header="Song info…" Click="OnTrackInfoClick"
+                          ToolTip.Tip="Every tag in the file, the file itself, and what GZJam knows about the song" />
                 <MenuItem x:Name="TrackShowInTreeItem" Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
                 <Separator />
@@ -900,6 +902,7 @@
                   <MenuItem x:Name="HistoryLoad3" Header="Load to Deck 3" Tag="2" Click="OnHistoryLoadToDeckClick" />
                   <MenuItem x:Name="HistoryLoad4" Header="Load to Deck 4" Tag="3" Click="OnHistoryLoadToDeckClick" />
                   <Separator />
+                  <MenuItem x:Name="HistoryInfoItem" Header="Song info…" Click="OnHistoryInfoClick" />
                   <MenuItem Header="Show in folder tree" Click="OnHistoryShowInTreeClick" />
                 </ContextMenu>
               </ListBox.ContextMenu>
@@ -1079,6 +1082,7 @@
                   <MenuItem x:Name="QueueLoad2" Header="Load to Deck 2" Tag="1" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad3" Header="Load to Deck 3" Tag="2" Click="OnLoadQueueToDeckClick" />
                   <MenuItem x:Name="QueueLoad4" Header="Load to Deck 4" Tag="3" Click="OnLoadQueueToDeckClick" />
+                  <MenuItem x:Name="QueueInfoItem" Header="Song info…" Click="OnQueueInfoClick" />
                   <Separator />
                   <MenuItem x:Name="QueueRatingMenu" Header="Rating" />
                   <MenuItem x:Name="QueueLabelsMenu" Header="Labels" />

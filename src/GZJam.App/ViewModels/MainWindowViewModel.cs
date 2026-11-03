@@ -1502,6 +1502,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>The tags shown as library columns, by key (#119).</summary>
     public List<string> TagColumns => _settings.TagColumns;
+
+    /// <summary>A song's info shows the tags only other programs use too (#129).</summary>
+    public bool ShowAllTags
+    {
+        get => _settings.ShowAllTags;
+        set => _settings.ShowAllTags = value;
+    }
     public List<string> HiddenQueueColumns => _settings.HiddenQueueColumns;
 
     /// <summary>Copies state worth remembering into the settings before they're saved.</summary>

@@ -445,6 +445,14 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   MediaMonkey's, iTunes'), whichever kind of file it's in. Show it as a column and search it
   (`dance:waltz`). Tags only other programs use (MusicBrainz IDs, ReplayGain, the encoder) and long
   ones like lyrics are left out.
+- **Song info:** right-click a song › *Song info…* (in the song list, the queue or History), or
+  select it and press **Ctrl+I** (Cmd+I on a Mac), for everything about it in one window: its tags,
+  every other tag in the file, the file itself (where it is, MP3 or FLAC, the bitrate, the sample
+  rate, the length, the size) and what GZJam knows about it (its BPM and where that came from,
+  rating, energy, labels, how often and when it was played, cues, EQ, loudness, the playlists
+  it's in). Tick *Show all tags* to see the ones only other programs use as well (MusicBrainz IDs,
+  ReplayGain, sort names, the encoder); GZJam remembers. The window isn't in the way of the decks:
+  click back to GZJam while it's open. Escape closes it. Any text in it can be selected and copied.
 
 The files are only read, never changed.
 
@@ -726,6 +734,7 @@ no key on purpose: one keypress ending the song the room hears is too easy to hi
 | **Ctrl+↑ / Ctrl+↓** | MAIN volume up or down, a little each press |
 | **Ctrl+Shift+↑ / ↓** | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
+| **Ctrl+I** (Cmd+I) | the selected song's info: in the song list, the queue or History |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Ctrl+Shift+D** (Cmd+Shift+D) | hide the decks (one line at the top instead), and back |
 | **Ctrl+L** (Cmd+L) | give the queue the room in the middle, and back to the song list |

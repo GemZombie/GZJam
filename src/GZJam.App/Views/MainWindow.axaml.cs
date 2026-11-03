@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         RevealMenuItem.Header = FileManager.RevealLabel;
+        SetUpSongInfo();
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         TrackGrid.AddHandler(KeyDownEvent, OnGridKeyDown, RoutingStrategies.Tunnel);
@@ -271,6 +272,12 @@ public partial class MainWindow : Window
                 CloseSettings();
             else
                 OpenSettings();
+            e.Handled = true;
+            return;
+        }
+        // Ctrl+I (Cmd+I, like the Mac's Get Info): the selected song's info (#129).
+        if (e.Key == Key.I && e.KeyModifiers == CommandModifier && ShowSelectedSongInfo())
+        {
             e.Handled = true;
             return;
         }

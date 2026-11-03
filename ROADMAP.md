@@ -152,6 +152,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 **In 1.2:**
 - [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
   ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
+- [Song info](https://github.com/GemZombie/GZJam/issues/129): everything about a song in one
+  window, from its right-click menu or Ctrl+I (editing its tags comes next)
 
 ## Planned next
 
