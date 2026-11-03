@@ -138,6 +138,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Repeat](https://github.com/GemZombie/GZJam/issues/255): an auto-play option that sends each
   song back to the end of the queue, so a playlist plays over and over, for classes, practice
   nights and background music (for tonight only)
+- [Repeat one song](https://github.com/GemZombie/GZJam/issues/257): Repeat's other choice, *This
+  song*, plays the song playing over and over
 
 ## Planned next
 
