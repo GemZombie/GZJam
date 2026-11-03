@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        xmlns:c="using:GZJam.App.Controls"
+        x:Class="GZJam.App.Views.SongInfoWindow"
+        x:DataType="vm:SongInfoViewModel"
+        Width="800" Height="600" MinWidth="640" MinHeight="360"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        c:AlbumArt.Cache="{Binding Art}"
+        Title="{Binding Heading, StringFormat='{}{0} · Song info'}">
+  <!--
+    A song's info (#129). The header says what it is and what a DJ looks for first. Below, the
+    tags on the left (the part that becomes editable), the file and what GZJam knows on the right.
+  -->
+  <Window.Resources>
+    <DataTemplate x:Key="InfoRowTemplate" x:DataType="vm:InfoRow">
+      <Grid ColumnDefinitions="104,*" ColumnSpacing="12" Margin="0,2">
+        <TextBlock Classes="muted" Text="{Binding Name}" TextWrapping="Wrap" />
+        <SelectableTextBlock Grid.Column="1" Text="{Binding Shown}" TextWrapping="Wrap" Opacity="{Binding Opacity}" />
+      </Grid>
+    </DataTemplate>
+  </Window.Resources>
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="{StaticResource Panel2Brush}" BorderBrush="{StaticResource LineBrush}"
+            BorderThickness="0,0,0,1" Padding="20,16">
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+        <c:AlbumArt x:Name="HeaderArt" Width="76" Height="76" CornerRadius="4" VerticalAlignment="Top"
+                    SongPath="{Binding Track.Path}" />
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <SelectableTextBlock x:Name="HeadingText" Text="{Binding Heading}" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap" />
+          <SelectableTextBlock Classes="muted" Text="{Binding Artist}" FontSize="14" TextWrapping="Wrap"
+                               IsVisible="{Binding Artist, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock x:Name="SummaryText" Classes="mono" FontSize="12" Margin="0,6,0,0" Text="{Binding Summary}" TextWrapping="Wrap"
+                     IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock x:Name="ProblemText" Text="{Binding Problem}" Foreground="{StaticResource OnAirBrush}" TextWrapping="Wrap" Margin="0,6,0,0"
+                     IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="20,12">
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button x:Name="RevealButton" Classes="hw" Click="OnRevealClick" />
+        <Button x:Name="CloseButton" Classes="hw" Content="CLOSE" IsCancel="True" IsDefault="True" MinWidth="88" Click="OnCloseClick" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="32" Margin="20,16,20,20">
+        <!-- The tags: the file's, as GZJam reads them -->
+        <StackPanel Spacing="6">
+          <TextBlock Classes="label" Text="TAGS" />
+          <ItemsControl x:Name="TagsList" ItemsSource="{Binding Tags}" ItemTemplate="{StaticResource InfoRowTemplate}" />
+
+          <StackPanel Spacing="6" IsVisible="{Binding HasOtherTags}">
+            <TextBlock Classes="label" Text="OTHER TAGS IN THE FILE" Margin="0,10,0,0" />
+            <ItemsControl x:Name="OtherTagsList" ItemsSource="{Binding OtherTags}" ItemTemplate="{StaticResource InfoRowTemplate}" />
+          </StackPanel>
+
+          <CheckBox x:Name="ShowAllTagsBox" IsChecked="{Binding ShowAllTags}" Margin="0,8,0,0"
+                    ToolTip.Tip="The tags GZJam leaves out of its library: the ones only other programs use (MusicBrainz IDs, ReplayGain, the encoder, sort names), lyrics and other long ones">
+            <TextBlock Text="Show all tags, the ones for other programs too" TextWrapping="Wrap" />
+          </CheckBox>
+          <TextBlock Classes="setting-help" Text="{Binding LeftOutNote}" TextWrapping="Wrap"
+                     IsVisible="{Binding LeftOutNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <StackPanel Spacing="6" IsVisible="{Binding IsLeftOutShown}">
+            <TextBlock Classes="label" Text="FOR OTHER PROGRAMS" Margin="0,4,0,0" />
+            <ItemsControl x:Name="LeftOutList" ItemsSource="{Binding LeftOutTags}" ItemTemplate="{StaticResource InfoRowTemplate}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- The file, and what GZJam knows: never in the file -->
+        <StackPanel Grid.Column="1" Spacing="6">
+          <TextBlock Classes="label" Text="FILE" />
+          <StackPanel>
+            <Grid ColumnDefinitions="104,*" ColumnSpacing="12" Margin="0,2">
+              <TextBlock Classes="muted" Text="Location" />
+              <SelectableTextBlock x:Name="LocationText" Grid.Column="1" Text="{Binding Location}" TextTrimming="LeadingCharacterEllipsis"
+                                   ToolTip.Tip="{Binding Location}" />
+            </Grid>
+            <ItemsControl x:Name="FileList" ItemsSource="{Binding File}" ItemTemplate="{StaticResource InfoRowTemplate}" />
+          </StackPanel>
+
+          <TextBlock Classes="label" Text="IN GZJAM" Margin="0,10,0,0" />
+          <ItemsControl x:Name="GZJamList" ItemsSource="{Binding InGZJam}" ItemTemplate="{StaticResource InfoRowTemplate}" />
+          <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="Kept in GZJam's library, never in the file." />
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

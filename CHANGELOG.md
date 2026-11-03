@@ -19,6 +19,11 @@ New:
   ones: the composer, a mood, the dance in a tag of your own. Right-click a column header to show
   any of them as a column (under *Tags in your songs*), and search them: `composer:ellington`,
   `dance:waltz`, or just type the words. The first scan after updating reads every song again, once.
+- **Song info:** right-click a song › *Song info…*, or press Ctrl+I (Cmd+I on a Mac), to see
+  everything about it in one window: its tags, every other tag in the file, the file itself (where
+  it is, MP3 or FLAC, the bitrate, the length) and what GZJam knows (BPM, rating, energy, labels,
+  plays, cues, EQ, loudness, the playlists it's in). *Show all tags* adds the ones only other
+  programs use, like MusicBrainz IDs and ReplayGain. In the song list, the queue and History.
 
 ## 1.1.0-beta.1 (2026-11-02)
 

@@ -196,6 +196,9 @@ public sealed class AppSettings
     /// </summary>
     public List<string> TagColumns { get; set; } = [];
 
+    /// <summary>A song's info also shows the tags only other programs use (#129): MusicBrainz IDs, ReplayGain, the encoder.</summary>
+    public bool ShowAllTags { get; set; }
+
     /// <summary>The queue's parts in the order the DJ dragged them into (#188), by name; null: as they come.</summary>
     public List<string>? QueueColumnOrder { get; set; }
 

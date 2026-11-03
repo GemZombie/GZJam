@@ -31,6 +31,23 @@ public sealed partial class LibraryDatabase
 
     public PlaylistInfo? GetPlaylist(long id) => GetPlaylists().FirstOrDefault(p => p.Id == id);
 
+    /// <summary>The names of the playlists a file is in, alphabetically: for its song's info (#129).</summary>
+    public IReadOnlyList<string> GetPlaylistsWith(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT DISTINCT p.name FROM playlists p JOIN playlist_entries e ON e.playlist_id = p.id
+            WHERE e.path = $path ORDER BY p.name COLLATE NOCASE;
+            """;
+        cmd.Parameters.AddWithValue("$path", path);
+        using var r = cmd.ExecuteReader();
+        var names = new List<string>();
+        while (r.Read())
+            names.Add(r.GetString(0));
+        return names;
+    }
+
     /// <summary>
     /// Makes an empty playlist. A name already taken gets a number ("Saturday 2"), so a playlist
     /// is never silently merged into another. Returns it.

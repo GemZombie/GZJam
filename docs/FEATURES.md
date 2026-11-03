@@ -1602,6 +1602,35 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
+### Status: song info, step 1 of tag editing (#129, 1.2)
+
+- #129 is one song dialog in two steps: first only shown (this), then editing one song or many,
+  kept in the library or, if the DJ turns it on, written to the files. Rule-based clean-up of a
+  whole collection stays in the companion app idea (#76).
+- `SongInfoWindow` (`SongInfoViewModel`): the right-click menu's *Song info…* in the song list,
+  the queue and History (one song selected), or Ctrl+I (Cmd+I, the Mac's Get Info) for the one
+  selected where the keyboard is. Not modal, so the decks are a click away; one at a time, another
+  song's replacing it (`MainWindow.ShowSongInfo`).
+- **Layout:** a header with the cover art, the title and artist, and a line of what a DJ looks
+  for first (BPM · length · format · rating · energy); below, two columns, so most songs need no
+  scrolling: the tags on the left (the part that becomes editable in step 2), the file and what
+  GZJam knows on the right.
+- **Tags:** GZJam's own fields (empty ones a faint dash), then the song's other tags as the
+  library keeps them (#119).
+- **Show all tags** (`AppSettings.ShowAllTags`): the ones the library leaves out, read from the
+  file when the window opens (`SongFile.Read` off the UI thread, `SongTags.ReadLeftOut`), by the
+  names the file gives them (`REPLAYGAIN_TRACK_GAIN`; ID3 frames and M4A atoms named, TSSE is
+  "Encoder settings"), values cut off at 400 characters. `SongTags.Visit` walks every format's
+  tags for both this and `Read`.
+- **File:** the path (on one line, cut at the start so the file name shows; all of it on hover), the kind of audio as DJs say it (AAC and
+  Apple Lossless rather than M4A; bits for lossless, kbps for the rest, "(variable)" for a VBR
+  MP3), the sample rate, mono or stereo, length, size, when it changed.
+- **In GZJam:** BPM and where it came from (typed, the tag's, detected, in a range), rating,
+  energy, labels, plays and the last, cues, EQ, loudness, playlists (`GetPlaylistsWith`).
+- A file gone, or one TagLib# can't read, says so; what the library knows is still shown.
+- Fixed before release: WMA's own names for the usual tags (WM/AlbumTitle, WM/ContentGroupDescription,
+  WM/BeatsPerMinute, WM/...SortOrder) were shown as other tags; WM/PartOfSet is "Disc".
+
 ### Status: every tag in the song files (#119, 1.2)
 
 - Asked by an evaluator ("display and filter by any non-standard tag") and DJs, first in a
