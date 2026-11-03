@@ -156,17 +156,19 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next:**
-- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262) (1.2): pause,
+**Next, in 1.2:** your songs' tags, and GZJam from the taskbar.
+- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
-- [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
-  sync: its playlists, ratings, play counts and Grouping, next to your music folders
-- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
-- [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
-  only, or written to the files too if you turn that on
 - [Show and search any tag in the song files](https://github.com/GemZombie/GZJam/issues/119), not
   only the usual ones (a dance in a custom tag, the composer)
+- [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
+  only, or written to the files too if you turn that on
+- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+
+**After that:**
+- [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
+  sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
   laptop plugged straight into a PA with no mixer
 - [Hints for new DJs](https://github.com/GemZombie/GZJam/issues/123), quiet and optional: the same

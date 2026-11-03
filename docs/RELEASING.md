@@ -66,6 +66,24 @@ before everyone gets it.
    the latest release. Installed GZJams say so at their next start.
 8. A post for the Facebook group (`branding/social/`).
 
+## Working on the next release while a beta is tried
+
+A beta can take a week or two of nights. Work on the release after it needn't wait:
+
+1. Before the first pull request for it merges, make the beta's release branch from its tag:
+   `git switch -c release/1.1 v1.1.0-beta.1`, and push it. On main, raise `VersionPrefix` to the
+   next minor (1.2.0), so local builds there read 1.2.0-dev. release/1.1 stays at 1.1.0.
+2. The next release's work goes into main as usual.
+3. A bug the beta turns up: fixed on main first, then a pull request into release/1.1 with the
+   same change (`git cherry-pick`), and `v1.1.0-beta.2` tagged there, its CHANGELOG section too.
+4. Releasing 1.1.0: steps 2 to 4 and 6 to 8 of *Releasing from main*, done on release/1.1 and
+   tagged there (step 5 was done in step 1 here). Then on main: the same `## 1.1.0 (date)` section
+   in CHANGELOG.md, below `## Unreleased`, with the beta sections taken out, and ROADMAP.md
+   brought up to date as for any release.
+
+If the beta needs no fixes, `v1.1.0` is the beta's code with the changelog done: a new tag, never
+the beta's tag moved.
+
 ## Releasing a fix from a release branch
 
 When main holds unreleased features, and DJs need a fix now:
