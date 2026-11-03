@@ -10,9 +10,9 @@ internal static class TagReader
     /// new field, a fix like BPMs stored x10): the next scan reads every song again, rather than
     /// only the files that changed on disk. 1: BPMs stored x10 or x100 scaled back. 2: Grouping.
     /// 3: tag BPMs too slow to be real (0.4, 1) ignored. 4: tags of a file whose audio TagLib
-    /// can't find, behind a damaged tag (#220).
+    /// can't find, behind a damaged tag (#220). 5: every other tag in the file (#119).
     /// </summary>
-    public const int Version = 4;
+    public const int Version = 5;
 
     /// <summary>
     /// The slowest tag BPM taken as real. Below it, a tag is junk left by some tool ("1", "0.4"),
@@ -48,6 +48,7 @@ internal static class TagReader
                 Year = tag?.Year > 0 ? (int)tag.Year : null,
                 TrackNumber = tag?.Track > 0 ? (int)tag.Track : null,
                 TagBpm = tagFile is null ? null : ReadBpm(tagFile),
+                Tags = tagFile is null ? [] : SongTags.Read(tagFile),
                 Duration = duration,
             };
         }

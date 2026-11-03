@@ -37,6 +37,23 @@ public sealed class Track : INotifyPropertyChanged
     public double? TagBpm { get; init; }
 
     /// <summary>
+    /// The file's other tags (#119), sorted by name: the composer, a mood, the dance in a custom
+    /// tag. Shown as columns the DJ chooses, and searched.
+    /// </summary>
+    public IReadOnlyList<SongTag> Tags { get; init; } = [];
+
+    /// <summary>The value of the tag with this <see cref="SongTag.Key"/>, if the song has it.</summary>
+    public string? Tag(string key)
+    {
+        foreach (SongTag tag in Tags)
+        {
+            if (tag.Key == key)
+                return tag.Value;
+        }
+        return null;
+    }
+
+    /// <summary>
     /// BPM found by analysis, as detected. Set when analysis finishes, which may be after the
     /// track is on screen.
     /// </summary>
@@ -203,7 +220,7 @@ public sealed class Track : INotifyPropertyChanged
     {
         Id = Id, RootId = RootId, Path = Path, Folder = Folder, FileName = FileName, FileSize = FileSize, ModifiedUtc = ModifiedUtc,
         Title = Title, Artist = Artist, Album = Album, AlbumArtist = AlbumArtist, Genre = Genre, Comment = Comment, Grouping = Grouping,
-        Year = Year, TrackNumber = TrackNumber, TagBpm = TagBpm, Duration = Duration, IsMissing = IsMissing,
+        Year = Year, TrackNumber = TrackNumber, TagBpm = TagBpm, Tags = Tags, Duration = Duration, IsMissing = IsMissing,
     };
 
     internal Track InPlaylist(long entryId, int number)

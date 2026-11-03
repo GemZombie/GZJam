@@ -125,11 +125,13 @@ public sealed class HistoryTests : IDisposable
                 DROP TABLE playlists;
                 DROP TABLE schema_compat;                     -- added by upgrade 19
                 DROP INDEX ix_tracks_order;                   -- added by upgrade 20
-                DROP TRIGGER tracks_ai;                       -- upgrade 21 remade the search index
+                DROP TRIGGER tracks_ai;                       -- upgrades 21 and 22 remade the search index
                 DROP TRIGGER tracks_ad;                       -- with grouping (and makes it again)
                 DROP TRIGGER tracks_au;
                 DROP TABLE tracks_fts;
                 ALTER TABLE tracks DROP COLUMN grouping;
+                ALTER TABLE tracks DROP COLUMN tags;          -- added by upgrade 22
+                ALTER TABLE tracks DROP COLUMN tag_text;
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

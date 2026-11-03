@@ -190,6 +190,12 @@ public sealed class AppSettings
     /// </summary>
     public List<string> HiddenQueueColumns { get; set; } = ["Album", "Genre", "Year", "Played"];
 
+    /// <summary>
+    /// The song files' other tags shown as library columns (#119), by <see cref="Library.SongTag.Key"/>,
+    /// in the order the DJ chose them. None at first: which tags a library has depends on who tagged it.
+    /// </summary>
+    public List<string> TagColumns { get; set; } = [];
+
     /// <summary>The queue's parts in the order the DJ dragged them into (#188), by name; null: as they come.</summary>
     public List<string>? QueueColumnOrder { get; set; }
 

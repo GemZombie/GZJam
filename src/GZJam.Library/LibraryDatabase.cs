@@ -36,6 +36,9 @@ public sealed partial class LibraryDatabase
         // For very large libraries: a bigger page cache, sorts in memory rather than a temp file, and
         // the file read through memory mapping. Limits, not allocations: a small library uses little.
         Execute(connection, "PRAGMA cache_size = -32768; PRAGMA temp_store = MEMORY; PRAGMA mmap_size = 268435456;");
+        // A search filter on one of a song's other tags (dance:waltz, #119): see SongTags.Matches.
+        connection.CreateFunction<string?, string, string, long, bool>("gz_tag_matches",
+            (tags, key, typed, phrase) => SongTags.Matches(tags, key, typed, phrase != 0), isDeterministic: true);
         return connection;
     }
 
@@ -410,6 +413,39 @@ public sealed partial class LibraryDatabase
             END;
             INSERT INTO tracks_fts(tracks_fts) VALUES ('rebuild');
             """,
+
+        // 22: Every other tag in the song files (#119): tags holds each name and value (see
+        // SongTags.Encode), tag_text the values alone, searched by plain words, so the full-text
+        // index is made again with it. Read at the next scan (TagReader.Version 5). Only adds: an
+        // older GZJam leaves them as they were, and the next scan here reads those songs again.
+        """
+            ALTER TABLE tracks ADD COLUMN tags TEXT;
+            ALTER TABLE tracks ADD COLUMN tag_text TEXT;
+            DROP TRIGGER IF EXISTS tracks_ai;
+            DROP TRIGGER IF EXISTS tracks_ad;
+            DROP TRIGGER IF EXISTS tracks_au;
+            DROP TABLE IF EXISTS tracks_fts;
+            CREATE VIRTUAL TABLE tracks_fts USING fts5(
+                title, artist, album, album_artist, genre, comment, folder, file_name, grouping, tag_text,
+                content = 'tracks', content_rowid = 'id',
+                tokenize = 'unicode61 remove_diacritics 2'
+            );
+            CREATE TRIGGER tracks_ai AFTER INSERT ON tracks BEGIN
+                INSERT INTO tracks_fts(rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping, tag_text)
+                VALUES (new.id, new.title, new.artist, new.album, new.album_artist, new.genre, new.comment, new.folder, new.file_name, new.grouping, new.tag_text);
+            END;
+            CREATE TRIGGER tracks_ad AFTER DELETE ON tracks BEGIN
+                INSERT INTO tracks_fts(tracks_fts, rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping, tag_text)
+                VALUES ('delete', old.id, old.title, old.artist, old.album, old.album_artist, old.genre, old.comment, old.folder, old.file_name, old.grouping, old.tag_text);
+            END;
+            CREATE TRIGGER tracks_au AFTER UPDATE ON tracks BEGIN
+                INSERT INTO tracks_fts(tracks_fts, rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping, tag_text)
+                VALUES ('delete', old.id, old.title, old.artist, old.album, old.album_artist, old.genre, old.comment, old.folder, old.file_name, old.grouping, old.tag_text);
+                INSERT INTO tracks_fts(rowid, title, artist, album, album_artist, genre, comment, folder, file_name, grouping, tag_text)
+                VALUES (new.id, new.title, new.artist, new.album, new.album_artist, new.genre, new.comment, new.folder, new.file_name, new.grouping, new.tag_text);
+            END;
+            INSERT INTO tracks_fts(tracks_fts) VALUES ('rebuild');
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -448,6 +484,7 @@ public sealed partial class LibraryDatabase
         cmd.CommandText = "DELETE FROM roots WHERE id = $id;";
         cmd.Parameters.AddWithValue("$id", rootId);
         cmd.ExecuteNonQuery();
+        ForgetTagNames();
     }
 
     // ───────────── Scanning support ─────────────
@@ -475,20 +512,24 @@ public sealed partial class LibraryDatabase
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
             INSERT INTO tracks (root_id, path, folder, file_name, file_size, modified_utc,
-                                title, artist, album, album_artist, genre, comment, grouping, year, track_number, bpm, duration_ms, tag_version)
+                                title, artist, album, album_artist, genre, comment, grouping, year, track_number, bpm, duration_ms, tag_version,
+                                tags, tag_text)
             VALUES ($root, $path, $folder, $file, $size, $mod,
-                    $title, $artist, $album, $album_artist, $genre, $comment, $grouping, $year, $track, $bpm, $duration, $tag_version)
+                    $title, $artist, $album, $album_artist, $genre, $comment, $grouping, $year, $track, $bpm, $duration, $tag_version,
+                    $tags, $tag_text)
             ON CONFLICT(path) DO UPDATE SET
                 root_id = excluded.root_id, folder = excluded.folder, file_name = excluded.file_name,
                 file_size = excluded.file_size, modified_utc = excluded.modified_utc,
                 title = excluded.title, artist = excluded.artist, album = excluded.album,
                 album_artist = excluded.album_artist, genre = excluded.genre, comment = excluded.comment, grouping = excluded.grouping,
                 year = excluded.year, track_number = excluded.track_number, bpm = excluded.bpm,
-                duration_ms = excluded.duration_ms, tag_version = excluded.tag_version;
+                duration_ms = excluded.duration_ms, tag_version = excluded.tag_version,
+                tags = excluded.tags, tag_text = excluded.tag_text;
             """;
         var p = new Dictionary<string, SqliteParameter>();
         foreach (string name in new[] { "$root", "$path", "$folder", "$file", "$size", "$mod", "$title", "$artist",
-                     "$album", "$album_artist", "$genre", "$comment", "$grouping", "$year", "$track", "$bpm", "$duration", "$tag_version" })
+                     "$album", "$album_artist", "$genre", "$comment", "$grouping", "$year", "$track", "$bpm", "$duration", "$tag_version",
+                     "$tags", "$tag_text" })
             p[name] = cmd.Parameters.Add(new SqliteParameter { ParameterName = name });
         cmd.Prepare();
 
@@ -512,9 +553,12 @@ public sealed partial class LibraryDatabase
             p["$bpm"].Value = (object?)t.TagBpm ?? DBNull.Value;
             p["$duration"].Value = (long)t.Duration.TotalMilliseconds;
             p["$tag_version"].Value = TagReader.Version;
+            p["$tags"].Value = Db(SongTags.Encode(t.Tags));
+            p["$tag_text"].Value = Db(SongTags.SearchText(t.Tags));
             cmd.ExecuteNonQuery();
         }
         tx.Commit();
+        ForgetTagNames();
     }
 
     /// <summary>
@@ -538,6 +582,7 @@ public sealed partial class LibraryDatabase
         foreach (var (from, to) in moves)
             MoveSongData(c, from, to);
         tx.Commit();
+        ForgetTagNames();
     }
 
     /// <summary>
@@ -612,7 +657,7 @@ public sealed partial class LibraryDatabase
     public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default,
         double nearBpm = DefaultNearBpm, long? playlist = null)
     {
-        var query = SearchQuery.Parse(text, nearBpm: nearBpm);
+        var query = SearchQuery.Parse(text, nearBpm: nearBpm, tagKeys: TagKeys(text));
 
         // Within a playlist: its songs in its order, one row per entry (a song can be in it twice).
         var sql = new StringBuilder(playlist is null
@@ -789,6 +834,7 @@ public sealed partial class LibraryDatabase
         Year = GetInt(r, o.Year),
         TrackNumber = GetInt(r, o.TrackNumber),
         TagBpm = GetDouble(r, o.TagBpm),
+        Tags = SongTags.Decode(GetString(r, o.Tags)),
         DetectedBpm = GetDouble(r, o.DetectedBpm),
         BpmRange = r.IsDBNull(o.RangeMin) ? null : new BpmRange(r.GetInt32(o.RangeMin), r.GetInt32(o.RangeMax)),
         ManualBpm = GetDouble(r, o.ManualBpm),
@@ -811,7 +857,7 @@ public sealed partial class LibraryDatabase
             TagBpm = r.GetOrdinal("bpm"), DetectedBpm = r.GetOrdinal("detected_bpm"), RangeMin = r.GetOrdinal("range_min"),
             RangeMax = r.GetOrdinal("range_max"), ManualBpm = r.GetOrdinal("manual_bpm"), Duration = r.GetOrdinal("length_ms"),
             Rating = r.GetOrdinal("rating"), Energy = r.GetOrdinal("energy"), LastPlayed = r.GetOrdinal("last_played"),
-            PlayCount = r.GetOrdinal("play_count"), Labels = r.GetOrdinal("labels");
+            PlayCount = r.GetOrdinal("play_count"), Labels = r.GetOrdinal("labels"), Tags = r.GetOrdinal("tags");
     }
 
     /// <summary>A track row plus what the app knows about it: detected BPM, any chosen BPM range, and the DJ's marks.</summary>

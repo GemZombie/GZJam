@@ -317,8 +317,8 @@ The song list shows your music; the folder tree shows it as it is on disk.
 
 - **Choosing a folder** narrows the list (and searches) to everything beneath it. Click it again to
   close it; the chip above the list shows the scope, and its ✕ goes back to the whole library.
-- **Search** as you type, across titles, artists, albums, comments, Grouping, folder names and
-  file names (`balboa` finds songs in a *Balboa* folder). The best matches come first: songs whose
+- **Search** as you type, across titles, artists, albums, comments, Grouping, the other tags in
+  your songs, folder names and file names (`balboa` finds songs in a *Balboa* folder). The best matches come first: songs whose
   title or artist has your words, then songs that have them somewhere else, and last, songs that
   only mention them in a comment. Put words in quotes to find them together: `"duke ellington"`.
   If a typo finds nothing, the empty list offers the search corrected (*Did you mean duke
@@ -331,6 +331,7 @@ The song list shows your music; the folder tree shows it as it is on disk.
   | `bpm:140`, `bpm:130-150`, `bpm:>200` | a BPM, or a range |
   | `~bpm:140` | songs that can be pitched to 140 (within 8%; `~bpm:140/5` for 5%) |
   | `artist:basie`, `title:`, `album:`, `genre:`, `comment:`, `grouping:`, `folder:`, `file:` | one field (`artist:"count basie"` for words together; `file:` is the file name) |
+  | `composer:ellington`, `dance:waltz` | any other tag in your songs, by its name: its letters and digits (`bandleader:` for a *Band leader* tag) |
   | `year:1938`, `year:1935-1940`, `year:<1950` | the year |
   | `rating:yes`, `rating:no`, `rating:none` | hearts |
   | `energy:high`, `energy:2-3` | energy |
@@ -341,8 +342,8 @@ The song list shows your music; the folder tree shows it as it is on disk.
 
 - **Suggestions as you type:** start a filter's name (`ar`) and the box offers `artist:`; after
   one, it lists what's in your library: your labels after `label:`, the artists after `artist:`
-  (with how many songs each), the genres after `genre:`, the choices after `energy:`, `rating:` and
-  `played:`. Tap one, or press ↓ and Enter. Escape closes the list; just keep typing to ignore it.
+  (with how many songs each), the genres after `genre:`, a tag's values after its name
+  (`dance:`), the choices after `energy:`, `rating:` and `played:`. Tap one, or press ↓ and Enter. Escape closes the list; just keep typing to ignore it.
 - **The BPM button** beside the search box fills in a BPM filter by tap: *Near Deck 1* (the deck's
   tempo as the room hears it), a tempo range, or *Any BPM*. **The Label button** does the same for
   labels, and **the Filter button** for energy, hearts, when the room heard a song, and the
@@ -351,8 +352,10 @@ The song list shows your music; the folder tree shows it as it is on disk.
   box always shows the whole search, and lights up while one of its filters is there.
 - **The ? in the empty search box** shows how to search, with the filters; tap one to try it.
 - **Columns:** right-click a column header to show or hide ♥, Album, Genre, Grouping, Comment,
-  Year, BPM, Energy, Played and Art. Click a header to sort. Long Grouping and Comment text is cut
-  off with "…"; point at it (or hold a finger on it) for the whole text.
+  Year, BPM, Energy, Played and Art, and, under *Tags in your songs*, any other tag your songs have
+  (Composer, Mood, a Dance tag of your own: the ones most songs have first, the rest under *More
+  tags*). Click a header to sort. Long text is cut off with "…"; point at it (or hold a finger on
+  it) for the whole text.
 
 ### Marking songs
 
@@ -437,6 +440,11 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   files themselves, so GZJam reads them without any import: show the *Grouping* and *Comment*
   columns, and search them (`grouping:balboa`). Handy if you sort your music by dance, feel or era
   in those fields. (iTunes ratings and play counts aren't in the files.)
+- **Any other tag** in your song files is read the same way: the composer, the conductor, a mood,
+  the key, the dance or band leader in a tag of your own (foobar2000's and Mp3tag's custom fields,
+  MediaMonkey's, iTunes'), whichever kind of file it's in. Show it as a column and search it
+  (`dance:waltz`). Tags only other programs use (MusicBrainz IDs, ReplayGain, the encoder) and long
+  ones like lyrics are left out.
 
 The files are only read, never changed.
 

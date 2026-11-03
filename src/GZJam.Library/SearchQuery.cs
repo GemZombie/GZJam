@@ -19,6 +19,8 @@ namespace GZJam.Library;
 /// <item><c>label:lindy</c> (a label starting with that), <c>label:"female vocals"</c>, <c>label:none</c></item>
 /// <item><c>played:7</c> (the room heard it in the last 7 days), <c>played:never</c>, <c>played:yes</c>;
 /// <c>-played:7</c> leaves out last week's songs</item>
+/// <item>any other tag the library's songs have, by its name's letters and digits (#119):
+/// <c>composer:ellington</c>, <c>dance:waltz</c>, <c>bandleader:basie</c> for "Band leader"</item>
 /// </list>
 /// A leading <c>-</c> excludes: <c>-rating:no</c>, <c>-live</c>. <c>OR</c>, in capitals, between two
 /// words or filters takes either (<c>label:balboa OR label:charleston</c>), binding tighter than the
@@ -48,15 +50,17 @@ internal sealed class SearchQuery
     private const string BestColumns = "{title artist album_artist}";
 
     /// <summary>Everything searched but the comment, which can mention anyone ("worked with Duke Ellington", #240).</summary>
-    private const string AllButCommentColumns = "{title artist album_artist album genre grouping folder file_name}";
+    private const string AllButCommentColumns = "{title artist album_artist album genre grouping folder file_name tag_text}";
 
     private readonly List<string> _conditions = [];
     private readonly Dictionary<string, object> _parameters = [];
     private readonly List<string> _terms = [];
     private readonly DateTime _nowUtc;
     private readonly double _nearBpm;
+    private readonly IReadOnlySet<string> _tagKeys;
 
-    private SearchQuery(DateTime nowUtc, double nearBpm) => (_nowUtc, _nearBpm) = (nowUtc, nearBpm);
+    private SearchQuery(DateTime nowUtc, double nearBpm, IReadOnlySet<string>? tagKeys) =>
+        (_nowUtc, _nearBpm, _tagKeys) = (nowUtc, nearBpm, tagKeys ?? new HashSet<string>());
 
     /// <summary>SQL conditions to AND together; they refer to the tracks (t), analysis (a), BPM range (r) and manual BPM (mb).</summary>
     public IReadOnlyList<string> Conditions => _conditions;
@@ -72,9 +76,11 @@ internal sealed class SearchQuery
 
     /// <param name="nowUtc">For <c>played:</c> filters; defaults to now.</param>
     /// <param name="nearBpm">How far <c>~bpm:</c> reaches either side, as a fraction.</param>
-    public static SearchQuery Parse(string? text, DateTime? nowUtc = null, double nearBpm = LibraryDatabase.DefaultNearBpm)
+    /// <param name="tagKeys">The other tags the library's songs have (<see cref="SongTag.Key"/>), which can be filters too.</param>
+    public static SearchQuery Parse(string? text, DateTime? nowUtc = null, double nearBpm = LibraryDatabase.DefaultNearBpm,
+        IReadOnlySet<string>? tagKeys = null)
     {
-        var query = new SearchQuery(nowUtc ?? DateTime.UtcNow, nearBpm);
+        var query = new SearchQuery(nowUtc ?? DateTime.UtcNow, nearBpm, tagKeys);
         foreach (var group in OrGroups(Tokenize(text ?? "")))
         {
             if (group.Count == 1)
@@ -182,12 +188,13 @@ internal sealed class SearchQuery
             "played" => PlayedCondition(value),
             "label" or "labels" => LabelCondition(value),
             var f when TextColumns.TryGetValue(f, out string? column) => TextCondition(column, value, phrase: typed.StartsWith('"'), negated),
+            var f when _tagKeys.Contains(f) => TagCondition(f, value, phrase: typed.StartsWith('"')),
             _ => null,
         };
         if (condition is null)
         {
             // Not a filter we know (or not finished): search for the words, or ignore a half-typed filter.
-            if (!IsKnownField(field))
+            if (!IsKnownField(field) && !_tagKeys.Contains(field.ToLowerInvariant()))
                 AddWords(token, negated);
             return;
         }
@@ -232,6 +239,19 @@ internal sealed class SearchQuery
             return null;
         Match($"{column} : ({words})", negated);
         return "";
+    }
+
+    /// <summary>
+    /// One of the song files' other tags holds the words (#119). The search index finds the songs
+    /// with the words in any of those tags, quickly; <see cref="SongTags.Matches"/> keeps the ones
+    /// that have them in this tag.
+    /// </summary>
+    private string? TagCondition(string key, string value, bool phrase)
+    {
+        string? words = phrase ? LibraryDatabase.BuildPhraseExpression(value) : LibraryDatabase.BuildMatchExpression(value);
+        if (words is null)
+            return null;
+        return $"({MatchSql($"tag_text : ({words})")} AND gz_tag_matches(t.tags, {Parameter(key)}, {Parameter(value)}, {(phrase ? 1 : 0)}))";
     }
 
     /// <summary>"140": near 140, as far as the DJ chose. "140/5": within 5% either side.</summary>

@@ -13,7 +13,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.1.0-beta.1.
+New:
+
+- **Every tag in your songs:** GZJam reads all the tags in your song files now, not only the usual
+  ones: the composer, a mood, the dance in a tag of your own. Right-click a column header to show
+  any of them as a column (under *Tags in your songs*), and search them: `composer:ellington`,
+  `dance:waltz`, or just type the words. The first scan after updating reads every song again, once.
 
 ## 1.1.0-beta.1 (2026-11-02)
 

@@ -34,6 +34,8 @@ public partial class MainWindow
         FlyoutMenus.FillBeforeOpening(LabelFilterButton, LabelFilterMenu, FillLabelFilterMenu);
         FlyoutMenus.FillBeforeOpening(FilterButton, FilterMenu, FillFilterMenu);
         SearchHelp.Content = CheatSheet();
+        // Made again as it opens: its tag example is whichever tag the songs have most now (#119).
+        SearchHelp.Opening += (_, _) => SearchHelp.Content = CheatSheet();
         SearchHeader.SizeChanged += (_, _) => FitSearchHeader();
         InitializeSuggestions();
     }
@@ -157,6 +159,13 @@ public partial class MainWindow
         sheet.Children.Add(Line("rating:yes", "hearts: yes, no, none"));
         sheet.Children.Add(Line("played:7", "heard in the last 7 days; played:never"));
         sheet.Children.Add(Line("year:1935-1940", "the year, or a range"));
+        // The song files' other tags (#119), with the one most songs have as the example.
+        if (DataContext is not null && Vm.Library.TagNames().FirstOrDefault() is { } tag)
+        {
+            string? value = Vm.Library.SuggestionValues(tag.Key).FirstOrDefault()?.Value?.Replace("\"", "").ToLowerInvariant();
+            string example = value is null ? tag.Key + ":" : $"{tag.Key}:{(value.Any(char.IsWhiteSpace) ? $"\"{value}\"" : value)}";
+            sheet.Children.Add(Line(example, $"any other tag in your songs, by its name ({tag.Name})"));
+        }
         sheet.Children.Add(new TextBlock
         {
             Text = "Tap a filter to try it. Start typing one (ar…) and the box suggests the rest.",
