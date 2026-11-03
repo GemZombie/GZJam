@@ -577,14 +577,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// given), never replacing what's there; in a random order if <paramref name="shuffled"/>
     /// (#254). Songs no longer in the library are skipped.
     /// </summary>
-    public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null, bool shuffled = false)
+    /// <summary>A playlist's songs for the queue, from <paramref name="from"/> on, shuffled if asked.</summary>
+    private List<Track> PlaylistSongs(PlaylistInfo playlist, Track? from, bool shuffled)
     {
         // A song whose file is missing stays behind: it couldn't play (#237).
         var songs = _database.Search(null, playlist: playlist.Id).Where(t => !t.IsMissing).ToList();
         if (from?.PlaylistNumber is { } number)
             songs = songs.Where(t => t.PlaylistNumber >= number).ToList();
-        if (songs.Count == 0)
-            return;
         // The library's rows where they're showing, so marks and "played tonight" stay in step.
         var shown = songs.Select(t => Library.ResultsFor(t.Path).FirstOrDefault(r => r.PlaylistEntryId == t.PlaylistEntryId) ?? t).ToList();
         if (TonightSince() is { } since)
@@ -594,6 +593,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         if (shuffled)
             Random.Shared.Shuffle(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(shown));
+        return shown;
+    }
+
+    public void AddPlaylistToQueue(PlaylistInfo playlist, Track? from = null, bool shuffled = false)
+    {
+        var shown = PlaylistSongs(playlist, from, shuffled);
+        if (shown.Count == 0)
+            return;
         var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
         var repeats = Queue.Add(shown).Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
         Log.Info($"Playlist \"{playlist.Name}\" added to the queue{(shuffled ? ", shuffled" : "")}: {shown.Count} songs{(from is null ? "" : $" from number {from.PlaylistNumber}")}");
@@ -601,6 +608,60 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             NoticeRepeatsInQueue(repeats, shown.Count, earlier);
         else
             ShowNotice((shown.Count == 1 ? "1 song added to the queue" : $"{shown.Count} songs added to the queue") + (shuffled && shown.Count > 1 ? ", shuffled" : ""));
+    }
+
+    /// <summary>
+    /// Play a playlist (#259): it replaces the queue, takes the place of the songs ready on the decks
+    /// auto-play starts next, and auto-play turns on. The song playing to the room is never
+    /// touched: it finishes, and the playlist follows. Undo puts back the queue and those songs.
+    /// Repeat this song turns off: playing a playlist is the opposite of it.
+    /// </summary>
+    public void PlayPlaylist(PlaylistInfo playlist, bool shuffled = false)
+    {
+        if (AutoPlay is not { } auto)
+            return;
+        var songs = PlaylistSongs(playlist, null, shuffled);
+        if (songs.Count == 0)
+        {
+            ShowNotice($"\"{playlist.Name}\" has no songs to play");
+            return;
+        }
+        if (auto.Repeat == RepeatMode.Song)
+            auto.Repeat = RepeatMode.Off;
+        var queueBefore = Queue.Items.Select(i => i.Track).ToList();
+        bool wasOn = auto.IsOn;
+        Queue.Clear();
+        Queue.Add(songs);
+        var held = auto.LineUpQueue();
+        auto.IsOn = true;
+        Log.Info($"Playing playlist \"{playlist.Name}\"{(shuffled ? ", shuffled" : "")}: {songs.Count} songs, in place of {queueBefore.Count} queued");
+        string count = songs.Count == 1 ? "1 song" : $"{songs.Count} songs";
+        ShowNotice($"Playing \"{playlist.Name}\": {count}{(shuffled && songs.Count > 1 ? ", shuffled" : "")}", 8, undo: () =>
+        {
+            Queue.Clear();
+            Queue.Add(queueBefore);
+            foreach (var (deck, track) in held)
+            {
+                bool restored = false;
+                if (!deck.IsPlaying)
+                {
+                    try
+                    {
+                        deck.Load(track);
+                        restored = true;
+                    }
+                    catch (AudioException ex)
+                    {
+                        Log.Error($"Couldn't load {track.Path} again", ex);
+                    }
+                }
+                if (!restored)
+                    Queue.PlayNext([track]);   // its deck has moved on: first in the queue instead
+            }
+            if (!wasOn)
+                auto.IsOn = false;
+            Log.Info($"Playing \"{playlist.Name}\" undone: the queue and decks are back as they were");
+        });
     }
 
     /// <summary>Puts the queue in a random order (#254), with Undo to put it back.</summary>
@@ -1234,10 +1295,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
 
+        // With auto-play on, the deck waiting to play is the front of the queue (#261).
+        Track? bumped = AutoPlay?.IsWaiting(deck) == true ? deck.Track : null;
         try
         {
             deck.Load(track);
-            return true;
         }
         catch (AudioException ex)
         {
@@ -1245,6 +1307,83 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ShowNotice($"Couldn't load {track.DisplayTitle}: {ex.Message}");
             return false;
         }
+        if (bumped is not null && bumped.Path != track.Path)
+            BackToTopOfQueue(bumped);
+        return true;
+    }
+
+    /// <summary>
+    /// A song replaced on the waiting deck goes back to the top of the queue (#261), so changing the
+    /// very next song doesn't lose the one that was ready. With Repeat the queue it's at the end
+    /// already (it went there as it was loaded): it moves up rather than being queued twice.
+    /// </summary>
+    private void BackToTopOfQueue(Track track)
+    {
+        QueueItem? moved = Queue.Repeat ? Queue.Items.LastOrDefault(i => i.Track.Path == track.Path) : null;
+        QueueItem item;
+        if (moved is not null)
+        {
+            Queue.Move([moved], 0);
+            item = moved;
+        }
+        else
+        {
+            item = Queue.Add([track], 0)[0];
+        }
+        Log.Info($"\"{track.DisplayTitle}\" went back to the top of the queue");
+        ShowNotice($"\"{track.DisplayTitle}\" went back to the top of the queue", 6, undo: () =>
+        {
+            if (moved is not null)
+                Queue.Move([moved], Queue.Items.Count);
+            else
+                Queue.Remove([item]);
+            Log.Info($"\"{track.DisplayTitle}\" taken back out of the top of the queue");
+        });
+    }
+
+    /// <summary>
+    /// A song double-clicked (#260) goes onto the deck that plays next, never the one on air. With
+    /// auto-play on, that's the deck it starts next: the song that was ready there goes back to
+    /// the top of the queue (#261). If that deck is busy (playing in the headphones, say), the song
+    /// goes to the top of the queue instead. With auto-play off, it's the deck the room isn't
+    /// hearing (with nothing playing, the one it will hear). A song from the queue leaves it, as
+    /// dragging it would. Returns whether it was loaded onto a deck.
+    /// </summary>
+    public async Task<bool> PlaySongAsync(Track track, QueueItem? queued = null)
+    {
+        DeckViewModel? deck;
+        if (AutoPlay is { IsOn: true } auto)
+        {
+            deck = auto.FreeWaitingDeck();
+            if (deck is null || !CanLoad(deck))
+            {
+                if (queued is not null)
+                    Queue.Move([queued], 0);
+                else
+                    Queue.PlayNext([track]);
+                Log.Info($"\"{track.DisplayTitle}\" first in the queue (double-click; the next deck is busy)");
+                ShowNotice($"\"{track.DisplayTitle}\" is first in the queue");
+                return false;
+            }
+        }
+        else if (AutoPlay?.DeckForNextSong() is { } next)
+        {
+            deck = next;
+        }
+        else
+        {
+            return false;
+        }
+        if (!CanLoad(deck))
+        {
+            ShowNotice($"Deck {deck.Label} is on air. Pause it, or crossfade away from it, to load a new track.");
+            return false;
+        }
+        if (!await LoadToDeckAsync(deck, track))
+            return false;
+        if (queued is not null)
+            Queue.Loaded([queued]);
+        return true;
     }
 
     public void RefreshDecks()

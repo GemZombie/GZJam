@@ -171,6 +171,13 @@ the decks back.
 - **Load:** drag a song onto a deck, or right-click it › *Load to Deck N*. Songs dragged in from
   Explorer, Finder or your Linux file manager load too, even from outside your music folders (a song
   a dancer brings on a USB stick).
+- **Double-click a song** (in the song list, a playlist, the queue or History) and it goes on the
+  deck that plays next, never the one on air:
+  - Auto-play off: the deck the room isn't hearing, ready to cue and play; with nothing playing,
+    the deck the room will hear when you press play.
+  - Auto-play on: the deck waiting to play. The song that was ready there goes back to the top of
+    the queue (see *Changing the very next song* under the queue). If that deck is busy (playing
+    in the headphones, say), the song goes first in the queue instead.
 - **The deck on air is protected:** by default GZJam won't load a song over the one the room hears.
   The deck shows a "not allowed" outline as you drag over it, and the menu says *(on air)*. Change it
   in Settings › Decks › *Loading a playing deck*. Once you've crossfaded over, the other deck (OFF
@@ -380,6 +387,13 @@ queue; right-click a song › *Add to queue from here* puts the rest. For a rand
 playlist's right-click menu (or the ⋯ beside *Add to queue*) has **Add to queue shuffled**. The queue's menu has *Save queue
 as playlist…*, and History's ⋯ has *Save as playlist…*.
 
+**Play** (beside *Add to queue*, or a playlist's right-click menu) plays the playlist, for a class
+or a practice night: it takes the queue's place and auto-play turns on. A song playing finishes
+first, then the playlist follows; the song that was ready next makes way for it. **Undo** in the top
+bar puts back the queue and that song. **Play shuffled** (in the same menus) plays it in a random
+order. Playing a playlist turns off *Repeat › This song*; *Repeat › The queue* stays on, so the
+playlist goes round.
+
 **More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
 down for more folders. If you only ever play from the whole library or a playlist, click the arrow
 beside **LIBRARY** to fold the folders away: only your music folder shows (still there to click for
@@ -441,8 +455,11 @@ The queue is tonight's list of songs to come.
   *Shuffle queue* puts it in a random order, with **Undo** in the top bar to put it back.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
-- **Loading from it:** drag a queued song onto a deck; it leaves the queue (with *Repeat: The
-  queue*, it goes to the end).
+- **Loading from it:** drag a queued song onto a deck, or double-click it; it leaves the queue
+  (with *Repeat: The queue*, it goes to the end).
+- **Changing the very next song:** with auto-play on, the deck waiting to play is the front of the
+  queue. Load another song onto it and the song that was there goes back to the top of the queue,
+  so it plays right after your new pick (the top bar says so, with **Undo** to take it out).
 - **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
   and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
   time. Album, genre, year and played start off; they fit best in a queue given the room with

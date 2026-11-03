@@ -303,6 +303,55 @@ public sealed partial class AutoPlayViewModel : ObservableObject
         }
     }
 
+    /// <summary>The deck auto-play starts next: counting down the gap, waiting for play, or the one after the live deck.</summary>
+    private DeckViewModel? WaitingDeck => _pending?.Deck ?? _waiting ?? NextDeck;
+
+    /// <summary>
+    /// With auto-play on, the deck waiting to play, with its song ready, is the front of the queue
+    /// (#261): a song replaced on it goes back to the top of the queue. Not with Repeat this song,
+    /// where it holds a copy of the song playing.
+    /// </summary>
+    internal bool IsWaiting(DeckViewModel deck) => IsOn && Repeat != RepeatMode.Song && deck.IsReady && deck == WaitingDeck;
+
+    /// <summary>
+    /// The deck a song double-clicked in the library loads onto (#260): with a song playing to the
+    /// room, the deck after it; with none, the one the crossfader has in the room, so pressing play
+    /// on it is heard.
+    /// </summary>
+    internal DeckViewModel? DeckForNextSong() => _owner.Decks.Any(d => d.IsOnAir) ? NextDeck : LiveDeck;
+
+    /// <summary>
+    /// With auto-play on, the deck it starts next, if a song can go onto it now: not playing (in
+    /// the headphones, say). A song double-clicked goes there, so it really is next (#260).
+    /// </summary>
+    internal DeckViewModel? FreeWaitingDeck() => IsOn && WaitingDeck is { IsPlaying: false } deck ? deck : null;
+
+    /// <summary>
+    /// Play a playlist (#259): the queue has just been replaced. The decks auto-play would start next
+    /// take its first songs: the waiting deck, and with nothing playing to the room, the live deck
+    /// first. A deck that's playing (in the headphones, say) is left alone. Returns the songs that
+    /// were ready on them, for Undo.
+    /// </summary>
+    internal List<(DeckViewModel Deck, Track Track)> LineUpQueue()
+    {
+        var decks = new List<DeckViewModel>();
+        if (_pending is null && _waiting is null && !_owner.Decks.Any(d => d.IsOnAir))
+            decks.Add(LiveDeck);
+        if (WaitingDeck is { } waiting && !decks.Contains(waiting))
+            decks.Add(waiting);
+        var held = new List<(DeckViewModel, Track)>();
+        foreach (DeckViewModel deck in decks)
+        {
+            if (deck.IsPlaying || _queue.Items.Count == 0)
+                continue;
+            Track? ready = deck.IsReady ? deck.Track : null;
+            LoadNextOnto(deck);
+            if (ready is not null && deck.Track != ready)
+                held.Add((deck, ready));
+        }
+        return held;
+    }
+
     partial void OnIsOnChanged(bool value)
     {
         Log.Info($"Auto-play {(value ? "on" : "off")}");

@@ -22,6 +22,16 @@ New:
   the end of the queue as it's loaded, so a playlist plays over and over, for a class, a practice
   night or music between sets. *This song*: the song playing plays again and again, and the queue
   waits for when you switch back. Like *Wait for me* and *Stop at*, it's for tonight only.
+- **Play a playlist:** *Play* (and *Play shuffled*) on a playlist puts it in place of the queue and
+  turns auto-play on, in one step. A song playing finishes first. Undo puts the queue back.
+- **Double-click a song** to put it on the deck that plays next, never the one on air. With
+  auto-play on, the song that was ready there goes back to the top of the queue.
+
+Changed:
+
+- **With auto-play on, changing the very next song keeps the one you had ready:** load another song
+  onto the deck waiting to play and the song that was there goes back to the top of the queue,
+  with Undo.
 
 ## 1.0.0 (2026-11-02)
 
