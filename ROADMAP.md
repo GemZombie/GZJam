@@ -153,6 +153,8 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
   *Play shuffled* replaces the queue and starts auto-play, with Undo
 - [Double-click a song](https://github.com/GemZombie/GZJam/issues/260) (1.1) to load it onto the
   deck the room isn't hearing (with auto-play on: *Play next*), never the one on air
+- [A song bumped off the waiting deck goes back to the top of the queue](https://github.com/GemZombie/GZJam/issues/261)
+  (1.1): with auto-play on, change the very next song without losing the one you had ready
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
