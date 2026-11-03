@@ -164,8 +164,10 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
-- [Edit tags in GZJam](https://github.com/GemZombie/GZJam/issues/129): kept in GZJam's library
-  only, or written to the files too if you turn that on
+- [A song's info and tags in one dialog](https://github.com/GemZombie/GZJam/issues/129): every
+  tag and what GZJam knows about the song, then editing one song or many at once (an artist's
+  spelling across every song a search finds), kept in GZJam's library only, or written to the
+  files too if you turn that on
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 
 **After that:**
