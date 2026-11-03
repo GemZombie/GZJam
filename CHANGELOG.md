@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.1.0-beta.1.
+
+## 1.1.0-beta.1 (2026-11-02)
+
+A beta of 1.1, for trying it at a night before everyone gets it. GZJam's update notice doesn't
+offer betas: you only get one from this page. It reads the same library as 1.0.0, so you can go
+back to 1.0.0 at any time.
+
 New:
 
 - **Play a playlist shuffled:** a playlist's right-click menu (and the ⋯ beside *Add to queue*) has

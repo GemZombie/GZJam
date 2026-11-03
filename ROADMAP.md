@@ -133,6 +133,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
+To try them now: [1.1.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.1.0-beta.1).
+
 - [Play a playlist shuffled](https://github.com/GemZombie/GZJam/issues/254): *Add to queue
   shuffled*, and *Shuffle queue*
 - [Repeat](https://github.com/GemZombie/GZJam/issues/255): an auto-play option that sends each

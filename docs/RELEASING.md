@@ -40,6 +40,11 @@ before everyone gets it.
 
 - Tag `v1.1.0-beta.1` (then beta.2, …) from main. The release workflow marks it a prerelease, and
   GZJam's update notice skips prereleases, so only the DJs given the link try it.
+- Before the tag, CHANGELOG.md: rename `## Unreleased` to `## 1.1.0-beta.1 (date)`, with a line
+  saying it's a beta, and start a new `## Unreleased`. Each beta's notes are what's new since the
+  one before. At 1.1.0, the beta sections become one `## 1.1.0 (date)` section.
+- Publish the draft as a prerelease (never as the latest release), and link it from ROADMAP.md's
+  *Finished, coming in the next release*.
 - To hand one DJ a build without any release: Actions › Release › Run workflow, with a version
   such as `1.1.0-test.1`. The packages are attached to the run.
 
