@@ -140,6 +140,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   nights and background music (for tonight only)
 - [Repeat one song](https://github.com/GemZombie/GZJam/issues/257): Repeat's other choice, *This
   song*, plays the song playing over and over
+- [Play a playlist](https://github.com/GemZombie/GZJam/issues/259) in one step: *Play* or *Play
+  shuffled* puts it in place of the queue and starts auto-play, with Undo
+- [Double-click a song](https://github.com/GemZombie/GZJam/issues/260) to put it on the deck that
+  plays next, never the one on air
+- [A song bumped off the waiting deck goes back to the top of the queue](https://github.com/GemZombie/GZJam/issues/261):
+  with auto-play on, change the very next song without losing the one you had ready
 
 ## Planned next
 
@@ -149,12 +155,9 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **Next:**
-- [Play a playlist](https://github.com/GemZombie/GZJam/issues/259) in one step (1.1): *Play* or
-  *Play shuffled* replaces the queue and starts auto-play, with Undo
-- [Double-click a song](https://github.com/GemZombie/GZJam/issues/260) (1.1) to load it onto the
-  deck the room isn't hearing (with auto-play on: *Play next*), never the one on air
-- [A song bumped off the waiting deck goes back to the top of the queue](https://github.com/GemZombie/GZJam/issues/261)
-  (1.1): with auto-play on, change the very next song without losing the one you had ready
+- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262) (1.2): pause,
+  fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
+  without switching to GZJam
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)

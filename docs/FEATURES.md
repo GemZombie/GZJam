@@ -297,6 +297,31 @@ is out of scope until it earns a place.
   playlist's ⋯ have *Add to queue shuffled*; the queue's menu has *Shuffle queue* (never the same
   order again, with two or more songs), with **Undo** in the top bar for 6 s. Undo puts the songs
   back in the order they were; any added since stay after them, any taken out stay out.
+- **The waiting deck is the front of the queue** (#261, 1.1, a DJ's pain point): with auto-play on,
+  a song loaded over the one ready on the deck auto-play starts next (counting down the gap,
+  waiting for play, or after the live deck: `AutoPlayViewModel.IsWaiting`) sends that one back to
+  the top of the queue, in `LoadToDeckAsync`, so dragging, *Load to Deck N*, the load keys and
+  double-click all do it. With *Repeat › The queue* it's at the end already: it moves up rather
+  than being queued twice. Notice with Undo. Not with auto-play off (the decks aren't tied to the
+  queue then), not with *Repeat › This song* (the deck holds a copy of the song playing), not
+  for the same song again. No setting: wanting it gone costs one key, losing it a search mid-dance.
+- **Play a playlist** (#259, 1.1, after Omar's "player basics"): *Play* in the open playlist's bar
+  and the playlist's right-click menu, *Play shuffled* in the same menus (`PlayPlaylist`). The
+  queue is replaced; the decks auto-play starts next take the playlist's first songs
+  (`LineUpQueue`: the waiting deck, and with nothing playing to the room the live deck first);
+  a deck playing (in the headphones, say) is left alone, as is the song the room hears. Auto-play
+  turns on. Undo restores the queue, puts the songs that were ready back on their decks (or, if a
+  deck has started since, at the top of the queue), and turns auto-play off if it was off.
+  *Repeat › This song* turns off; *The queue* stays.
+- **Double-click** (#260, 1.1): a song in the song list, History or the queue
+  (`MainWindow.DoubleClick.cs`, not on the row's ♥ key) goes on the deck that plays next
+  (`PlaySongAsync`), with the usual protection; a queued song then leaves the queue. Auto-play
+  off: `DeckForNextSong`, the deck after the one playing to the room, or with none, the one the
+  crossfader has in the room. Auto-play on: `FreeWaitingDeck`, the deck auto-play starts next,
+  and the song ready there goes back to the top of the queue (#261), so the double-clicked song
+  really is next. First built as "Play next" (the top of the queue), which with auto-play on put
+  it second, after the song already waiting on the deck. That deck busy (playing in the
+  headphones, say): the song goes first in the queue, and the notice says so.
 
 ## History
 

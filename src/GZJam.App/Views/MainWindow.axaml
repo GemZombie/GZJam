@@ -379,6 +379,11 @@
                   <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                     <Grid.ContextMenu>
                       <ContextMenu>
+                        <MenuItem Header="Play" Click="OnPlaylistItemPlayClick"
+                                  ToolTip.Tip="Play this playlist: it takes the queue's place and auto-play plays it. A song playing finishes first" />
+                        <MenuItem Header="Play shuffled" Click="OnPlaylistItemPlayShuffledClick"
+                                  ToolTip.Tip="Play this playlist in a random order: it takes the queue's place and auto-play plays it" />
+                        <Separator />
                         <MenuItem Header="Add to queue" Click="OnPlaylistItemToQueueClick" />
                         <MenuItem Header="Add to queue shuffled" Click="OnPlaylistItemToQueueShuffledClick"
                                   ToolTip.Tip="Add every song in this playlist to the end of the queue, in a random order" />
@@ -489,9 +494,9 @@
             </Grid>
           </Border>
 
-          <!-- A playlist open in the song list: its name, how long, and adding it to the queue -->
+          <!-- A playlist open in the song list: its name, how long, playing it (#259) and adding it to the queue -->
           <Border x:Name="PlaylistBar" Grid.Row="1" Classes="playlist-bar" IsVisible="{Binding Library.IsPlaylistOpen}">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10">
               <Path Data="{StaticResource IconPlaylist}" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
                     StrokeLineCap="Round" Stretch="Uniform" Width="15" Height="13" VerticalAlignment="Center" />
               <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -500,12 +505,16 @@
                 <TextBlock x:Name="PlaylistSummaryText" Classes="muted" FontSize="11.5" Text="{Binding Library.PlaylistSummary}"
                            TextTrimming="CharacterEllipsis" />
               </StackPanel>
-              <Button x:Name="PlaylistToQueueButton" Grid.Column="2" Classes="eq-action" Click="OnPlaylistToQueueClick"
+              <Button x:Name="PlaylistPlayButton" Grid.Column="2" Classes="eq-action" Click="OnPlaylistPlayClick"
+                      ToolTip.Tip="Play this playlist: it takes the queue's place and auto-play plays it. A song playing finishes first" Content="Play" />
+              <Button x:Name="PlaylistToQueueButton" Grid.Column="3" Classes="eq-action" Click="OnPlaylistToQueueClick"
                       ToolTip.Tip="Add every song in this playlist to the end of the queue" Content="Add to queue" />
-              <Button x:Name="PlaylistMoreButton" Grid.Column="3" Classes="eq-action" Content="⋯" Padding="10,5"
-                      ToolTip.Tip="Add it to the queue shuffled, rename or delete this playlist">
+              <Button x:Name="PlaylistMoreButton" Grid.Column="4" Classes="eq-action" Content="⋯" Padding="10,5"
+                      ToolTip.Tip="Play it shuffled, add it to the queue shuffled, rename or delete this playlist">
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem x:Name="PlaylistPlayShuffledItem" Header="Play shuffled" Click="OnPlaylistPlayShuffledClick"
+                              ToolTip.Tip="Play this playlist in a random order: it takes the queue's place and auto-play plays it" />
                     <MenuItem x:Name="PlaylistToQueueShuffledItem" Header="Add to queue shuffled" Click="OnPlaylistToQueueShuffledClick"
                               ToolTip.Tip="Add every song in this playlist to the end of the queue, in a random order" />
                     <Separator />

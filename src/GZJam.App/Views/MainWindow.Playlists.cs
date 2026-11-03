@@ -119,6 +119,18 @@ public partial class MainWindow
             Vm.AddPlaylistToQueue(playlist, shuffled: true);
     }
 
+    private void OnPlaylistPlayClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.Library.SelectedPlaylist is { } playlist)
+            Vm.PlayPlaylist(playlist);
+    }
+
+    private void OnPlaylistPlayShuffledClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm.Library.SelectedPlaylist is { } playlist)
+            Vm.PlayPlaylist(playlist, shuffled: true);
+    }
+
     private void OnRenameOpenPlaylistClick(object? sender, RoutedEventArgs e)
     {
         if (Vm.Library.SelectedPlaylist is { } playlist)
@@ -143,6 +155,18 @@ public partial class MainWindow
     {
         if (PlaylistOf(sender) is { } playlist)
             Vm.AddPlaylistToQueue(playlist, shuffled: true);
+    }
+
+    private void OnPlaylistItemPlayClick(object? sender, RoutedEventArgs e)
+    {
+        if (PlaylistOf(sender) is { } playlist)
+            Vm.PlayPlaylist(playlist);
+    }
+
+    private void OnPlaylistItemPlayShuffledClick(object? sender, RoutedEventArgs e)
+    {
+        if (PlaylistOf(sender) is { } playlist)
+            Vm.PlayPlaylist(playlist, shuffled: true);
     }
 
     private void OnRenamePlaylistItemClick(object? sender, RoutedEventArgs e)
