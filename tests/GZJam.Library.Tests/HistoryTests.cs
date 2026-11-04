@@ -132,6 +132,7 @@ public sealed class HistoryTests : IDisposable
                 ALTER TABLE tracks DROP COLUMN grouping;
                 ALTER TABLE tracks DROP COLUMN tags;          -- added by upgrade 22
                 ALTER TABLE tracks DROP COLUMN tag_text;
+                DROP TABLE tag_edits;                         -- added by upgrade 23
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

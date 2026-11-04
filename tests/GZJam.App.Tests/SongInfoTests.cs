@@ -38,6 +38,10 @@ public sealed class SongInfoTests
     private static List<string?> Texts(Window window, string list) =>
         window.FindControl<ItemsControl>(list)!.GetVisualDescendants().OfType<SelectableTextBlock>().Select(t => t.Text).ToList();
 
+    /// <summary>The values in a list of tags, each in its box to edit (#129).</summary>
+    private static List<string?> Fields(Window window, string list) =>
+        window.FindControl<ItemsControl>(list)!.GetVisualDescendants().OfType<TextBox>().Select(t => t.Text).ToList();
+
     private static void Click(MenuItem item) => item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
     [AvaloniaFact]
@@ -57,15 +61,15 @@ public sealed class SongInfoTests
         AppHarness.Settle(200);
 
         Assert.Equal(song.DisplayTitle, window.FindControl<SelectableTextBlock>("HeadingText")!.Text);
-        var tags = Texts(window, "TagsList");
+        var tags = Fields(window, "TagsList");
         Assert.Contains(song.Artist, tags);
         Assert.Contains(song.Album, tags);
-        Assert.Equal(["Duke Ellington", "Lindy"], Texts(window, "OtherTagsList"));
+        Assert.Equal(["Duke Ellington", "Lindy"], Fields(window, "OtherTagsList"));
         Assert.Equal(song.Path, window.FindControl<SelectableTextBlock>("LocationText")!.Text);
         Assert.Matches(@"^MP3 · \d+ kbps.* · [\d.,]+ kHz · (mono|stereo)$", Texts(window, "FileList")[0]);
         var gzjam = window.Vm.InGZJam.ToDictionary(r => r.Name, r => r.Value);
-        Assert.Equal("I'd play it", gzjam["Rating"]);
-        Assert.Equal("High", gzjam["Energy"]);
+        Assert.Equal("I'd play it", window.Vm.RatingChoices[window.Vm.RatingIndex]);
+        Assert.Equal("High", window.Vm.EnergyChoices[window.Vm.EnergyIndex]);
         Assert.Equal("Saturday", gzjam["Playlists"]);
         Assert.Equal("Never", gzjam["Played"]);
         Assert.EndsWith("(the tag's)", gzjam["BPM"]);
@@ -139,12 +143,14 @@ public sealed class SongInfoTests
 
         Assert.Equal("The file isn't there any more.", window.Vm.Problem);
         Assert.False(window.FindControl<Button>("RevealButton")!.IsEnabled);
-        Assert.Equal(["Duke Ellington", "Lindy"], window.Vm.OtherTags.Select(r => r.Value));   // what the library knows, still
+        Assert.Equal(["Duke Ellington", "Lindy"], window.Vm.OtherTags.Select(r => r.Text));   // what the library knows, still
+        Assert.False(window.Vm.IsEditable);
+        Assert.False(window.FindControl<Button>("SaveButton")!.IsVisible);
         window.Close();
     }
 
     [AvaloniaFact]
-    public void Song_info_is_offered_for_one_song_only()
+    public void Song_info_is_offered_for_several_songs_too_to_edit_together()
     {
         using var app = new AppHarness();
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
@@ -154,7 +160,11 @@ public sealed class SongInfoTests
         menu.Open(grid);
         AppHarness.Settle(200);
 
-        Assert.False(app.Window.FindControl<MenuItem>("TrackInfoItem")!.IsEnabled);
+        Assert.True(app.Window.FindControl<MenuItem>("TrackInfoItem")!.IsEnabled);
         menu.Close();
+        Click(app.Window.FindControl<MenuItem>("TrackInfoItem")!);
+        AppHarness.WaitFor(() => app.Window.SongInfo is not null);
+        Assert.Equal(2, app.Window.SongInfo!.Vm.Tracks.Count);
+        app.Window.SongInfo.Close();
     }
 }

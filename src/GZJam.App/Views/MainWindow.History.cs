@@ -23,7 +23,7 @@ public partial class MainWindow
         {
             UpdateLoadMenuItems([HistoryLoad1, HistoryLoad2, HistoryLoad3, HistoryLoad4], SelectedPlays().Count == 1);
             HistoryEqItem.IsEnabled = SelectedPlays().Count == 1;
-            HistoryInfoItem.IsEnabled = SelectedPlays().Count == 1;
+            HistoryInfoItem.IsEnabled = SelectedPlays().Count > 0;
         });
         NameSessionFlyout.Opened += (_, _) =>
         {

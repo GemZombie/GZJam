@@ -1602,15 +1602,16 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
-### Status: song info, step 1 of tag editing (#129, 1.2)
+### Status: song info and tag editing (#129, 1.2)
 
-- #129 is one song dialog in two steps: first only shown (this), then editing one song or many,
-  kept in the library or, if the DJ turns it on, written to the files. Rule-based clean-up of a
-  whole collection stays in the companion app idea (#76).
+- #129 is one song dialog in two steps: first shown, then editing one song or many, kept in the
+  library or, if the DJ turns it on, written to the files. Both are in 1.2. Rule-based clean-up of
+  a whole collection stays in the companion app idea (#76).
 - `SongInfoWindow` (`SongInfoViewModel`): the right-click menu's *Song info…* in the song list,
-  the queue and History (one song selected), or Ctrl+I (Cmd+I, the Mac's Get Info) for the one
-  selected where the keyboard is. Not modal, so the decks are a click away; one at a time, another
-  song's replacing it (`MainWindow.ShowSongInfo`).
+  the queue and History (any number of songs selected), or Ctrl+I (Cmd+I, the Mac's Get Info) for
+  the ones selected where the keyboard is. Not modal, so the decks are a click away; one at a time,
+  another's replacing it (`MainWindow.OpenSongInfoAsync`), after asking if it has changes not
+  saved (as Escape and the close button do).
 - **Layout:** a header with the cover art, the title and artist, and a line of what a DJ looks
   for first (BPM · length · format · rating · energy); below, two columns, so most songs need no
   scrolling: the tags on the left (the part that becomes editable in step 2), the file and what
@@ -1630,6 +1631,42 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - A file gone, or one TagLib# can't read, says so; what the library knows is still shown.
 - Fixed before release: WMA's own names for the usual tags (WM/AlbumTitle, WM/ContentGroupDescription,
   WM/BeatsPerMinute, WM/...SortOrder) were shown as other tags; WM/PartOfSet is "Disc".
+
+**Step 2, editing:**
+- **Fields in place**, no Edit button: each tag a `TagField` (its box, "(several)" when the songs
+  differ, an error under a year or BPM that isn't one), rating and energy as lists with
+  "(several)", labels as checkboxes (a dash: on some of the songs; three-state only then), *Add a
+  tag* and *Add a label*. Emptied, a tag comes off; for several songs that differ, the box's ✕
+  (shown on hover or focus) takes it off all of them. *Save* (Enter) saves everything changed,
+  *Cancel* puts the fields back, *Undo* the last save. Several songs: asked first, saying how many
+  and what changes (`ConfirmAsync`).
+- **Kept in the library** (the default): upgrade 23 adds `tag_edits` (path, field, value; null
+  takes a tag off), keyed by path like the marks, so it follows a move (`SongDataTables`).
+  `LibraryDatabase.EditTags` saves edits and updates the index at once (searched, in the columns);
+  every scan puts them back over what it reads (`UpsertTracks`, through `EditsReader`, skipped
+  when there are none), so an edit lasts even if the file changes later, until the DJ clears it
+  (*Use the files' tags*, `ClearTagEdits`). Fields are `SongFields`: GZJam's own ("title",
+  "year"...) and `tag:<name>` for the others, one per key whatever the spelling. Only adds, so
+  `OldestReader` stays 19.
+- **Written into the files** (`AppSettings.WriteTagsToFiles`, Settings › Library and the window's
+  box, off at first): `TagWriter.Write` through TagLib#, only the tags, saved by TagLib# as it
+  does. GZJam's own fields where every player reads them (TagLib#'s combined tag; in an MP3 also
+  TBPM as text, so 156.5 stays, and iTunes' GRP1 when it's there, since GZJam reads it first;
+  every comment GZJam might show goes, so the one written is the one read). Another tag
+  (`SongTags.Write`) changes wherever the file has it, every spelling, or, new, goes in the file's
+  main kind of tag by its usual name there (TCOM; TXXX DANCE; COMPOSER and DANCE in Vorbis;
+  ©wrt or a freeform iTunes tag in M4A; WM/Composer). Tested on MP3, FLAC, Opus, M4A and WMA.
+  Never into a song on a deck or being previewed, or a file that can't be written (read-only,
+  locked, a drive that can't be written to, one TagLib# thinks may be damaged): those are kept in
+  the library instead, and the window and notice say which and why. The file's analysis is kept
+  (`TagsWritten` moves it to the file's new size and date), not done again; the file is read
+  again into the index.
+- **Undo** puts back each song's edits exactly as they were, and writes each file's old values
+  back (read from it before writing); a file that can't be written back keeps its old values as
+  edits in the library, so it still shows them. Rating, energy and labels go back per song.
+- **On screen:** a `Track`'s tags change in place (`CopyTagsFrom`, with change notifications), so
+  the song list keeps its order and selection, and the queue, decks and History show the edit
+  (the tag columns follow too).
 
 ### Status: every tag in the song files (#119, 1.2)
 

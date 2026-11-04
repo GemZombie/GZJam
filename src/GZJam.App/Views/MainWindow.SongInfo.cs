@@ -9,7 +9,7 @@ namespace GZJam.App.Views;
 /// <summary>
 /// A song's info (#129): its right-click menu › <em>Song info…</em> in the song list (and an open
 /// playlist), the queue or History, or Ctrl+I (Cmd+I) for the song selected in whichever has the
-/// keyboard. One window at a time.
+/// keyboard; several songs selected, all of them, to edit together. One window at a time.
 /// </summary>
 public partial class MainWindow
 {
@@ -26,11 +26,14 @@ public partial class MainWindow
         HistoryInfoItem.InputGesture = gesture;
     }
 
-    /// <summary>Opens a song's info, in place of one open already.</summary>
-    internal SongInfoWindow ShowSongInfo(Track track)
+    /// <summary>Opens songs' info, in place of one open already (as it is, changes and all: see <see cref="OpenSongInfoAsync"/>).</summary>
+    internal SongInfoWindow ShowSongInfo(Track track) => ShowSongInfo([track]);
+
+    /// <inheritdoc cref="ShowSongInfo(Track)"/>
+    internal SongInfoWindow ShowSongInfo(IReadOnlyList<Track> tracks)
     {
-        _songInfo?.Close();
-        var window = new SongInfoWindow(new SongInfoViewModel(track, Vm));
+        _songInfo?.CloseWithoutAsking();
+        var window = new SongInfoWindow(new SongInfoViewModel(tracks, Vm));
         window.Closed += (_, _) =>
         {
             if (_songInfo == window)
@@ -38,37 +41,41 @@ public partial class MainWindow
         };
         _songInfo = window;
         window.Show(this);
-        Log.Info($"Song info for \"{track.DisplayTitle}\"");
+        Log.Info(tracks.Count == 1 ? $"Song info for \"{tracks[0].DisplayTitle}\"" : $"Song info for {tracks.Count} songs");
         return window;
     }
 
-    /// <summary>Ctrl+I: the info of the one song selected where the keyboard is (the queue, History, else the song list).</summary>
+    /// <summary>
+    /// Opens songs' info from a menu or Ctrl+I. One open with changes not saved asks first; kept,
+    /// it stays, and comes to the front.
+    /// </summary>
+    internal async Task<SongInfoWindow?> OpenSongInfoAsync(IReadOnlyList<Track> tracks)
+    {
+        if (tracks.Count == 0)
+            return null;
+        if (_songInfo is { } open && !await open.AskToDiscardAsync())
+        {
+            open.Activate();
+            return null;
+        }
+        return ShowSongInfo(tracks);
+    }
+
+    /// <summary>Ctrl+I: the info of the songs selected where the keyboard is (the queue, History, else the song list).</summary>
     private bool ShowSelectedSongInfo()
     {
-        Track? track = QueueList.IsKeyboardFocusWithin ? SelectedQueueItems() is [var item] ? item.Track : null
-            : HistoryList.IsKeyboardFocusWithin ? SelectedPlays() is [var play] ? play.Track : null
-            : SelectedTracks() is [var selected] ? selected : null;
-        if (track is null)
+        IReadOnlyList<Track> tracks = QueueList.IsKeyboardFocusWithin ? [.. SelectedQueueItems().Select(i => i.Track)]
+            : HistoryList.IsKeyboardFocusWithin ? [.. SelectedPlays().Select(p => p.Track)]
+            : SelectedTracks();
+        if (tracks.Count == 0)
             return false;
-        ShowSongInfo(track);
+        _ = OpenSongInfoAsync(tracks);
         return true;
     }
 
-    private void OnTrackInfoClick(object? sender, RoutedEventArgs e)
-    {
-        if (SelectedTracks() is [var track])
-            ShowSongInfo(track);
-    }
+    private void OnTrackInfoClick(object? sender, RoutedEventArgs e) => _ = OpenSongInfoAsync(SelectedTracks());
 
-    private void OnQueueInfoClick(object? sender, RoutedEventArgs e)
-    {
-        if (SelectedQueueItems() is [var item])
-            ShowSongInfo(item.Track);
-    }
+    private void OnQueueInfoClick(object? sender, RoutedEventArgs e) => _ = OpenSongInfoAsync([.. SelectedQueueItems().Select(i => i.Track)]);
 
-    private void OnHistoryInfoClick(object? sender, RoutedEventArgs e)
-    {
-        if (SelectedPlays() is [var play])
-            ShowSongInfo(play.Track);
-    }
+    private void OnHistoryInfoClick(object? sender, RoutedEventArgs e) => _ = OpenSongInfoAsync([.. SelectedPlays().Select(p => p.Track)]);
 }

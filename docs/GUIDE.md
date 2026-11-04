@@ -453,8 +453,25 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   it's in). Tick *Show all tags* to see the ones only other programs use as well (MusicBrainz IDs,
   ReplayGain, sort names, the encoder); GZJam remembers. The window isn't in the way of the decks:
   click back to GZJam while it's open. Escape closes it. Any text in it can be selected and copied.
+- **Edit tags** right there: type over the title, the artist, the genre, the BPM or any other tag,
+  and press *Save* (or Enter). Empty a field to take that tag off. *Add a tag* gives the songs one
+  they haven't got, like a Dance tag of your own. The rating, energy and labels change there too.
+  *Cancel* puts the fields back; after saving, *Undo* puts the songs back as they were (the notice
+  in GZJam's top bar has one too).
+- **Several songs at once:** select them (a search, then Ctrl+A, finds every song by an artist
+  spelled one way) and open their info. A field they all share shows its value; one where they
+  differ says *(several)* and is left as each song has it, unless you type over it. To take such a
+  tag off all of them, click its ✕. GZJam says how many songs before it changes them.
+- **Kept in GZJam, or written into the files:** at first, your edits are kept in GZJam's library
+  only. GZJam shows and searches them, a backup keeps them, and they last even if the file's tags
+  change later. A dot beside a tag's name marks one of these edits; *Use the files' tags* forgets
+  them. Turn on **Write tag edits into the song files** (Settings › Library, or the box in the
+  window) to write them into the files as well, so MediaMonkey, foobar2000, iTunes and other
+  players see them. Only the tags are written, never the audio. A song on a deck, or a file that
+  can't be written (read-only, or on a drive that can't be written to), keeps the edit in GZJam's
+  library instead, and the window says so.
 
-The files are only read, never changed.
+Unless you turn on writing tag edits, the files are only read, never changed.
 
 ---
 
@@ -734,7 +751,7 @@ no key on purpose: one keypress ending the song the room hears is too easy to hi
 | **Ctrl+↑ / Ctrl+↓** | MAIN volume up or down, a little each press |
 | **Ctrl+Shift+↑ / ↓** | PHONES volume up or down |
 | **Ctrl+F** (Cmd+F) | search |
-| **Ctrl+I** (Cmd+I) | the selected song's info: in the song list, the queue or History |
+| **Ctrl+I** (Cmd+I) | the selected songs' info, to see or edit: in the song list, the queue or History |
 | **Ctrl+D** (Cmd+D) | compact decks, and back |
 | **Ctrl+Shift+D** (Cmd+Shift+D) | hide the decks (one line at the top instead), and back |
 | **Ctrl+L** (Cmd+L) | give the queue the room in the middle, and back to the song list |

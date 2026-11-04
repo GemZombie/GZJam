@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace GZJam.Library;
 
-/// <summary>One audio file in the library, with the tag data read from it.</summary>
+/// <summary>One audio file in the library, with the tag data read from it (and the DJ's edits to it, #129).</summary>
 public sealed class Track : INotifyPropertyChanged
 {
     public long Id { get; init; }
@@ -18,29 +18,100 @@ public sealed class Track : INotifyPropertyChanged
     public long FileSize { get; init; }
     public DateTime ModifiedUtc { get; init; }
 
-    public string? Title { get; init; }
-    public string? Artist { get; init; }
-    public string? Album { get; init; }
-    public string? AlbumArtist { get; init; }
-    public string? Genre { get; init; }
-    public string? Comment { get; init; }
+    // The tags: read from the file, and changed in place when the DJ edits them (#129), so every
+    // copy of the song on screen shows the edit.
+
+    public string? Title { get => _title; set => Set(ref _title, value, nameof(Title), nameof(DisplayTitle)); }
+    public string? Artist { get => _artist; set => Set(ref _artist, value, nameof(Artist)); }
+    public string? Album { get => _album; set => Set(ref _album, value, nameof(Album)); }
+    public string? AlbumArtist { get => _albumArtist; set => Set(ref _albumArtist, value, nameof(AlbumArtist)); }
+    public string? Genre { get => _genre; set => Set(ref _genre, value, nameof(Genre)); }
+    public string? Comment { get => _comment; set => Set(ref _comment, value, nameof(Comment)); }
 
     /// <summary>
     /// The Grouping tag, which iTunes and Music users often sort by: the dance, the feel, the era
     /// ("Balboa, fast, oldie"). Read from the file, like the comment (#161).
     /// </summary>
-    public string? Grouping { get; init; }
-    public int? Year { get; init; }
-    public int? TrackNumber { get; init; }
+    public string? Grouping { get => _grouping; set => Set(ref _grouping, value, nameof(Grouping)); }
+    public int? Year { get => _year; set => Set(ref _year, value, nameof(Year)); }
+    public int? TrackNumber { get => _trackNumber; set => Set(ref _trackNumber, value, nameof(TrackNumber)); }
 
     /// <summary>BPM from the file's tag. Always preferred to a detected one.</summary>
-    public double? TagBpm { get; init; }
+    public double? TagBpm { get => _tagBpm; set => Set(ref _tagBpm, value, nameof(TagBpm), nameof(Bpm)); }
 
     /// <summary>
     /// The file's other tags (#119), sorted by name: the composer, a mood, the dance in a custom
     /// tag. Shown as columns the DJ chooses, and searched.
     /// </summary>
-    public IReadOnlyList<SongTag> Tags { get; init; } = [];
+    public IReadOnlyList<SongTag> Tags { get => _tags; set => Set(ref _tags, value, nameof(Tags)); }
+
+    private string? _title, _artist, _album, _albumArtist, _genre, _comment, _grouping;
+    private int? _year, _trackNumber;
+    private double? _tagBpm;
+    private IReadOnlyList<SongTag> _tags = [];
+
+    private void Set<T>(ref T field, T value, string name, string? also = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return;
+        field = value;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        if (also is not null)
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(also));
+    }
+
+    /// <summary>Takes <paramref name="other"/>'s tags, as read again or edited: the song's marks stay.</summary>
+    public void CopyTagsFrom(Track other)
+    {
+        Title = other.Title;
+        Artist = other.Artist;
+        Album = other.Album;
+        AlbumArtist = other.AlbumArtist;
+        Genre = other.Genre;
+        Comment = other.Comment;
+        Grouping = other.Grouping;
+        Year = other.Year;
+        TrackNumber = other.TrackNumber;
+        TagBpm = other.TagBpm;
+        if (!Tags.SequenceEqual(other.Tags))
+            Tags = other.Tags;
+    }
+
+    /// <summary>The DJ's edits (#129), by <see cref="SongFields"/> field, over the tags read from the file.</summary>
+    internal void ApplyEdits(IReadOnlyDictionary<string, string?> edits)
+    {
+        if (edits.Count == 0)
+            return;
+        var tags = Tags.ToList();
+        foreach (var (field, value) in edits)
+        {
+            switch (field)
+            {
+                case SongFields.Title: Title = value; break;
+                case SongFields.Artist: Artist = value; break;
+                case SongFields.Album: Album = value; break;
+                case SongFields.AlbumArtist: AlbumArtist = value; break;
+                case SongFields.Genre: Genre = value; break;
+                case SongFields.Comment: Comment = value; break;
+                case SongFields.Grouping: Grouping = value; break;
+                case SongFields.Year: Year = SongFields.ParseWhole(value); break;
+                case SongFields.Track: TrackNumber = SongFields.ParseWhole(value); break;
+                case SongFields.Bpm: TagBpm = SongFields.ParseBpm(value); break;
+                default:
+                    if (SongFields.TagName(field) is { } name)
+                    {
+                        string key = SongTags.KeyOf(name);
+                        tags.RemoveAll(t => t.Key == key);
+                        if (value is not null)
+                            tags.Add(new SongTag(name, value));
+                    }
+                    break;
+            }
+        }
+        tags.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name));
+        if (!Tags.SequenceEqual(tags))
+            Tags = tags;
+    }
 
     /// <summary>The value of the tag with this <see cref="SongTag.Key"/>, if the song has it.</summary>
     public string? Tag(string key)

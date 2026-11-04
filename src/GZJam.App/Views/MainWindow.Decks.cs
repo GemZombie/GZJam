@@ -258,7 +258,7 @@ public partial class MainWindow
         UpdateLoadMenuItems([TrackLoad1, TrackLoad2, TrackLoad3, TrackLoad4], SelectedTracks().Count == 1);
         var tracks = SelectedTracks();
         TrackEqItem.IsEnabled = tracks.Count == 1;
-        TrackInfoItem.IsEnabled = tracks.Count == 1;
+        TrackInfoItem.IsEnabled = tracks.Count > 0;
         TrackShowInTreeItem.IsEnabled = tracks.FirstOrDefault() is { IsOutsideLibrary: false };   // one outside the music folders isn't in the tree
         MarksMenu.FillRating(TrackRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(TrackEnergyMenu, Vm, tracks);
@@ -272,7 +272,7 @@ public partial class MainWindow
         UpdateLoadMenuItems([QueueLoad1, QueueLoad2, QueueLoad3, QueueLoad4], SelectedQueueItems().Count == 1);
         var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
         QueueEqItem.IsEnabled = tracks.Count == 1;
-        QueueInfoItem.IsEnabled = tracks.Count == 1;
+        QueueInfoItem.IsEnabled = tracks.Count > 0;
         QueueShuffleItem.IsEnabled = Vm.Queue.Items.Count > 1;
         MarksMenu.FillRating(QueueRatingMenu, Vm, tracks);
         MarksMenu.FillEnergy(QueueEnergyMenu, Vm, tracks);

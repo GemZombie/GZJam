@@ -5,7 +5,8 @@ namespace GZJam.Library;
 
 /// <summary>
 /// A tag from a song file beyond the ones GZJam has its own columns for (#119): the composer, a
-/// mood, the dance in a custom tag. Read from the file, never written to it.
+/// mood, the dance in a custom tag. Read from the file; written to it only when the DJ edits it
+/// with writing to the files on (#129).
 /// </summary>
 public sealed record SongTag(string Name, string Value)
 {
@@ -314,6 +315,166 @@ public static class SongTags
         string joined = string.Join("; ", kept);
         return joined.Length == 0 || joined.Length > maxLength ? null : joined;
     }
+
+    // ───────────── Written to the file (#129) ─────────────
+
+    /// <summary>
+    /// The name a tag the DJ types is shown by ("composer" is "Composer", "BAND_LEADER" is "Band
+    /// leader"), or null if it can't be one of a song's other tags: one of GZJam's own fields
+    /// (Title, BPM), or one for programs (a MusicBrainz ID).
+    /// </summary>
+    public static string? NameFor(string typed) => ShownName(typed);
+
+    /// <summary>New tags' names in WMA, where its own differ from the ones GZJam shows.</summary>
+    private static readonly Dictionary<string, string> AsfNames = new(StringComparer.Ordinal)
+    {
+        ["disc"] = "WM/PartOfSet", ["key"] = "WM/InitialKey", ["lyricist"] = "WM/Writer", ["remixer"] = "WM/ModifiedBy",
+        ["originalalbum"] = "WM/OriginalAlbumTitle", ["originalyear"] = "WM/OriginalReleaseYear",
+    };
+
+    /// <summary>New tags' names in Vorbis comments, where the usual one isn't the name in capitals.</summary>
+    private static readonly Dictionary<string, string> XiphNames = new(StringComparer.Ordinal)
+    {
+        ["disc"] = "DISCNUMBER", ["originalyear"] = "ORIGINALDATE",
+    };
+
+    /// <summary>
+    /// Writes one of a song's other tags (<paramref name="name"/> as shown: "Composer", "Dance")
+    /// into the file: every spelling the file has of it changes (or goes, with a null value);
+    /// a tag it hasn't got goes in its <paramref name="main"/> kind of tag (ID3, Vorbis comments,
+    /// iTunes' atoms...), by its usual name there. Saved by the caller.
+    /// </summary>
+    internal static void Write(TagLib.File file, TagLib.TagTypes main, string name, string? value)
+    {
+        string key = KeyOf(name);
+        bool Is(Naming naming, string? id) => Shown(naming, id) is { } shown && KeyOf(shown) == key;
+        bool found = false;
+
+        if (file.GetTag(TagLib.TagTypes.Id3v2) is TagLib.Id3v2.Tag id3)
+        {
+            foreach (var frame in id3.GetFrames<TagLib.Id3v2.TextInformationFrame>().ToList())
+            {
+                bool same = frame is TagLib.Id3v2.UserTextInformationFrame user
+                    ? Is(Naming.Named, user.Description)
+                    : Is(Naming.Id3Frame, frame.FrameId.ToString(TagLib.StringType.Latin1));
+                if (!same)
+                    continue;
+                found = true;
+                if (value is null)
+                    id3.RemoveFrame(frame);
+                else
+                    frame.Text = [value];
+            }
+            if (Is(Naming.Id3Frame, "MVNM"))
+            {
+                foreach (TagLib.Id3v2.Frame frame in id3.GetFrames("MVNM").ToList())
+                {
+                    found = true;
+                    id3.RemoveFrame(frame);
+                    if (value is not null)
+                        id3.AddFrame(TagWriter.TextFrame(id3, "MVNM", value));
+                }
+            }
+        }
+        if (file.GetTag(TagLib.TagTypes.Xiph) is TagLib.Ogg.XiphComment xiph)
+        {
+            foreach (string field in xiph.Cast<string>().ToList())
+            {
+                if (!Is(Naming.Named, field))
+                    continue;
+                found = true;
+                if (value is null)
+                    xiph.RemoveField(field);
+                else
+                    xiph.SetField(field, value);
+            }
+        }
+        if (file.GetTag(TagLib.TagTypes.Apple) is TagLib.Mpeg4.AppleTag apple)
+        {
+            foreach (TagLib.Mpeg4.Box box in apple.Cast<TagLib.Mpeg4.Box>().ToList())
+            {
+                string type = box.BoxType.ToString(TagLib.StringType.Latin1);
+                if (type == "----")
+                {
+                    if (FreeformName(box) is not { } freeform || !Is(Naming.Named, freeform))
+                        continue;
+                    found = true;
+                    apple.SetDashBox(FreeformMean(box) ?? "com.apple.iTunes", freeform, value ?? "");
+                }
+                else if (Is(Naming.AppleAtom, type))
+                {
+                    found = true;
+                    if (value is null)
+                        apple.ClearData(box.BoxType);
+                    else
+                        apple.SetText(box.BoxType, value);
+                }
+            }
+        }
+        if (file.GetTag(TagLib.TagTypes.Ape) is TagLib.Ape.Tag ape)
+        {
+            foreach (string item in ape.Cast<string>().ToList())
+            {
+                if (!Is(Naming.Named, item))
+                    continue;
+                found = true;
+                if (value is null)
+                    ape.RemoveItem(item);
+                else
+                    ape.SetValue(item, value);
+            }
+        }
+        if (file.GetTag(TagLib.TagTypes.Asf) is TagLib.Asf.Tag asf)
+        {
+            foreach (string descriptor in asf.Cast<TagLib.Asf.ContentDescriptor>().Where(d => d.Type == TagLib.Asf.DataType.Unicode)
+                         .Select(d => d.Name).Distinct(StringComparer.Ordinal).ToList())
+            {
+                if (!Is(Naming.Named, descriptor.StartsWith("WM/", StringComparison.OrdinalIgnoreCase) ? descriptor[3..] : descriptor))
+                    continue;
+                found = true;
+                if (value is null)
+                    asf.RemoveDescriptors(descriptor);
+                else
+                    asf.SetDescriptorString(value, descriptor);
+            }
+        }
+        if (found || value is null)
+            return;
+
+        // New to the file: in its main kind of tag, by the usual name there.
+        switch (file.GetTag(main, create: true))
+        {
+            case TagLib.Id3v2.Tag tag:
+                if (Id3Frames.FirstOrDefault(f => KeyOf(f.Value) == key).Key is { } frameId && frameId != "MVNM")
+                    tag.SetTextFrame(frameId, value);
+                else
+                    TagLib.Id3v2.UserTextInformationFrame.Get(tag, name.ToUpperInvariant(), create: true).Text = [value];
+                break;
+            case TagLib.Ogg.XiphComment tag:
+                tag.SetField(XiphNames.GetValueOrDefault(key, name.ToUpperInvariant().Replace(' ', '_')), value);
+                break;
+            case TagLib.Mpeg4.AppleTag tag:
+                if (AppleAtoms.FirstOrDefault(a => KeyOf(a.Value) == key).Key is { } atom)
+                    tag.SetText(TagLib.ByteVector.FromString(atom, TagLib.StringType.Latin1), value);
+                else
+                    tag.SetDashBox("com.apple.iTunes", name.ToUpperInvariant(), value);
+                break;
+            case TagLib.Ape.Tag tag:
+                tag.SetValue(name, value);
+                break;
+            case TagLib.Asf.Tag tag:
+                tag.SetDescriptorString(value, AsfNames.GetValueOrDefault(key, Names.ContainsKey(key) ? "WM/" + name.Replace(" ", "") : name));
+                break;
+            default:
+                throw new NotSupportedException($"No tag of the kind {main} to write {name} in");
+        }
+    }
+
+    /// <summary>A freeform M4A tag's "mean": whose tag it is (com.apple.iTunes, mostly).</summary>
+    private static string? FreeformMean(TagLib.Mpeg4.Box box) =>
+        (box as TagLib.Mpeg4.AppleAnnotationBox)?.Children
+            .OfType<TagLib.Mpeg4.AppleAdditionalInfoBox>()
+            .FirstOrDefault(b => b.BoxType.ToString(TagLib.StringType.Latin1) == "mean")?.Text;
 
     // ───────────── In the library ─────────────
 
