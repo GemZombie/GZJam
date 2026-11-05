@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.2.0-beta.1.
+
+## 1.2.0-beta.1 (2026-11-04)
+
+A beta of 1.2, for trying it before everyone gets it. GZJam's update notice doesn't offer betas:
+you only get one from this page. The first time it opens your library, it adds what 1.2 needs and
+reads every song again, once; 1.1.0 can still open the library after that, so you can go back to
+it at any time. Writing tag edits into your song files is off unless you turn it on.
+
 New:
 
 - **Every tag in your songs:** GZJam reads all the tags in your song files now, not only the usual
@@ -34,11 +43,11 @@ New:
   (Settings › Library, or in the window), so other players see them too. Only the tags are
   written, never the audio, and never while the song is on a deck.
 
-## 1.1.0-beta.1 (2026-11-02)
+## 1.1.0 (2026-11-04)
 
-A beta of 1.1, for trying it at a night before everyone gets it. GZJam's update notice doesn't
-offer betas: you only get one from this page. It reads the same library as 1.0.0, so you can go
-back to 1.0.0 at any time.
+Playing music for a class, a practice night or between sets got easier: a playlist played in one
+step, shuffled if you like, and Repeat. It reads the same library as 1.0.0, so you can go back to
+1.0.0 at any time.
 
 New:
 

@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.0.0** (2 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.1.0** (4 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -33,7 +33,9 @@ release.
   Ctrl+L gives the queue the room in the middle, for a night spent reordering a long one.
 - Playlists: plan a set before the night, in order, saved by name, with songs from anywhere,
   even outside your music folders (they stay out of the library). Drag songs onto one (or add
-  the song on a deck, or songs in the queue, from their menu), reorder it, and add it to the queue. The queue or a night in History can be saved as one, or copied
+  the song on a deck, or songs in the queue, from their menu), reorder it, and add it to the queue,
+  shuffled if you like, or play it in one step, in place of the queue. The queue can be shuffled
+  too, with Undo. The queue or a night in History can be saved as one, or copied
   out as files, in order, to a folder or USB stick. Fold the folders away, or drag the playlists'
   grip, for a longer list of them.
 - A song renamed or moved (in a tag editor, say), even to another of your music folders, keeps its
@@ -49,6 +51,7 @@ release.
 
 **Decks**
 - Two decks, or four in the same space.
+- Double-click a song to put it on the deck that plays next, never the one on air.
 - Compact decks for a laptop: smaller decks, so the library and queue show more songs. Or hide
   the decks, for the most songs on screen: they sit at the top of the queue, in the order the room
   will hear them, the song it hears now with its play key and time left, and what you've chosen
@@ -95,7 +98,9 @@ release.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
   nights it can fade each song out after a set time, or wait for you between songs; and it can
-  stop at a set time, so the night ends on time.
+  stop at a set time, so the night ends on time. Repeat sends each song back to the end of the
+  queue, so a playlist plays over and over, or plays one song again and again. Load another song
+  onto the deck waiting to play, and the one that was there goes back to the top of the queue.
 - On Windows the speakers can be GZJam's alone (a switch, for a laptop kept for gigs), so no
   notification sound reaches the room. On Linux a sound card can be used directly, for the same reason.
 - Headphones (or the booth) unplugged during a night go quiet, never move to the speakers, and come
@@ -133,23 +138,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.1,** to try now in [1.1.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.1.0-beta.1):
+**In 1.2,** to try now in [1.2.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.2.0-beta.1):
 
-- [Play a playlist shuffled](https://github.com/GemZombie/GZJam/issues/254): *Add to queue
-  shuffled*, and *Shuffle queue*
-- [Repeat](https://github.com/GemZombie/GZJam/issues/255): an auto-play option that sends each
-  song back to the end of the queue, so a playlist plays over and over, for classes, practice
-  nights and background music (for tonight only)
-- [Repeat one song](https://github.com/GemZombie/GZJam/issues/257): Repeat's other choice, *This
-  song*, plays the song playing over and over
-- [Play a playlist](https://github.com/GemZombie/GZJam/issues/259) in one step: *Play* or *Play
-  shuffled* puts it in place of the queue and starts auto-play, with Undo
-- [Double-click a song](https://github.com/GemZombie/GZJam/issues/260) to put it on the deck that
-  plays next, never the one on air
-- [A song bumped off the waiting deck goes back to the top of the queue](https://github.com/GemZombie/GZJam/issues/261):
-  with auto-play on, change the very next song without losing the one you had ready
-
-**In 1.2:**
 - [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
   ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
 - [Song info and tag editing](https://github.com/GemZombie/GZJam/issues/129): everything about a
@@ -159,12 +149,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Planned next
 
-**1.0 is out** (2 November 2026): ready for your next dance, on Windows, Mac and Linux. From here
-on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found something? Say so in
+**1.1 is out** (4 November 2026): a playlist played in one step, shuffle, and Repeat. Fixes come
+as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.2:** your songs' tags, and GZJam from the taskbar.
+**Next, in 1.3:** GZJam from the taskbar, and versions of a song.
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
