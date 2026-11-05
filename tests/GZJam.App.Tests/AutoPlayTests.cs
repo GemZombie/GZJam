@@ -313,6 +313,54 @@ public sealed class AutoPlayTests
     }
 
     [AvaloniaFact]
+    public void Stop_after_this_song_lets_the_room_go_quiet_once_and_play_carries_on()
+    {
+        var (app, auto, tracks) = Setup(queued: 3, seconds: 2);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.Equal("ON AIR", d1.Status);
+
+        auto.StopAfterThisSong = true;   // an announcement after this one
+        app.Play(0.05);
+        Assert.Equal("ON AIR · LAST SONG", d1.Status);
+        Assert.Contains("Stops after this song", auto.OptionsText);
+        app.Screenshot("stop-after-this-song");
+
+        PlayUntil(app, () => !d1.IsPlaying);
+        AppHarness.Settle(800);   // longer than the gap: nothing starts
+        app.Play(0.05);
+        Assert.False(d2.IsPlaying);
+        Assert.True(auto.IsOn);
+        Assert.Equal(tracks[1], d2.Track);   // the next song, ready
+        Assert.Equal("Deck 2 is ready: press play", auto.Status);
+        Assert.False(auto.StopAfterThisSong);   // just this once
+        Assert.StartsWith("Stopped after the song, as asked.", app.ViewModel.Notice);
+
+        d2.TogglePlayCommand.Execute(null);   // after the announcement
+        PlayUntil(app, () => d2.IsOnAir);
+        Assert.Equal("ON AIR", d2.Status);
+        PlayUntil(app, () => d1.IsPlaying);   // and auto-play carries on as before, after the gap
+        Assert.Equal(tracks[2], d1.Track);
+    }
+
+    [AvaloniaFact]
+    public void Stop_after_this_song_is_forgotten_with_auto_play_off()
+    {
+        var (app, auto, _) = Setup(queued: 2, seconds: 20);
+        using var _app = app;
+        auto.IsOn = true;
+        app.Play(0.1);
+        auto.StopAfterThisSong = true;
+
+        auto.IsOn = false;
+
+        Assert.False(auto.StopAfterThisSong);
+        Assert.Equal("ON AIR", app.ViewModel.Deck1!.Status);
+    }
+
+    [AvaloniaFact]
     public void A_song_set_to_fade_at_its_end_fades_there_and_the_next_one_starts_after_the_fade()
     {
         var (app, auto, tracks) = Setup(queued: 2, seconds: 20);

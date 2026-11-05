@@ -621,7 +621,7 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>Playing, but the crossfader has it out of the room.</summary>
     public bool IsOffAir => IsPlaying && !IsInRoom;
 
-    public string Status => IsOnAir ? "ON AIR" : IsOffAir ? "OFF AIR"
+    public string Status => IsOnAir ? _owner.AutoPlay?.StopsAfter(this) == true ? "ON AIR · LAST SONG" : "ON AIR" : IsOffAir ? "OFF AIR"
         : StartsIn is { } left ? $"STARTS IN {Math.Max(1, Math.Ceiling(left)):0}" : "";
 
     /// <summary>

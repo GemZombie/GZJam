@@ -751,9 +751,10 @@
                 <Button c:FitRow.DropOrder="2" Classes="hw step" Content="+" Command="{Binding GapUpCommand}" />
 
                 <!-- For classes and practice nights: fade each song after a while, wait for the
-                     teacher between songs, repeat the queue or a song, stop at a set time (#98, #100, #255, #257) -->
+                     teacher between songs, repeat the queue or a song, stop at a set time or after
+                     this song (#98, #100, #255, #257, #270) -->
                 <Button x:Name="AutoPlayOptionsButton" c:FitRow.DropOrder="3" Classes="hw step" Content="⋯" FontSize="14"
-                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, repeat the queue or a song, stop at a set time">
+                        ToolTip.Tip="Auto-play options: fade each song after a while, wait for you between songs, repeat the queue or a song, stop at a set time or after this song">
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="panel" Opening="OnAutoPlayOptionsOpening">
                       <StackPanel Width="270" Spacing="12">
@@ -792,6 +793,13 @@
                           </StackPanel>
                           <ComboBox x:Name="StopAtBox" Grid.Column="1" MinWidth="110" VerticalAlignment="Center"
                                     ItemsSource="{Binding StopChoices}" SelectedItem="{Binding StopChoice}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <StackPanel Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="setting" Text="Stop after this song" />
+                            <TextBlock Classes="setting-help" TextWrapping="Wrap" Text="Just this once, for an announcement: the next song waits for play" />
+                          </StackPanel>
+                          <ToggleButton x:Name="StopAfterThisSongSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding StopAfterThisSong}" />
                         </Grid>
                       </StackPanel>
                     </Flyout>

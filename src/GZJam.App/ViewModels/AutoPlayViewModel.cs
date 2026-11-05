@@ -145,6 +145,24 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     [ObservableProperty]
     public partial DateTime? StopAt { get; set; }
 
+    /// <summary>
+    /// Auto-play stops after the song the room hears now, just this once (#270): for an
+    /// announcement, a birthday jam, the band setting up. As with <see cref="WaitAfterEach"/>, the
+    /// next song is lined up on the other deck and waits for play, so the room goes quiet and
+    /// pressing play carries on. Cleared as it happens, or with auto-play off. Not remembered.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool StopAfterThisSong { get; set; }
+
+    /// <summary>The deck the room is hearing is the last before auto-play stops (<see cref="StopAfterThisSong"/>).</summary>
+    internal bool StopsAfter(DeckViewModel deck) => IsOn && StopAfterThisSong && deck.IsOnAir;
+
+    partial void OnStopAfterThisSongChanged(bool value)
+    {
+        Log.Info(value ? "Auto-play: stops after this song" : "Auto-play: goes on after this song");
+        Changed();
+    }
+
     /// <summary>The time of day, for <see cref="StopAt"/> (tests set it).</summary>
     internal Func<DateTime> Now { get; set; } = () => DateTime.Now;
 
@@ -258,6 +276,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             _ => null,
         },
         StopAt is { } at ? $"Stops at {ClockTime(at)}" : null,
+        StopAfterThisSong ? "Stops after this song" : null,
     }.OfType<string>());
 
     /// <summary>
@@ -365,6 +384,7 @@ public sealed partial class AutoPlayViewModel : ObservableObject
                 _pending = null;   // a song waiting out the gap doesn't start
             }
             _waiting = null;
+            StopAfterThisSong = false;
         }
         SetAutoFades();
         Changed();
@@ -421,10 +441,16 @@ public sealed partial class AutoPlayViewModel : ObservableObject
             _owner.ShowNotice("Auto-play stopped: the queue is empty.");
             return;
         }
-        if (WaitAfterEach)
+        if (WaitAfterEach || StopAfterThisSong)
         {
-            // Lined up for the teacher: the crossfader goes over (the room is silent), and the
-            // song waits for play. Pressing play on it carries on from there.
+            // Lined up for the teacher, or for the DJ after an announcement: the crossfader goes
+            // over (the room is silent), and the song waits for play. Pressing play on it carries
+            // on from there.
+            if (StopAfterThisSong)
+            {
+                StopAfterThisSong = false;
+                _owner.ShowNotice($"Stopped after the song, as asked. Deck {next.Label} is ready: press play to go on.", 8);
+            }
             _waiting = next;
             Log.Info($"Auto-play: Deck {next.Label} is ready, waiting for play");
             _owner.Mixer!.GlideTo(Crossfade.Side(next.Deck.Index), TimeSpan.FromSeconds(1));
