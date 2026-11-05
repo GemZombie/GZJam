@@ -305,7 +305,7 @@
                              Waveform="{Binding CloseUpWaveform}" Length="{Binding LengthSeconds}" WindowSeconds="{Binding CloseUpSeconds}"
                              IsPlaying="{Binding IsPlaying}" TempoPercent="{Binding TempoPercent}"
                              TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
-                             IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
+                             IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}" EndFade="{Binding EndFadeLength}"
                              Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
                              Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">
             <c:CloseUpWaveform.ContextMenu>
@@ -314,7 +314,7 @@
           </c:CloseUpWaveform>
           <c:SeekBar x:Name="Seek" Grid.Row="2" Progress="{Binding Progress}" IsEnabled="{Binding HasTrack}" IsLocked="{Binding !CanSeek}"
                      Waveform="{Binding Waveform}" TrimStart="{Binding TrimStart}" TrimEnd="{Binding TrimEnd}"
-                     IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}"
+                     IsStartManual="{Binding IsStartManual}" IsEndManual="{Binding IsEndManual}" EndFade="{Binding EndFadeLength}"
                      Jumps="{Binding JumpMarkers}" PendingJumpFrom="{Binding PendingJumpFrom}" Cues="{Binding CueMarkers}"
                      CloseUp="{Binding CloseUpFraction}"
                      Fill="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}">

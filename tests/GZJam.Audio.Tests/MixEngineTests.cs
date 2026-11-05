@@ -218,6 +218,43 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void A_song_set_to_fade_at_its_end_plays_on_past_it_fading_then_has_played_out()
+    {
+        A.Load(_tone);
+        A.SetTrim(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        A.EndFade = TimeSpan.FromSeconds(2);
+        int finished = 0;
+        A.Finished += (_, _) => finished++;
+        Assert.Equal(TimeSpan.FromSeconds(1), A.EndFadesAt);
+        Assert.Equal(3, A.Remaining.TotalSeconds, 0.01);   // to the end of the fade
+
+        A.Play();
+        Render(1.1);
+        _mix.Update();   // past the end: the fade starts, the music goes on
+        Assert.True(A.IsFading);
+        Assert.True(A.IsPlaying);
+        Assert.Null(A.EndFadesAt);
+
+        _time.Advance(TimeSpan.FromSeconds(1));
+        _mix.Update();
+        Render(0.1);   // BASS eases into a new volume
+        Assert.Equal(Full * 0.5f, Render(0.1).Main, 0.03f);
+        Assert.Equal(1, A.Remaining.TotalSeconds, 0.01);
+        Assert.Equal(0, finished);
+
+        _time.Advance(TimeSpan.FromSeconds(1.1));
+        _mix.Update();
+        Assert.False(A.IsPlaying);
+        Assert.Equal(1, finished);
+        Assert.InRange(Render().Main, 0, Silent);
+
+        // Played out: the next play starts from the top, at full volume.
+        A.Play();
+        Assert.Equal(Full, Render().Main, 0.02f);
+        Assert.InRange(A.Position.TotalSeconds, 0, 0.5);
+    }
+
+    [Fact]
     public void Playing_to_the_end_raises_finished_and_play_starts_over()
     {
         string shortTone = TestWav.WriteTone(Path.Combine(_dir, "short.wav"), TimeSpan.FromSeconds(1));

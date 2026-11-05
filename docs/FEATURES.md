@@ -543,6 +543,15 @@ lock, and automatic history.
 - Refused with a hint: a start or end leaving under 5 s of song, and an end before the playhead
   on the deck the room is hearing (it would stop dead).
 - Not yet: dragging the markers directly.
+- Later (#267, 1.3): *Start fade-out here* / *at the playhead* under *Song ends*, asked for by a DJ
+  for long, repetitive outros. The end becomes where the song starts to fade, over Settings'
+  fade-out length, rather than where it stops (`trims.fade_out`, upgrade 24; only adds). The deck
+  (`Deck.EndFade`) starts the fade as the playhead reaches the end, plays on through it, and has
+  played out when it's over (as at the end of the music: the next play starts from the top, and
+  auto-play's gap follows). `Remaining` counts to the end of the fade; the readout says where it
+  starts (*0:42 / fade 3:10*, as for auto-play's limit). Both waveforms draw a slope from the end
+  flag to where the fade is over, shaded above. A dragged end keeps its fade; *Here*, *At the
+  playhead* and *Automatic* stop there again. Fade length changes in Settings apply at once.
 
 ### Status: four decks built (2026-10-21)
 

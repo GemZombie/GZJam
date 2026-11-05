@@ -59,6 +59,10 @@ public sealed class CloseUpWaveform : Control
     public static readonly StyledProperty<bool> IsEndManualProperty =
         AvaloniaProperty.Register<CloseUpWaveform, bool>(nameof(IsEndManual));
 
+    /// <summary>The song fades out from its end over this much of the file (#267); 0: it stops there.</summary>
+    public static readonly StyledProperty<double> EndFadeProperty =
+        AvaloniaProperty.Register<CloseUpWaveform, double>(nameof(EndFade));
+
     public static readonly StyledProperty<IReadOnlyList<JumpMarker>?> JumpsProperty =
         AvaloniaProperty.Register<CloseUpWaveform, IReadOnlyList<JumpMarker>?>(nameof(Jumps));
 
@@ -87,7 +91,7 @@ public sealed class CloseUpWaveform : Control
     static CloseUpWaveform()
     {
         AffectsRender<CloseUpWaveform>(WaveformProperty, LengthProperty, ProgressProperty, WindowSecondsProperty,
-            TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, JumpsProperty,
+            TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, EndFadeProperty, JumpsProperty,
             PendingJumpFromProperty, CuesProperty, IsLockedProperty, FillProperty, IsEnabledProperty, IsPlayingProperty);
     }
 
@@ -117,6 +121,7 @@ public sealed class CloseUpWaveform : Control
     public double TrimEnd { get => GetValue(TrimEndProperty); set => SetValue(TrimEndProperty, value); }
     public bool IsStartManual { get => GetValue(IsStartManualProperty); set => SetValue(IsStartManualProperty, value); }
     public bool IsEndManual { get => GetValue(IsEndManualProperty); set => SetValue(IsEndManualProperty, value); }
+    public double EndFade { get => GetValue(EndFadeProperty); set => SetValue(EndFadeProperty, value); }
     public IReadOnlyList<JumpMarker>? Jumps { get => GetValue(JumpsProperty); set => SetValue(JumpsProperty, value); }
     public double? PendingJumpFrom { get => GetValue(PendingJumpFromProperty); set => SetValue(PendingJumpFromProperty, value); }
     public IReadOnlyList<CueMarker>? Cues { get => GetValue(CuesProperty); set => SetValue(CuesProperty, value); }
@@ -386,7 +391,8 @@ public sealed class CloseUpWaveform : Control
         }
         if (end < bounds.Width && (trimEnd < 1 || endManual))
         {
-            context.DrawRectangle(TrimShade, null, new Rect(end, 0, Math.Max(0, Math.Min(bounds.Width, fileEnd) - end), bounds.Height));
+            double fade = X(Math.Clamp(trimEnd + EndFade, 0, 1)) - end;
+            SeekBar.DrawEndShade(context, end, fade, Math.Min(bounds.Width, fileEnd), bounds.Height);
             context.DrawRectangle(endManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(end - (endManual ? 1 : 0.5), 0, endManual ? 2 : 1, bounds.Height));
         }
     }

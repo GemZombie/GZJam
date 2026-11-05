@@ -13,7 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.2.0-beta.1.
+New:
+
+- **Fade a song out where you choose:** for a song with a long or repetitive outro, right-click
+  the waveform › *Song ends* › *Start fade-out here* (or *at the playhead*, found by ear). The
+  song plays on from there, fading out over your fade-out length (Settings › Decks), rather than
+  stopping dead; auto-play's gap comes after the fade. The waveform shows the fade as a slope after
+  the song's end, and the time left counts to the end of the fade. Remembered for the song, like
+  its start and end.
 
 ## 1.2.0-beta.1 (2026-11-04)
 

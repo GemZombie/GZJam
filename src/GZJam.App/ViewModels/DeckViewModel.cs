@@ -143,6 +143,14 @@ public sealed partial class DeckViewModel : ObservableObject
     public bool IsStartManual => _manualTrim.Start is not null;
     public bool IsEndManual => _manualTrim.End is not null;
 
+    /// <summary>The song starts to fade out at its end, rather than stopping there (#267).</summary>
+    public bool IsEndFade => _manualTrim is { End: not null, FadeOut: true };
+
+    /// <summary>The length of the fade at the song's end, as a fraction of the file: the waveform draws it after the end.</summary>
+    public double EndFadeLength => IsEndFade && Deck.Length > TimeSpan.Zero ? FadeOutLength / Deck.Length : 0;
+
+    private TimeSpan FadeOutLength => TimeSpan.FromSeconds(_settings.FadeOutSeconds);
+
     /// <summary>Where silence trimming says the music starts and ends.</summary>
     public TimeSpan AutomaticStart => _autoStart ?? TimeSpan.Zero;
     public TimeSpan AutomaticEnd => _autoEnd ?? Deck.Length;
@@ -745,8 +753,8 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         DeckReadout.Elapsed => $"elapsed of {Format.Duration(Deck.Length)}",
         DeckReadout.Bpm => $"{BpmCaption} · {TempoText}",
-        _ => Deck.FadesAt is { } fadesAt
-            ? $"{Format.Duration(Deck.Position)} / fade {Format.Duration(fadesAt)}"   // auto-play's limit (#98)
+        _ => (Deck.FadesAt ?? Deck.EndFadesAt) is { } fadesAt
+            ? $"{Format.Duration(Deck.Position)} / fade {Format.Duration(fadesAt)}"   // auto-play's limit (#98), or the song's own fade (#267)
             : $"{Format.Duration(Deck.Position)} / {Format.Duration(Deck.Length)}",
     };
 
@@ -1077,6 +1085,15 @@ public sealed partial class DeckViewModel : ObservableObject
         OnPropertyChanged(nameof(TrimEnd));
         OnPropertyChanged(nameof(IsStartManual));
         OnPropertyChanged(nameof(IsEndManual));
+        OnPropertyChanged(nameof(IsEndFade));
+        OnPropertyChanged(nameof(EndFadeLength));
+    }
+
+    /// <summary>The fade at the song's end, if it has one, as long as Settings' fade-out (which can change).</summary>
+    internal void ApplyEndFade()
+    {
+        Deck.EndFade = IsEndFade ? FadeOutLength : null;
+        OnPropertyChanged(nameof(EndFadeLength));
     }
 
     /// <summary>
@@ -1089,6 +1106,7 @@ public sealed partial class DeckViewModel : ObservableObject
         TimeSpan start = _manualTrim.Start ?? AutomaticStart, end = _manualTrim.End ?? AutomaticEnd;
         bool atStart = (Deck.Position - Deck.Start).Duration() < TimeSpan.FromMilliseconds(20);
         Deck.SetTrim(start, end);
+        ApplyEndFade();
         if (!IsPlaying && !IsFinished && (Deck.Position < start || atStart))
         {
             Deck.Seek(start);
@@ -1119,8 +1137,12 @@ public sealed partial class DeckViewModel : ObservableObject
         return true;
     }
 
-    /// <summary>Ends the song at <paramref name="at"/> from now on (saved for the file), or (null) where silence trimming says.</summary>
-    public bool SetEnd(TimeSpan? at)
+    /// <summary>
+    /// Ends the song at <paramref name="at"/> from now on (saved for the file), or (null) where
+    /// silence trimming says. <paramref name="fadeOut"/>: it starts to fade out there, over
+    /// Settings' fade-out, rather than stopping (#267); null keeps what it was (a marker dragged).
+    /// </summary>
+    public bool SetEnd(TimeSpan? at, bool? fadeOut = null)
     {
         if (Track is null)
             return false;
@@ -1136,10 +1158,10 @@ public sealed partial class DeckViewModel : ObservableObject
             ShowHint("That part has already played");
             return false;
         }
-        _manualTrim = _manualTrim with { End = at };
+        _manualTrim = _manualTrim with { End = at, FadeOut = at is not null && (fadeOut ?? _manualTrim.FadeOut) };
         _owner.SaveTrim(Track.Path, _manualTrim);
         Log.Info(string.Create(CultureInfo.InvariantCulture,
-            $"Deck {Label}: end of \"{Title}\" {(at is { } t ? $"set to {t.TotalSeconds:0.0} s" : "automatic")}"));
+            $"Deck {Label}: end of \"{Title}\" {(at is { } t ? $"set to {t.TotalSeconds:0.0} s" : "automatic")}{(IsEndFade ? ", fading out from there" : "")}"));
         ApplyTrim();
         return true;
     }

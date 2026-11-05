@@ -23,8 +23,12 @@ public readonly record struct FileVersion(long Size, long ModifiedTicks)
     }
 }
 
-/// <summary>Where the DJ set a song to start and end by hand; null parts are automatic (silence trimming).</summary>
-public readonly record struct ManualTrim(TimeSpan? Start, TimeSpan? End)
+/// <summary>
+/// Where the DJ set a song to start and end by hand; null parts are automatic (silence trimming).
+/// <paramref name="FadeOut"/>: the song starts to fade out at <paramref name="End"/> rather than
+/// stopping there (#267).
+/// </summary>
+public readonly record struct ManualTrim(TimeSpan? Start, TimeSpan? End, bool FadeOut = false)
 {
     public bool IsEmpty => Start is null && End is null;
 }
@@ -154,14 +158,15 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = "SELECT start_ms, end_ms FROM trims WHERE path = $path;";
+        cmd.CommandText = "SELECT start_ms, end_ms, fade_out FROM trims WHERE path = $path;";
         cmd.Parameters.AddWithValue("$path", path);
         using var r = cmd.ExecuteReader();
         if (!r.Read())
             return default;
         return new ManualTrim(
             r.IsDBNull(0) ? null : TimeSpan.FromMilliseconds(r.GetInt64(0)),
-            r.IsDBNull(1) ? null : TimeSpan.FromMilliseconds(r.GetInt64(1)));
+            r.IsDBNull(1) ? null : TimeSpan.FromMilliseconds(r.GetInt64(1)),
+            !r.IsDBNull(1) && r.GetInt64(2) != 0);
     }
 
     /// <summary>Saves where the DJ set a file to start and end (both automatic: forgets the file).</summary>
@@ -172,12 +177,14 @@ public sealed partial class LibraryDatabase
         cmd.CommandText = trim.IsEmpty
             ? "DELETE FROM trims WHERE path = $path;"
             : """
-              INSERT INTO trims (path, start_ms, end_ms) VALUES ($path, $start, $end)
-                  ON CONFLICT(path) DO UPDATE SET start_ms = excluded.start_ms, end_ms = excluded.end_ms;
+              INSERT INTO trims (path, start_ms, end_ms, fade_out) VALUES ($path, $start, $end, $fade)
+                  ON CONFLICT(path) DO UPDATE SET start_ms = excluded.start_ms, end_ms = excluded.end_ms,
+                      fade_out = excluded.fade_out;
               """;
         cmd.Parameters.AddWithValue("$path", path);
         cmd.Parameters.AddWithValue("$start", trim.Start is { } start ? (long)start.TotalMilliseconds : DBNull.Value);
         cmd.Parameters.AddWithValue("$end", trim.End is { } end ? (long)end.TotalMilliseconds : DBNull.Value);
+        cmd.Parameters.AddWithValue("$fade", trim.FadeOut && trim.End is not null ? 1 : 0);
         cmd.ExecuteNonQuery();
     }
 

@@ -313,6 +313,31 @@ public sealed class AutoPlayTests
     }
 
     [AvaloniaFact]
+    public void A_song_set_to_fade_at_its_end_fades_there_and_the_next_one_starts_after_the_fade()
+    {
+        var (app, auto, tracks) = Setup(queued: 2, seconds: 20);
+        using var _ = app;
+        app.Settings.FadeOutSeconds = 1;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.IsOn = true;
+        app.Play(0.1);
+        Assert.Equal(tracks[0], d1.Track);
+        Assert.True(d1.SetEnd(TimeSpan.FromSeconds(8), fadeOut: true));   // a long outro
+        Assert.EndsWith("/ fade 0:08", d1.ReadoutCaption);
+
+        JustBefore(app, d1, TimeSpan.FromSeconds(8));
+        PlayUntil(app, () => d1.Deck.IsFading);
+        Assert.InRange(d1.Deck.Position.TotalSeconds, 8, 8.5);
+        Assert.False(d2.IsPlaying);   // the next song waits for the fade
+
+        PlayUntil(app, () => !d1.IsPlaying);
+        Assert.True(d1.Deck.Position.TotalSeconds > 8.3);   // played on through the fade (timed by the clock)
+        Assert.False(d2.IsPlaying);   // then the gap
+        PlayUntil(app, () => d2.IsOnAir && d2.IsPlaying);
+        Assert.Equal(tracks[1], d2.Track);
+    }
+
+    [AvaloniaFact]
     public void A_song_moved_past_the_limit_plays_on_and_a_short_one_plays_to_its_end()
     {
         var (app, auto, _) = Setup(queued: 2, seconds: 75);

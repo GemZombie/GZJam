@@ -262,8 +262,11 @@ public partial class DeckView : UserControl
         items.Add(new Separator());
         items.Add(new MenuItem { Header = "Song ends", IsEnabled = false });
         if (here is { } h2)
-            items.Add(Item($"Here ({Time(h2)})", () => vm.SetEnd(h2)));
-        items.Add(Item($"At the playhead ({Time(playhead)})", () => vm.SetEnd(playhead)));
+            items.Add(Item($"Here ({Time(h2)})", () => vm.SetEnd(h2, fadeOut: false)));
+        items.Add(Item($"At the playhead ({Time(playhead)})", () => vm.SetEnd(playhead, fadeOut: false)));
+        if (here is { } h6)
+            items.Add(Item($"Start fade-out here ({Time(h6)})", () => vm.SetEnd(h6, fadeOut: true)));
+        items.Add(Item($"Start fade-out at the playhead ({Time(playhead)})", () => vm.SetEnd(playhead, fadeOut: true)));
         items.Add(Item($"Automatic ({Time(vm.AutomaticEnd)})", () => vm.SetEnd(null), radio: true, isChecked: !vm.IsEndManual));
 
         // Jumps: leave at the end of a phrase, land at the start of another.

@@ -44,6 +44,10 @@ public sealed class SeekBar : Control
     public static readonly StyledProperty<bool> IsEndManualProperty =
         AvaloniaProperty.Register<SeekBar, bool>(nameof(IsEndManual));
 
+    /// <summary>The song fades out from its end over this much of the file (#267); 0: it stops there.</summary>
+    public static readonly StyledProperty<double> EndFadeProperty =
+        AvaloniaProperty.Register<SeekBar, double>(nameof(EndFade));
+
     /// <summary>The song's jumps, as fractions of the file.</summary>
     public static readonly StyledProperty<IReadOnlyList<JumpMarker>?> JumpsProperty =
         AvaloniaProperty.Register<SeekBar, IReadOnlyList<JumpMarker>?>(nameof(Jumps));
@@ -86,7 +90,7 @@ public sealed class SeekBar : Control
     static SeekBar()
     {
         AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
-            WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty,
+            WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, EndFadeProperty,
             JumpsProperty, PendingJumpFromProperty, CuesProperty, CloseUpProperty, ShowCloseUpProperty);
     }
 
@@ -118,6 +122,12 @@ public sealed class SeekBar : Control
     {
         get => GetValue(IsEndManualProperty);
         set => SetValue(IsEndManualProperty, value);
+    }
+
+    public double EndFade
+    {
+        get => GetValue(EndFadeProperty);
+        set => SetValue(EndFadeProperty, value);
     }
 
     /// <summary>The position (0..1) at a point on the bar.</summary>
@@ -338,9 +348,40 @@ public sealed class SeekBar : Control
         }
         if (end <= bounds.Width - 1 || endManual)
         {
-            context.DrawRectangle(TrimShade, null, new Rect(end, 0, bounds.Width - end, bounds.Height));
+            DrawEndShade(context, end, EndFade * bounds.Width, bounds.Width, bounds.Height);
             DrawMarker(context, end - 1, bounds.Height, endManual, pointsRight: false);
         }
+    }
+
+    private static readonly Pen FadeLine = new(new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6)), 1.5);
+
+    /// <summary>
+    /// The shade after the song's end, to <paramref name="right"/>; with a fade (#267), a slope
+    /// from the top at the end to the bottom where the fade is over, the shade above it, as the
+    /// sound goes.
+    /// </summary>
+    internal static void DrawEndShade(DrawingContext context, double end, double fade, double right, double height)
+    {
+        if (fade < 1)
+        {
+            context.DrawRectangle(TrimShade, null, new Rect(end, 0, Math.Max(0, right - end), height));
+            return;
+        }
+        var slope = new StreamGeometry();
+        using (var g = slope.Open())
+        {
+            g.BeginFigure(new Point(end, 0), isFilled: true);
+            g.LineTo(new Point(end + fade, 0));
+            g.LineTo(new Point(end + fade, height));
+            g.EndFigure(isClosed: true);
+        }
+        using (context.PushClip(new Rect(end, 0, Math.Max(0, right - end), height)))
+        {
+            context.DrawGeometry(TrimShade, null, slope);
+            context.DrawLine(FadeLine, new Point(end, 0), new Point(end + fade, height));
+        }
+        if (right > end + fade)
+            context.DrawRectangle(TrimShade, null, new Rect(end + fade, 0, right - end - fade, height));
     }
 
     /// <summary>The marker a press at <paramref name="x"/> would grab, if any.</summary>

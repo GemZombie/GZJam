@@ -459,6 +459,12 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (path, field)
             ) WITHOUT ROWID;
             """,
+
+        // 24: A song's end set by hand can be where it starts to fade out, rather than where it
+        // stops (#267): for a long or repetitive outro. Only adds: an older GZJam stops there.
+        """
+            ALTER TABLE trims ADD COLUMN fade_out INTEGER NOT NULL DEFAULT 0;
+            """,
     ];
 
     // ───────────── Roots ─────────────
