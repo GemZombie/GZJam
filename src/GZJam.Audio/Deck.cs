@@ -91,6 +91,7 @@ public sealed class Deck : IDisposable
         TrackPath = path;
         _playing = false;
         _ended = false;
+        _endFading = false;
         _lastPosition = TimeSpan.Zero;
         AutoFade = null;
         Attach();
@@ -115,6 +116,7 @@ public sealed class Deck : IDisposable
         _sound.Detach();   // freed with the stream
         _playing = false;
         _ended = false;
+        _endFading = false;
         TrackPath = null;
     }
 
@@ -193,7 +195,8 @@ public sealed class Deck : IDisposable
 
     /// <summary>
     /// Real time left until the music ends, accounting for tempo and the jumps still armed ahead,
-    /// and for an <see cref="AutoFade"/> still ahead: then it's until that fade is over.
+    /// the song's own <see cref="EndFade"/>, and an <see cref="AutoFade"/> still ahead: then it's
+    /// until that fade is over.
     /// </summary>
     public TimeSpan Remaining
     {
@@ -206,7 +209,9 @@ public sealed class Deck : IDisposable
                     left -= jump.To - jump.From;   // forward: skipped; backward: played again
             }
             double speed = 1 + _tempoPercent / 100;
-            TimeSpan toEnd = Max(TimeSpan.Zero, left / speed);
+            if (_endFading && _fadeLength is { } fading)
+                return Max(TimeSpan.Zero, fading - _mix.Time.GetElapsedTime(_fadeStarted));
+            TimeSpan toEnd = Max(TimeSpan.Zero, left / speed) + (EndFade ?? TimeSpan.Zero);
             return FadesAt is { } at ? Min(toEnd, (at - position) / speed + AutoFade!.Value.Length) : toEnd;
         }
     }
@@ -217,6 +222,20 @@ public sealed class Deck : IDisposable
     /// when it's passed while playing: a song already beyond it, or moved past it, plays on.
     /// </summary>
     public (TimeSpan At, TimeSpan Length)? AutoFade { get; set; }
+
+    /// <summary>
+    /// The song fades out over this long from <see cref="End"/>, rather than stopping there: the
+    /// DJ's *Start fade-out here*, for a long or repetitive outro (#267). The music goes on past
+    /// <see cref="End"/> while it fades; the song has ended when the fade is over. Null: it stops.
+    /// </summary>
+    public TimeSpan? EndFade { get; set; }
+
+    /// <summary>Where the song's own <see cref="EndFade"/> will start, if that's still ahead.</summary>
+    public TimeSpan? EndFadesAt => EndFade is not null && IsLoaded && !_ended && !_endFading && _end is not null
+        ? End : null;
+
+    /// <summary>The fade under way is the song's <see cref="EndFade"/>: when it's over, the song has played out.</summary>
+    private bool _endFading;
 
     /// <summary>Where <see cref="AutoFade"/> will fade the song, if that's still ahead and before the music ends.</summary>
     public TimeSpan? FadesAt => AutoFade is { } fade && IsLoaded && !_ended && _fadeLength is null
@@ -438,7 +457,10 @@ public sealed class Deck : IDisposable
         {
             if (_mix.Time.GetElapsedTime(_fadeStarted) >= length)
             {
+                bool playedOut = _endFading;
                 Pause();   // also ends the fade and restores volume for the next play
+                if (playedOut)
+                    _ended = true;   // as at the end of the music: played again, it starts from the top
                 Finished?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -455,9 +477,17 @@ public sealed class Deck : IDisposable
             return;
         }
 
+        // The song's own fade at its end, rather than stopping there.
+        if (EndFade is { } endFade && _playing && !_ended && _fadeLength is null && _end is not null && position >= End)
+        {
+            FadeOut(endFade);
+            _endFading = true;
+            return;
+        }
+
         // The end of the music (trailing silence is trimmed), or the end of the file.
         if (_playing && !_ended && (
-                (_end is not null && Position >= End) ||
+                (_end is not null && Position >= End && !_endFading) ||
                 (Bass.ChannelIsActive(_splitMain) == PlaybackState.Stopped && Position >= Length - TimeSpan.FromMilliseconds(250))))
         {
             _ended = true;
@@ -538,6 +568,7 @@ public sealed class Deck : IDisposable
         if (_fadeLength is null)
             return;
         _fadeLength = null;
+        _endFading = false;
         ApplyVolumes();
     }
 

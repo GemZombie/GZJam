@@ -107,6 +107,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
         Settings = new SettingsViewModel(this, settings);
+        Settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SettingsViewModel.FadeOutSeconds))
+                foreach (DeckViewModel deck in Decks)
+                    deck.ApplyEndFade();
+        };
 
         _clock = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => UpdateClock());
         _playbackTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Render, (_, _) => Tick());

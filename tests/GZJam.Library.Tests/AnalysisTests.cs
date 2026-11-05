@@ -149,6 +149,21 @@ public sealed class AnalysisTests : IDisposable
     }
 
     [Fact]
+    public void An_end_can_be_where_the_song_starts_to_fade_out()
+    {
+        string path = _lib.AddMp3("Swing/long outro.mp3");
+
+        _lib.Database.SetTrim(path, new ManualTrim(null, TimeSpan.FromSeconds(150), FadeOut: true));
+        Assert.Equal(new ManualTrim(null, TimeSpan.FromSeconds(150), FadeOut: true), _lib.Database.GetTrim(path));
+
+        _lib.Database.SetTrim(path, new ManualTrim(null, TimeSpan.FromSeconds(150)));   // stops there again
+        Assert.False(_lib.Database.GetTrim(path).FadeOut);
+
+        _lib.Database.SetTrim(path, new ManualTrim(TimeSpan.FromSeconds(2), null, FadeOut: true));   // no end to fade from
+        Assert.Equal(new ManualTrim(TimeSpan.FromSeconds(2), null), _lib.Database.GetTrim(path));
+    }
+
+    [Fact]
     public void A_songs_eq_is_remembered_and_forgotten_when_flat()
     {
         string path = _lib.AddMp3("78s/hissy.mp3");

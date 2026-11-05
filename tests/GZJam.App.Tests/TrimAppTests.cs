@@ -66,6 +66,68 @@ public sealed class TrimAppTests
     }
 
     [AvaloniaFact]
+    public void An_end_set_to_fade_out_plays_on_past_it_fading_and_then_the_song_is_over()
+    {
+        using var app = new AppHarness();
+        app.Settings.FadeOutSeconds = 2;   // timed by the clock (the fade itself: MixEngineTests)
+        Track song = app.ToneTrack("Long outro", seconds: 20);
+        DeckViewModel deck = LoadAndAnalyze(app, song);
+
+        Assert.True(deck.SetEnd(TimeSpan.FromSeconds(6), fadeOut: true));
+
+        Assert.True(deck.IsEndFade);
+        Assert.Equal(new ManualTrim(null, TimeSpan.FromSeconds(6), FadeOut: true), app.Database.GetTrim(song.Path));
+        Assert.Equal("0:00 / fade 0:06", deck.ReadoutCaption);
+        Assert.InRange(deck.Deck.Remaining.TotalSeconds, 7.9, 8.1);   // to the end of the fade
+        Assert.InRange(deck.EndFadeLength, 0.09, 0.11);   // drawn after the end: 2 s of 20
+        app.Screenshot("deck-end-fade");
+
+        deck.TogglePlayCommand.Execute(null);
+        for (int i = 0; i < 80 && !deck.Deck.IsFading; i++)
+            app.Play(0.1);
+        Assert.InRange(deck.Deck.Position.TotalSeconds, 6, 6.5);
+        app.Play(0.5);
+        Assert.True(deck.IsPlaying);   // the music goes on past the end, fading
+        Assert.False(deck.IsFinished);
+        Assert.True(deck.Deck.Position.TotalSeconds > 6.4);
+
+        AppHarness.WaitFor(() =>
+        {
+            app.Play(0.02);
+            return deck.IsFinished;
+        }, TimeSpan.FromSeconds(10));
+        Assert.False(deck.IsPlaying);
+
+        deck.TogglePlayCommand.Execute(null);   // played again: from the top, at full level
+        app.Play(0.1);
+        Assert.InRange(deck.Deck.Position.TotalSeconds, 0, 0.5);
+        Assert.False(deck.Deck.IsFading);
+    }
+
+    [AvaloniaFact]
+    public void A_fading_end_keeps_its_fade_when_moved_and_stops_again_when_set_another_way()
+    {
+        using var app = new AppHarness();
+        Track song = app.ToneTrack("Outro", seconds: 20);
+        DeckViewModel deck = LoadAndAnalyze(app, song);
+
+        Assert.True(deck.SetEnd(TimeSpan.FromSeconds(12), fadeOut: true));
+        Assert.True(deck.SetEnd(TimeSpan.FromSeconds(14)));   // its marker dragged
+        Assert.True(deck.IsEndFade);
+        Assert.Equal(TimeSpan.FromSeconds(14), deck.Deck.End);
+
+        Assert.True(deck.SetEnd(TimeSpan.FromSeconds(14), fadeOut: false));   // Here, or At the playhead
+        Assert.False(deck.IsEndFade);
+        Assert.Null(deck.Deck.EndFade);
+        Assert.EndsWith("/ 0:20", deck.ReadoutCaption);
+
+        Assert.True(deck.SetEnd(TimeSpan.FromSeconds(12), fadeOut: true));
+        Assert.True(deck.SetEnd(null));   // Automatic
+        Assert.False(deck.IsEndFade);
+        Assert.True(app.Database.GetTrim(song.Path).IsEmpty);
+    }
+
+    [AvaloniaFact]
     public void Impossible_points_are_refused()
     {
         using var app = new AppHarness();
@@ -103,7 +165,8 @@ public sealed class TrimAppTests
         Assert.Equal(TimeSpan.Zero, deck.Deck.Position);   // a right-click doesn't seek
         var items = menu.Items.OfType<MenuItem>().ToList();
         Assert.Equal(["Song starts", "Here (0:05.0)", "At the playhead (0:00.0)", "Automatic (0:00.0)",
-                      "Song ends", "Here (0:05.0)", "At the playhead (0:00.0)", "Automatic (0:20.0)",
+                      "Song ends", "Here (0:05.0)", "At the playhead (0:00.0)",
+                      "Start fade-out here (0:05.0)", "Start fade-out at the playhead (0:00.0)", "Automatic (0:20.0)",
                       "Jump", "Jump from here (0:05.0)", "Jump from the playhead (0:00.0)",
                       "Cue", "Cue 1 here (0:05.0)", "Cue 1 at the playhead (0:00.0)"],
             items.Select(i => (string)i.Header!));

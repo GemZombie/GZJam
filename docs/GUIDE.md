@@ -221,6 +221,13 @@ press and hold) the waveform › **Song starts** or **Song ends** › *Here*, *A
 the spot in the headphones first) or *Automatic*. A point you set gets a purple flag. You can also
 drag the start and end markers.
 
+**Fade out where you choose:** a song whose outro goes on too long, or repeats until it wears
+thin, can fade rather than stop: **Song ends** › *Start fade-out here* (or *at the playhead*). From
+there the song plays on, fading out over the fade-out length in Settings › Decks, and it's over
+when the fade is: auto-play's gap comes after it. The waveform shows the fade as a slope after
+the end flag, and the time left counts to the end of the fade. Dragging the end keeps its fade;
+*Here*, *At the playhead* or *Automatic* make it stop there again.
+
 ### Cue keys
 
 Mark up to four spots in a song to jump to at the moment you choose (wait for the end of a phrase,
