@@ -119,11 +119,15 @@ What to try on a real Linux computer (and on Windows and a Mac) is in
 ## Tests
 
 ```
-dotnet test
+dotnet build GZJam.slnx -c Release
+dotnet run tools/test.cs
 ```
 
-UI tests run headless. `ScreenshotTests` also renders the window over a real music folder
-(`C:\music`, or `GZJAM_SCREENSHOT_MUSIC`) and saves PNGs to `%TEMP%\gzjam-screenshots`. The
+UI tests run headless. `tools/test.cs` runs them in a few processes at once (`--shards N` to
+choose how many), alongside the library and audio tests, and prints what failed; `dotnet test`
+runs everything too, one UI test at a time, which takes about four times as long. Set
+`GZJAM_SCREENSHOT_MUSIC` to a real music folder (`C:\music`, say) and `ScreenshotTests` also
+renders the window over it, saving PNGs to `%TEMP%\gzjam-screenshots`. The
 picture at the top of this page is its `readme-main-screen.png`, copied to `docs/images/main-screen.png`.
 
 ## Builds and releases
@@ -190,5 +194,6 @@ script, the Linux tarball and install scripts).
 - `src/GZJam.Library` — library index: SQLite + FTS5 search, scanner, folder tree, folder watcher
 - `src/GZJam.Audio` — audio engine: devices, mixer (main + cue buses, crossfader), decks with tempo/key-lock, headphone preview, BPM detection
 - `tests/` — library tests and headless UI tests
+- `tools/test.cs` — runs every test, the UI tests in a few processes at once
 - `tools/GZJam.DevTools` — `bench <folder>`: scan timings and tag coverage for a real library
 - `lib/bass/` — native BASS + BASS_FX for Windows (x64), Linux (x64) and macOS (universal); `Bass.targets` copies the right set into each app's output

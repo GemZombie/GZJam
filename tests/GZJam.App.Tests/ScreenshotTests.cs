@@ -9,12 +9,12 @@ namespace GZJam.App.Tests;
 
 /// <summary>
 /// Renders the window over a real music folder (read-only) and saves PNGs to
-/// %TEMP%\gzjam-screenshots for eyeballing the layout. Skipped when the folder isn't there.
-/// Point GZJAM_SCREENSHOT_MUSIC at your library to use a different folder.
+/// %TEMP%\gzjam-screenshots for eyeballing the layout. Only when GZJAM_SCREENSHOT_MUSIC names the
+/// folder (C:\music, say): over a whole library it takes a minute and a half, too long for every run.
 /// </summary>
 public sealed class ScreenshotTests
 {
-    private static readonly string MusicFolder = Environment.GetEnvironmentVariable("GZJAM_SCREENSHOT_MUSIC") ?? @"C:\music";
+    private static readonly string? MusicFolder = Environment.GetEnvironmentVariable("GZJAM_SCREENSHOT_MUSIC");
 
     /// <summary>
     /// The picture at the top of the README: the set in progress, as it looks at a dance. Offline
@@ -45,6 +45,7 @@ public sealed class ScreenshotTests
     [AvaloniaFact]
     public void Real_library_screenshots()
     {
+        Assert.SkipUnless(MusicFolder is not null, "GZJAM_SCREENSHOT_MUSIC isn't set");
         Assert.SkipUnless(Directory.Exists(MusicFolder), $"{MusicFolder} not found");
         using var app = new AppHarness(MusicFolder, new AppSettings());   // default settings: loudness matching on
         var library = app.Library;
