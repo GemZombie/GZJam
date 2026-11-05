@@ -147,7 +147,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   or many at once (an artist's spelling across every song a search finds), with Undo: kept in
   GZJam's library, or written into the files too if you turn that on
 
-**In 1.3:**
+**In 1.3,** to try now in [1.3.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.3.0-beta.1):
+
 - [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
   Start fade-out here*, for a long or repetitive outro, so the song fades where you set it rather
   than stopping dead, with auto-play or playing by hand
@@ -166,11 +167,9 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** running the night: your own keys.
+**Next, in 1.4:** your own keys, and your library: versions of a song, and tags from file names.
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
-
-**Then, in 1.4:** your library: versions of a song, and tags from file names.
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor

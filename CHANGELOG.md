@@ -13,6 +13,17 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.3.0-beta.1.
+
+## 1.3.0-beta.1 (2026-11-05)
+
+A beta of 1.3, for trying it before everyone gets it: running the night, from fading a song out
+where you choose to the time the queue ends. GZJam's update notice doesn't offer betas: you only
+get one from this page. It has everything in 1.2.0-beta.1 too. It adds one small thing to your
+library (where a song starts to fade); 1.2.0-beta.1 and 1.1.0 can still open it, so you can go back
+at any time. New on Windows: buttons under GZJam's taskbar button; on a Mac, a menu on its Dock
+icon. Worth a try, and a word if anything's off.
+
 New:
 
 - **Fade a song out where you choose:** for a song with a long or repetitive outro, right-click
