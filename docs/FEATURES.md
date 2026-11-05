@@ -1611,6 +1611,16 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
+### Status: stop after this song (#270, 1.3)
+
+- *Stop after this song* in auto-play's options (`AutoPlayViewModel.StopAfterThisSong`, a switch
+  under *Stop at*): a one-time *Wait for me*. When the room's song ends, the next is lined up on
+  the other deck, the crossfader glides over, and it waits for play (`_waiting`, as for
+  *WaitAfterEach*); pressing play carries on with auto-play still on. Cleared as it happens (with
+  a notice saying which deck is ready), or when auto-play turns off. The on-air deck's status says
+  *ON AIR · LAST SONG*; the options line *Stops after this song*. Not remembered.
+- A key for it can come with #135 (your own keys).
+
 ### Status: the room's song from the taskbar or the Dock (#262, 1.3)
 
 - A DJ's request: pause, fade or move on without switching to GZJam. `RoomControls` (on

@@ -26,6 +26,10 @@ New:
   without switching to GZJam. On Windows, point at GZJam's taskbar button: the three buttons are
   under its preview. On a Mac, right-click (or Control-click) GZJam's Dock icon. With two taps to
   pause on air (Settings › Decks), these take two clicks too, and say so.
+- **Stop after this song:** for an announcement, a birthday jam or the band setting up, turn on
+  *Stop after this song* in auto-play's ⋯ options. The deck playing says *ON AIR · LAST SONG*;
+  when the song ends, the room goes quiet and the next song waits, ready, on the other deck. Press
+  play when you're done talking and auto-play carries on. Just this once: it turns itself off.
 
 ## 1.2.0-beta.1 (2026-11-04)
 

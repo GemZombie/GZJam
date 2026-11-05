@@ -552,8 +552,14 @@ and cue it in the headphones.
     - *Stop at* still ends the night.
   - **Stop at** (*Off*, or a time, every quarter hour for the next 8 hours): the song playing then
     is the last; auto-play turns itself off when it ends, and says so.
-  - *Wait for me*, *Repeat* and *Stop at* are for tonight: they're off again the next time you
-    open GZJam, so a dance next week isn't left waiting, looping or cut short.
+  - **Stop after this song:** just this once, for an announcement (a birthday jam, a class
+    starting, the band setting up). The deck playing says *ON AIR · LAST SONG*. When the song
+    ends, the room goes quiet: the next song is lined up on the other deck and waits, as with
+    *Wait for me*. Press play when you're ready, and auto-play carries on as before. It turns
+    itself off once it's done (or with auto-play).
+  - *Wait for me*, *Repeat*, *Stop at* and *Stop after this song* are for tonight: they're off
+    again the next time you open GZJam, so a dance next week isn't left waiting, looping or cut
+    short.
 - **Turning auto-play off** never touches the song that's playing: it only stops the next one
   starting. It turns itself off, with a notice, when the queue runs out (never, with *Repeat*).
 - During the gap, grabbing the crossfader stops its glide; the next song still starts.
