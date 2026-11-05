@@ -40,6 +40,17 @@
           <Border Classes="readout-window" MinHeight="28">
             <TextBlock Classes="mono" Text="{Binding Clock}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
           </Border>
+          <!-- When the music queued runs out (#279), beside the time of night. Shown with anything
+               queued or loaded, and as wide for "—" as for a time, so nothing moves as a song
+               starts and the time comes in -->
+          <StackPanel x:Name="QueueEndPanel" Orientation="Horizontal" Spacing="8" Margin="6,0,0,0" IsVisible="{Binding ShowsQueueEnd}"
+                      Background="Transparent" ToolTip.Tip="{Binding QueueEndTip}">
+            <TextBlock Classes="fader-label" Text="ENDS" VerticalAlignment="Center" />
+            <Border Classes="readout-window" MinHeight="28" MinWidth="96">
+              <TextBlock x:Name="QueueEndText" Classes="mono" Text="{Binding QueueEndText}" FontSize="14" FontWeight="SemiBold"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+          </StackPanel>
         </StackPanel>
 
         <!-- Short-lived messages, e.g. why a load was refused -->
@@ -811,12 +822,7 @@
               <TextBlock x:Name="AutoPlayOptionsText" Classes="dim" FontSize="11" Text="{Binding OptionsText}" TextTrimming="CharacterEllipsis"
                          ToolTip.Tip="{Binding OptionsText}"
                          IsVisible="{Binding OptionsText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              <!-- When the music queued runs out (#279), whether auto-play is on or not: here, where
-                   there's room at any width (the queue's header gives its summary way first) -->
-              <TextBlock x:Name="QueueEndText" DataContext="{Binding $parent[Window].DataContext}" x:DataType="vm:MainWindowViewModel"
-                         Classes="muted" FontSize="11.5" Text="{Binding QueueEndText}" ToolTip.Tip="{Binding QueueEndTip}"
-                         TextTrimming="CharacterEllipsis"
-                         IsVisible="{Binding QueueEndText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
             </StackPanel>
           </Border>
 

@@ -6,13 +6,18 @@ namespace GZJam.App.ViewModels;
 public sealed partial class MainWindowViewModel
 {
     /// <summary>
-    /// When the music queued runs out (#279), under auto-play: "Queue ends 11:42 PM", or "Stops
-    /// 11:00 PM" when auto-play's Stop at, or Stop after this song, comes first. Only while a song
-    /// plays to the room (before then a time would only drift), and not with Repeat (it doesn't
-    /// run out; the options line says so).
+    /// When the music queued runs out (#279), beside the clock: the time while a song plays to the
+    /// room, or when auto-play's Stop at or Stop after this song comes first (the tip says which);
+    /// "—" before a song plays (a time would only drift) and with Repeat (it doesn't run out).
     /// </summary>
     [ObservableProperty]
-    public partial string QueueEndText { get; private set; } = "";
+    public partial string QueueEndText { get; private set; } = NoEnd;
+
+    /// <summary>Something is queued or loaded: <see cref="QueueEndText"/> shows.</summary>
+    [ObservableProperty]
+    public partial bool ShowsQueueEnd { get; private set; }
+
+    private const string NoEnd = "—";
 
     [ObservableProperty]
     public partial string? QueueEndTip { get; private set; }
@@ -71,10 +76,11 @@ public sealed partial class MainWindowViewModel
     internal void UpdateQueueEnd()
     {
         var decks = ActiveDecks;
+        ShowsQueueEnd = !Queue.IsEmpty || decks.Any(d => d.HasTrack);
         if (decks.FirstOrDefault(d => d.IsOnAir) is not { } live)
         {
-            QueueEndText = "";
-            QueueEndTip = null;
+            QueueEndText = NoEnd;
+            QueueEndTip = "When the music queued runs out: shown once a song plays to the room";
             return;
         }
 
@@ -101,11 +107,11 @@ public sealed partial class MainWindowViewModel
         string time = estimate.At is { } end ? end.ToString("t") : "";
         (QueueEndText, QueueEndTip) = estimate.Kind switch
         {
-            QueueEnd.Kind.Repeats => ("", null),
-            QueueEnd.Kind.Stops => ($"Stops {time}",
+            QueueEnd.Kind.Repeats => (NoEnd, "Repeat is on: the queue goes round, so it doesn't run out"),
+            QueueEnd.Kind.Stops => (time,
                 autoPlay?.StopAfterThisSong == true ? "Auto-play stops after this song, as asked"
                 : $"Auto-play stops at {autoPlay?.StopAt:t}, as set: the song playing then is the last"),
-            _ => ($"Queue ends {time}", auto
+            _ => (time, auto
                 ? "When the music queued runs out: what's left of this song, the songs ready on the decks and in the queue, and the gaps between them"
                 : "When the music queued runs out, played one after another: what's left of this song, the songs ready on the decks and in the queue"),
         };

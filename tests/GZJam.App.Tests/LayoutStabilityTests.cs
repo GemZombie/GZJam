@@ -14,10 +14,12 @@ public sealed class LayoutStabilityTests
     /// mixer's centerd LIVE / BLEND label. Their surroundings must stay put.
     /// </summary>
     /// <summary>
-    /// What may change: a deck's own status, and the top bar's background progress (the library
-    /// being scanned or analyzed goes on by itself, and on a slow machine it's still going here).
+    /// What may change: a deck's own status, the top bar's background progress (the library
+    /// being scanned or analyzed goes on by itself, and on a slow machine it's still going here),
+    /// and the time the queue ends, inside its window beside the clock (#279), which itself stays put.
     /// </summary>
-    private static readonly string[] AllowedToChange = ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel", "#BackgroundStatusPanel"];
+    private static readonly string[] AllowedToChange =
+        ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel", "#BackgroundStatusPanel", "#QueueEndText"];
 
     /// <summary>Where every visible control is, by its place in the visual tree.</summary>
     private static Dictionary<string, Rect> Layout(AppHarness app)
@@ -64,16 +66,19 @@ public sealed class LayoutStabilityTests
         vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B")).GetAwaiter().GetResult();
         vm.Mixer!.Crossfader = 1;   // the room hears Deck 2's side
         app.Play(0.1);
+        vm.UpdateQueueEnd();   // as the clock does each second: not left to when it ticks
         AppHarness.Settle(150);
         var loaded = Layout(app);
 
         vm.Deck1!.TogglePlayCommand.Execute(null);   // playing, off air
         app.Play(0.1);
+        vm.UpdateQueueEnd();
         AppHarness.Settle(150);
         var offAir = Layout(app);
 
-        vm.Mixer.Crossfader = 0;   // on air
+        vm.Mixer.Crossfader = 0;   // on air: the queue's end time comes in (#279)
         app.Play(0.1);
+        vm.UpdateQueueEnd();
         AppHarness.Settle(150);
         var onAir = Layout(app);
 

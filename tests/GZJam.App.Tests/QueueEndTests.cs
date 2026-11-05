@@ -67,28 +67,30 @@ public sealed class QueueEndTests
         Assert.True(AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, playing)));
         vm.Queue.Add([app.Library.Results[0], app.Library.Results[1]]);
         vm.UpdateQueueEnd();
-        Assert.Equal("", vm.QueueEndText);   // nothing playing yet: no time to give
+        Assert.True(vm.ShowsQueueEnd);
+        Assert.Equal("—", vm.QueueEndText);   // nothing playing yet: no time to give
 
         vm.Deck1!.TogglePlayCommand.Execute(null);
         app.Play(0.1);
         AppHarness.WaitFor(() =>
         {
             vm.UpdateQueueEnd();
-            return vm.QueueEndText != "";
+            return vm.QueueEndText != "—";
         });
-        Assert.StartsWith("Queue ends ", vm.QueueEndText);   // the sums themselves: the tests above
-        Assert.True(DateTime.TryParse(vm.QueueEndText["Queue ends ".Length..], out _), vm.QueueEndText);
+        Assert.True(DateTime.TryParse(vm.QueueEndText, out _), vm.QueueEndText);   // the sums themselves: the tests above
         Assert.Contains("runs out", vm.QueueEndTip);
         app.Screenshot("queue-end");
 
         vm.AutoPlay!.IsOn = true;
         vm.AutoPlay.StopAfterThisSong = true;
         vm.UpdateQueueEnd();
-        Assert.StartsWith("Stops ", vm.QueueEndText);
+        Assert.True(DateTime.TryParse(vm.QueueEndText, out _), vm.QueueEndText);
+        Assert.StartsWith("Auto-play stops after this song", vm.QueueEndTip);
 
         vm.AutoPlay.StopAfterThisSong = false;
         vm.AutoPlay.Repeat = RepeatMode.Queue;
         vm.UpdateQueueEnd();
-        Assert.Equal("", vm.QueueEndText);   // it doesn't run out: the options line says Repeats the queue
+        Assert.Equal("—", vm.QueueEndText);   // it doesn't run out
+        Assert.StartsWith("Repeat is on", vm.QueueEndTip);
     }
 }

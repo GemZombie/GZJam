@@ -157,7 +157,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): the room goes quiet when
   the song playing ends, for an announcement, with the next song ready for when you press play
 - [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
-  music queued runs out (*Queue ends 11:42 PM*), counting the gaps, song ends and fades
+  music queued runs out, beside the clock, counting the gaps, song ends and fades
 
 ## Planned next
 
