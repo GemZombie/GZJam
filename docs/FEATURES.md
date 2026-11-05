@@ -1611,6 +1611,27 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
+### Status: the room's song from the taskbar or the Dock (#262, 1.3)
+
+- A DJ's request: pause, fade or move on without switching to GZJam. `RoomControls` (on
+  `MainWindowViewModel.Room`, refreshed each UI tick, `Changed` when what the buttons show changes)
+  says what they do: the deck the room hears (else one ready on the crossfader's side), its title
+  in the tips, and the deck's own `TogglePlay` and `FadeOut`, so Settings' two taps on air apply
+  (*Click again to pause*). Auto-play as Ctrl+P (which now goes through it), with the same notice
+  when the queue is empty. Every click is logged (*Room controls: ...*).
+- **Windows** (`TaskbarButtons`): a thumbnail toolbar, `ITaskbarList3::ThumbBarAddButtons`, added
+  when the window opens and again on *TaskbarButtonCreated* (a new taskbar button, Explorer
+  restarted); clicks are `WM_COMMAND`/`THBN_CLICKED` through `Win32Properties.AddWndProcHookCallback`;
+  `ThumbBarUpdateButtons` as the state changes. Icons drawn from GZJam's shapes
+  (`RoomButtonIcons`: play, pause, the fade slope, auto-play with a dot when on) as PNGs at the
+  screen's small-icon size, made into icons with `CreateIconFromResourceEx`. Checked on Windows 11:
+  added, and a click reaches GZJam.
+- **Mac** (`DockMenu`): `NativeDock.SetMenu` on the application, three `NativeMenuItem`s (auto-play
+  a check box), following the same state. Not yet seen on a Mac.
+- **Linux:** nothing; desktops have no common place for it.
+- Deliberately not: media keys and the systems' media controls (a stray press on headphones would
+  silence the room), and jump-list items (they'd start a second GZJam to pass the click on).
+
 ### Status: song info and tag editing (#129, 1.2)
 
 - #129 is one song dialog in two steps: first shown, then editing one song or many, kept in the

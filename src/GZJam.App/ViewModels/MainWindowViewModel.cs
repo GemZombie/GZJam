@@ -107,6 +107,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
         Settings = new SettingsViewModel(this, settings);
+        Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(SettingsViewModel.FadeOutSeconds))
@@ -919,6 +920,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public AirLineViewModel? AirLine { get; }
     public PreviewViewModel? Preview { get; }
     public AutoPlayViewModel? AutoPlay { get; }
+
+    /// <summary>Play/pause, fade out and auto-play from the taskbar or the Dock (#262).</summary>
+    public RoomControls Room { get; }
     public SettingsViewModel Settings { get; }
 
     [ObservableProperty]
@@ -1410,6 +1414,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         AirLine?.Refresh();
         Preview?.Refresh();
         KeepNight();
+        Room.Refresh();
         if (!_roomHasHeardMusic && Decks.Any(d => d.IsOnAir))
         {
             _roomHasHeardMusic = true;

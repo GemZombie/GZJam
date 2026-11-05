@@ -233,6 +233,11 @@ public partial class App : Application
     {
         var window = new MainWindow { DataContext = viewModel };
         window.RestorePlacement(settings.Window);
+        // The room's song from outside the window (#262): Linux desktops have no such place.
+        if (OperatingSystem.IsWindows())
+            TaskbarButtons.Attach(window, viewModel.Room);
+        else if (OperatingSystem.IsMacOS())
+            DockMenu.Attach(window, viewModel.Room);
         bool? startOver = null;   // set: open again afterward (true: starting over; false: restoring)
         viewModel.StartOverRequested += () =>
         {
