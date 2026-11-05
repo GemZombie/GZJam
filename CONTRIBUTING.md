@@ -26,7 +26,8 @@ Windows, `~/.local/share/GZJam` on Linux, `~/Library/Application Support/GZJam` 
 - **Changes come in by pull request to `main`.** Every pull request needs the maintainer's approval,
   and CI must pass on Windows, macOS and Linux. Workflows from a first-time contributor's fork wait
   for the maintainer to start them.
-- **Run the tests** before you send it: `dotnet test` (see the README).
+- **Run the tests** before you send it: `dotnet run tools/test.cs`, after a Release build (see the
+  README).
 - **Say what a DJ would notice** under *Unreleased* in [CHANGELOG.md](CHANGELOG.md). How releases
   are made from there: [docs/RELEASING.md](docs/RELEASING.md).
 - **Keep to what's there:** every feature works on all three systems and by touch, nothing is

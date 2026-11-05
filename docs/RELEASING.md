@@ -30,7 +30,7 @@ on each one, and most of this page is about that.
   *Being considered*.
 - Updates docs/GUIDE.md and docs/FEATURES.md where the change shows.
 - Is built and tested here first: `dotnet build GZJam.slnx -c Release -p:TreatWarningsAsErrors=true`
-  (as CI does: a warning fails it), then `dotnet test`.
+  (as CI does: a warning fails it), then `dotnet run tools/test.cs`.
 - Closes its issue: `Fixes #N`.
 
 ## Betas

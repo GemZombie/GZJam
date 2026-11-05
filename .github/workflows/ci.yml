@@ -70,7 +70,9 @@ jobs:
         run: dotnet build GZJam.slnx -c Release -p:TreatWarningsAsErrors=true
 
       - name: Test
-        run: dotnet test GZJam.slnx -c Release --no-build
+        # The app's UI tests in a few processes at once (tools/test.cs), rather than one after
+        # another as `dotnet test` runs them.
+        run: dotnet run tools/test.cs
 
       - name: Keep the test logs
         if: failure()
