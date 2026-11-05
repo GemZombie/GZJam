@@ -154,11 +154,14 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** GZJam from the taskbar, and versions of a song.
+**Next, in 1.3:** GZJam from the taskbar, versions of a song, and fading a song out where you choose.
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+- [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
+  Fade out from here*, for a long or repetitive outro, so the song fades where you set it rather
+  than stopping dead, with auto-play or playing by hand
 
 **After that:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
