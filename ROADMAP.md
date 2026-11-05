@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.1.0** (4 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.2.0** (5 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -14,7 +14,8 @@ release.
 
 **Library**
 - Your music folders are the library: a folder tree, with search covering everything under the
-  folder you pick. Nothing to import, and your music files are never changed.
+  folder you pick. Nothing to import, and your music files are never changed, unless you choose
+  to write your tag edits into them.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:`, `played:` (`-played:7` leaves out the songs the room heard last week)
   and `file:`. Words in quotes are a phrase, and `OR` finds either of two (`label:balboa OR label:charleston`).
@@ -25,6 +26,11 @@ release.
   other players keep them in the song files), and what the queue shows of each song. The queue's
   columns can be dragged into another order and width, and a narrow queue (or a thin song list
   column) gives way a part at a time rather than overlapping.
+- Every tag in your song files, not only the usual ones (the composer, a mood, the dance in a tag
+  of your own): shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`).
+- Song info (right-click a song, or Ctrl+I): everything about it in one window, and its tags
+  edited there, for one song or many at once (an artist's spelling across every song a search
+  finds), with Undo: kept in GZJam's library, or written into the files too if you turn that on.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck,
@@ -138,15 +144,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.2,** to try now in [1.2.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.2.0-beta.1):
-
-- [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
-  ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
-- [Song info and tag editing](https://github.com/GemZombie/GZJam/issues/129): everything about a
-  song in one window, from its right-click menu or Ctrl+I, and its tags edited there, for one song
-  or many at once (an artist's spelling across every song a search finds), with Undo: kept in
-  GZJam's library, or written into the files too if you turn that on
-
 **In 1.3,** to try now in [1.3.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.3.0-beta.1):
 
 - [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
@@ -162,8 +159,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Planned next
 
-**1.1 is out** (4 November 2026): a playlist played in one step, shuffle, and Repeat. Fixes come
-as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
+**1.2 is out** (5 November 2026): every tag in your songs, and song info with tag editing. Fixes
+come as 1.2.1, 1.2.2 and so on, and new features as 1.3. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
