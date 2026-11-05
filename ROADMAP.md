@@ -162,13 +162,19 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** running the night: your own keys, stopping after this song, and versions of a
-song.
-- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+**Next, in 1.3:** running the night: your own keys, stopping after this song, and when the queue
+ends.
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): one tap, and the room goes
   quiet when the song playing ends, for an announcement, with the next song ready
+- [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
+  music queued runs out (*ends 23:42*), counting the gaps, song ends and fades
+
+**Then, in 1.4:** your library: versions of a song, and tags from file names.
+- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+- [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
+  missing, and *Fill tags from file name* in the tag editor
 
 **After that:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
@@ -191,8 +197,6 @@ to one you'd use.
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
-- [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
-  missing, and *Fill tags from file name* in the tag editor
 - [A recording's condition at a glance](https://github.com/GemZombie/GZJam/issues/274): a grade
   from worn to clean, to choose between versions of a song
 
@@ -201,8 +205,8 @@ to one you'd use.
   label, or any search
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
   a sequence of dances, or so many of each
-- [The night ahead in the queue](https://github.com/GemZombie/GZJam/issues/269): when it ends, a
-  tempo curve, and gentle marks for the same artist twice or a big tempo jump
+- [The night ahead in the queue](https://github.com/GemZombie/GZJam/issues/269): a tempo curve,
+  and gentle marks for the same artist twice or a big tempo jump
 
 **Sound**
 - [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
