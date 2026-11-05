@@ -187,12 +187,28 @@ to one you'd use.
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
+- [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
+  missing, and *Fill tags from file name* in the tag editor
+- [A recording's condition at a glance](https://github.com/GemZombie/GZJam/issues/274): a grade
+  from worn to clean, to choose between versions of a song
 
 **Playing**
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
   a sequence of dances, or so many of each
+- [The night ahead in the queue](https://github.com/GemZombie/GZJam/issues/269): when it ends, a
+  tempo curve, and gentle marks for the same artist twice or a big tempo jump
+- [Stop after this song](https://github.com/GemZombie/GZJam/issues/270), to let the room go quiet
+  for an announcement
+
+**Sound**
+- [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
+  as they're analyzed, and EVEN suggested or set, never lifting a break
+- [A Room setting on the speakers](https://github.com/GemZombie/GZJam/issues/272): less boom for a
+  big hall, more warmth for a packed room, for the whole night
+- [Restore old recordings](https://github.com/GemZombie/GZJam/issues/275): clicks, crackle and hiss
+  taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 
 **Elsewhere**
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
