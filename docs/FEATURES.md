@@ -1611,6 +1611,28 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - **Columns** *Grouping* (130 px) and *Comment* (160 px), resizable, cut off with "…" and the whole
   text in a tooltip. Hidden to start, for existing settings too (`AppSettings.NewHiddenColumns`).
 
+### Status: when the queue ends (#279, 1.3)
+
+- Split from #269 (the night ahead in the queue; its tempo curve and marks stay there).
+- `QueueEnd.Work` (pure, unit-tested): from the end of the room's song (`Deck.Remaining`, so its
+  fade, end fade and auto-play's limit count), through the decks ready (their `Remaining`, in the
+  order auto-play takes them) and the queue, adding auto-play's gap before each and cutting each
+  at *Fade after* (with its fade). *Stop after this song*: the room's song is the last. *Stop at*:
+  the song playing then is the last, as `AutoPlayViewModel.OnDeckFinished` decides. *Repeat* (the
+  queue, or this song): no end, unless *Stop at* ends it. Auto-play off: the songs one after
+  another, no gaps, no stops.
+- A queued song's length: `LibraryDatabase.GetSongPlays` (its start and end, the DJ's else the
+  analysis's, its end fade, and what its jumps skip), read off the UI thread once per song and
+  cached, read again when its trim, jumps or analysis change; the file's length until then.
+- Shown beside the clock as **ENDS** (`MainWindowViewModel.QueueEndText`, its tip `QueueEndTip`
+  saying ends or stops and why), worked out every second and as the queue changes: a time while a
+  song plays to the room, "—" before then and with Repeat. Shown whenever something is queued or
+  loaded, at a fixed width, so nothing moves as a song starts and the time comes in.
+- Where it goes took two tries: after the queue's summary in its header, the queue's usual width
+  has no room (the summary already gives way); as a line under AUTO-PLAY, it appeared a second
+  after a song went on air and pushed the queue down, which the layout test caught on CI (it now
+  works the time out itself before measuring, rather than leaving it to the clock's tick).
+
 ### Status: stop after this song (#270, 1.3)
 
 - *Stop after this song* in auto-play's options (`AutoPlayViewModel.StopAfterThisSong`, a switch

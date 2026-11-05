@@ -156,6 +156,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   without switching to GZJam
 - [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): the room goes quiet when
   the song playing ends, for an announcement, with the next song ready for when you press play
+- [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
+  music queued runs out, beside the clock, counting the gaps, song ends and fades
 
 ## Planned next
 
@@ -164,11 +166,9 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** running the night: your own keys, and when the queue ends.
+**Next, in 1.3:** running the night: your own keys.
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
-- [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
-  music queued runs out (*ends 23:42*), counting the gaps, song ends and fades
 
 **Then, in 1.4:** your library: versions of a song, and tags from file names.
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)

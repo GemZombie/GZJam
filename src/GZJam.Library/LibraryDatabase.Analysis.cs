@@ -34,6 +34,13 @@ public readonly record struct ManualTrim(TimeSpan? Start, TimeSpan? End, bool Fa
 }
 
 /// <summary>
+/// How a song plays, for timing a queue (#279): where it starts and ends (the DJ's, else the
+/// analysis's; <paramref name="End"/> null: not known, the file's length), whether it fades out at
+/// its end (#267), and how much its jumps skip (negative: a part played again).
+/// </summary>
+public readonly record struct SongPlay(TimeSpan Start, TimeSpan? End, bool FadeOut, TimeSpan Skipped);
+
+/// <summary>
 /// A library track still waiting for analysis. <paramref name="Update"/>: it was analyzed before,
 /// by an older version of the analyzer (a new GZJam re-analyzes the library), not a new song.
 /// </summary>
@@ -167,6 +174,37 @@ public sealed partial class LibraryDatabase
             r.IsDBNull(0) ? null : TimeSpan.FromMilliseconds(r.GetInt64(0)),
             r.IsDBNull(1) ? null : TimeSpan.FromMilliseconds(r.GetInt64(1)),
             !r.IsDBNull(1) && r.GetInt64(2) != 0);
+    }
+
+    /// <summary>
+    /// How each of <paramref name="paths"/> plays (see <see cref="SongPlay"/>); songs GZJam knows
+    /// nothing about yet (not analyzed, nothing set by hand) are left out.
+    /// </summary>
+    public IReadOnlyDictionary<string, SongPlay> GetSongPlays(IEnumerable<string> paths)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT a.start_ms, a.end_ms, t.start_ms, t.end_ms, t.fade_out,
+                   (SELECT TOTAL(j.to_ms - j.from_ms) FROM jumps j WHERE j.path = $path)
+            FROM (SELECT $path AS path) p
+            LEFT JOIN analysis a ON a.path = p.path
+            LEFT JOIN trims t ON t.path = p.path;
+            """;
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        var plays = new Dictionary<string, SongPlay>(StringComparer.Ordinal);
+        foreach (string p in paths.Distinct(StringComparer.Ordinal))
+        {
+            path.Value = p;
+            using var r = cmd.ExecuteReader();
+            if (!r.Read() || r.IsDBNull(0) && r.IsDBNull(2) && r.IsDBNull(3))
+                continue;
+            static TimeSpan? Ms(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : TimeSpan.FromMilliseconds(r.GetInt64(i));
+            TimeSpan? end = Ms(r, 3) ?? Ms(r, 1);
+            plays[p] = new SongPlay(Ms(r, 2) ?? Ms(r, 0) ?? TimeSpan.Zero, end,
+                !r.IsDBNull(3) && !r.IsDBNull(4) && r.GetInt64(4) != 0, TimeSpan.FromMilliseconds(r.GetDouble(5)));
+        }
+        return plays;
     }
 
     /// <summary>Saves where the DJ set a file to start and end (both automatic: forgets the file).</summary>
