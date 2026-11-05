@@ -24,6 +24,15 @@ New:
   it is, MP3 or FLAC, the bitrate, the length) and what GZJam knows (BPM, rating, energy, labels,
   plays, cues, EQ, loudness, the playlists it's in). *Show all tags* adds the ones only other
   programs use, like MusicBrainz IDs and ReplayGain. In the song list, the queue and History.
+- **Edit your songs' tags:** in a song's info, type over the title, artist, genre, BPM or any other
+  tag, add one (a Dance tag of your own), change its rating, energy and labels, and *Save*. Select
+  several songs first to change them all at once: what they share shows, a field where they differ
+  says *(several)* and stays as each song has it unless you type over it. A search and *Select all*
+  fixes an artist's spelling everywhere. GZJam says how many songs before changing them, and
+  *Undo* puts everything back. Your edits are kept in GZJam's library, searched and backed up,
+  and your files aren't changed, unless you turn on *Write tag edits into the song files*
+  (Settings › Library, or in the window), so other players see them too. Only the tags are
+  written, never the audio, and never while the song is on a deck.
 
 ## 1.1.0-beta.1 (2026-11-02)
 

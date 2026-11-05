@@ -411,6 +411,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Songs' tags were edited (#129): the songs change in place in the list, staying where they are
+    /// (and selected) until the next search; the suggestions are found again.
+    /// </summary>
+    public void TagsEdited() => ForgetSuggestionValues();
+
     /// <summary>Labels were added or taken off: a label filter's results may have changed.</summary>
     public void LabelsChanged()
     {

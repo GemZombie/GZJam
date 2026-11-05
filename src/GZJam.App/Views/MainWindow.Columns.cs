@@ -192,12 +192,39 @@ public partial class MainWindow
     private static TextBlock TagCell(string key)
     {
         var text = new TextBlock { TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Tag = key };
-        // The grid reuses its rows: the value follows the song the row shows now.
-        text.DataContextChanged += (_, _) =>
+        Track? shown = null;
+        bool attached = false;
+        void Show()
         {
-            string? value = (text.DataContext as Track)?.Tag(key);
+            string? value = shown?.Tag(key);
             text.Text = value;
             ToolTip.SetTip(text, value);
+        }
+        void OnTrackChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Track.Tags))
+                Show();   // edited in its info (#129)
+        }
+        void Follow(Track? track)
+        {
+            if (shown is not null)
+                shown.PropertyChanged -= OnTrackChanged;
+            shown = track;
+            if (shown is not null)
+                shown.PropertyChanged += OnTrackChanged;
+            Show();
+        }
+        // The grid reuses its rows: the value follows the song the row shows now.
+        text.DataContextChanged += (_, _) => Follow(attached ? text.DataContext as Track : null);
+        text.AttachedToVisualTree += (_, _) =>
+        {
+            attached = true;
+            Follow(text.DataContext as Track);
+        };
+        text.DetachedFromVisualTree += (_, _) =>
+        {
+            attached = false;
+            Follow(null);
         };
         return text;
     }

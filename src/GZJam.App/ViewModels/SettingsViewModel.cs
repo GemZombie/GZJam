@@ -197,6 +197,20 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Tag edits written into the song files too (see <see cref="AppSettings.WriteTagsToFiles"/>).</summary>
+    public bool WriteTagsToFiles
+    {
+        get => _settings.WriteTagsToFiles;
+        set
+        {
+            if (value == _settings.WriteTagsToFiles)
+                return;
+            _settings.WriteTagsToFiles = value;
+            Log.Info($"Tag edits written to the song files {(value ? "too" : "no more: kept in the library only")}");
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Saying when a new version is out (see <see cref="AppSettings.CheckForNewVersion"/>).</summary>
     public bool CheckForNewVersion
     {

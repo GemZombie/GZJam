@@ -446,6 +446,19 @@ public sealed partial class LibraryDatabase
             END;
             INSERT INTO tracks_fts(tracks_fts) VALUES ('rebuild');
             """,
+
+        // 23: The DJ's edits to songs' tags (#129), kept in the library over what the files say: a
+        // scan reads the file and puts these back on top, until the DJ clears them. By path, like
+        // the marks, so they follow a song that's renamed or moved. Only adds: an older GZJam
+        // reads the library fine (it shows the files' tags once it reads a song again).
+        """
+            CREATE TABLE tag_edits (
+                path  TEXT NOT NULL,
+                field TEXT NOT NULL,
+                value TEXT,
+                PRIMARY KEY (path, field)
+            ) WITHOUT ROWID;
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -532,9 +545,12 @@ public sealed partial class LibraryDatabase
                      "$tags", "$tag_text" })
             p[name] = cmd.Parameters.Add(new SqliteParameter { ParameterName = name });
         cmd.Prepare();
+        using var edits = EditsReader.For(c);
 
         foreach (Track t in tracks)
         {
+            if (edits is not null)
+                t.ApplyEdits(edits.Read(t.Path));   // the DJ's edits stay over what the file says (#129)
             p["$root"].Value = t.RootId;
             p["$path"].Value = t.Path;
             p["$folder"].Value = t.Folder;
@@ -581,6 +597,14 @@ public sealed partial class LibraryDatabase
         }
         foreach (var (from, to) in moves)
             MoveSongData(c, from, to);
+        if (moves.Count > 0 && EditsReader.For(c) is { } edits)
+        {
+            using (edits)
+            {
+                foreach (var (_, to) in moves)
+                    ApplyKeptEdits(c, edits, to);   // read at the new path before its edits came with it
+            }
+        }
         tx.Commit();
         ForgetTagNames();
     }
@@ -590,7 +614,7 @@ public sealed partial class LibraryDatabase
     /// depends on the folder, and is found again). Add a table here when it's keyed by path.
     /// </summary>
     internal static readonly string[] SongDataTables =
-        ["marks", "track_labels", "eq", "trims", "cues", "jumps", "manual_bpm", "bpm_ranges", "analysis"];
+        ["marks", "track_labels", "eq", "trims", "cues", "jumps", "manual_bpm", "bpm_ranges", "analysis", "tag_edits"];
 
     /// <summary>Of those, the ones where a song can have any number of rows: never cleared at the new path.</summary>
     private static readonly string[] SongListTables = ["playlist_entries", "plays"];

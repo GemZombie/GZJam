@@ -275,6 +275,16 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Write tag edits into the song files" />
+                    <TextBlock Classes="setting-help"
+                               Text="Off, a tag you change in a song's info is kept in GZJam's library only: GZJam shows it and searches it, a backup keeps it, and the file isn't changed. On, it's written into the file too, so other players see it: only the tags, never the audio, and never while the song is on a deck." />
+                  </StackPanel>
+                  <ToggleButton x:Name="WriteTagsSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                                IsChecked="{Binding WriteTagsToFiles}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Back up my library" />
                     <TextBlock Classes="setting-help"
                                Text="Hearts, labels, cues, playlists, History and your Settings, in one file: keep it on a USB stick or in a cloud folder. Your music files aren't in it. GZJam also keeps a copy of the last few days it was opened, beside the library." />

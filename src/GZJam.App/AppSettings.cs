@@ -199,6 +199,12 @@ public sealed class AppSettings
     /// <summary>A song's info also shows the tags only other programs use (#129): MusicBrainz IDs, ReplayGain, the encoder.</summary>
     public bool ShowAllTags { get; set; }
 
+    /// <summary>
+    /// Tag edits in a song's info (#129) are written into the song files too, so other players see
+    /// them. Off at first: GZJam keeps them in its library only, and the files aren't changed.
+    /// </summary>
+    public bool WriteTagsToFiles { get; set; }
+
     /// <summary>The queue's parts in the order the DJ dragged them into (#188), by name; null: as they come.</summary>
     public List<string>? QueueColumnOrder { get; set; }
 

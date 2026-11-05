@@ -152,8 +152,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 **In 1.2:**
 - [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
   ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
-- [Song info](https://github.com/GemZombie/GZJam/issues/129): everything about a song in one
-  window, from its right-click menu or Ctrl+I (editing its tags comes next)
+- [Song info and tag editing](https://github.com/GemZombie/GZJam/issues/129): everything about a
+  song in one window, from its right-click menu or Ctrl+I, and its tags edited there, for one song
+  or many at once (an artist's spelling across every song a search finds), with Undo: kept in
+  GZJam's library, or written into the files too if you turn that on
 
 ## Planned next
 
@@ -166,10 +168,6 @@ on, fixes come as 1.0.1, 1.0.2 and so on, and new features as 1.1. Found somethi
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
-- [A song's info and tags in one dialog](https://github.com/GemZombie/GZJam/issues/129): every
-  tag and what GZJam knows about the song, then editing one song or many at once (an artist's
-  spelling across every song a search finds), kept in GZJam's library only, or written to the
-  files too if you turn that on
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 
 **After that:**
