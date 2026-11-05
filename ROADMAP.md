@@ -154,7 +154,8 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** GZJam from the taskbar, versions of a song, and fading a song out where you choose.
+**Next, in 1.3:** running the night: GZJam from the taskbar, your own keys, fading a song out
+where you choose, and versions of a song.
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
@@ -162,6 +163,8 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 - [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
   Fade out from here*, for a long or repetitive outro, so the song fades where you set it rather
   than stopping dead, with auto-play or playing by hand
+- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
+  action, chosen in Settings, with clashes shown and a way back to the defaults
 
 **After that:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
@@ -186,7 +189,6 @@ to one you'd use.
   that are gone, and clean it up
 
 **Playing**
-- [Customizable keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135)
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
