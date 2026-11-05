@@ -155,7 +155,7 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **Next, in 1.3:** running the night: GZJam from the taskbar, your own keys, fading a song out
-where you choose, and versions of a song.
+where you choose, stopping after this song, and versions of a song.
 - [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
   fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
   without switching to GZJam
@@ -165,6 +165,8 @@ where you choose, and versions of a song.
   than stopping dead, with auto-play or playing by hand
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
+- [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): one tap, and the room goes
+  quiet when the song playing ends, for an announcement, with the next song ready
 
 **After that:**
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
@@ -199,8 +201,6 @@ to one you'd use.
   a sequence of dances, or so many of each
 - [The night ahead in the queue](https://github.com/GemZombie/GZJam/issues/269): when it ends, a
   tempo curve, and gentle marks for the same artist twice or a big tempo jump
-- [Stop after this song](https://github.com/GemZombie/GZJam/issues/270), to let the room go quiet
-  for an announcement
 
 **Sound**
 - [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
