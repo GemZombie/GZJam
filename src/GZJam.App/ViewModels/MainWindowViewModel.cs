@@ -28,6 +28,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Library = new LibraryViewModel(database) { NearBpm = settings.NearBpmPercent / 100, AreFoldersFolded = settings.FoldersFolded };
         Art = new AlbumArtCache(database, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(database.DatabasePath))!, "art"));
         Queue = new QueueViewModel();
+        Queue.Items.CollectionChanged += (_, _) =>
+        {
+            ReadSongPlays();
+            UpdateQueueEnd();
+        };
         History = new HistoryViewModel(database);
         Library.TonightSince = () => History.CurrentSessionStartUtc;
         History.SessionDeleted += wasTonight =>
@@ -208,6 +213,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     private void OnAnalyzed(string path, TrackAnalysis analysis)
     {
+        ForgetSongPlay(path);
         foreach (Track track in TracksFor(path))
         {
             track.DetectedBpm = analysis.Bpm;
@@ -290,12 +296,20 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Where the DJ set a file to start and end.</summary>
     internal ManualTrim GetTrim(string path) => _database.GetTrim(path);
 
-    internal void SaveTrim(string path, ManualTrim trim) => _database.SetTrim(path, trim);
+    internal void SaveTrim(string path, ManualTrim trim)
+    {
+        _database.SetTrim(path, trim);
+        ForgetSongPlay(path);
+    }
 
     /// <summary>The jumps the DJ set in a file.</summary>
     internal IReadOnlyList<SongJump> GetJumps(string path) => _database.GetJumps(path);
 
-    internal void SaveJumps(string path, IReadOnlyList<SongJump> jumps) => _database.SetJumps(path, jumps);
+    internal void SaveJumps(string path, IReadOnlyList<SongJump> jumps)
+    {
+        _database.SetJumps(path, jumps);
+        ForgetSongPlay(path);
+    }
 
     /// <summary>The cues the DJ marked in a file.</summary>
     internal IReadOnlyList<SongCue> GetCues(string path) => _database.GetCues(path);
@@ -964,7 +978,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private string OutputName(OutputBus? bus) =>
         Mix is null ? "No audio" : Mix.IsOffline ? "Offline" : bus?.Device?.Name ?? "Not set";
 
-    private void UpdateClock() => Clock = DateTime.Now.ToString("t");
+    private void UpdateClock()
+    {
+        Clock = DateTime.Now.ToString("t");
+        UpdateQueueEnd();
+    }
 
     public void Start()
     {

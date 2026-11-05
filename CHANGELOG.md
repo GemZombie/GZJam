@@ -30,6 +30,12 @@ New:
   *Stop after this song* in auto-play's ⋯ options. The deck playing says *ON AIR · LAST SONG*;
   when the song ends, the room goes quiet and the next song waits, ready, on the other deck. Press
   play when you're done talking and auto-play carries on. Just this once: it turns itself off.
+- **When the queue ends:** while a song plays, the line under AUTO-PLAY says when the music
+  queued runs out, as a time of day: *Queue ends 11:42 PM*. It counts what's left of the song
+  playing, the songs ready on the decks and in the queue (from where each starts to where it
+  ends, with its fade and jumps), and auto-play's gaps. When *Stop at* or *Stop after this song*
+  comes first, it says *Stops 11:03 PM*. So you can see at a glance whether the queue reaches the
+  end of the night, or how much to add.
 
 ## 1.2.0-beta.1 (2026-11-04)
 

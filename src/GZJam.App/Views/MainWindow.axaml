@@ -811,6 +811,12 @@
               <TextBlock x:Name="AutoPlayOptionsText" Classes="dim" FontSize="11" Text="{Binding OptionsText}" TextTrimming="CharacterEllipsis"
                          ToolTip.Tip="{Binding OptionsText}"
                          IsVisible="{Binding OptionsText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <!-- When the music queued runs out (#279), whether auto-play is on or not: here, where
+                   there's room at any width (the queue's header gives its summary way first) -->
+              <TextBlock x:Name="QueueEndText" DataContext="{Binding $parent[Window].DataContext}" x:DataType="vm:MainWindowViewModel"
+                         Classes="muted" FontSize="11.5" Text="{Binding QueueEndText}" ToolTip.Tip="{Binding QueueEndTip}"
+                         TextTrimming="CharacterEllipsis"
+                         IsVisible="{Binding QueueEndText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
           </Border>
 

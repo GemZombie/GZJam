@@ -529,6 +529,13 @@ and cue it in the headphones.
 
 - **The gap** (− and + beside it, 0 to 15 seconds) is real silence between songs, whatever silence
   each file starts or ends with.
+- **When the queue ends:** while a song plays to the room, the last line under AUTO-PLAY says when
+  the music queued runs out, as a time of day: *Queue ends 11:42 PM*. It counts what's left of the
+  song playing, the songs ready on the decks and in the queue (each from where it starts to where
+  it ends, with its fade and jumps) and, with auto-play on, the gaps. When *Stop at* or *Stop after
+  this song* comes first, it says when that is instead: *Stops 11:03 PM*. With *Repeat*, the queue
+  doesn't run out, so there's no time to give. With auto-play off, it's the time if you played
+  everything one after another.
 - **Options** (the **⋯** key beside the gap), for classes, practice nights and the end of the
   night. Whatever is set shows under AUTO-PLAY, e.g. *Fade after 1:30 · Stops at 11:00 PM*.
   - **Fade after** (*Off*, or 1:00 to 5:00 in 15-second steps): each song the room hears fades out
