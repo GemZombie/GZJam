@@ -21,6 +21,11 @@ New:
   stopping dead; auto-play's gap comes after the fade. The waveform shows the fade as a slope after
   the song's end, and the time left counts to the end of the fade. Remembered for the song, like
   its start and end.
+- **The room's song from the taskbar (Windows) or the Dock (Mac):** pause or play the song the
+  room hears, fade it out (with auto-play on, that's the next song), and turn auto-play on or off,
+  without switching to GZJam. On Windows, point at GZJam's taskbar button: the three buttons are
+  under its preview. On a Mac, right-click (or Control-click) GZJam's Dock icon. With two taps to
+  pause on air (Settings › Decks), these take two clicks too, and say so.
 
 ## 1.2.0-beta.1 (2026-11-04)
 

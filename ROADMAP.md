@@ -151,6 +151,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
   Start fade-out here*, for a long or repetitive outro, so the song fades where you set it rather
   than stopping dead, with auto-play or playing by hand
+- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
+  fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
+  without switching to GZJam
 
 ## Planned next
 
@@ -159,11 +162,8 @@ as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.3:** running the night: GZJam from the taskbar, your own keys, stopping after this
-song, and versions of a song.
-- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
-  fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
-  without switching to GZJam
+**Next, in 1.3:** running the night: your own keys, stopping after this song, and versions of a
+song.
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults

@@ -50,11 +50,8 @@ public partial class MainWindow
                 (e.Key == Key.Left ? mixer.SnapTo1Command : mixer.SnapTo2Command).Execute(null);
                 e.Handled = true;
                 break;
-            case Key.P when Vm.AutoPlay is { } autoPlay:
-                if (autoPlay.CanToggle)
-                    autoPlay.IsOn = !autoPlay.IsOn;
-                else
-                    Vm.ShowNotice("Nothing to auto-play: add songs to the queue first.");
+            case Key.P when Vm.AutoPlay is not null:
+                Vm.Room.ToggleAutoPlay();
                 e.Handled = true;
                 break;
         }

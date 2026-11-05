@@ -295,6 +295,21 @@ and holding the play key pauses too. A deck the room can't hear pauses and fades
 pause and fade the live deck on one tap as well, choose **Tap** in Settings › Decks › *Pausing or
 fading out the live deck*.
 
+### From the taskbar or the Dock
+
+With another program in front (an email, a playlist on the web), the song the room hears can
+still be paused or faded without switching to GZJam:
+
+- **Windows:** point at GZJam's button on the taskbar. Under its preview are three buttons:
+  **play/pause**, **fade out** and **auto-play**.
+- **Mac:** right-click (or Control-click) GZJam's icon in the Dock: the same three are in its menu.
+
+They act on the deck the room hears (or, with nothing playing, the one ready on the crossfader's
+side), as its own keys do: with two taps to pause on air, they take two clicks too, and the
+button's tip (or the menu) says *Click again to pause*. With auto-play on, fade out is the next
+song: the song fades, the gap, and the next one starts. There's no stop button: pause and fade
+out are GZJam's stop. Linux desktops have no such place, so there's nothing there.
+
 ---
 
 ## The mixer
