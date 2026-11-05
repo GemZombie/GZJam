@@ -13,14 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.2.0-beta.1.
+Nothing yet since 1.2.0.
 
-## 1.2.0-beta.1 (2026-11-04)
+## 1.2.0 (2026-11-05)
 
-A beta of 1.2, for trying it before everyone gets it. GZJam's update notice doesn't offer betas:
-you only get one from this page. The first time it opens your library, it adds what 1.2 needs and
-reads every song again, once; 1.1.0 can still open the library after that, so you can go back to
-it at any time. Writing tag edits into your song files is off unless you turn it on.
+Your songs' tags: every tag in your song files, shown and searched, and a song's info in one
+window, where its tags can be edited, for one song or many at once. The first time it opens your
+library, GZJam adds what 1.2 needs and reads every song again, once; 1.1.0 can still open the
+library after that, so you can go back to it at any time. Writing tag edits into your song files
+is off unless you turn it on.
 
 New:
 
