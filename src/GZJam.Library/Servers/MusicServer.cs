@@ -128,6 +128,21 @@ public sealed record ServerTrack(long ServerId, string ServerName, ServerSong So
 
     public string PseudoPath => $"{PathPrefix}{ServerId}/{Song.Id}";
 
+    /// <summary>The server couldn't be reached when this row was made: shown as such, and not asked for it.</summary>
+    public bool Unreachable { get; init; }
+
+    /// <summary>The server and song in a <see cref="PseudoPath"/>; null for any other path.</summary>
+    public static (long ServerId, string SongId)? Parse(string path)
+    {
+        if (!path.StartsWith(PathPrefix, StringComparison.Ordinal))
+            return null;
+        string rest = path[PathPrefix.Length..];
+        int slash = rest.IndexOf('/');
+        return slash > 0 && long.TryParse(rest[..slash], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out long id)
+            ? (id, rest[(slash + 1)..])
+            : null;
+    }
+
     public Track ToTrack() => new()
     {
         Path = PseudoPath,

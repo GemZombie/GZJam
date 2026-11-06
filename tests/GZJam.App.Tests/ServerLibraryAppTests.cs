@@ -156,7 +156,8 @@ public sealed class ServerLibraryAppTests
         Track blues = app.ViewModel.Library.Results.Single(t => t.Title == "Lucky Rock Blues");
 
         app.ViewModel.AddToQueue([blues]);
-        WaitFor(() => app.ViewModel.Queue.Items.Count == 1, "the song in the queue");
+        Assert.True(Assert.Single(app.ViewModel.Queue.Items).IsWaiting);   // in its place at once, downloading
+        WaitFor(() => !app.ViewModel.Queue.Items[0].IsWaiting, "the song, here");
 
         Track queued = app.ViewModel.Queue.Items[0].Track;
         Assert.False(queued.IsOnServerOnly);

@@ -31,6 +31,29 @@ public sealed partial class QueueItem : ObservableObject
     public string Artist => Track.Artist ?? "";
     public string BpmText => Format.Bpm(Track.Bpm);
     public string DurationText => Format.Duration(Track.Duration);
+
+    /// <summary>Still on a server (#290): waiting for its song, which takes its place when it arrives.</summary>
+    public bool IsWaiting => Track.IsOnServerOnly;
+
+    /// <summary>"Downloading…", "Waiting for synology", "Couldn't download: …"; null for a song that's here.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasServerState))]
+    public partial string? ServerState { get; private set; }
+
+    [ObservableProperty]
+    public partial bool ServerProblem { get; private set; }
+
+    [ObservableProperty]
+    public partial bool CanRetry { get; private set; }
+
+    public bool HasServerState => ServerState is not null;
+
+    public void ShowServerState(string state, bool problem, bool canRetry)
+    {
+        ServerState = state;
+        ServerProblem = problem;
+        CanRetry = canRetry;
+    }
 }
 
 /// <summary>The upcoming tracks, in play order.</summary>
@@ -78,14 +101,34 @@ public sealed partial class QueueViewModel : ObservableObject
 
     public void PlayNext(IEnumerable<Track> tracks) => Add(tracks, 0);
 
-    /// <summary>Removes and returns the top of the queue (auto-play loading it onto a deck).</summary>
+    /// <summary>
+    /// Removes and returns the first song of the queue that's on this laptop (auto-play loading it
+    /// onto a deck). Songs still on a server stay where they are, in front of it, until they're here
+    /// (#290): <see cref="PassedOver"/> says which were.
+    /// </summary>
     public Track? TakeNext()
     {
-        if (Items.Count == 0)
+        int at = 0;
+        while (at < Items.Count && Items[at].IsWaiting)
+            at++;
+        if (at == Items.Count)
             return null;
-        Track track = Items[0].Track;
-        Items.RemoveAt(0);
+        if (at > 0)
+            PassedOver?.Invoke(Items.Take(at).ToList());
+        Track track = Items[at].Track;
+        Items.RemoveAt(at);
         return track;
+    }
+
+    /// <summary>Songs still downloading that auto-play went past, to play the next song that's here.</summary>
+    public event Action<IReadOnlyList<QueueItem>>? PassedOver;
+
+    /// <summary>A song still on a server arrived: it takes the waiting row's place.</summary>
+    public void Replace(QueueItem waiting, Track here)
+    {
+        int at = Items.IndexOf(waiting);
+        if (at >= 0)
+            Items[at] = new QueueItem(here);
     }
 
     /// <summary>A song taken from the queue is on a deck now: with <see cref="Repeat"/>, it goes back to the end.</summary>

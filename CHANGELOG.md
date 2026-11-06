@@ -53,6 +53,18 @@ New:
   and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
   the album* keeps them. Under an ordinary library search, *Also on synology: 12 songs not on this
   laptop · Show* opens the same search on the server.
+- **When a server can't be reached** (#290): no Wi-Fi, venue Wi-Fi without your Tailscale, the NAS
+  off. Its folders and songs still show (GZJam keeps its song list), and everything already on the
+  laptop plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;
+  *Only on this laptop* turns on by itself to show what can be played tonight, and off again when the
+  server answers. Asking for one of its songs says at once that it can't be reached, rather than
+  trying for half a minute. GZJam asks again every couple of minutes, and when the network changes.
+- **A server's song in the queue waits in its place** (#290): added to the queue, it's there at
+  once, *Downloading…*, then becomes the song itself. While its server can't be reached it says
+  *Waiting for synology* and comes by itself when it answers; a download that fails says why, with
+  *Try again*. It's never taken out of the queue by itself, can't go on a deck until it's here, and
+  auto-play plays the next song that's here rather than waiting in silence, saying so. One left
+  waiting when GZJam closes is back in its place the next time.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

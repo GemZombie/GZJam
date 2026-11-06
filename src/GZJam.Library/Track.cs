@@ -273,8 +273,16 @@ public sealed class Track : INotifyPropertyChanged
 
     /// <summary>The cloud mark's tooltip on a song still on a server; null for every other song.</summary>
     public string? OnServerTip => OnServer is { } server
-        ? $"On {server.ServerName}, not on this laptop yet: double-click or load it to download it, or preview it in the headphones"
+        ? server.Unreachable
+            ? $"On {server.ServerName}, which can't be reached right now: it can be downloaded once it answers"
+            : $"On {server.ServerName}, not on this laptop yet: double-click or load it to download it, or preview it in the headphones"
         : null;
+
+    /// <summary>A song still on a server that can't be reached right now: shown with a crossed-out cloud.</summary>
+    public bool IsOnUnreachableServer => OnServer?.Unreachable == true;
+
+    /// <summary>A song still on a server that answers: the plain cloud.</summary>
+    public bool IsOnReachableServer => OnServer is { Unreachable: false };
 
     /// <summary>Shown dimmed in the song list: a missing file, or a song still on a server.</summary>
     public bool IsDimmed => IsMissing || IsOnServerOnly;

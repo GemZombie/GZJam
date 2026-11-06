@@ -58,6 +58,27 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
+    /// <summary>One song from the server's catalog, by its ID there; null if it isn't in it.</summary>
+    public ServerSong? GetServerCatalogSong(long serverId, string songId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id
+            FROM server_catalog WHERE server_id = $server AND song_id = $song;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$song", songId);
+        using var r = cmd.ExecuteReader();
+        if (!r.Read())
+            return null;
+        string? Text(int i) => r.IsDBNull(i) ? null : r.GetString(i);
+        int? Int(int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
+        return new ServerSong(r.GetString(0), Text(1), Text(2), Text(3), Text(4), Int(5), Int(6), Int(7), Text(8), Text(9),
+            r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)), Text(12),
+            r.IsDBNull(13) ? null : r.GetDouble(13), Text(14));
+    }
+
     /// <summary>When the server's catalog was last read in full; null if never.</summary>
     public DateTime? GetServerCatalogTime(long serverId)
     {

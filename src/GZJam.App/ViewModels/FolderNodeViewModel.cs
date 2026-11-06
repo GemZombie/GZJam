@@ -35,6 +35,15 @@ public sealed partial class FolderNodeViewModel : ObservableObject
 
     /// <summary>The server itself, not one of its folders: its own menu.</summary>
     public bool IsServerItself => IsServer && IsRoot;
+
+    /// <summary>The server can't be reached right now: a crossed-out cloud, and why in its tooltip.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOnline), nameof(NameTip))]
+    public partial bool IsOffline { get; set; }
+
+    public bool IsOnline => IsServerItself && !IsOffline;
+
+    public string NameTip => IsOffline ? $"{Name} can't be reached right now. Songs on this laptop play as usual." : Name;
     public (long RootId, string Folder) Key => (Node.RootId, Node.RelativePath);
 
     [ObservableProperty]

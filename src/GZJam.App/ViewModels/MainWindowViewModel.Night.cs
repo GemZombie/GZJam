@@ -62,10 +62,15 @@ public sealed partial class MainWindowViewModel
 
         // The tags are read off the UI thread, as for files dragged in.
         var found = await Task.Run(() => paths.Where(File.Exists).ToDictionary(p => p, _database.TrackForFile));
+        // Songs that were still on a server (#290): back in their places, downloading again.
+        foreach (string path in paths.Where(p => !found.ContainsKey(p)))
+            if (Servers.TrackFor(path) is { } onServer)
+                found[path] = onServer;
         int missing = paths.Count - found.Count;
 
         var queued = saved.Queue.Select(p => found.GetValueOrDefault(p)).OfType<Track>().ToList();
-        Queue.Add(queued, 0);   // before anything queued while this was reading
+        foreach (QueueItem waiting in Queue.Add(queued, 0).Where(i => i.IsWaiting))   // before anything queued while this was reading
+            Servers.FetchForQueue(waiting);
 
         int onDecks = 0;
         foreach (var state in decks)
