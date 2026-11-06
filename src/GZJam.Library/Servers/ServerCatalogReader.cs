@@ -43,4 +43,16 @@ public static class ServerCatalogReader
         }
         return songs;
     }
+
+    /// <summary>The server's playlists, each with its songs' IDs in order: a call for the list, and one for each.</summary>
+    public static async Task<List<ServerPlaylistCopy>> ReadPlaylistsAsync(SubsonicClient client, CancellationToken cancel = default)
+    {
+        var copies = new List<ServerPlaylistCopy>();
+        foreach (ServerPlaylist playlist in await client.GetPlaylistsAsync(cancel).ConfigureAwait(false))
+        {
+            var songs = await client.GetPlaylistSongsAsync(playlist.Id, cancel).ConfigureAwait(false);
+            copies.Add(new ServerPlaylistCopy(playlist.Id, playlist.Name, songs.Select(s => s.Id).ToList()));
+        }
+        return copies;
+    }
 }

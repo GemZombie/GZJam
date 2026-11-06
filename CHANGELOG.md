@@ -45,7 +45,11 @@ New:
   onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
   and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
   the album* keeps them. Under an ordinary library search, *Also on synology: 12 songs not on this
-  laptop · Show* opens the same search on the server.
+  laptop · Show* opens the same search on the server. The server's playlists are under *Playlists*, first under
+  the server: one opens in the song list in its order, as the server has it now (or as last read,
+  offline), and its right-click › *Keep on this laptop* downloads it into a playlist of yours, kept
+  up to date on every sync. Adds one more small thing to your library; older versions can still
+  open it.
 - **When a server can't be reached** (#290): no Wi-Fi, venue Wi-Fi without your Tailscale, the NAS
   off. Its folders and songs still show (GZJam keeps its song list), and everything already on the
   laptop plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;

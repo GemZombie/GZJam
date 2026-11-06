@@ -36,8 +36,20 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     /// <summary>The server itself, not one of its folders: its own menu.</summary>
     public bool IsServerItself => IsServer && IsRoot;
 
-    /// <summary>One of a server's folders: its downloads can be removed from the laptop.</summary>
-    public bool IsServerFolder => IsServer && !IsRoot;
+    /// <summary>One of a server's folders, or playlists: its downloads can be removed from the laptop.</summary>
+    public bool IsServerFolder => IsServer && !IsRoot && !Node.IsServerPlaylists;
+
+    /// <summary>One of a server's playlists (#290), under its "Playlists".</summary>
+    public bool IsServerPlaylist => Node.ServerPlaylistId is not null;
+
+    /// <summary>A folder's icon: everything but a server and its playlists.</summary>
+    public bool HasFolderIcon => !IsServerItself && !IsServerPlaylist;
+
+    /// <summary>A server playlist that isn't kept on the laptop yet: "Keep on this laptop".</summary>
+    public bool CanKeep => IsServerPlaylist && !_owner.ServerPlaylistKept(Node.ServerId!.Value, Node.ServerPlaylistId!);
+
+    /// <summary>A server playlist kept on the laptop: "Open in my playlists".</summary>
+    public bool IsKept => IsServerPlaylist && !CanKeep;
 
     /// <summary>The server can't be reached right now: a crossed-out cloud, and why in its tooltip.</summary>
     [ObservableProperty]

@@ -31,6 +31,20 @@ public sealed class FolderNode
 
     public bool IsServer => ServerId is not null;
 
+    /// <summary>The "Playlists" under a server, holding its playlists (not a folder on the server).</summary>
+    public bool IsServerPlaylists { get; internal init; }
+
+    /// <summary>One of a server's playlists, by its ID there; null for anything else.</summary>
+    public string? ServerPlaylistId { get; internal init; }
+
+    /// <summary>
+    /// The place in a server's tree of its "Playlists", and of each playlist under it: names no
+    /// folder on a server has, starting with a character no file name holds.
+    /// </summary>
+    public const string ServerPlaylistsPath = "\u0001playlists";
+
+    public static string ServerPlaylistPath(string playlistId) => $"{ServerPlaylistsPath}/{playlistId}";
+
     /// <summary>A server's place in the tree: no folders under it, its songs are the server's.</summary>
     public static FolderNode ForServer(long serverId, string name) =>
         new(-serverId, name, "", Servers.ServerTrack.PathPrefix + serverId) { ServerId = serverId };
@@ -38,6 +52,7 @@ public sealed class FolderNode
     public FolderScope Scope => new(RootId, RelativePath);
 
     internal void AddChild(FolderNode child) => _children.Add(child);
+    internal void InsertChild(int index, FolderNode child) => _children.Insert(index, child);
     internal void SortChildren()
     {
         _children.Sort((a, b) => NaturalComparer.Instance.Compare(a.Name, b.Name));
@@ -54,7 +69,9 @@ public static class FolderTree
     /// A server's tree (#290): the server, and under it its folders, from its catalog's per-folder
     /// song counts ('/'-separated, as the server lays them out).
     /// </summary>
-    public static FolderNode BuildServer(long serverId, string name, IEnumerable<(string Folder, int Count)> folderCounts)
+    /// <param name="playlists">The server's playlists (ID, name, songs): under "Playlists", first, if it has any.</param>
+    public static FolderNode BuildServer(long serverId, string name, IEnumerable<(string Folder, int Count)> folderCounts,
+        IReadOnlyList<(string Id, string Name, int Count)>? playlists = null)
     {
         FolderNode server = FolderNode.ForServer(serverId, name);
         var nodes = new Dictionary<string, FolderNode> { [""] = server };
@@ -84,6 +101,22 @@ public static class FolderTree
             }
         }
         server.SortChildren();
+        if (playlists is { Count: > 0 })
+        {
+            string prefix = $"{Servers.ServerTrack.PathPrefix}{serverId}/";
+            var group = new FolderNode(-serverId, "Playlists", FolderNode.ServerPlaylistsPath, prefix + FolderNode.ServerPlaylistsPath)
+            {
+                ServerId = serverId,
+                IsServerPlaylists = true,
+                TrackCount = playlists.Count,
+            };
+            foreach (var (id, list, count) in playlists)
+            {
+                string path = FolderNode.ServerPlaylistPath(id);
+                group.AddChild(new FolderNode(-serverId, list, path, prefix + path) { ServerId = serverId, ServerPlaylistId = id, TrackCount = count });
+            }
+            server.InsertChild(0, group);   // in the server's order (by name), before its folders
+        }
         return server;
     }
 
