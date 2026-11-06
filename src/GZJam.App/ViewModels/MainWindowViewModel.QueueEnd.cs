@@ -72,26 +72,22 @@ public sealed partial class MainWindowViewModel
         return length > TimeSpan.Zero ? length : track.Duration;
     }
 
-    /// <summary>Works out <see cref="QueueEndText"/> again: every second, and as the queue changes.</summary>
+    /// <summary>The time of day; tests set it.</summary>
+    internal Func<DateTime> Now { get; set; } = () => DateTime.Now;
+
+    /// <summary>
+    /// Works out <see cref="QueueEndText"/> again: every second, and as the queue changes. And, from the same
+    /// sums, when each song to come will start (its <c>StartsText</c>, the "Plays at" column). While nothing
+    /// plays to the room, a planned start (<see cref="Plan"/>) is where the count begins, and the queue's end
+    /// shows from it; without one, the times are those if the music started now, and the end waits for a song.
+    /// </summary>
     internal void UpdateQueueEnd()
     {
         var decks = ActiveDecks;
+        DateTime now = Now();
+        Plan?.Refresh(now);
         ShowsQueueEnd = !Queue.IsEmpty || decks.Any(d => d.HasTrack);
-        if (decks.FirstOrDefault(d => d.IsOnAir) is not { } live)
-        {
-            QueueEndText = NoEnd;
-            QueueEndTip = "When the music queued runs out: shown once a song plays to the room";
-            return;
-        }
-
-        // The decks ready to play, in the order auto-play takes them (the one after the live deck first), then the queue.
-        int at = decks.ToList().IndexOf(live);
-        var upcoming = decks.Select((deck, i) => (deck, order: (i - at + decks.Count) % decks.Count))
-            .Where(d => d.deck != live && d.deck.IsReady)
-            .OrderBy(d => d.order)
-            .Select(d => d.deck.Deck.Remaining)
-            .Concat(Queue.Items.Select(i => PlayLength(i.Track)))
-            .ToList();
+        DeckViewModel? live = decks.FirstOrDefault(d => d.IsOnAir);
         AutoPlayViewModel? autoPlay = AutoPlay;
         bool auto = autoPlay?.IsOn == true;
         var rules = new QueueEnd.Rules(
@@ -101,9 +97,59 @@ public sealed partial class MainWindowViewModel
             autoPlay?.StopAt,
             autoPlay?.StopAfterThisSong == true,
             autoPlay?.Repeat ?? RepeatMode.Off);
-        TimeSpan liveLength = live.Deck.End - live.Deck.Start + (live.Deck.EndFade ?? TimeSpan.Zero);
-        QueueEnd.Estimate estimate = QueueEnd.Work(DateTime.Now, live.Deck.Remaining, liveLength, upcoming, rules);
 
+        // The songs to come, in the order auto-play takes them: the decks ready (the one after the live deck first), then the queue.
+        int at = live is null ? 0 : decks.ToList().IndexOf(live);
+        var coming = decks.Select((deck, i) => (deck, order: (i - at + decks.Count) % decks.Count))
+            .Where(d => d.deck != live && d.deck.IsReady)
+            .OrderBy(d => d.order)
+            .Select(d => (Deck: (DeckViewModel?)d.deck, Item: (QueueItem?)null, Length: d.deck.Deck.Remaining))
+            .Concat(Queue.Items.Select(i => (Deck: (DeckViewModel?)null, Item: (QueueItem?)i, Length: PlayLength(i.Track))))
+            .ToList();
+
+        DateTime? plan = Plan?.PlannedStart is { } planned && planned > now ? planned : null;
+        DateTime first = live is not null ? now + live.Deck.Remaining + (auto ? rules.Gap : TimeSpan.Zero) : plan ?? now;
+        ShowStarts(live, coming, QueueEnd.Starts(first, [.. coming.Select(c => c.Length)], rules, afterLive: live is not null), now,
+            guess: autoPlay is { WaitAfterEach: true }, firstIsExact: live is null);
+
+        if (live is null)
+        {
+            if (plan is not { } start || coming.Count == 0)
+            {
+                QueueEndText = NoEnd;
+                QueueEndTip = "When the music queued runs out: shown once a song plays to the room, or from the start time you set";
+                return;
+            }
+            // Not started: the first song is the one the plan starts, and the rest follow it.
+            var rest = coming.Skip(1).Select(c => c.Length).ToList();
+            QueueEnd.Estimate fromPlan = QueueEnd.Work(start, coming[0].Length, coming[0].Length, rest, rules);
+            SetQueueEnd(fromPlan, rules, autoPlay, auto, $"if the music starts at {PlannedStartViewModel.Clock(start, now)}", now);
+            return;
+        }
+
+        TimeSpan liveLength = live.Deck.End - live.Deck.Start + (live.Deck.EndFade ?? TimeSpan.Zero);
+        QueueEnd.Estimate estimate = QueueEnd.Work(now, live.Deck.Remaining, liveLength, [.. coming.Select(c => c.Length)], rules);
+        SetQueueEnd(estimate, rules, autoPlay, auto, null, now);
+    }
+
+    /// <summary>Puts each song's start on the song: the live deck says "now", a deck or queued song the clock time (with "~" where auto-play waits for the DJ, so it's a guess).</summary>
+    private void ShowStarts(DeckViewModel? live, List<(DeckViewModel? Deck, QueueItem? Item, TimeSpan Length)> coming,
+        IReadOnlyList<DateTime?> starts, DateTime now, bool guess, bool firstIsExact)
+    {
+        foreach (DeckViewModel deck in Decks)
+            deck.StartsText = deck == live ? "now" : "";
+        for (int i = 0; i < coming.Count; i++)
+        {
+            string text = starts[i] is { } start ? (guess && !(i == 0 && firstIsExact) ? "~" : "") + PlannedStartViewModel.Clock(start, now) : "";
+            if (coming[i].Deck is { } deck)
+                deck.StartsText = text;
+            else
+                coming[i].Item!.StartsText = text;
+        }
+    }
+
+    private void SetQueueEnd(QueueEnd.Estimate estimate, QueueEnd.Rules rules, AutoPlayViewModel? autoPlay, bool auto, string? ifStarted, DateTime now)
+    {
         string time = estimate.At is { } end ? end.ToString("t") : "";
         (QueueEndText, QueueEndTip) = estimate.Kind switch
         {
@@ -111,7 +157,9 @@ public sealed partial class MainWindowViewModel
             QueueEnd.Kind.Stops => (time,
                 autoPlay?.StopAfterThisSong == true ? "Auto-play stops after this song, as asked"
                 : $"Auto-play stops at {autoPlay?.StopAt:t}, as set: the song playing then is the last"),
-            _ => (time, auto
+            _ => (time, ifStarted is not null
+                ? $"When the music queued runs out, {ifStarted}: the songs ready on the decks and in the queue" + (auto ? ", and the gaps between them" : "")
+                : auto
                 ? "When the music queued runs out: what's left of this song, the songs ready on the decks and in the queue, and the gaps between them"
                 : "When the music queued runs out, played one after another: what's left of this song, the songs ready on the decks and in the queue"),
         };

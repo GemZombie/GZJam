@@ -218,7 +218,7 @@ public sealed class AppSettings
     /// <see cref="Views.MainWindow.QueueColumns"/> name. Album, genre, year and when it was last
     /// played start hidden: they're for a wide queue (#178).
     /// </summary>
-    public List<string> HiddenQueueColumns { get; set; } = ["Album", "Genre", "Year", "Played"];
+    public List<string> HiddenQueueColumns { get; set; } = ["Album", "Genre", "Year", "Played", "Starts"];
 
     /// <summary>
     /// The song files' other tags shown as library columns (#119), by <see cref="Library.SongTag.Key"/>,
@@ -325,6 +325,13 @@ public sealed class AppSettings
 
     /// <summary>When the DJ last backed up the library (Settings › Library), for saying so there.</summary>
     public DateTime? LastBackupUtc { get; set; }
+
+    /// <summary>
+    /// When the DJ means to start the queue (its date and time), for the queue's forecast of when each
+    /// song plays and when it ends. Used only while the music hasn't started; a plan from long ago
+    /// is dropped.
+    /// </summary>
+    public DateTime? PlannedStart { get; set; }
 
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];

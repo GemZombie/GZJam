@@ -597,6 +597,10 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial string? Hint { get; private set; }
 
+    /// <summary>When this deck's song starts playing, by the clock ("now", "9:42 PM"); set with the time the queue ends (<see cref="MainWindowViewModel.UpdateQueueEnd"/>), for the deck's row atop the queue.</summary>
+    [ObservableProperty]
+    public partial string StartsText { get; set; } = "";
+
     /// <summary>The first of two taps needed to pause an on-air deck has happened.</summary>
     [ObservableProperty]
     public partial bool IsPauseArmed { get; private set; }
