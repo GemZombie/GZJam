@@ -125,6 +125,19 @@ public partial class SettingsPanel : UserControl
             await vm.Servers.ChangeDownloadsFolderAsync(path);
     }
 
+    private async void OnKeepFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.SettingsViewModel vm)
+            return;
+        var folders = await TopLevel.GetTopLevel(this)!.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Where to keep songs from your servers (one of your music folders)",
+            AllowMultiple = false,
+        });
+        if (folders is [var folder] && folder.TryGetLocalPath() is { } path)
+            vm.Servers.SetKeepFolder(path);
+    }
+
     private async void OnTestServerClick(object? sender, RoutedEventArgs e)
     {
         if (ServerOf(sender) is { } server)

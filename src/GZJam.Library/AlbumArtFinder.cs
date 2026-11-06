@@ -59,7 +59,7 @@ public static class AlbumArtFinder
     }
 
     /// <summary>The folder's cover image, if it has one.</summary>
-    internal static string? FolderImage(string folder)
+    public static string? FolderImage(string folder)
     {
         try
         {

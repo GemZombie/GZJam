@@ -38,6 +38,7 @@ public partial class MainWindow
             if (DataContext is not MainWindowViewModel vm)
                 return;
             vm.ConfirmAsync = (heading, message, confirm) => new ConfirmDialog(heading, message, confirm).ShowDialog<bool>(this);
+            vm.Servers.ChooseFolderAsync = ChooseFolderAsync;
             vm.ConfirmCloseAsync = playing => new ConfirmDialog("Stop the music and close GZJam?", playing, "Close GZJam",
                 cancelText: "Keep playing", cancelIsDefault: true).ShowDialog<bool>(this);
             vm.ConfirmImportAsync = (heading, message, confirm) =>
@@ -264,6 +265,7 @@ public partial class MainWindow
             item.IsVisible = !remote;
         TrackDownloadItem.IsVisible = remote;
         TrackRemoveFromLaptopItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.DownloadsFor(tracks).Count > 0;
+        TrackKeepItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.CanKeepCopy(tracks);
         TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
@@ -343,6 +345,27 @@ public partial class MainWindow
     {
         if ((sender as Control)?.DataContext is QueueItem item)
             Vm.Servers.FetchForQueue(item);
+    }
+
+    /// <summary>A folder of the DJ's, chosen in the system's folder picker; null if none was.</summary>
+    private async Task<string?> ChooseFolderAsync(string title)
+    {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false });
+        return folders is [var folder] ? folder.TryGetLocalPath() : null;
+    }
+
+    private async void OnKeepTracksClick(object? sender, RoutedEventArgs e) =>
+        await Vm.Servers.KeepTracksAsync(SelectedTracks());
+
+    /// <summary>Keep a copy in my library, on a server's folder or playlist in the tree (#285).</summary>
+    private async void OnKeepCopyClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not FolderNodeViewModel { Node.ServerId: long id } folder)
+            return;
+        if (folder.Node.ServerPlaylistId is { } playlist)
+            await Vm.Servers.KeepPlaylistCopyAsync(id, playlist);
+        else
+            await Vm.Servers.KeepFolderCopyAsync(id, folder.Node.RelativePath, folder.Name);
     }
 
     private async void OnRemoveTracksFromLaptopClick(object? sender, RoutedEventArgs e) =>

@@ -373,6 +373,8 @@
                                 ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />
                       <MenuItem Header="Download to this laptop" IsVisible="{Binding IsServerRealFolder}" Click="OnDownloadServerFolderClick"
                                 ToolTip.Tip="Download every song in this folder and the folders in it, and keep it up to date: songs added to it on the server come with each sync" />
+                      <MenuItem Header="Keep a copy in my library…" IsVisible="{Binding IsServerFolder}" Click="OnKeepCopyClick"
+                                ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. Songs you have already are left as they are" />
                       <MenuItem Header="Keep on this laptop" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
                                 ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
                       <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
@@ -714,6 +716,8 @@
                           ToolTip.Tip="Bring these songs from the server onto this laptop, and keep them" />
                 <MenuItem x:Name="TrackDownloadAlbumItem" Header="Download the album" Click="OnDownloadAlbumClick"
                           ToolTip.Tip="Bring this song's whole album from the server onto this laptop, and keep it up to date" />
+                <MenuItem x:Name="TrackKeepItem" Header="Keep a copy in my library…" Click="OnKeepTracksClick"
+                          ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. One downloaded already moves there, with its hearts, cues and playlists" />
                 <MenuItem x:Name="TrackRemoveFromLaptopItem" Header="Remove from this laptop" Click="OnRemoveTracksFromLaptopClick"
                           ToolTip.Tip="These songs were downloaded from a server: remove them from the laptop (they stay on the server)" />
                 <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"

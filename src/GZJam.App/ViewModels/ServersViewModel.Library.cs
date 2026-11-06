@@ -158,7 +158,7 @@ public sealed partial class ServersViewModel
             AddChoices(item, [new ServerChoice(ServerChoiceKind.Song, remote.Song.Id,
                 remote.Song.Artist is { Length: > 0 } artist ? $"{title} ({artist})" : title)]);
             string path = await GetSongAsync(item, client, remote.Song);   // at once: a deck may be waiting
-            Track here = await Task.Run(() => _database.TrackForFile(path));
+            Track here = await Task.Run(() => _database.TrackForFile(WhereNow(item, remote.Song.Id, path)));
             Log.Info($"Servers: {title} from {item.Name} is here, at {path}");
             _owner.ShowNotice($"{title} is on this laptop now.", seconds: 3);
             AfterSync();
@@ -287,6 +287,7 @@ public sealed partial class ServersViewModel
             if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge
                 || !_database.ServerCatalogHasArt(item.Server.Id))   // read before its pictures were kept
                 await ReadCatalogAsync(item.Server.Id, quiet: true);
+        await LinkOwnCopiesAsync();   // songs added to the library since
     }
 
     /// <summary>
@@ -322,6 +323,7 @@ public sealed partial class ServersViewModel
             await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
             await ReadPlaylistsAsync(item, client);
+            _ = LinkOwnCopiesAsync();   // which of them are in the library already
         }
         catch (ServerException e)
         {
