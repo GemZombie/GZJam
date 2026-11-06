@@ -7,7 +7,7 @@ namespace GZJam.App.ViewModels;
 
 /// <summary>
 /// Whether each server answers, and the queue's songs still on a server (#290). The catalog is on
-/// the laptop, so an unreachable server's folders and songs still browse; GZJam just says so at
+/// the computer, so an unreachable server's folders and songs still browse; GZJam just says so at
 /// once rather than trying, and a song queued from it waits, and arrives by itself once it answers.
 /// </summary>
 public sealed partial class ServersViewModel
@@ -84,7 +84,7 @@ public sealed partial class ServersViewModel
         StartKeepWhole(item);
     }
 
-    /// <summary>The tree's mark, the song list's rows, and "Only what's on this laptop" follow a server going or coming back.</summary>
+    /// <summary>The tree's mark, the song list's rows, and "Only what's on this computer" follow a server going or coming back.</summary>
     private void Changed(ServerItemViewModel item, bool offline)
     {
         RefreshArtServers();
@@ -164,7 +164,7 @@ public sealed partial class ServersViewModel
     public bool IsFetching(Track track) => _fetching.Any(q => q.Track.Path == track.Path);
 
     /// <summary>
-    /// Brings a queued song still on a server onto the laptop, for its place in the queue: it says
+    /// Brings a queued song still on a server onto the computer, for its place in the queue: it says
     /// "Downloading…", then becomes the song itself, in the same place. While its server can't be
     /// reached it says "Waiting for synology" and comes when the server answers; a download that
     /// fails another way says so, with Try again. Never taken out of the queue by itself.
@@ -255,9 +255,9 @@ public sealed partial class ServerItemViewModel
 
     public DateTime? OfflineSince { get; private set; }
 
-    /// <summary>"synology can't be reached (since 9:40 PM). Songs on this laptop play as usual."</summary>
+    /// <summary>"synology can't be reached (since 9:40 PM). Songs on this computer play as usual."</summary>
     public string OfflineTip => OfflineSince is { } since
-        ? $"{Name} can't be reached (since {since.ToString("t", System.Globalization.CultureInfo.CurrentCulture)}). Songs on this laptop play as usual."
+        ? $"{Name} can't be reached (since {since.ToString("t", System.Globalization.CultureInfo.CurrentCulture)}). Songs on this computer play as usual."
         : "";
 
     internal void GoOffline(DateTime since)

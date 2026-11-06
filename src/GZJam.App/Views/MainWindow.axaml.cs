@@ -178,9 +178,33 @@ public partial class MainWindow : Window
         // Scroll once the expanded folders have been laid out.
         Dispatcher.UIThread.Post(() =>
         {
-            if (Vm.Library.SelectedFolder is { } folder && FolderTree.TreeContainerFromItem(folder) is Control container)
-                container.BringIntoView();
+            if (Vm.Library.SelectedFolder is { } folder)
+                BringFolderIntoView(folder);
         }, DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Scrolls the folder tree to a folder. The tree makes rows only for the folders in view (a
+    /// server can have thousands in one folder), so each folder on the way is scrolled to in turn,
+    /// which makes its row, and so the rows of the folders in it.
+    /// </summary>
+    internal void BringFolderIntoView(FolderNodeViewModel folder)
+    {
+        var path = new List<FolderNodeViewModel>();
+        for (FolderNodeViewModel? f = folder; f is not null; f = f.Parent)
+            path.Insert(0, f);
+        ItemsControl parent = FolderTree;
+        Control? row = null;
+        foreach (FolderNodeViewModel step in path)
+        {
+            parent.ScrollIntoView(step);
+            parent.UpdateLayout();
+            if (parent.ContainerFromItem(step) is not TreeViewItem item)
+                return;
+            row = item;
+            parent = item;
+        }
+        row?.BringIntoView();
     }
 
     private void OnRevealFileClick(object? sender, RoutedEventArgs e)

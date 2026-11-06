@@ -9,7 +9,7 @@ public sealed record ServerBrowse(IReadOnlyList<Track> Tracks, string? Problem =
 
 /// <summary>
 /// A server in the library itself (#290): its place in the folder tree, its songs in the song
-/// list (those not on the laptop marked, heard in the headphones, downloaded when they're
+/// list (those not on the computer marked, heard in the headphones, downloaded when they're
 /// wanted), and "Also on" under a library search.
 /// </summary>
 public sealed partial class ServersViewModel
@@ -31,7 +31,7 @@ public sealed partial class ServersViewModel
 
     /// <summary>
     /// The server's songs for the song list: what was added lately (the songs of its newest
-    /// albums), or what <paramref name="text"/> finds. Songs on this laptop are the library's own
+    /// albums), or what <paramref name="text"/> finds. Songs on this computer are the library's own
     /// rows; the rest are rows of the server's (<see cref="Track.IsOnServerOnly"/>).
     /// </summary>
     public async Task<ServerBrowse> BrowseAsync(long serverId, string folder, string text, CancellationToken cancel)
@@ -45,12 +45,9 @@ public sealed partial class ServersViewModel
         if (_database.GetServerCatalogCount(serverId) > 0)
         {
             CatalogSearch found = await Task.Run(() => _database.SearchServerCatalog(serverId, folder, text, cancel), cancel);
-            var here = LocalCopies(item);
-            var rows = await Task.Run(() => found.Songs.Select(s => here.TryGetValue(s.Id, out string? path)
-                ? _database.TrackForFile(path)
-                : new ServerTrack(item.Server.Id, item.Name, s) { Unreachable = item.IsOffline }.ToTrack()).ToList(), cancel);
+            var rows = await RowsForAsync(item, found.Songs, cancel);
             string? leftOut = found.LeftOut.Count == 0 ? null
-                : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
+                : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this computer: left out here.";
             return new(rows, Note: leftOut ?? (IsReadingCatalog(item) ? $"Reading {item.Name}'s song list again…" : null));
         }
         if (IsReadingCatalog(item))
@@ -60,7 +57,7 @@ public sealed partial class ServersViewModel
 
         string words = Filters.Replace(text, " ").Trim();
         string? note = words.Length < text.Trim().Length
-            ? "Filters such as bpm: and label: are for the songs on this laptop: the server's songs are searched by their words."
+            ? "Filters such as bpm: and label: are for the songs on this computer: the server's songs are searched by their words."
             : null;
         try
         {
@@ -72,11 +69,7 @@ public sealed partial class ServersViewModel
                 var lists = await Task.WhenAll(albums.Select(a => client.GetAlbumSongsAsync(a.Id, cancel)));
                 return lists.SelectMany(l => l).ToList();
             }, cancel);
-            var here = LocalCopies(item);
-            var tracks = await Task.Run(() => songs.Select(s => here.TryGetValue(s.Id, out string? path)
-                ? _database.TrackForFile(path)
-                : new ServerTrack(item.Server.Id, item.Name, s).ToTrack()).ToList(), cancel);
-            return new(tracks, Note: note);
+            return new(await RowsForAsync(item, songs, cancel), Note: note);
         }
         catch (ServerException e)
         {
@@ -85,8 +78,8 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>
-    /// Under a library search: the first server with songs it finds that aren't on this laptop,
-    /// and what to say ("Also on synology: 12 songs not on this laptop"). Null if none, or no
+    /// Under a library search: the first server with songs it finds that aren't on this computer,
+    /// and what to say ("Also on synology: 12 songs not on this computer"). Null if none, or no
     /// server answers quickly.
     /// </summary>
     public async Task<(long ServerId, string Text)?> AlsoOnAsync(string text, CancellationToken cancel)
@@ -99,11 +92,15 @@ public sealed partial class ServersViewModel
             if (_database.GetServerCatalogCount(item.Server.Id) > 0)
             {
                 // At once, from the catalog.
-                var catalog = await Task.Run(() => _database.SearchServerCatalog(item.Server.Id, "", words, cancel), cancel);
-                var local = LocalCopies(item);
-                int notHere = catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                long serverId = item.Server.Id;
+                int notHere = await Task.Run(() =>
+                {
+                    var catalog = _database.SearchServerCatalog(serverId, "", words, cancel);
+                    var local = _database.GetServerSongsHere(serverId);
+                    return catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                }, cancel);
                 if (notHere > 0)
-                    return (item.Server.Id, $"Also on {item.Name}: {(notHere == 1 ? "1 song" : $"{Format.Count(notHere)} songs")} not on this laptop");
+                    return (item.Server.Id, $"Also on {item.Name}: {(notHere == 1 ? "1 song" : $"{Format.Count(notHere)} songs")} not on this computer");
                 continue;
             }
             if (SignedIn(item) is not { } client)
@@ -113,10 +110,11 @@ public sealed partial class ServersViewModel
                 using var quick = CancellationTokenSource.CreateLinkedTokenSource(cancel);
                 quick.CancelAfter(TimeSpan.FromSeconds(4));
                 var found = await Task.Run(() => client.SearchAsync(words, songs: 100, albums: 0, artists: 0, quick.Token), quick.Token);
-                var here = LocalCopies(item);
+                long searched = item.Server.Id;
+                var here = await Task.Run(() => _database.GetServerSongsHere(searched), cancel);
                 int missing = found.Songs.Count(s => !here.ContainsKey(s.Id));
                 if (missing > 0)
-                    return (item.Server.Id, $"Also on {item.Name}: {(missing == 1 ? "1 song" : $"{Format.Count(missing)}{(found.Songs.Count >= 100 ? "+" : "")} songs")} not on this laptop");
+                    return (item.Server.Id, $"Also on {item.Name}: {(missing == 1 ? "1 song" : $"{Format.Count(missing)}{(found.Songs.Count >= 100 ? "+" : "")} songs")} not on this computer");
             }
             catch (Exception e) when (e is ServerException or OperationCanceledException)
             {
@@ -127,7 +125,7 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>
-    /// A server's song brought onto this laptop now, for a deck, the queue or a playlist: the copy
+    /// A server's song brought onto this computer now, for a deck, the queue or a playlist: the copy
     /// here if there is one, else downloaded, and kept from then on like any download. Null (with
     /// a notice saying why) if it can't be.
     /// </summary>
@@ -142,7 +140,7 @@ public sealed partial class ServersViewModel
         }
         if (item.IsOffline)
         {
-            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this laptop play as usual.", seconds: 6);
+            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this computer play as usual.", seconds: 6);
             return null;
         }
         if (SignedIn(item) is not { } client)
@@ -160,7 +158,7 @@ public sealed partial class ServersViewModel
             string path = await GetSongAsync(item, client, remote.Song);   // at once: a deck may be waiting
             Track here = await Task.Run(() => _database.TrackForFile(WhereNow(item, remote.Song.Id, path)));
             Log.Info($"Servers: {title} from {item.Name} is here, at {path}");
-            _owner.ShowNotice($"{title} is on this laptop now.", seconds: 3);
+            _owner.ShowNotice($"{title} is on this computer now.", seconds: 3);
             AfterSync();
             RefreshKept(item);
             RefreshDownloads();
@@ -169,7 +167,7 @@ public sealed partial class ServersViewModel
         catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
         {
             MarkOffline(item);
-            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this laptop play as usual.", seconds: 6);
+            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this computer play as usual.", seconds: 6);
             return null;
         }
         catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
@@ -184,7 +182,7 @@ public sealed partial class ServersViewModel
         }
     }
 
-    /// <summary>The song list's "Download to this laptop": the songs kept from their server, then synced.</summary>
+    /// <summary>The song list's "Download to this computer": the songs kept from their server, then synced.</summary>
     public Task DownloadAsync(IReadOnlyList<Track> tracks) => DownloadChoicesAsync(tracks, t =>
         new ServerChoice(ServerChoiceKind.Song, t.OnServer!.Song.Id,
             t.Artist is { Length: > 0 } artist ? $"{t.DisplayTitle} ({artist})" : t.DisplayTitle));
@@ -195,7 +193,7 @@ public sealed partial class ServersViewModel
         t => new ServerChoice(ServerChoiceKind.Album, t.OnServer!.Song.AlbumId!, t.Album ?? t.OnServer.Song.AlbumId!));
 
     /// <summary>
-    /// "Download to this laptop" on a server's folder: every song in it and below it, kept from
+    /// "Download to this computer" on a server's folder: every song in it and below it, kept from
     /// then on (songs added there on the server come with a sync), after asking.
     /// </summary>
     public async Task DownloadFolderAsync(long serverId, string folder, string name)
@@ -207,9 +205,12 @@ public sealed partial class ServersViewModel
             _owner.ShowNotice($"{item.Name} doesn't let this account download songs: they can be heard in the headphones only.", seconds: 8);
             return;
         }
-        var songs = _database.SearchServerCatalog(serverId, folder, null).Songs;
-        var here = LocalCopies(item);
-        var coming = songs.Where(s => !here.ContainsKey(s.Id)).ToList();
+        var (songs, coming) = await Task.Run(() =>
+        {
+            var all = _database.SearchServerCatalog(serverId, folder, null).Songs;
+            var here = _database.GetServerSongsHere(serverId);
+            return (all, all.Where(s => !here.ContainsKey(s.Id)).ToList());
+        });
         if (songs.Count == 0)
         {
             _owner.ShowNotice($"{name} has no songs in {item.Name}'s song list.", seconds: 6);
@@ -219,11 +220,11 @@ public sealed partial class ServersViewModel
         string count = coming.Count == 1 ? "1 song" : $"{Format.Count(coming.Count)} songs";
         if (coming.Count > 0 && (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
                 $"Download {count}{(bytes > 0 ? $", {Format.Size(bytes)}," : "")} from {name}?",
-                $"They come onto this laptop now, from {item.Name}, and stay. Songs added to {name} on the server come with each sync.",
+                $"They come onto this computer now, from {item.Name}, and stay. Songs added to {name} on the server come with each sync.",
                 "Download")))
             return;
         AddChoices(item, [new ServerChoice(ServerChoiceKind.Folder, folder, folder.Replace("/", " › "))]);
-        _owner.ShowNotice(coming.Count == 0 ? $"{name} is on this laptop already: kept up to date from now on." : $"Downloading {count} from {item.Name}…", seconds: 4);
+        _owner.ShowNotice(coming.Count == 0 ? $"{name} is on this computer already: kept up to date from now on." : $"Downloading {count} from {item.Name}…", seconds: 4);
         await SyncAsync(item);
         _owner.Library.RefreshResults();
     }

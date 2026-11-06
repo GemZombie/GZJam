@@ -51,19 +51,26 @@ public sealed partial class ServersViewModel
     // ───────────── What can be kept ─────────────
 
     /// <summary>Whether any of these songs can be kept: a server's song not here, or one downloaded from it.</summary>
-    public bool CanKeepCopy(IReadOnlyList<Track> tracks) =>
-        tracks.Any(t => t.OnServer is { } remote && ItemFor(remote.ServerId) is { IsPreviewOnly: false })
-        || tracks.Where(t => !t.IsOnServerOnly).Take(500).Any(t => _database.GetServerDownloadAt(t.Path) is not null);
+    public bool CanKeepCopy(IReadOnlyList<Track> tracks)
+    {
+        if (tracks.Any(t => t.OnServer is { } remote && ItemFor(remote.ServerId) is { IsPreviewOnly: false }))
+            return true;
+        if (tracks.All(t => t.IsOnServerOnly))
+            return false;
+        var downloads = _database.GetServerDownloadsByPath();   // one read, however many are chosen
+        return downloads.Count > 0 && tracks.Any(t => downloads.ContainsKey(t.Path));
+    }
 
     /// <summary>Keep a copy in my library, from the song list: the server's songs among them, and those downloaded from it.</summary>
     public async Task KeepTracksAsync(IReadOnlyList<Track> tracks)
     {
         var wanted = new List<(long ServerId, string SongId, ServerSong? Song)>();
+        var downloads = await Task.Run(_database.GetServerDownloadsByPath);
         foreach (Track track in tracks)
             if (track.OnServer is { } remote)
                 wanted.Add((remote.ServerId, remote.Song.Id, remote.Song));
-            else if (_database.GetServerDownloadAt(track.Path) is var (serverId, songId))
-                wanted.Add((serverId, songId, null));
+            else if (downloads.TryGetValue(track.Path, out var download))
+                wanted.Add((download.ServerId, download.SongId, null));
         if (wanted.Count == 0)
         {
             _owner.ShowNotice("Those are in your library already: only songs from a server, or downloaded from one, can be kept.", seconds: 6);
@@ -143,7 +150,7 @@ public sealed partial class ServersViewModel
         if (count == 0)
         {
             _owner.ShowNotice(
-                cantDownload is not null ? $"{cantDownload}: the songs not on this laptop can't be kept now."
+                cantDownload is not null ? $"{cantDownload}: the songs not on this computer can't be kept now."
                 : plan.OnDeck.Count > 0 ? $"Take {plan.OnDeck[0]} off its deck first: its file can't move while it's on a deck."
                 : plan.Mine > 0 ? $"{what} {(songs.Count == 1 ? "is" : "are")} in your library already."
                 : $"{what}: nothing to keep.", seconds: 6);
@@ -205,7 +212,7 @@ public sealed partial class ServersViewModel
             lines.Add($"{SongCount(downloads.Count)} {(downloads.Count == 1 ? "comes" : "come")} from {item.Name} now{(bytes > 0 ? $", {Format.Size(bytes)}" : "")}.");
         }
         if (cantDownload is not null)
-            lines.Add($"{cantDownload}, so the {SongCount(plan.Downloads.Count)} not on this laptop {(plan.Downloads.Count == 1 ? "waits" : "wait")} for another time.");
+            lines.Add($"{cantDownload}, so the {SongCount(plan.Downloads.Count)} not on this computer {(plan.Downloads.Count == 1 ? "waits" : "wait")} for another time.");
         if (plan.Mine > 0)
             lines.Add($"{SongCount(plan.Mine)} {(plan.Mine == 1 ? "is" : "are")} in your library already: left as {(plan.Mine == 1 ? "it is" : "they are")}.");
         if (plan.OnDeck.Count > 0)
@@ -396,7 +403,7 @@ public sealed partial class ServersViewModel
             return ((from, step.Target), 0);
         }
         if (sync is null || step.Song is null)
-            throw new ServerException("It isn't on this laptop, and can't be downloaded now.");
+            throw new ServerException("It isn't on this computer, and can't be downloaded now.");
         return (null, await Task.Run(() => sync.KeepAsync(step.Song, step.Target, folder, stop), stop));
     }
 

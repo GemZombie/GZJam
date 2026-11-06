@@ -145,6 +145,26 @@ public sealed partial class LibraryDatabase
         return r.Read() ? ReadTrack(r) : null;
     }
 
+    /// <summary>The library's songs in these files, with their marks, by path, in one go: those not in the library are left out.</summary>
+    public Dictionary<string, Track> FindTracks(IEnumerable<string> paths)
+    {
+        var found = new Dictionary<string, Track>(StringComparer.Ordinal);
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = $"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE t.path = $path;";
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        foreach (string one in paths)
+        {
+            if (found.ContainsKey(one))
+                continue;
+            path.Value = one;
+            using var r = cmd.ExecuteReader();
+            if (r.Read())
+                found[one] = ReadTrack(r);
+        }
+        return found;
+    }
+
     /// <summary>
     /// The song in a file: the library's, with its marks, if it's in the library; otherwise read
     /// from its tags (a file from outside the music folders), without adding it to the library.

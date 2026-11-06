@@ -220,7 +220,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public bool HasNoResults => HasLoaded && Roots.Count > 0 && Results.Count == 0;
     public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
-        : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this laptop are marked"
+        : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this computer are marked"
         : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
 
@@ -761,7 +761,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Whether a server can't be reached right now, for its mark in the tree.</summary>
     public Func<long, bool> ServerOffline { get; set; } = _ => false;
 
-    /// <summary>Whether a server's playlist is kept on the laptop, for its menu.</summary>
+    /// <summary>Whether a server's playlist is kept on the computer, for its menu.</summary>
     public Func<long, string, bool> ServerPlaylistKept { get; set; } = (_, _) => false;
 
     /// <summary>Whether a server is syncing now, for its node.</summary>
@@ -795,7 +795,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// A server's songs, only those on this laptop: what can be played tonight. On by itself while
+    /// A server's songs, only those on this computer: what can be played tonight. On by itself while
     /// the server can't be reached (and off again when it answers), or by hand.
     /// </summary>
     [ObservableProperty]
@@ -807,7 +807,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             RunSearch();
     }
 
-    /// <summary>A server, or one of its folders, is showing: the "Only on this laptop" switch shows.</summary>
+    /// <summary>A server, or one of its folders, is showing: the "Only on this computer" switch shows.</summary>
     public bool IsServerShowing => SelectedPlaylist is null && SelectedFolder?.IsServer == true;
 
     /// <summary>A server's songs for the song list: what was added lately, or a search's.</summary>
@@ -826,7 +826,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HasFooter))]
     public partial string? ServerNote { get; private set; }
 
-    /// <summary>"Also on synology: 12 songs not on this laptop", under a library search; null if none.</summary>
+    /// <summary>"Also on synology: 12 songs not on this computer", under a library search; null if none.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAlsoOn), nameof(HasFooter))]
     public partial string? AlsoOnText { get; private set; }

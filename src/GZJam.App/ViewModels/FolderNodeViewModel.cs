@@ -36,10 +36,10 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     /// <summary>The server itself, not one of its folders: its own menu.</summary>
     public bool IsServerItself => IsServer && IsRoot;
 
-    /// <summary>One of a server's folders, or playlists: its downloads can be removed from the laptop.</summary>
+    /// <summary>One of a server's folders, or playlists: its downloads can be removed from the computer.</summary>
     public bool IsServerFolder => IsServer && !IsRoot && !Node.IsServerPlaylists;
 
-    /// <summary>A folder on a server (not its playlists): "Download to this laptop".</summary>
+    /// <summary>A folder on a server (not its playlists): "Download to this computer".</summary>
     public bool IsServerRealFolder => IsServerFolder && !IsServerPlaylist;
 
     /// <summary>One of a server's playlists (#290), under its "Playlists".</summary>
@@ -48,10 +48,10 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     /// <summary>A folder's icon: everything but a server and its playlists.</summary>
     public bool HasFolderIcon => !IsServerItself && !IsServerPlaylist;
 
-    /// <summary>A server playlist that isn't kept on the laptop yet: "Keep on this laptop".</summary>
+    /// <summary>A server playlist that isn't kept on the computer yet: "Keep on this computer".</summary>
     public bool CanKeep => IsServerPlaylist && !_owner.ServerPlaylistKept(Node.ServerId!.Value, Node.ServerPlaylistId!);
 
-    /// <summary>A server playlist kept on the laptop: "Open in my playlists".</summary>
+    /// <summary>A server playlist kept on the computer: "Open in my playlists".</summary>
     public bool IsKept => IsServerPlaylist && !CanKeep;
 
     /// <summary>The server can't be reached right now: a crossed-out cloud, and why in its tooltip.</summary>
@@ -82,7 +82,7 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     public bool CanPauseKeepWhole => IsServerItself && IsKeepingWhole && !IsKeepWholePaused;
     public bool CanResumeKeepWhole => IsServerItself && IsKeepingWhole && IsKeepWholePaused;
 
-    public string NameTip => IsOffline ? $"{Name} can't be reached right now. Songs on this laptop play as usual." : Name;
+    public string NameTip => IsOffline ? $"{Name} can't be reached right now. Songs on this computer play as usual." : Name;
     public (long RootId, string Folder) Key => (Node.RootId, Node.RelativePath);
 
     [ObservableProperty]

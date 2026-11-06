@@ -6,7 +6,7 @@ using GZJam.Testing;
 
 namespace GZJam.App.Tests;
 
-/// <summary>A server's playlists in the library (#290): under "Playlists" in its tree, opened in the song list, kept on the laptop from there.</summary>
+/// <summary>A server's playlists in the library (#290): under "Playlists" in its tree, opened in the song list, kept on the computer from there.</summary>
 public sealed class ServerPlaylistsAppTests
 {
     private static async Task<(AppHarness App, FakeNavidrome Fake, ServerItemViewModel Server)> WithServer()
@@ -99,8 +99,8 @@ public sealed class ServerPlaylistsAppTests
         Assert.True(Playlist(app, "After midnight").CanKeep);
 
         Open(app, "Friday", r => r.Count == 3 && r.All(t => !t.IsOnServerOnly));
-        Assert.Contains("Kept on this laptop", app.ViewModel.Library.ServerNote);
-        Assert.Equal(3, app.ViewModel.Servers.DownloadsInFolder(server.Server.Id, FolderNode.ServerPlaylistPath("pl1")).Count);   // its Remove from this laptop
+        Assert.Contains("Kept on this computer", app.ViewModel.Library.ServerNote);
+        Assert.Equal(3, app.ViewModel.Servers.DownloadsInFolder(server.Server.Id, FolderNode.ServerPlaylistPath("pl1")).Count);   // its Remove from this computer
         Assert.Empty(app.ViewModel.Servers.DownloadsInFolder(server.Server.Id, FolderNode.ServerPlaylistPath("pl2")));
     }
 
@@ -117,7 +117,7 @@ public sealed class ServerPlaylistsAppTests
         app.ViewModel.Library.SelectedFolder = null;
         fake.Down = true;
         app.ViewModel.Servers.MarkOffline(server);
-        Open(app, "Friday", r => r.Count == 2);   // as last read, from this laptop
+        Open(app, "Friday", r => r.Count == 2);   // as last read, from this computer
         Assert.Equal(["Lucky Rock Blues", "Li'l Darlin'"], app.ViewModel.Library.Results.Select(t => t.Title));
     }
 

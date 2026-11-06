@@ -97,7 +97,7 @@ public sealed class LibraryBackupTests : IDisposable
     public void Restored_where_the_music_moved_server_downloads_go_where_their_folder_is_now()
     {
         var (data, db, settings, music) = StagedWithDownloads(m => Path.Combine(m, "GZJam from servers"));
-        string there = Path.Combine(_dir, "Music on this laptop");
+        string there = Path.Combine(_dir, "Music on this computer");
         Directory.CreateDirectory(Path.Combine(there, "GZJam from servers"));
 
         LibraryBackup.MoveStaged(data, [(music, there)], ["moved"]);

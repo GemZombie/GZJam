@@ -6,7 +6,7 @@ using GZJam.Testing;
 
 namespace GZJam.Library.Tests;
 
-/// <summary>Bringing a server's chosen songs onto the laptop (#283): where they go, what isn't downloaded twice, and the playlists they fill.</summary>
+/// <summary>Bringing a server's chosen songs onto the computer (#283): where they go, what isn't downloaded twice, and the playlists they fill.</summary>
 public sealed class ServerSyncTests : IDisposable
 {
     private readonly TempLibrary _lib = new();
@@ -53,6 +53,20 @@ public sealed class ServerSyncTests : IDisposable
             Here("Blues", "Ma Rainey", "Mother of the Blues", "Lucky Rock Blues.mp3")], PlaylistPaths("Friday"));
         Assert.Equal(3, _lib.Database.GetServerSongs(_record.Id).Count);
         Assert.Equal((3, result.Bytes), _lib.Database.GetDownloadedTotals());
+    }
+
+    [Fact]
+    public async Task The_songs_here_are_those_with_their_file_quickly_from_the_library()
+    {
+        Choose(Playlist("pl1", "Friday"));
+        await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+        string boogie = Here("Jazz & Swing", "Count Basie", "Cute", "03 - Basie Boogie.mp3");
+
+        Assert.Equal(["s1", "s2", "s3"], _lib.Database.GetServerSongsHere(_record.Id).Keys.Order());   // not read into the library yet: looked for
+        File.Delete(boogie);
+        var here = _lib.Database.GetServerSongsHere(_record.Id);
+        Assert.Equal(["s2", "s3"], here.Keys.Order());
+        Assert.Equal(_lib.Database.GetServerSongs(_record.Id).Single(s => s.SongId == "s2").Path, here["s2"]);
     }
 
     [Fact]
@@ -266,7 +280,7 @@ public sealed class ServerSyncTests : IDisposable
         Assert.Equal("Ella Swings", Assert.Single(ella).Name);
     }
 
-    // ───────────── Removed from the laptop (#290) ─────────────
+    // ───────────── Removed from the computer (#290) ─────────────
 
     [Fact]
     public async Task A_song_the_DJ_removed_isnt_downloaded_again_by_a_sync_until_its_asked_for()

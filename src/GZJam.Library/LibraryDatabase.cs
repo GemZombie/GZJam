@@ -487,7 +487,7 @@ public sealed partial class LibraryDatabase
         // 26: Songs from a server on this computer (#283): which file each server song became, by
         // its ID there, so a sync knows what it already has. own_copy: a song the DJ already had
         // (same title, artist and file size), used rather than downloaded again, and never
-        // removed by GZJam. And what the DJ chose to keep on the laptop: a server's playlists, and
+        // removed by GZJam. And what the DJ chose to keep on the computer: a server's playlists, and
         // what's starred there, each with the GZJam playlist it fills. Only adds.
         """
             CREATE TABLE server_songs (
@@ -543,8 +543,8 @@ public sealed partial class LibraryDatabase
             """,
 
         // 28: Freeing up space (#290): which downloads were fetched on the spot (a double-click, the
-        // queue, a deck) rather than with a list kept on the laptop, and the songs the DJ removed
-        // from the laptop, which a sync doesn't download again until they're asked for. Only adds.
+        // queue, a deck) rather than with a list kept on the computer, and the songs the DJ removed
+        // from the computer, which a sync doesn't download again until they're asked for. Only adds.
         """
             ALTER TABLE server_songs ADD COLUMN on_the_spot INTEGER NOT NULL DEFAULT 0;
             CREATE TABLE server_removed (
@@ -569,7 +569,7 @@ public sealed partial class LibraryDatabase
             """,
 
         // 30: Each catalog song's picture on the server, by the ID it gives it (getCoverArt), for
-        // the song list's rows of songs not on the laptop (#290). Only adds.
+        // the song list's rows of songs not on the computer (#290). Only adds.
         """
             ALTER TABLE server_catalog ADD COLUMN cover_art TEXT;
             """,

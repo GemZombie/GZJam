@@ -23,7 +23,7 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
     {
         if (track.IsOnServerOnly)
         {
-            // Not on this laptop (#290): fetched from its server for the headphones.
+            // Not on this computer (#290): fetched from its server for the headphones.
             if (owner.Servers.IsPreviewing(track))
                 Stop();
             else

@@ -9,7 +9,7 @@ using GZJam.Testing;
 
 namespace GZJam.App.Tests;
 
-/// <summary>Settings › Servers, choosing and syncing (#283): a server's playlists and starred songs, onto the laptop.</summary>
+/// <summary>Settings › Servers, choosing and syncing (#283): a server's playlists and starred songs, onto the computer.</summary>
 public sealed class ServerSyncAppTests
 {
     /// <summary>GZJam with the fake Navidrome added as "synology", signed in, downloading into the test's own folder.</summary>
@@ -40,7 +40,7 @@ public sealed class ServerSyncAppTests
     {
         var (app, _, card) = await WithServer();
         using var _ = app;
-        Assert.Equal("Nothing chosen to keep on this laptop yet: press CHOOSE.", card.KeptText);
+        Assert.Equal("Nothing chosen to keep on this computer yet: press CHOOSE.", card.KeptText);
         Assert.False(card.CanSync);
 
         var dialog = new ServerChoicesDialog(app.ViewModel.Servers, card);
@@ -56,7 +56,7 @@ public sealed class ServerSyncAppTests
         Assert.False(dialog.IsVisible);
         var chosen = Assert.Single(app.Database.GetServerChoices(card.Server.Id));
         Assert.Equal((ServerChoiceKind.Playlist, "pl1", "Friday"), (chosen.Kind, chosen.RemoteId, chosen.Name));
-        Assert.Equal("Keeping on this laptop: Friday", card.KeptText);
+        Assert.Equal("Keeping on this computer: Friday", card.KeptText);
         Assert.True(card.CanSync);
     }
 

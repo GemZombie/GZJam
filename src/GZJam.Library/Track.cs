@@ -265,7 +265,7 @@ public sealed class Track : INotifyPropertyChanged
     /// <summary>Not in the library: a song from outside the music folders, in a playlist or the queue.</summary>
     public bool IsOutsideLibrary => Id == 0;
 
-    /// <summary>A song on a music server that isn't on this laptop (#290); null for every song that is.</summary>
+    /// <summary>A song on a music server that isn't on this computer (#290); null for every song that is.</summary>
     public Servers.ServerTrack? OnServer { get; init; }
 
     /// <summary>On a server only: heard in the headphones and downloaded, never played from there.</summary>
@@ -275,7 +275,7 @@ public sealed class Track : INotifyPropertyChanged
     public string? OnServerTip => OnServer is { } server
         ? server.Unreachable
             ? $"On {server.ServerName}, which can't be reached right now: it can be downloaded once it answers"
-            : $"On {server.ServerName}, not on this laptop yet: double-click or load it to download it, or preview it in the headphones"
+            : $"On {server.ServerName}, not on this computer yet: double-click or load it to download it, or preview it in the headphones"
         : null;
 
     /// <summary>A song still on a server that can't be reached right now: shown with a crossed-out cloud.</summary>

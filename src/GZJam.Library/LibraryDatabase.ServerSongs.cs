@@ -4,14 +4,14 @@ using Microsoft.Data.Sqlite;
 namespace GZJam.Library;
 
 /// <summary>A server song on this computer: the file it became, or the DJ's own copy of it.</summary>
-/// <param name="OnTheSpot">Downloaded when it was asked for (a double-click, the queue, a deck), not with a list kept on the laptop.</param>
+/// <param name="OnTheSpot">Downloaded when it was asked for (a double-click, the queue, a deck), not with a list kept on the computer.</param>
 public sealed record ServerSongCopy(long ServerId, string SongId, string Path, long? Size, string? ServerPath, bool OwnCopy, bool OnTheSpot = false);
 
 /// <summary>A song GZJam downloaded from a server, for freeing up space: when it came, how, and when the room last heard it.</summary>
 public sealed record ServerDownload(long ServerId, string SongId, string Path, long Size, DateTime DownloadedUtc, bool OnTheSpot, DateTime? LastPlayedUtc);
 
 /// <summary>
-/// What a server's songs to keep on the laptop are: a playlist there, or what's starred (chosen
+/// What a server's songs to keep on the computer are: a playlist there, or what's starred (chosen
 /// with CHOOSE…), or an album, an artist or a song downloaded while browsing the server (#284).
 /// </summary>
 public enum ServerChoiceKind
@@ -27,7 +27,7 @@ public enum ServerChoiceKind
 }
 
 /// <summary>
-/// Something the DJ chose to keep on the laptop from a server (#283): a playlist (by its ID
+/// Something the DJ chose to keep on the computer from a server (#283): a playlist (by its ID
 /// there), everything starred, or an album, artist or song (#284). A playlist fills a GZJam
 /// playlist, <see cref="PlaylistId"/>.
 /// </summary>
@@ -53,6 +53,50 @@ public sealed partial class LibraryDatabase
             songs.Add(new ServerSongCopy(r.GetInt64(0), r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt64(3),
                 r.IsDBNull(4) ? null : r.GetString(4), r.GetInt64(5) != 0, r.GetInt64(6) != 0));
         return songs;
+    }
+
+    /// <summary>
+    /// Each of a server's songs on this computer (by its ID there), and where. From the library's
+    /// index, so it's quick however many there are (a DJ's own copies of a whole server, say, and
+    /// their music on a network drive): only a file not read into the library yet (downloaded a
+    /// moment ago) is looked for on the disk.
+    /// </summary>
+    public Dictionary<string, string> GetServerSongsHere(long serverId)
+    {
+        using var c = Open();
+        return ServerSongsHere(c, serverId);
+    }
+
+    private static Dictionary<string, string> ServerSongsHere(SqliteConnection c, long serverId)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT s.song_id, s.path, t.id IS NOT NULL FROM server_songs s LEFT JOIN tracks t ON t.path = s.path
+            WHERE s.server_id = $server;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var here = new Dictionary<string, string>(StringComparer.Ordinal);
+        while (r.Read())
+        {
+            string path = r.GetString(1);
+            if (r.GetBoolean(2) || File.Exists(path))
+                here[r.GetString(0)] = path;
+        }
+        return here;
+    }
+
+    /// <summary>The songs GZJam downloaded (not the DJ's own), by their file: which server's song each is.</summary>
+    public Dictionary<string, (long ServerId, string SongId)> GetServerDownloadsByPath()
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT path, server_id, song_id FROM server_songs WHERE own_copy = 0;";
+        using var r = cmd.ExecuteReader();
+        var downloads = new Dictionary<string, (long, string)>(StringComparer.Ordinal);
+        while (r.Read())
+            downloads.TryAdd(r.GetString(0), (r.GetInt64(1), r.GetString(2)));
+        return downloads;
     }
 
     /// <summary>The copy here of one of a server's songs, or null.</summary>
@@ -126,7 +170,7 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
-    /// The DJ removed these songs from the laptop: their download is forgotten, a sync doesn't
+    /// The DJ removed these songs from the computer: their download is forgotten, a sync doesn't
     /// download them again, and they're no longer kept as songs on their own. (The file is the
     /// caller's to delete; hearts, cues and EQ stay, kept by path, for when one comes back.)
     /// </summary>
@@ -150,7 +194,7 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
-    /// <summary>The songs the DJ removed from the laptop, which a sync leaves on the server.</summary>
+    /// <summary>The songs the DJ removed from the computer, which a sync leaves on the server.</summary>
     public IReadOnlySet<string> GetRemovedServerSongs(long serverId)
     {
         using var c = Open();
@@ -302,16 +346,7 @@ public sealed partial class LibraryDatabase
         if (mine.Count == 0)
             return 0;
 
-        var have = new HashSet<string>(StringComparer.Ordinal);
-        using (var cmd = c.CreateCommand())
-        {
-            cmd.CommandText = "SELECT song_id, path FROM server_songs WHERE server_id = $server;";
-            cmd.Parameters.AddWithValue("$server", serverId);
-            using var r = cmd.ExecuteReader();
-            while (r.Read())
-                if (File.Exists(r.GetString(1)))
-                    have.Add(r.GetString(0));
-        }
+        var have = ServerSongsHere(c, serverId).Keys.ToHashSet(StringComparer.Ordinal);
 
         var links = new List<(string SongId, string Path, long? Size, string? ServerPath)>();
         using (var cmd = c.CreateCommand())
@@ -332,7 +367,7 @@ public sealed partial class LibraryDatabase
                 var match = candidates.FirstOrDefault(m => m.Size == size);
                 if (match.Path is null && ms > 0)
                     match = candidates.FirstOrDefault(m => m.Ms > 0 && Math.Abs(m.Ms - ms) <= SameLengthMs);
-                if (match.Path is not null && File.Exists(match.Path))
+                if (match.Path is not null)   // in the library's index: there
                     links.Add((songId, match.Path, size, r.IsDBNull(5) ? null : r.GetString(5)));
             }
         }
@@ -397,7 +432,7 @@ public sealed partial class LibraryDatabase
         return r.Read() ? (r.GetInt64(0), r.GetString(1)) : null;
     }
 
-    // ───────────── What to keep on the laptop ─────────────
+    // ───────────── What to keep on the computer ─────────────
 
     public IReadOnlyList<ServerChoice> GetServerChoices(long serverId)
     {
@@ -419,7 +454,7 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
-    /// What to keep on the laptop from a server, all at once. A choice kept from before keeps its
+    /// What to keep on the computer from a server, all at once. A choice kept from before keeps its
     /// GZJam playlist and when it was synced; one no longer chosen is forgotten (its playlist and
     /// songs stay).
     /// </summary>
@@ -491,7 +526,7 @@ public sealed partial class LibraryDatabase
     private static ServerChoiceKind KindOf(string text) =>
         Enum.TryParse(text, ignoreCase: true, out ServerChoiceKind kind) ? kind : ServerChoiceKind.Playlist;
 
-    /// <summary>Adds to what's kept on the laptop from a server, leaving the rest as it is (DOWNLOAD while browsing).</summary>
+    /// <summary>Adds to what's kept on the computer from a server, leaving the rest as it is (DOWNLOAD while browsing).</summary>
     public void AddServerChoices(long serverId, IEnumerable<ServerChoice> choices)
     {
         using var c = Open();

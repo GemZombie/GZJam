@@ -5,11 +5,11 @@
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{StaticResource PanelBrush}"
         Title="GZJam">
-  <!-- Free up space… on a server (#290): its downloads removed from the laptop, by what's ticked -->
+  <!-- Free up space… on a server (#290): its downloads removed from the computer, by what's ticked -->
   <StackPanel Margin="20" Spacing="12">
     <TextBlock x:Name="Heading" Classes="label" Text="FREE UP SPACE" />
     <TextBlock x:Name="Intro" Classes="setting-help" FontSize="12"
-               Text="Songs GZJam downloaded are removed from this laptop. They stay on the server, and come back when you ask for one; their hearts, cues and EQ are kept. Your own songs, and songs on a deck, in the queue or played tonight, are never removed." />
+               Text="Songs GZJam downloaded are removed from this computer. They stay on the server, and come back when you ask for one; their hearts, cues and EQ are kept. Your own songs, and songs on a deck, in the queue or played tonight, are never removed." />
     <Border Classes="settings-card" Margin="0">
       <StackPanel Margin="12,8" Spacing="6">
         <CheckBox x:Name="LastNightBox">

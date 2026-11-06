@@ -5,7 +5,7 @@
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{StaticResource PanelBrush}"
         Title="GZJam">
-  <!-- What to keep on the laptop from a server (#283): what's starred there, and its playlists -->
+  <!-- What to keep on the computer from a server (#283): what's starred there, and its playlists -->
   <StackPanel Margin="20" Spacing="12">
     <TextBlock x:Name="Heading" Classes="label" Text="KEEP ON THIS LAPTOP" />
     <TextBlock Classes="setting-help" FontSize="12"

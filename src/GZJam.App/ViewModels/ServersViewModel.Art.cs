@@ -4,7 +4,7 @@ using GZJam.Library.Servers;
 namespace GZJam.App.ViewModels;
 
 /// <summary>
-/// The album art of a server's songs not on the laptop (#290): fetched small from the server
+/// The album art of a server's songs not on the computer (#290): fetched small from the server
 /// (getCoverArt) for the song list and the queue, once per album, and kept with the other small
 /// copies, so it shows offline too. (Songs downloaded get theirs from the file, or the cover.jpg
 /// a sync puts beside them.)

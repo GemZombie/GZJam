@@ -116,7 +116,7 @@ release.
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
 - GZJam asks before closing while the room is hearing music. Settings has a Quit key too, for Linux
   desktops that draw no title bar.
-- If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
+- If GZJam crashes or the computer restarts mid-dance, the night comes back: the queue and the decks
   as they were, paused. After a normal close they come back too, each deck at the start of its song.
 - With two taps to pause or fade out the deck the room hears, a stray tap (even while the screen is frozen)
   never stops the music.
@@ -169,7 +169,7 @@ reaches into the library and the network.
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
   other Subsonic servers, one or several), browsed and searched
   [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
-  copied to the laptop ahead of the night, so the room never depends on the Wi-Fi, a song dragged
+  copied to the computer ahead of the night, so the room never depends on the Wi-Fi, a song dragged
   to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
   home a bit at a time, or the whole server in the background. Next, stars sent back to the
   server, cleaning up what was downloaded, and the guide, then the beta.
@@ -179,6 +179,9 @@ reaches into the library and the network.
 **1.5:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
+- [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
+  the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
+  posting the setlist the next day
 
 **After that:**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to

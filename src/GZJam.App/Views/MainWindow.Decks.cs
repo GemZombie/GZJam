@@ -407,6 +407,14 @@ public partial class MainWindow
             await Vm.Servers.KeepPlaylistAsync(id, playlist);
     }
 
+    private async void OnStopKeepingServerPlaylistClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } })
+            await Vm.Servers.StopKeepingPlaylistAsync(id, playlist);
+    }
+
+    private void OnBackgroundStopClick(object? sender, RoutedEventArgs e) => Vm.Servers.StopInBackground();
+
     private void OnOpenKeptPlaylistClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } }

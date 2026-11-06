@@ -24,8 +24,8 @@ New:
   the Mac's Keychain, or the Linux desktop's), never in GZJam's settings or a backup; a Linux
   desktop with no keychain keeps it in a file only you can read. Adds one small thing to your
   library; older versions can still open it.
-- **A server's songs on the laptop before the night** ([#283](https://github.com/GemZombie/GZJam/issues/283)):
-  right-click the server in the library › *Keep on this laptop…*: its playlists, and what's starred
+- **A server's songs on the computer before the night** ([#283](https://github.com/GemZombie/GZJam/issues/283)):
+  right-click the server in the library › *Keep on this computer…*: its playlists, and what's starred
   there (songs, whole albums and artists you starred in Navidrome's web page or app), then *Sync
   now*. GZJam downloads the original files into *GZJam from servers* in your Music folder, laid out
   as the server has them, as a music folder like your others: the room never depends on the Wi-Fi.
@@ -39,30 +39,35 @@ New:
   the server (or by artist and album, for a server that doesn't say). GZJam reads its song list when
   it's added and at most twice a day (*Read its song list again* on its right-click menu), so it's
   browsed and searched as fast as your own folders, offline too, and filters such as `year:`,
-  `bpm:` and `genre:` work on its songs (hearts, labels and plays are for the songs on this laptop).
-  Songs that aren't on this laptop are dimmed,
+  `bpm:` and `genre:` work on its songs (hearts, labels and plays are for the songs on this computer).
+  Songs that aren't on this computer are dimmed,
   with a cloud by the title: preview them in the headphones as usual, and a double-click, a load
   onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
-  and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
-  the album* keeps them, and right-click a server's folder › *Download to this laptop* brings
+  and never onto the deck the room hears). Right-click › *Download to this computer* or *Download
+  the album* keeps them, and right-click a server's folder › *Download to this computer* brings
   everything in it, kept up to date as songs are added to it. Under an ordinary library search, *Also on synology: 12 songs not on this
-  laptop · Show* opens the same search on the server. Album art comes from the server too: small
-  in the rows of songs not on this laptop (kept, so it shows offline), and for a downloaded song
+  computer · Show* opens the same search on the server. Album art comes from the server too: small
+  in the rows of songs not on this computer (kept, so it shows offline), and for a downloaded song
   with no picture of its own, the album's picture is saved beside it as *cover.jpg*, as the server
   keeps it in the album's folder. The server's playlists are under *Playlists*, first under
   the server: one opens in the song list in its order, as the server has it now (or as last read,
-  offline), and its right-click › *Keep on this laptop* downloads it into a playlist of yours, kept
+  offline), and its right-click › *Keep on this computer* downloads it into a playlist of yours, kept
   up to date on every sync. In your playlists, a cloud marks one kept from a server: a sync makes it
   the server's again, so changing it here says so, and its right-click › *Stop following the server*
   makes it yours. Adds one more small thing to your library; older versions can still open it.
 - **When a server can't be reached** (#290): no Wi-Fi, venue Wi-Fi without your Tailscale, the NAS
   off. Its folders and songs still show (GZJam keeps its song list), and everything already on the
-  laptop plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;
-  *Only on this laptop* turns on by itself to show what can be played tonight, and off again when the
+  computer plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;
+  *Only on this computer* turns on by itself to show what can be played tonight, and off again when the
   server answers. Asking for one of its songs says at once that it can't be reached, rather than
   trying for half a minute. GZJam asks again every couple of minutes, and when the network changes.
+- **Stop a download** (#290): *Stop* beside the downloads' progress in the top bar stops a sync
+  after the song coming down (what came stays, and *SYNC* goes on from there), and pauses keeping
+  a whole server. A server's playlist kept by mistake? Right-click it under the server › *Stop
+  keeping on this computer…*: it stops coming (a sync running stops), your copy of it stays as
+  yours, and the songs downloaded only for it can be removed too.
 - **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
-  of its folders) › *Remove from this laptop*, or right-click the server › *Free up space…*: what
+  of its folders) › *Remove from this computer*, or right-click the server › *Free up space…*: what
   was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,
   with what each frees and what's left on the drive. They stay on the server, and a sync doesn't
   bring them back: a double-click, the queue or a download does, with their hearts, cues and EQ.
@@ -88,7 +93,7 @@ New:
   folders or playlists in the tree › *Keep a copy in my library…*. They go into a music folder of
   yours (asked the first time; Settings › Servers › *Songs you keep go to* changes it), laid out as
   on the server, and GZJam shows where they'll go before anything moves. A song downloaded already
-  moves there with its hearts, cues, labels, playlists and plays; one not on the laptop comes from
+  moves there with its hearts, cues, labels, playlists and plays; one not on the computer comes from
   the server straight into its place, with its album's picture. Nothing in the folder is ever
   replaced. Kept songs are your own from then on: never removed to free up space, and tag edits can
   be written into them.

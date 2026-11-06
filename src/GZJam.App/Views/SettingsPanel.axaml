@@ -341,7 +341,7 @@
           <StackPanel Margin="20,16">
             <TextBlock Classes="settings-group" Text="SERVERS" />
             <TextBlock Classes="setting-help" Margin="2,0,0,14" FontSize="12"
-                       Text="Music from your own server: Navidrome, or another that speaks the Subsonic API, at home or reached over Tailscale. GZJam signs in with your account there; your server and its music aren't changed. Its songs are in the library, after your music folders: right-click it there to keep songs on this laptop and sync them." />
+                       Text="Music from your own server: Navidrome, or another that speaks the Subsonic API, at home or reached over Tailscale. GZJam signs in with your account there; your server and its music aren't changed. Its songs are in the library, after your music folders: right-click it there to keep songs on this computer and sync them." />
             <ItemsControl x:Name="ServerList" ItemsSource="{Binding Servers.Items}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:ServerItemViewModel">
@@ -390,7 +390,7 @@
                     <TextBlock x:Name="DownloadsFolderText" Classes="setting-help" Text="{Binding Servers.DownloadsFolder}" />
                     <TextBlock x:Name="DownloadsText" Classes="setting-help" FontWeight="SemiBold" Text="{Binding Servers.DownloadsText}" />
                     <TextBlock Classes="setting-help"
-                               Text="A music folder like your others, laid out as the server has it: songs from a server are on this laptop before the night, so the room never depends on the Wi-Fi." />
+                               Text="A music folder like your others, laid out as the server has it: songs from a server are on this computer before the night, so the room never depends on the Wi-Fi." />
                   </StackPanel>
                   <Button x:Name="DownloadsFolderButton" Grid.Column="1" Classes="hw" Content="CHANGE…" VerticalAlignment="Center"
                           IsEnabled="{Binding Servers.CanChangeDownloadsFolder}" Click="OnDownloadsFolderClick"
@@ -423,7 +423,7 @@
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Keep a whole server while the room hears music" />
                     <TextBlock Classes="setting-help"
-                               Text="Off: it waits for a quiet moment, so the night never shares the laptop with it. On: it goes on while you play." />
+                               Text="Off: it waits for a quiet moment, so the night never shares the computer with it. On: it goes on while you play." />
                   </StackPanel>
                   <ToggleButton x:Name="KeepWhilePlayingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
                                 IsChecked="{Binding Servers.KeepWhilePlaying}" />
