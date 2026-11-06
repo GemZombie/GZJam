@@ -99,6 +99,21 @@ public sealed partial class LibraryDatabase
         return downloads;
     }
 
+    /// <summary>The copy here of one of a server's songs, or null.</summary>
+    public ServerSongCopy? GetServerSong(long serverId, string songId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT server_id, song_id, path, size, server_path, own_copy, on_the_spot FROM server_songs WHERE server_id = $server AND song_id = $song;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$song", songId);
+        using var r = cmd.ExecuteReader();
+        return r.Read()
+            ? new ServerSongCopy(r.GetInt64(0), r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt64(3),
+                r.IsDBNull(4) ? null : r.GetString(4), r.GetInt64(5) != 0, r.GetInt64(6) != 0)
+            : null;
+    }
+
     /// <summary>Whether any server song is at <paramref name="path"/> (in any case): for not putting two in one place.</summary>
     public bool IsServerSongPath(string path)
     {

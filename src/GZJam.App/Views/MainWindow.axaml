@@ -368,6 +368,13 @@
                       <MenuItem Header="Stop syncing" IsVisible="{Binding IsSyncing}" Click="OnStopSyncClick" />
                       <MenuItem Header="Keep on this laptop…" IsVisible="{Binding IsServerItself}" Click="OnChooseServerClick"
                                 ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this laptop and up to date" />
+                      <MenuItem Header="Keep the whole server in my library…" IsVisible="{Binding CanKeepWhole}" Click="OnKeepWholeClick"
+                                ToolTip.Tip="Every song of this server into your own music folder, a song at a time in the background: it waits while the room hears music, and picks up where it left off" />
+                      <MenuItem Header="Pause keeping the whole server" IsVisible="{Binding CanPauseKeepWhole}" Click="OnPauseKeepWholeClick"
+                                ToolTip.Tip="It waits, even after GZJam starts again, until you resume it. The songs kept so far stay" />
+                      <MenuItem Header="Resume keeping the whole server" IsVisible="{Binding CanResumeKeepWhole}" Click="OnResumeKeepWholeClick" />
+                      <MenuItem Header="Stop keeping the whole server" IsVisible="{Binding IsKeepingWhole}" Click="OnStopKeepWholeClick"
+                                ToolTip.Tip="No more of it comes. The songs kept so far stay in your library" />
                       <Separator IsVisible="{Binding IsServerItself}" />
                       <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
                                 ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />

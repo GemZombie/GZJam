@@ -81,6 +81,7 @@ public sealed partial class ServersViewModel
             _recheck?.Stop();
         foreach (QueueItem waiting in _owner.Queue.Items.Where(q => q.Track.OnServer?.ServerId == item.Server.Id).ToList())
             FetchForQueue(waiting);
+        StartKeepWhole(item);
     }
 
     /// <summary>The tree's mark, the song list's rows, and "Only what's on this laptop" follow a server going or coming back.</summary>
@@ -140,6 +141,8 @@ public sealed partial class ServersViewModel
     {
         _closed = true;
         StopDownloads();
+        foreach (CancellationTokenSource run in _wholeRuns.Values.ToList())
+            run.Cancel();
         _recheck?.Stop();
         _recheck = null;
         if (_availabilityChanged is not null)

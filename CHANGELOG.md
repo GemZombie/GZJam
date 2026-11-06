@@ -96,6 +96,14 @@ New:
   and artist, and the same file size, or the same length for a copy you tagged your own way) shows
   as yours when you browse the server, isn't downloaded for the queue or a sync, and is left as it
   is when you keep a copy. GZJam looks after reading the server's song list and after a scan.
+- **Keep a whole server in your library, in the background** (#285): right-click the server › *Keep
+  the whole server in my library…* says how many songs, how much to download and how much room
+  the drive has, then brings every song a song at a time, by the same rules as *Keep a copy*. It
+  waits while the room hears music, picks up where it left off when GZJam starts again, and songs
+  added to the server later come too. Right-click the server to pause, resume or stop it (the songs
+  kept so far stay); a drive that's nearly full pauses it and says so. Settings › Servers sets how
+  fast it may go, so it leaves room on the home connection and the NAS, and whether it may go on
+  while you play.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

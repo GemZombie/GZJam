@@ -642,6 +642,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             {
                 IsOffline = server.ServerId is { } id && ServerOffline(id),
                 IsSyncing = server.ServerId is { } syncing && ServerSyncing(syncing),
+                IsKeepingWhole = server.ServerId is { } whole && ServerKeepWhole(whole).Keeping,
+                IsKeepWholePaused = server.ServerId is { } paused && ServerKeepWhole(paused).Paused,
             };
             foreach (var n in vm.SelfAndDescendants())
                 n.IsExpanded = expanded.Contains(n.Key);
@@ -764,6 +766,19 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     /// <summary>Whether a server is syncing now, for its node.</summary>
     public Func<long, bool> ServerSyncing { get; set; } = _ => false;
+
+    /// <summary>Whether a server is being kept whole in the library (#285), and whether that's paused, for its menu.</summary>
+    public Func<long, (bool Keeping, bool Paused)> ServerKeepWhole { get; set; } = _ => (false, false);
+
+    /// <summary>Keeping a whole server started, paused, resumed or stopped: its node's menu.</summary>
+    public void SetServerKeepWhole(long serverId, bool keeping, bool paused)
+    {
+        foreach (FolderNodeViewModel node in Roots.Where(r => r.IsServerItself && r.Node.ServerId == serverId))
+        {
+            node.IsKeepingWhole = keeping;
+            node.IsKeepWholePaused = paused;
+        }
+    }
 
     /// <summary>A server started or finished syncing: its node in the tree.</summary>
     public void SetServerSyncing(long serverId, bool syncing)

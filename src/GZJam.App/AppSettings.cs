@@ -217,6 +217,18 @@ public sealed class AppSettings
     /// </summary>
     public string? ServerKeepFolder { get; set; }
 
+    /// <summary>The servers being kept whole in the DJ's library, in the background (#285), by their ID.</summary>
+    public List<long> ServerKeepWhole { get; set; } = [];
+
+    /// <summary>Of those, the ones paused by the DJ (or by a drive filling up): they wait until resumed.</summary>
+    public List<long> ServerKeepWholePaused { get; set; } = [];
+
+    /// <summary>The fastest a whole server comes, in MB a second; null: as fast as the network goes.</summary>
+    public double? ServerKeepSpeedMBps { get; set; }
+
+    /// <summary>Keeping a whole server goes on while the room hears music; off at first: it waits for a quiet moment.</summary>
+    public bool ServerKeepWhilePlaying { get; set; }
+
     /// <summary>Room the songs downloaded from servers may take, in GB; null: as much as the disk has (leaving some free).</summary>
     public double? ServerDownloadsLimitGb { get; set; }
 
