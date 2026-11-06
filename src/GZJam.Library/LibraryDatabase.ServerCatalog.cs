@@ -30,12 +30,12 @@ public sealed partial class LibraryDatabase
         using var insert = c.CreateCommand();
         insert.CommandText = """
             INSERT OR REPLACE INTO server_catalog (server_id, song_id, folder, file_name, title, artist, album, album_artist, album_id,
-                genre, year, track, disc, bpm, duration_ms, size, path, suffix)
+                genre, year, track, disc, bpm, duration_ms, size, path, suffix, cover_art)
             VALUES ($server, $id, $folder, $file, $title, $artist, $album, $albumArtist, $albumId,
-                $genre, $year, $track, $disc, $bpm, $duration, $size, $path, $suffix);
+                $genre, $year, $track, $disc, $bpm, $duration, $size, $path, $suffix, $coverArt);
             """;
         string[] names = ["$id", "$folder", "$file", "$title", "$artist", "$album", "$albumArtist", "$albumId",
-            "$genre", "$year", "$track", "$disc", "$bpm", "$duration", "$size", "$path", "$suffix"];
+            "$genre", "$year", "$track", "$disc", "$bpm", "$duration", "$size", "$path", "$suffix", "$coverArt"];
         insert.Parameters.AddWithValue("$server", serverId);
         foreach (string name in names)
             insert.Parameters.Add(new SqliteParameter(name, null));
@@ -46,7 +46,7 @@ public sealed partial class LibraryDatabase
             (string folder, string file) = ServerPaths.CatalogPlace(song);
             object?[] values = [song.Id, folder, file, song.Title, song.Artist, song.Album, song.AlbumArtist, song.AlbumId,
                 song.Genre, song.Year is > 0 ? song.Year : null, song.Track is > 0 ? song.Track : null, song.Disc, song.Bpm,
-                (long)song.Duration.TotalMilliseconds, song.Size, song.Path, song.Suffix];
+                (long)song.Duration.TotalMilliseconds, song.Size, song.Path, song.Suffix, song.CoverArt];
             for (int i = 0; i < names.Length; i++)
                 insert.Parameters[names[i]].Value = Db(values[i]);
             insert.ExecuteNonQuery();
@@ -70,7 +70,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id
+            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id, cover_art
             FROM server_catalog WHERE server_id = $server AND song_id = $song;
             """;
         cmd.Parameters.AddWithValue("$server", serverId);
@@ -92,7 +92,7 @@ public sealed partial class LibraryDatabase
         int? Int(int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
         return new ServerSong(r.GetString(0), Text(1), Text(2), Text(3), Text(4), Int(5), Int(6), Int(7), Text(8), Text(9),
             r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)), Text(12),
-            r.IsDBNull(13) ? null : r.GetDouble(13), Text(14));
+            r.IsDBNull(13) ? null : r.GetDouble(13), Text(14), Text(15));
     }
 
     // ───────────── Its playlists ─────────────
@@ -168,6 +168,16 @@ public sealed partial class LibraryDatabase
         while (r.Read())
             ids.Add(r.GetString(0));
         return ids;
+    }
+
+    /// <summary>Whether any of the catalog's songs has its picture's ID (false for one read before GZJam kept them).</summary>
+    public bool ServerCatalogHasArt(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT EXISTS (SELECT 1 FROM server_catalog WHERE server_id = $server AND cover_art IS NOT NULL);";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        return Convert.ToInt64(cmd.ExecuteScalar()) == 1;
     }
 
     /// <summary>When the server's catalog was last read in full; null if never.</summary>
@@ -259,7 +269,7 @@ public sealed partial class LibraryDatabase
         }
 
         cmd.CommandText = $"""
-            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id
+            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id, cover_art
             FROM server_catalog WHERE {where}
             ORDER BY folder COLLATE NOCASE, IFNULL(disc, 0), IFNULL(track, 0), file_name COLLATE NOCASE;
             """;
@@ -270,7 +280,7 @@ public sealed partial class LibraryDatabase
             cancel.ThrowIfCancellationRequested();
             songs.Add(new ServerSong(r.GetString(0), Text(r, 1), Text(r, 2), Text(r, 3), Text(r, 4), Int(r, 5), Int(r, 6), Int(r, 7),
                 Text(r, 8), Text(r, 9), r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)),
-                Text(r, 12), r.IsDBNull(13) ? null : r.GetDouble(13), Text(r, 14)));
+                Text(r, 12), r.IsDBNull(13) ? null : r.GetDouble(13), Text(r, 14), Text(r, 15)));
         }
         return new CatalogSearch(songs, leftOut.Distinct().ToList());
 

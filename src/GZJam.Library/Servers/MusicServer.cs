@@ -96,7 +96,8 @@ public sealed record ServerSong(
     TimeSpan Duration,
     string? Genre = null,
     double? Bpm = null,
-    string? AlbumId = null);
+    string? AlbumId = null,
+    string? CoverArt = null);
 
 /// <summary>A server call that didn't work, with words for why.</summary>
 public sealed class ServerException(string message, Exception? inner = null, ServerCheckOutcome outcome = ServerCheckOutcome.Failed)

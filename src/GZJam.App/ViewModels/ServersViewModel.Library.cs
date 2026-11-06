@@ -284,7 +284,8 @@ public sealed partial class ServersViewModel
     public async Task ReadCatalogsAsync()
     {
         foreach (ServerItemViewModel item in Items.Where(i => !i.IsOffline).ToList())
-            if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge)
+            if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge
+                || !_database.ServerCatalogHasArt(item.Server.Id))   // read before its pictures were kept
                 await ReadCatalogAsync(item.Server.Id, quiet: true);
     }
 

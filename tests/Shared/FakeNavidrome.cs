@@ -49,6 +49,13 @@ public sealed class FakeNavidrome : HttpMessageHandler
     public bool RealPaths { get; set; } = true;
     public bool Down { get; set; }
 
+    /// <summary>A tiny real PNG: each album's picture.</summary>
+    public static readonly byte[] Picture = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+
+    /// <summary>The pictures asked for (getCoverArt): their ID, and the size asked for, if any.</summary>
+    public List<(string Id, string? Size)> ArtAsked { get; } = [];
+
     /// <summary>Lists no songs at all (a server reading its music again).</summary>
     public bool Empty { get; set; }
 
@@ -117,7 +124,7 @@ public sealed class FakeNavidrome : HttpMessageHandler
         return new
         {
             id, title = s.Title, artist = s.Artist, album = s.Album, albumId = s.AlbumId, track = s.Track, suffix = s.Suffix,
-            size = SizeOf(id), duration = 180,
+            size = SizeOf(id), duration = 180, coverArt = "al-" + s.AlbumId,
             path = RealPaths ? s.Path : $"{s.Artist}/{s.Album}/{(s.Track > 0 ? $"{s.Track:00} - " : "")}{s.Title}.{s.Suffix}",
         };
     }
@@ -151,6 +158,14 @@ public sealed class FakeNavidrome : HttpMessageHandler
             throw new HttpRequestException("No connection could be made.");
         Uri uri = request.RequestUri!;
         string id = System.Web.HttpUtility.ParseQueryString(uri.Query)["id"] ?? "";
+        if (uri.AbsolutePath == "/rest/getCoverArt.view")
+        {
+            lock (ArtAsked)
+                ArtAsked.Add((id, System.Web.HttpUtility.ParseQueryString(uri.Query)["size"]));
+            var picture = new ByteArrayContent(Picture);
+            picture.Headers.ContentType = new("image/png");
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = picture });
+        }
         if (uri.AbsolutePath == "/rest/download.view" && Hold is { } hold)
             return HeldAsync(request, hold, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view" && DownloadDelay > TimeSpan.Zero)

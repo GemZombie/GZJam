@@ -567,6 +567,12 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (server_id, playlist_id)
             );
             """,
+
+        // 30: Each catalog song's picture on the server, by the ID it gives it (getCoverArt), for
+        // the song list's rows of songs not on the laptop (#290). Only adds.
+        """
+            ALTER TABLE server_catalog ADD COLUMN cover_art TEXT;
+            """,
     ];
 
     // ───────────── Roots ─────────────

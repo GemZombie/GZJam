@@ -110,6 +110,23 @@ public sealed partial class ServersViewModel
             OnPropertyChanged(nameof(DownloadsFolder));
             await EnsureDownloadsInLibraryAsync();
 
+            // Songs already coming down are headed for the old folder: they finish first, and move too.
+            if (DownloadsUnderWay() is { Count: > 0 } coming)
+            {
+                SyncStatus = coming.Count == 1 ? "Waiting for a song still downloading…" : $"Waiting for {coming.Count} songs still downloading…";
+                Log.Info($"Servers: the move waits for {coming.Count} downloads under way");
+                try
+                {
+                    await Task.WhenAll(coming);
+                }
+                catch (Exception)
+                {
+                    // One that failed or stopped isn't there to move: the rest are.
+                }
+                downloads = DownloadsUnder(from);
+                paths = downloads.Select(d => d.Path).ToHashSet(StringComparer.Ordinal);
+            }
+
             SyncStatus = "Moving the downloaded songs…";
             SyncPercent = 0;
             var progress = new Progress<int>(done =>
@@ -157,6 +174,7 @@ public sealed partial class ServersViewModel
                 File.SetLastWriteTimeUtc(target, modified);   // a copy to another drive is a new file
                 _database.MoveSongFiles([(path, target)]);
                 moves.Add((path, target));
+                MoveArtAlong(Path.GetDirectoryName(path)!, Path.GetDirectoryName(target)!);
                 RemoveEmptyFolders(Path.GetDirectoryName(path), from);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -176,6 +194,50 @@ public sealed partial class ServersViewModel
             Log.Info($"Servers: couldn't remove the empty folder {from}: {e.Message}");
         }
         return (moves, failed);
+    }
+
+    /// <summary>The folder and those in it, where they hold nothing (or only an album's picture), from the bottom up.</summary>
+    private static void RemoveEmptyTree(string folder)
+    {
+        try
+        {
+            if (!Directory.Exists(folder))
+                return;
+            foreach (string inside in Directory.EnumerateDirectories(folder).ToList())
+                RemoveEmptyTree(inside);
+            if (OnlyArtLeft(folder) is { } art)
+            {
+                foreach (string picture in art)
+                    File.Delete(picture);
+                Directory.Delete(folder);
+            }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Info($"Servers: couldn't remove the empty folder {folder}: {e.Message}");
+        }
+    }
+
+    /// <summary>The album's picture follows its last song out of a folder, unless the new folder has one.</summary>
+    private static void MoveArtAlong(string folder, string to)
+    {
+        if (!Directory.Exists(folder) || OnlyArtLeft(folder) is not { Count: > 0 } art)
+            return;
+        foreach (string picture in art)
+        {
+            string target = Path.Combine(to, Path.GetFileName(picture));
+            try
+            {
+                if (File.Exists(target))
+                    File.Delete(picture);
+                else
+                    File.Move(picture, target);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Info($"Servers: couldn't move the album picture {picture}: {e.Message}");
+            }
+        }
     }
 
     /// <summary>The path, or "… (2).mp3" and on if a file (or a server song) is there already.</summary>
@@ -209,6 +271,8 @@ public sealed partial class ServersViewModel
             {
                 Log.Info($"Servers: {from} is empty now, out of the library");
                 library.RemoveRoot(oldRoot.Id);
+                // No longer watched: on Windows a watched folder deleted stays until it isn't.
+                await Task.Run(() => RemoveEmptyTree(from));
             }
             else
                 await library.ScanRootAsync(oldRoot.Id);

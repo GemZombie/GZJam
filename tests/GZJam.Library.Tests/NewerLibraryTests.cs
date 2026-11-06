@@ -50,20 +50,20 @@ public sealed class NewerLibraryTests : IDisposable
     }
 
     [Theory]
-    [InlineData(30L)]    // the newer GZJam said only it, or newer, can read it
+    [InlineData(1000L)]  // the newer GZJam said only it, or newer, can read it (far ahead: never this version)
     [InlineData(null)]   // or said nothing
     public void One_this_version_cant_read_is_refused_and_left_alone(long? oldestReader)
     {
-        string path = NewerLibrary(version: 30, oldestReader);
+        string path = NewerLibrary(version: 1000, oldestReader);
         byte[] before = File.ReadAllBytes(path);
 
         var reason = LibraryDatabase.CheckCanOpen(path);
         Assert.NotNull(reason);
-        Assert.Equal(30, reason.Version);
+        Assert.Equal(1000, reason.Version);
         var thrown = Assert.Throws<LibraryTooNewException>(() => new LibraryDatabase(path));
         Assert.Equal(reason.Known, thrown.Known);
         SqliteConnection.ClearAllPools();
-        Assert.Equal(30, UserVersion(path));
+        Assert.Equal(1000, UserVersion(path));
     }
 
     [Fact]

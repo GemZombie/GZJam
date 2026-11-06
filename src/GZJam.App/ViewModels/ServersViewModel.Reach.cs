@@ -86,6 +86,9 @@ public sealed partial class ServersViewModel
     /// <summary>The tree's mark, the song list's rows, and "Only what's on this laptop" follow a server going or coming back.</summary>
     private void Changed(ServerItemViewModel item, bool offline)
     {
+        RefreshArtServers();
+        if (!offline)
+            _owner.Art.ForgetMissingServerArt();   // its pictures can come now
         var library = _owner.Library;
         library.SetServerOffline(item.Server.Id, offline);
         bool showing = library.SelectedFolder is { IsServer: true, Node.ServerId: long id } && id == item.Server.Id;
