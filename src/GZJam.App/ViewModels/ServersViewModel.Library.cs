@@ -21,7 +21,8 @@ public sealed partial class ServersViewModel
 
     /// <summary>The servers' places in the library's folder tree, after the music folders, each with its folders from its catalog.</summary>
     public IReadOnlyList<FolderNode> TreeNodes =>
-        Items.Select(i => FolderTree.BuildServer(i.Server.Id, i.Name, _database.GetServerCatalogFolders(i.Server.Id))).ToList();
+        Items.Select(i => FolderTree.BuildServer(i.Server.Id, i.Name, _database.GetServerCatalogFolders(i.Server.Id),
+            _database.GetServerPlaylists(i.Server.Id).Select(p => (p.Id, p.Name, p.SongIds.Count)).ToList())).ToList();
 
     private ServerItemViewModel? ItemFor(long serverId) => Items.FirstOrDefault(i => i.Server.Id == serverId);
 
@@ -37,6 +38,8 @@ public sealed partial class ServersViewModel
     {
         if (ItemFor(serverId) is not { } item)
             return new([], "That server isn't in Settings › Servers any more.");
+        if (folder.StartsWith(FolderNode.ServerPlaylistsPath, StringComparison.Ordinal))
+            return await BrowsePlaylistAsync(item, folder, text, cancel);
 
         // From its catalog when it has one: as fast as the library, its folders, its filters, offline too.
         if (_database.GetServerCatalogCount(serverId) > 0)
@@ -271,6 +274,7 @@ public sealed partial class ServersViewModel
             List<ServerSong> songs = await Task.Run(() => ServerCatalogReader.ReadAsync(client, progress));
             await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
+            await ReadPlaylistsAsync(item, client);
         }
         catch (ServerException e)
         {

@@ -116,9 +116,11 @@ public sealed class ServerLibraryAppTests
         WaitFor(() => ServerNode(app).Children.Count > 0, "the server's folders");
         FolderNodeViewModel server = ServerNode(app);
 
-        Assert.Equal(["Blues", "Jazz & Swing"], server.Children.Select(c => c.Name));
+        WaitFor(() => ServerNode(app).Children.Count == 3, "its playlists too");
+        server = ServerNode(app);
+        Assert.Equal(["Playlists", "Blues", "Jazz & Swing"], server.Children.Select(c => c.Name));   // its playlists first
         Assert.Equal("4", server.CountText);
-        FolderNodeViewModel basie = server.Children[1].Children[0];
+        FolderNodeViewModel basie = server.Children[2].Children[0];
         Assert.Equal(("Count Basie", "2"), (basie.Name, basie.CountText));
         Assert.False(basie.IsServerItself);
 

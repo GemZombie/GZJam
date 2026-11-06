@@ -759,6 +759,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Whether a server can't be reached right now, for its mark in the tree.</summary>
     public Func<long, bool> ServerOffline { get; set; } = _ => false;
 
+    /// <summary>Whether a server's playlist is kept on the laptop, for its menu.</summary>
+    public Func<long, string, bool> ServerPlaylistKept { get; set; } = (_, _) => false;
+
     /// <summary>Whether a server is syncing now, for its node.</summary>
     public Func<long, bool> ServerSyncing { get; set; } = _ => false;
 

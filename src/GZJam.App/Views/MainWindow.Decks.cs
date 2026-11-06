@@ -344,6 +344,19 @@ public partial class MainWindow
     private async void OnRemoveTracksFromLaptopClick(object? sender, RoutedEventArgs e) =>
         await Vm.Servers.RemoveFromLaptopAsync(Vm.Servers.DownloadsFor(SelectedTracks()));
 
+    private async void OnKeepServerPlaylistClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } })
+            await Vm.Servers.KeepPlaylistAsync(id, playlist);
+    }
+
+    private void OnOpenKeptPlaylistClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } }
+            && Vm.Servers.KeptAs(id, playlist) is { } kept)
+            Vm.Library.OpenPlaylist(kept.Id);
+    }
+
     private async void OnRemoveFolderFromLaptopClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } folder)

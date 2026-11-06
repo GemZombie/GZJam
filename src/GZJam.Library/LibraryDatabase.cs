@@ -554,6 +554,19 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (server_id, song_id)
             );
             """,
+
+        // 29: A server's playlists in the library's tree (#290), read with its catalog and again
+        // when one is opened: each one's name and its songs' IDs on the server, in order (one per
+        // line). Only adds.
+        """
+            CREATE TABLE server_playlists (
+                server_id   INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                playlist_id TEXT NOT NULL,
+                name        TEXT NOT NULL,
+                song_ids    TEXT NOT NULL,
+                PRIMARY KEY (server_id, playlist_id)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

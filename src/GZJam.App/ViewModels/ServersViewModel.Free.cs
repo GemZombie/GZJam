@@ -66,7 +66,9 @@ public sealed partial class ServersViewModel
     /// <summary>The downloads of a server's folder and those below it, that may be removed now.</summary>
     public IReadOnlyList<ServerDownload> DownloadsInFolder(long serverId, string folder)
     {
-        var ids = _database.SearchServerCatalog(serverId, folder, null).Songs.Select(s => s.Id).ToHashSet();
+        var ids = folder.StartsWith(FolderNode.ServerPlaylistsPath, StringComparison.Ordinal)
+            ? PlaylistIdOf(folder) is { } playlist ? (_database.GetServerPlaylist(serverId, playlist)?.SongIds ?? []).ToHashSet() : []
+            : _database.SearchServerCatalog(serverId, folder, null).Songs.Select(s => s.Id).ToHashSet();
         var keep = ProtectedPaths();
         return _database.GetServerDownloads(serverId).Where(d => ids.Contains(d.SongId) && !keep.Contains(d.Path)).ToList();
     }

@@ -371,8 +371,12 @@
                       <Separator IsVisible="{Binding IsServerItself}" />
                       <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
                                 ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />
+                      <MenuItem Header="Keep on this laptop" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
+                                ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
+                      <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
+                                ToolTip.Tip="It's kept on this laptop: open your copy of it, among your playlists" />
                       <MenuItem Header="Remove from this laptop" IsVisible="{Binding IsServerFolder}" Click="OnRemoveFolderFromLaptopClick"
-                                ToolTip.Tip="Remove this folder's downloaded songs from the laptop: they stay on the server" />
+                                ToolTip.Tip="Remove the songs downloaded from here from the laptop: they stay on the server" />
                       <MenuItem Header="Read its song list again" IsVisible="{Binding IsServerItself}" Click="OnReadServerCatalogClick"
                                 ToolTip.Tip="Ask the server for every song again, for songs added or changed there since" />
                       <MenuItem Header="Server settings…" IsVisible="{Binding IsServerItself}" Click="OnServerSettingsClick"
@@ -380,7 +384,9 @@
                     </ContextMenu>
                   </Grid.ContextMenu>
                   <Panel>
-                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding !IsServerItself}" />
+                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding HasFolderIcon}" />
+                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round" Stretch="Uniform"
+                          Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServerPlaylist}" />
                     <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
                           Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsOnline}" />
                     <Path x:Name="ServerOfflineMark" Data="{StaticResource IconServerOffline}" Stroke="{StaticResource Deck2Brush}" StrokeThickness="2"

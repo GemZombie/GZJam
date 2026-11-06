@@ -124,6 +124,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         Library.ServerOffline = Servers.IsOffline;
         Library.ServerSyncing = id => Servers.Items.FirstOrDefault(i => i.Server.Id == id)?.IsSyncing == true;
+        Library.ServerPlaylistKept = Servers.IsKept;
         Queue.PassedOver += waiting => ShowNotice(waiting.Count == 1
             ? $"{waiting[0].Title} is still downloading: auto-play played the next song, and it waits at the top."
             : $"{waiting.Count} songs are still downloading: auto-play played the next song, and they wait at the top.", seconds: 6);

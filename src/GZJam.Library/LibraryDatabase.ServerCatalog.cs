@@ -9,6 +9,9 @@ namespace GZJam.Library;
 /// <summary>A search of a server's catalog: the songs found, and whether some of the search was left out.</summary>
 public sealed record CatalogSearch(IReadOnlyList<ServerSong> Songs, IReadOnlyList<string> LeftOut);
 
+/// <summary>One of a server's playlists, as last read: its name and its songs' IDs there, in order.</summary>
+public sealed record ServerPlaylistCopy(string Id, string Name, IReadOnlyList<string> SongIds);
+
 public sealed partial class LibraryDatabase
 {
     // ───────────── A server's catalog (#290) ─────────────
@@ -59,7 +62,10 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>One song from the server's catalog, by its ID there; null if it isn't in it.</summary>
-    public ServerSong? GetServerCatalogSong(long serverId, string songId)
+    public ServerSong? GetServerCatalogSong(long serverId, string songId) => GetServerCatalogSongs(serverId, [songId]).FirstOrDefault();
+
+    /// <summary>These songs from the server's catalog, in this order; those not in it are left out.</summary>
+    public IReadOnlyList<ServerSong> GetServerCatalogSongs(long serverId, IEnumerable<string> songIds)
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
@@ -68,16 +74,86 @@ public sealed partial class LibraryDatabase
             FROM server_catalog WHERE server_id = $server AND song_id = $song;
             """;
         cmd.Parameters.AddWithValue("$server", serverId);
-        cmd.Parameters.AddWithValue("$song", songId);
-        using var r = cmd.ExecuteReader();
-        if (!r.Read())
-            return null;
+        var song = cmd.Parameters.Add("$song", SqliteType.Text);
+        var songs = new List<ServerSong>();
+        foreach (string id in songIds)
+        {
+            song.Value = id;
+            using var r = cmd.ExecuteReader();
+            if (r.Read())
+                songs.Add(ReadCatalogSong(r));
+        }
+        return songs;
+    }
+
+    private static ServerSong ReadCatalogSong(SqliteDataReader r)
+    {
         string? Text(int i) => r.IsDBNull(i) ? null : r.GetString(i);
         int? Int(int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
         return new ServerSong(r.GetString(0), Text(1), Text(2), Text(3), Text(4), Int(5), Int(6), Int(7), Text(8), Text(9),
             r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)), Text(12),
             r.IsDBNull(13) ? null : r.GetDouble(13), Text(14));
     }
+
+    // ───────────── Its playlists ─────────────
+
+    /// <summary>The server's playlists, all at once (read with its catalog): those gone from it go here too.</summary>
+    public void ReplaceServerPlaylists(long serverId, IEnumerable<ServerPlaylistCopy> playlists)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        using (var clear = c.CreateCommand())
+        {
+            clear.CommandText = "DELETE FROM server_playlists WHERE server_id = $server;";
+            clear.Parameters.AddWithValue("$server", serverId);
+            clear.ExecuteNonQuery();
+        }
+        foreach (ServerPlaylistCopy playlist in playlists)
+            SavePlaylist(c, serverId, playlist);
+        tx.Commit();
+    }
+
+    /// <summary>One playlist as the server has it now (opened in the library).</summary>
+    public void SaveServerPlaylist(long serverId, ServerPlaylistCopy playlist)
+    {
+        using var c = Open();
+        SavePlaylist(c, serverId, playlist);
+    }
+
+    /// <summary>Between a playlist's song IDs, kept as text.</summary>
+    private const char IdSeparator = (char)10;
+
+    private static void SavePlaylist(SqliteConnection c, long serverId, ServerPlaylistCopy playlist)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO server_playlists (server_id, playlist_id, name, song_ids) VALUES ($server, $id, $name, $songs)
+            ON CONFLICT (server_id, playlist_id) DO UPDATE SET name = excluded.name, song_ids = excluded.song_ids;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$id", playlist.Id);
+        cmd.Parameters.AddWithValue("$name", playlist.Name);
+        cmd.Parameters.AddWithValue("$songs", string.Join(IdSeparator, playlist.SongIds));
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>The server's playlists as last read, by name.</summary>
+    public IReadOnlyList<ServerPlaylistCopy> GetServerPlaylists(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT playlist_id, name, song_ids FROM server_playlists WHERE server_id = $server ORDER BY name COLLATE NOCASE;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var playlists = new List<ServerPlaylistCopy>();
+        while (r.Read())
+            playlists.Add(new ServerPlaylistCopy(r.GetString(0), r.GetString(1),
+                r.GetString(2).Split(IdSeparator, StringSplitOptions.RemoveEmptyEntries)));
+        return playlists;
+    }
+
+    public ServerPlaylistCopy? GetServerPlaylist(long serverId, string playlistId) =>
+        GetServerPlaylists(serverId).FirstOrDefault(p => p.Id == playlistId);
 
     /// <summary>The IDs of an album's songs, from the catalog.</summary>
     public IReadOnlyList<string> GetServerCatalogAlbumSongIds(long serverId, string albumId)

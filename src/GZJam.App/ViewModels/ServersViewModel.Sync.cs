@@ -417,6 +417,7 @@ public sealed partial class ServersViewModel
         {
             ServerChoiceKind.Song => [c.RemoteId],
             ServerChoiceKind.Album => _database.GetServerCatalogAlbumSongIds(item.Server.Id, c.RemoteId),
+            ServerChoiceKind.Playlist => _database.GetServerPlaylist(item.Server.Id, c.RemoteId)?.SongIds ?? [],
             _ => (IReadOnlyList<string>)[],
         }));
         Log.Info($"Servers: keeping from {item.Name}, as well: {string.Join(", ", added.Select(c => $"{c.Kind.ToString().ToLowerInvariant()} {c.Name}"))}");
