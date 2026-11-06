@@ -45,10 +45,7 @@ public sealed partial class ServersViewModel
         if (_database.GetServerCatalogCount(serverId) > 0)
         {
             CatalogSearch found = await Task.Run(() => _database.SearchServerCatalog(serverId, folder, text, cancel), cancel);
-            var here = LocalCopies(item);
-            var rows = await Task.Run(() => found.Songs.Select(s => here.TryGetValue(s.Id, out string? path)
-                ? _database.TrackForFile(path)
-                : new ServerTrack(item.Server.Id, item.Name, s) { Unreachable = item.IsOffline }.ToTrack()).ToList(), cancel);
+            var rows = await RowsForAsync(item, found.Songs, cancel);
             string? leftOut = found.LeftOut.Count == 0 ? null
                 : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
             return new(rows, Note: leftOut ?? (IsReadingCatalog(item) ? $"Reading {item.Name}'s song list again…" : null));
@@ -72,11 +69,7 @@ public sealed partial class ServersViewModel
                 var lists = await Task.WhenAll(albums.Select(a => client.GetAlbumSongsAsync(a.Id, cancel)));
                 return lists.SelectMany(l => l).ToList();
             }, cancel);
-            var here = LocalCopies(item);
-            var tracks = await Task.Run(() => songs.Select(s => here.TryGetValue(s.Id, out string? path)
-                ? _database.TrackForFile(path)
-                : new ServerTrack(item.Server.Id, item.Name, s).ToTrack()).ToList(), cancel);
-            return new(tracks, Note: note);
+            return new(await RowsForAsync(item, songs, cancel), Note: note);
         }
         catch (ServerException e)
         {
@@ -99,9 +92,13 @@ public sealed partial class ServersViewModel
             if (_database.GetServerCatalogCount(item.Server.Id) > 0)
             {
                 // At once, from the catalog.
-                var catalog = await Task.Run(() => _database.SearchServerCatalog(item.Server.Id, "", words, cancel), cancel);
-                var local = LocalCopies(item);
-                int notHere = catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                long serverId = item.Server.Id;
+                int notHere = await Task.Run(() =>
+                {
+                    var catalog = _database.SearchServerCatalog(serverId, "", words, cancel);
+                    var local = _database.GetServerSongsHere(serverId);
+                    return catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                }, cancel);
                 if (notHere > 0)
                     return (item.Server.Id, $"Also on {item.Name}: {(notHere == 1 ? "1 song" : $"{Format.Count(notHere)} songs")} not on this laptop");
                 continue;
@@ -113,7 +110,8 @@ public sealed partial class ServersViewModel
                 using var quick = CancellationTokenSource.CreateLinkedTokenSource(cancel);
                 quick.CancelAfter(TimeSpan.FromSeconds(4));
                 var found = await Task.Run(() => client.SearchAsync(words, songs: 100, albums: 0, artists: 0, quick.Token), quick.Token);
-                var here = LocalCopies(item);
+                long searched = item.Server.Id;
+                var here = await Task.Run(() => _database.GetServerSongsHere(searched), cancel);
                 int missing = found.Songs.Count(s => !here.ContainsKey(s.Id));
                 if (missing > 0)
                     return (item.Server.Id, $"Also on {item.Name}: {(missing == 1 ? "1 song" : $"{Format.Count(missing)}{(found.Songs.Count >= 100 ? "+" : "")} songs")} not on this laptop");
@@ -207,9 +205,12 @@ public sealed partial class ServersViewModel
             _owner.ShowNotice($"{item.Name} doesn't let this account download songs: they can be heard in the headphones only.", seconds: 8);
             return;
         }
-        var songs = _database.SearchServerCatalog(serverId, folder, null).Songs;
-        var here = LocalCopies(item);
-        var coming = songs.Where(s => !here.ContainsKey(s.Id)).ToList();
+        var (songs, coming) = await Task.Run(() =>
+        {
+            var all = _database.SearchServerCatalog(serverId, folder, null).Songs;
+            var here = _database.GetServerSongsHere(serverId);
+            return (all, all.Where(s => !here.ContainsKey(s.Id)).ToList());
+        });
         if (songs.Count == 0)
         {
             _owner.ShowNotice($"{name} has no songs in {item.Name}'s song list.", seconds: 6);

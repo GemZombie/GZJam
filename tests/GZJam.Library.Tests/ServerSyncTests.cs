@@ -56,6 +56,20 @@ public sealed class ServerSyncTests : IDisposable
     }
 
     [Fact]
+    public async Task The_songs_here_are_those_with_their_file_quickly_from_the_library()
+    {
+        Choose(Playlist("pl1", "Friday"));
+        await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+        string boogie = Here("Jazz & Swing", "Count Basie", "Cute", "03 - Basie Boogie.mp3");
+
+        Assert.Equal(["s1", "s2", "s3"], _lib.Database.GetServerSongsHere(_record.Id).Keys.Order());   // not read into the library yet: looked for
+        File.Delete(boogie);
+        var here = _lib.Database.GetServerSongsHere(_record.Id);
+        Assert.Equal(["s2", "s3"], here.Keys.Order());
+        Assert.Equal(_lib.Database.GetServerSongs(_record.Id).Single(s => s.SongId == "s2").Path, here["s2"]);
+    }
+
+    [Fact]
     public async Task A_second_sync_downloads_nothing_again_and_follows_the_servers_playlist()
     {
         Choose(Playlist("pl1", "Friday"));

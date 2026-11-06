@@ -51,19 +51,26 @@ public sealed partial class ServersViewModel
     // ───────────── What can be kept ─────────────
 
     /// <summary>Whether any of these songs can be kept: a server's song not here, or one downloaded from it.</summary>
-    public bool CanKeepCopy(IReadOnlyList<Track> tracks) =>
-        tracks.Any(t => t.OnServer is { } remote && ItemFor(remote.ServerId) is { IsPreviewOnly: false })
-        || tracks.Where(t => !t.IsOnServerOnly).Take(500).Any(t => _database.GetServerDownloadAt(t.Path) is not null);
+    public bool CanKeepCopy(IReadOnlyList<Track> tracks)
+    {
+        if (tracks.Any(t => t.OnServer is { } remote && ItemFor(remote.ServerId) is { IsPreviewOnly: false }))
+            return true;
+        if (tracks.All(t => t.IsOnServerOnly))
+            return false;
+        var downloads = _database.GetServerDownloadsByPath();   // one read, however many are chosen
+        return downloads.Count > 0 && tracks.Any(t => downloads.ContainsKey(t.Path));
+    }
 
     /// <summary>Keep a copy in my library, from the song list: the server's songs among them, and those downloaded from it.</summary>
     public async Task KeepTracksAsync(IReadOnlyList<Track> tracks)
     {
         var wanted = new List<(long ServerId, string SongId, ServerSong? Song)>();
+        var downloads = await Task.Run(_database.GetServerDownloadsByPath);
         foreach (Track track in tracks)
             if (track.OnServer is { } remote)
                 wanted.Add((remote.ServerId, remote.Song.Id, remote.Song));
-            else if (_database.GetServerDownloadAt(track.Path) is var (serverId, songId))
-                wanted.Add((serverId, songId, null));
+            else if (downloads.TryGetValue(track.Path, out var download))
+                wanted.Add((download.ServerId, download.SongId, null));
         if (wanted.Count == 0)
         {
             _owner.ShowNotice("Those are in your library already: only songs from a server, or downloaded from one, can be kept.", seconds: 6);

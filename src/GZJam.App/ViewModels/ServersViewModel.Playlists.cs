@@ -110,10 +110,7 @@ public sealed partial class ServersViewModel
             if (found.LeftOut.Count > 0)
                 note = $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
         }
-        var here = LocalCopies(item);
-        var rows = await Task.Run(() => songs.Select(s => here.TryGetValue(s.Id, out string? path)
-            ? _database.TrackForFile(path)
-            : new ServerTrack(item.Server.Id, item.Name, s) { Unreachable = item.IsOffline }.ToTrack()).ToList(), cancel);
+        var rows = await RowsForAsync(item, songs, cancel);
         note ??= KeptAs(item.Server.Id, id) is { } kept
             ? $"Kept on this laptop: it's in your playlists too, as {kept.Name}."
             : missing > 0 ? $"{(missing == 1 ? "1 song" : $"{Format.Count(missing)} songs")} in it aren't in {item.Name}'s song list yet: Read its song list again." : null;

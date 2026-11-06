@@ -406,9 +406,27 @@ public sealed partial class ServersViewModel
     public SubsonicClient? SignedIn(ServerItemViewModel item) =>
         TryGetPassword(item.Server.PasswordKey, out _) is { } password ? ClientFor(item.Server, password) : null;
 
-    /// <summary>Each of the server's songs that's on this laptop (by its ID there), and where.</summary>
-    public Dictionary<string, string> LocalCopies(ServerItemViewModel item) =>
-        _database.GetServerSongs(item.Server.Id).Where(s => File.Exists(s.Path)).ToDictionary(s => s.SongId, s => s.Path);
+    /// <summary>Each of the server's songs that's on this laptop (by its ID there), and where. It reads the library: call it off the window's thread.</summary>
+    public Dictionary<string, string> LocalCopies(ServerItemViewModel item) => _database.GetServerSongsHere(item.Server.Id);
+
+    /// <summary>
+    /// The song list's rows for a server's songs: the library's own for those on this laptop (in
+    /// one go), the server's for the rest. Off the window's thread, however many there are.
+    /// </summary>
+    private Task<List<Track>> RowsForAsync(ServerItemViewModel item, IReadOnlyList<ServerSong> songs, CancellationToken cancel)
+    {
+        long serverId = item.Server.Id;
+        string name = item.Name;
+        bool offline = item.IsOffline;
+        return Task.Run(() =>
+        {
+            var here = _database.GetServerSongsHere(serverId);
+            var mine = _database.FindTracks(songs.Select(s => here.GetValueOrDefault(s.Id)).OfType<string>());
+            return songs.Select(s => here.TryGetValue(s.Id, out string? path)
+                ? mine.GetValueOrDefault(path) ?? _database.TrackForFile(path)
+                : new ServerTrack(serverId, name, s) { Unreachable = offline }.ToTrack()).ToList();
+        }, cancel);
+    }
 
     /// <summary>Adds songs, albums or artists to what's kept on the laptop from the server.</summary>
     public void AddChoices(ServerItemViewModel item, IEnumerable<ServerChoice> choices)

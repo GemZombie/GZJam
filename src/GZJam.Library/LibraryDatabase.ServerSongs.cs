@@ -55,6 +55,50 @@ public sealed partial class LibraryDatabase
         return songs;
     }
 
+    /// <summary>
+    /// Each of a server's songs on this laptop (by its ID there), and where. From the library's
+    /// index, so it's quick however many there are (a DJ's own copies of a whole server, say, and
+    /// their music on a network drive): only a file not read into the library yet (downloaded a
+    /// moment ago) is looked for on the disk.
+    /// </summary>
+    public Dictionary<string, string> GetServerSongsHere(long serverId)
+    {
+        using var c = Open();
+        return ServerSongsHere(c, serverId);
+    }
+
+    private static Dictionary<string, string> ServerSongsHere(SqliteConnection c, long serverId)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT s.song_id, s.path, t.id IS NOT NULL FROM server_songs s LEFT JOIN tracks t ON t.path = s.path
+            WHERE s.server_id = $server;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var here = new Dictionary<string, string>(StringComparer.Ordinal);
+        while (r.Read())
+        {
+            string path = r.GetString(1);
+            if (r.GetBoolean(2) || File.Exists(path))
+                here[r.GetString(0)] = path;
+        }
+        return here;
+    }
+
+    /// <summary>The songs GZJam downloaded (not the DJ's own), by their file: which server's song each is.</summary>
+    public Dictionary<string, (long ServerId, string SongId)> GetServerDownloadsByPath()
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT path, server_id, song_id FROM server_songs WHERE own_copy = 0;";
+        using var r = cmd.ExecuteReader();
+        var downloads = new Dictionary<string, (long, string)>(StringComparer.Ordinal);
+        while (r.Read())
+            downloads.TryAdd(r.GetString(0), (r.GetInt64(1), r.GetString(2)));
+        return downloads;
+    }
+
     /// <summary>Whether any server song is at <paramref name="path"/> (in any case): for not putting two in one place.</summary>
     public bool IsServerSongPath(string path)
     {
@@ -287,16 +331,7 @@ public sealed partial class LibraryDatabase
         if (mine.Count == 0)
             return 0;
 
-        var have = new HashSet<string>(StringComparer.Ordinal);
-        using (var cmd = c.CreateCommand())
-        {
-            cmd.CommandText = "SELECT song_id, path FROM server_songs WHERE server_id = $server;";
-            cmd.Parameters.AddWithValue("$server", serverId);
-            using var r = cmd.ExecuteReader();
-            while (r.Read())
-                if (File.Exists(r.GetString(1)))
-                    have.Add(r.GetString(0));
-        }
+        var have = ServerSongsHere(c, serverId).Keys.ToHashSet(StringComparer.Ordinal);
 
         var links = new List<(string SongId, string Path, long? Size, string? ServerPath)>();
         using (var cmd = c.CreateCommand())
@@ -317,7 +352,7 @@ public sealed partial class LibraryDatabase
                 var match = candidates.FirstOrDefault(m => m.Size == size);
                 if (match.Path is null && ms > 0)
                     match = candidates.FirstOrDefault(m => m.Ms > 0 && Math.Abs(m.Ms - ms) <= SameLengthMs);
-                if (match.Path is not null && File.Exists(match.Path))
+                if (match.Path is not null)   // in the library's index: there
                     links.Add((songId, match.Path, size, r.IsDBNull(5) ? null : r.GetString(5)));
             }
         }

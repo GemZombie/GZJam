@@ -25,6 +25,7 @@ public partial class App : Application
             AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error("Unhandled exception", e.ExceptionObject as Exception);
             TaskScheduler.UnobservedTaskException += (_, e) => Log.Error("Unobserved task exception", e.Exception);
             Dispatcher.UIThread.UnhandledException += (_, e) => Log.Error("Unhandled UI exception", e.Exception);
+            WatchForStalls();
 
             RestoreIfAsked();   // before the settings are read: a backup brings its own
             var settings = AppSettings.Load(AppPaths.SettingsFile);
@@ -52,6 +53,26 @@ public partial class App : Application
             }
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Notes in the activity log each time the window was too busy to answer for more than two
+    /// seconds ("Not Responding" on Windows), so a report of one can be matched to what GZJam was
+    /// doing by the lines around it.
+    /// </summary>
+    private static void WatchForStalls()
+    {
+        var every = TimeSpan.FromMilliseconds(500);
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan last = clock.Elapsed;
+        var timer = new DispatcherTimer(every, DispatcherPriority.Background, (_, _) =>
+        {
+            TimeSpan now = clock.Elapsed, late = now - last - every;
+            last = now;
+            if (late > TimeSpan.FromSeconds(2))
+                Log.Info($"The window was busy for {late.TotalSeconds:0.0} s, too long to answer (Windows says Not Responding)");
+        });
+        timer.Start();
     }
 
     /// <summary>Starting over with an empty library, if the last GZJam asked for it (see <see cref="LibraryReset"/>).</summary>
