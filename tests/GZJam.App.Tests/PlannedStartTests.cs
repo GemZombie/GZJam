@@ -264,13 +264,36 @@ public sealed class PlannedStartTests
     {
         using var app = Night();
         var button = app.Window.FindControl<Button>("QueueStartButton")!;
-        Assert.Equal("Set start time", button.Content);
+        var time = app.Window.FindControl<TextBlock>("QueuePlanText")!;
+        Assert.False(time.IsVisible);   // nothing planned: only the clock
+        Assert.DoesNotContain("planned", button.Classes);
+        Assert.Contains("Say when you mean to start", ToolTip.GetTip(button)?.ToString());
 
         app.ViewModel.Plan.PrepareDraft();
         app.ViewModel.Plan.SetStartCommand.Execute(null);
         AppHarness.Settle(100);
 
-        Assert.Equal("Start 7:30 PM", button.Content);
+        Assert.True(time.IsVisible);
+        Assert.Equal("7:30 PM", time.Text);
+        Assert.Contains("planned", button.Classes);   // lit
+    }
+
+    [AvaloniaFact]
+    public void The_clock_is_there_at_the_default_width_and_the_plays_at_column_gives_way_before_the_rest()
+    {
+        using var app = Night(auto: false);
+        Queue(app, Song("a", 180), Song("b", 120));
+        app.Window.SetQueueColumnShown("Starts", true);
+        AppHarness.Settle(300);
+
+        var row = app.Window.FindControl<GZJam.App.Controls.FitRow>("QueueTabsRow")!;
+        Assert.False(row.IsDropped(app.Window.FindControl<Button>("QueueStartButton")!));   // the DJ can always set a start time
+        var song = app.Window.FindControl<ListBox>("QueueList")!.GetVisualDescendants().OfType<GZJam.App.Controls.FitRow>().First();
+        bool Dropped(string part) => song.IsDropped(song.Children.First(c => c.Classes.Contains(part)));
+        // At the default width there is no room for it: it is the first thing to go, so the songs' art, rating and BPM are all still there.
+        Assert.True(Dropped("q-starts"));
+        Assert.False(Dropped("q-bpm"));
+        Assert.False(Dropped("q-art"));
     }
 
     private static string Clock(DateTime time) => time.ToString("t", System.Globalization.CultureInfo.CurrentCulture);
