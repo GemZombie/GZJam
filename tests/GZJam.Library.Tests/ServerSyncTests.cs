@@ -212,4 +212,57 @@ public sealed class ServerSyncTests : IDisposable
         Assert.True(placed.Length <= 250, placed.Length.ToString());
         Assert.EndsWith(".flac", placed);
     }
+
+    // ───────────── Downloaded while browsing (#284) ─────────────
+
+    [Fact]
+    public async Task An_album_an_artist_and_a_song_chosen_while_browsing_arrive_with_the_rest_kept()
+    {
+        Choose(Playlist("pl1", "Friday"));
+        _lib.Database.AddServerChoices(_record.Id, [
+            new ServerChoice(ServerChoiceKind.Album, "al-cute", "Cute"),               // s1, s4
+            new ServerChoice(ServerChoiceKind.Artist, "ar-ella", "Ella Fitzgerald"),   // s2
+            new ServerChoice(ServerChoiceKind.Song, "s3", "Lucky Rock Blues (Ma Rainey)"),
+        ]);
+        Assert.Equal(4, _lib.Database.GetServerChoices(_record.Id).Count);   // the playlist kept
+
+        SyncResult result = await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+
+        Assert.Equal((4, 4), (result.Songs, result.Downloaded));
+        Assert.True(File.Exists(Here("Jazz & Swing", "Count Basie", "Cute", "05 - Li'l Darlin'.mp3")));
+        Assert.Equal([ServerChoiceKind.Playlist, ServerChoiceKind.Artist, ServerChoiceKind.Album, ServerChoiceKind.Song],
+            _lib.Database.GetServerChoices(_record.Id).Select(c => c.Kind));
+    }
+
+    [Fact]
+    public async Task A_song_no_longer_on_the_server_is_said_and_the_rest_still_arrive()
+    {
+        _lib.Database.AddServerChoices(_record.Id, [
+            new ServerChoice(ServerChoiceKind.Song, "gone", "Old Song (Somebody)"),
+            new ServerChoice(ServerChoiceKind.Song, "s1", "Basie Boogie (Count Basie)"),
+        ]);
+        SyncResult result = await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, result.Downloaded);
+        Assert.Contains("Old Song (Somebody): no longer on the server.", result.Problems);
+    }
+
+    [Fact]
+    public async Task Search_finds_artists_albums_and_songs()
+    {
+        ServerSearch found = await _server.Client().SearchAsync("basie", cancel: TestContext.Current.CancellationToken);
+        Assert.Equal("Count Basie", Assert.Single(found.Artists).Name);
+        ServerAlbum cute = Assert.Single(found.Albums);
+        Assert.Equal(("Cute", "Count Basie", 1958, 2), (cute.Name, cute.Artist, cute.Year, cute.SongCount));
+        Assert.Equal(["Basie Boogie", "Li'l Darlin'"], found.Songs.Select(s => s.Title).Order());
+    }
+
+    [Fact]
+    public async Task Recently_added_albums_and_an_artists_albums_are_listed()
+    {
+        var newest = await _server.Client().GetAlbumListAsync("newest", cancel: TestContext.Current.CancellationToken);
+        Assert.Equal(3, newest.Count);
+        var ella = await _server.Client().GetArtistAsync("ar-ella", TestContext.Current.CancellationToken);
+        Assert.Equal("Ella Swings", Assert.Single(ella).Name);
+    }
 }

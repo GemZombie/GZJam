@@ -393,6 +393,25 @@ public partial class MainWindow : Window
 
     // ───────────── Library folders ─────────────
 
+    /// <summary>The library's Server link: the server's browser, or a menu of them when there are several.</summary>
+    private void OnBrowseServerClick(object? sender, RoutedEventArgs e)
+    {
+        var servers = Vm.Servers;
+        if (servers.Items.Count == 1)
+        {
+            ServerBrowserWindow.Show(this, servers, servers.Items[0]);
+            return;
+        }
+        var menu = new MenuFlyout();
+        foreach (var server in servers.Items)
+        {
+            var item = new MenuItem { Header = server.Name };
+            item.Click += (_, _) => ServerBrowserWindow.Show(this, servers, server);
+            menu.Items.Add(item);
+        }
+        menu.ShowAt((Control)sender!);
+    }
+
     private async void OnAddFolderClick(object? sender, RoutedEventArgs e)
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions

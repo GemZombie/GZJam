@@ -299,6 +299,63 @@ public sealed class SubsonicClient
             .Where(s => s.Id.Length > 0)
             .ToList();
 
+    // ───────────── Browsing the server (#284) ─────────────
+
+    /// <summary>Songs, albums and artists matching <paramref name="query"/>, as the server finds them.</summary>
+    public async Task<ServerSearch> SearchAsync(string query, int songs = 60, int albums = 20, int artists = 10, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("search3",
+            [("query", query), ("songCount", songs.ToString(CultureInfo.InvariantCulture)),
+             ("albumCount", albums.ToString(CultureInfo.InvariantCulture)), ("artistCount", artists.ToString(CultureInfo.InvariantCulture))],
+            cancel).ConfigureAwait(false);
+        if (!body.TryGetProperty("searchResult3", out JsonElement found))
+            return new ServerSearch([], [], []);
+        return new ServerSearch(Songs(Items(found, "song")), Albums(Items(found, "album")),
+            Items(found, "artist").Select(a => new ServerArtist(Text(a, "id") ?? "", Text(a, "name") ?? "", Int(a, "albumCount") ?? 0))
+                .Where(a => a.Id.Length > 0).ToList());
+    }
+
+    /// <summary>Albums by <paramref name="type"/>: "newest" (recently added), "recent" (played), "frequent", "alphabeticalByName"…</summary>
+    public async Task<IReadOnlyList<ServerAlbum>> GetAlbumListAsync(string type, int size = 40, int offset = 0, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getAlbumList2",
+            [("type", type), ("size", size.ToString(CultureInfo.InvariantCulture)), ("offset", offset.ToString(CultureInfo.InvariantCulture))],
+            cancel).ConfigureAwait(false);
+        return body.TryGetProperty("albumList2", out JsonElement list) ? Albums(Items(list, "album")) : [];
+    }
+
+    /// <summary>An artist's albums.</summary>
+    public async Task<IReadOnlyList<ServerAlbum>> GetArtistAsync(string artistId, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getArtist", [("id", artistId)], cancel).ConfigureAwait(false);
+        return body.TryGetProperty("artist", out JsonElement artist) ? Albums(Items(artist, "album")) : [];
+    }
+
+    /// <summary>One song, by its ID; null if the server no longer has it.</summary>
+    public async Task<ServerSong?> GetSongAsync(string songId, CancellationToken cancel = default)
+    {
+        try
+        {
+            JsonElement body = await GetAsync("getSong", [("id", songId)], cancel).ConfigureAwait(false);
+            return body.TryGetProperty("song", out JsonElement song) ? Songs([song]).FirstOrDefault() : null;
+        }
+        catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Failed)
+        {
+            return null;   // error 70: not found
+        }
+    }
+
+    private static List<ServerAlbum> Albums(IEnumerable<JsonElement> items) =>
+        items.Select(a => new ServerAlbum(
+                Text(a, "id") ?? "",
+                Text(a, "name") ?? Text(a, "title") ?? Text(a, "album") ?? "",
+                Text(a, "displayArtist") ?? Text(a, "artist"),
+                Int(a, "year"),
+                Int(a, "songCount") ?? 0,
+                TimeSpan.FromSeconds(Int(a, "duration") ?? 0)))
+            .Where(a => a.Id.Length > 0)
+            .ToList();
+
     /// <summary>The address of an API call, signed in: a fresh salt and token each time.</summary>
     internal Uri UriFor(string endpoint, IEnumerable<(string Name, string Value)> args)
     {
@@ -340,12 +397,25 @@ public sealed class SubsonicClient
         string? ServerVersion = null,
         bool OpenSubsonic = false);
 
+    /// <summary>How long to wait before asking again when a connection couldn't be made (Tailscale waking a route up, say).</summary>
+    public TimeSpan RetryAfter { get; init; } = TimeSpan.FromSeconds(1);
+
     private async Task<Answer> CallAsync(string endpoint, IEnumerable<(string, string)> args, CancellationToken cancel)
     {
+        var list = args.ToList();
         HttpResponseMessage response;
         try
         {
-            response = await _http.GetAsync(UriFor(endpoint, args), HttpCompletionOption.ResponseContentRead, cancel).ConfigureAwait(false);
+            try
+            {
+                response = await _http.GetAsync(UriFor(endpoint, list), HttpCompletionOption.ResponseContentRead, cancel).ConfigureAwait(false);
+            }
+            catch (HttpRequestException)
+            {
+                // Once more, after a moment: a first connection after a quiet spell can fail.
+                await Task.Delay(RetryAfter, cancel).ConfigureAwait(false);
+                response = await _http.GetAsync(UriFor(endpoint, list), HttpCompletionOption.ResponseContentRead, cancel).ConfigureAwait(false);
+            }
         }
         catch (HttpRequestException e)
         {

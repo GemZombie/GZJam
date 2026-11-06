@@ -112,6 +112,19 @@ public sealed class ServerTests : IDisposable
     }
 
     [Fact]
+    public async Task A_connection_that_fails_once_is_tried_again()
+    {
+        int tries = 0;
+        var server = new FakeServer
+        {
+            Answer = uri => ++tries == 1 ? throw new HttpRequestException("A connection attempt failed.") : (HttpStatusCode.OK,
+                "{\"subsonic-response\":{\"status\":\"ok\",\"version\":\"1.16.1\",\"type\":\"navidrome\",\"serverVersion\":\"0.64.2\"}}"),
+        };
+        var check = await server.Client("sesame").CheckAsync(TestContext.Current.CancellationToken);
+        Assert.True(check.Connected);
+    }
+
+    [Fact]
     public async Task Nothing_answering_is_unreachable_not_a_crash()
     {
         var server = new FakeServer { Answer = _ => throw new HttpRequestException("No such host is known.") };
@@ -129,7 +142,7 @@ public sealed class ServerTests : IDisposable
         public Func<Uri, (HttpStatusCode, string)>? Answer { get; init; }
 
         public SubsonicClient Client(string password) =>
-            new(new HttpClient(this), "http://synology:4533", "gzjam", password);
+            new(new HttpClient(this), "http://synology:4533", "gzjam", password) { RetryAfter = TimeSpan.Zero };
 
         private const string Head = """
             "status":"{0}","version":"1.16.1","type":"navidrome","serverVersion":"0.64.2 (10114574)","openSubsonic":true

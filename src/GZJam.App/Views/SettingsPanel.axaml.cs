@@ -112,6 +112,12 @@ public partial class SettingsPanel : UserControl
             await new ServerDialog(vm.Servers, server).ShowDialog<bool>(window);
     }
 
+    private void OnBrowseServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
+            ServerBrowserWindow.Show(window, vm.Servers, server);
+    }
+
     private async void OnChooseServerClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)

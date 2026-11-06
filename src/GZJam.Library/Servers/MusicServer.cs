@@ -101,3 +101,15 @@ public sealed class ServerException(string message, Exception? inner = null, Ser
 {
     public ServerCheckOutcome Outcome { get; } = outcome;
 }
+
+/// <summary>What a search of a server found.</summary>
+public sealed record ServerSearch(IReadOnlyList<ServerSong> Songs, IReadOnlyList<ServerAlbum> Albums, IReadOnlyList<ServerArtist> Artists)
+{
+    public bool IsEmpty => Songs.Count == 0 && Albums.Count == 0 && Artists.Count == 0;
+}
+
+/// <summary>An album on a server.</summary>
+public sealed record ServerAlbum(string Id, string Name, string? Artist, int? Year, int SongCount, TimeSpan Length);
+
+/// <summary>An artist on a server.</summary>
+public sealed record ServerArtist(string Id, string Name, int AlbumCount);
