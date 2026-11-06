@@ -349,6 +349,12 @@
             <c:FolderTreeView.Styles>
               <Style Selector="TreeViewItem" x:DataType="vm:FolderNodeViewModel">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                <!-- Rows only for the folders in view: a server can have thousands in one folder (#290) -->
+                <Setter Property="ItemsPanel">
+                  <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                  </ItemsPanelTemplate>
+                </Setter>
               </Style>
             </c:FolderTreeView.Styles>
             <c:FolderTreeView.ItemTemplate>
