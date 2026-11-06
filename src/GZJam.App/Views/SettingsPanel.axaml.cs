@@ -11,6 +11,7 @@ public enum SettingsSection
     Decks,
     Screen,
     Library,
+    Servers,
     About,
 }
 
@@ -46,7 +47,8 @@ public partial class SettingsPanel : UserControl
     public event EventHandler? FileRatingsRequested;
 
     private (RadioButton Nav, Control Page)[] Sections =>
-        [(NavSound, SoundPage), (NavDecks, DecksPage), (NavScreen, ScreenPage), (NavLibrary, LibraryPage), (NavAbout, AboutPage)];
+        [(NavSound, SoundPage), (NavDecks, DecksPage), (NavScreen, ScreenPage), (NavLibrary, LibraryPage), (NavServers, ServersPage),
+         (NavAbout, AboutPage)];
 
     /// <summary>The section showing.</summary>
     public SettingsSection Section
@@ -64,6 +66,8 @@ public partial class SettingsPanel : UserControl
             page.IsVisible = nav.IsChecked == true;
         if (AboutPage.IsVisible)
             FillAbout();
+        if (ServersPage.IsVisible && DataContext is ViewModels.SettingsViewModel vm)
+            vm.Servers.Shown();
     }
 
     /// <summary>The About section reads the license notices, so only when it's first shown.</summary>
@@ -87,6 +91,35 @@ public partial class SettingsPanel : UserControl
     private void OnPlaylistImportClick(object? sender, RoutedEventArgs e) => PlaylistImportRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnFileRatingsClick(object? sender, RoutedEventArgs e) => FileRatingsRequested?.Invoke(this, EventArgs.Empty);
+
+    // ───────────── Servers ─────────────
+
+    private static ViewModels.ServerItemViewModel? ServerOf(object? sender) =>
+        (sender as Control)?.DataContext as ViewModels.ServerItemViewModel;
+
+    private async void OnAddServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel vm && TopLevel.GetTopLevel(this) is Window window)
+            await new ServerDialog(vm.Servers, null).ShowDialog<bool>(window);
+    }
+
+    private async void OnEditServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
+            await new ServerDialog(vm.Servers, server).ShowDialog<bool>(window);
+    }
+
+    private async void OnTestServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            await server.TestAsync();
+    }
+
+    private async void OnRemoveServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server)
+            await vm.Servers.RemoveAsync(server);
+    }
 
     private async void OnGuideClick(object? sender, RoutedEventArgs e) =>
         await TopLevel.GetTopLevel(this)!.Launcher.LaunchUriAsync(new Uri(About.GuideUrl));

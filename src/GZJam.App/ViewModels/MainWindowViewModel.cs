@@ -17,8 +17,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <param name="audio">BASS, or null if it failed to load (the library still works).</param>
     /// <param name="mix">The mixer; tests pass an offline one.</param>
     /// <param name="audioError">Why audio isn't available, shown in the window.</param>
+    /// <param name="passwords">Where music servers' passwords are kept: the computer's keychain; tests leave it to memory.</param>
     public MainWindowViewModel(LibraryDatabase database, AppSettings settings,
-        AudioEngine? audio = null, MixEngine? mix = null, string? audioError = null)
+        AudioEngine? audio = null, MixEngine? mix = null, string? audioError = null,
+        GZJam.Library.Servers.PasswordStore? passwords = null)
     {
         _settings = settings;
         _database = database;
@@ -111,6 +113,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 };
             }
         }
+        Servers = new ServersViewModel(this, database, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -126,6 +129,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     public LibraryViewModel Library { get; }
+
+    /// <summary>Music servers the DJ signed in to (Settings › Servers, #282).</summary>
+    public ServersViewModel Servers { get; }
     public QueueViewModel Queue { get; }
     public HistoryViewModel History { get; }
 

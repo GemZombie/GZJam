@@ -226,7 +226,8 @@ public partial class App : Application
     {
         var database = new LibraryDatabase(AppPaths.LibraryDatabase);
         var (audio, mix, audioError) = StartAudio();
-        return new MainWindowViewModel(database, settings, audio, mix, audioError);
+        return new MainWindowViewModel(database, settings, audio, mix, audioError,
+            GZJam.Library.Servers.PasswordStore.ForThisComputer(AppPaths.DataDirectory));
     }
 
     private static MainWindow CreateMainWindow(IClassicDesktopStyleApplicationLifetime desktop, AppSettings settings, MainWindowViewModel viewModel)

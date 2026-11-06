@@ -465,6 +465,24 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE trims ADD COLUMN fade_out INTEGER NOT NULL DEFAULT 0;
             """,
+
+        // 25: Music servers the DJ signed in to (#184, #282): Navidrome and others that speak the
+        // Subsonic API. What the last check found is kept with each, for Settings to show. Never
+        // the password: that's in the computer's keychain (PasswordStore). Only adds: an older
+        // GZJam doesn't look at it.
+        """
+            CREATE TABLE servers (
+                id             INTEGER PRIMARY KEY,
+                name           TEXT NOT NULL,
+                address        TEXT NOT NULL,
+                user_name      TEXT NOT NULL,
+                can_download   INTEGER,
+                server_type    TEXT,
+                server_version TEXT,
+                checked_utc    INTEGER,
+                UNIQUE (address, user_name)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

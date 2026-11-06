@@ -28,6 +28,7 @@
             <RadioButton x:Name="NavDecks" Classes="settings-nav" GroupName="SettingsSections" Content="Decks" />
             <RadioButton x:Name="NavScreen" Classes="settings-nav" GroupName="SettingsSections" Content="Screen" />
             <RadioButton x:Name="NavLibrary" Classes="settings-nav" GroupName="SettingsSections" Content="Library" />
+            <RadioButton x:Name="NavServers" Classes="settings-nav" GroupName="SettingsSections" Content="Servers" />
             <RadioButton x:Name="NavAbout" Classes="settings-nav" GroupName="SettingsSections" Content="About" />
           </StackPanel>
         </DockPanel>
@@ -331,6 +332,48 @@
                 </Grid>
               </StackPanel>
             </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ───────────── Servers ───────────── -->
+        <!-- Music servers the DJ signed in to (#184, #282): a card each, then ADD A SERVER -->
+        <ScrollViewer x:Name="ServersPage" HorizontalScrollBarVisibility="Disabled" IsVisible="False">
+          <StackPanel Margin="20,16">
+            <TextBlock Classes="settings-group" Text="SERVERS" />
+            <TextBlock Classes="setting-help" Margin="2,0,0,14" FontSize="12"
+                       Text="Music from your own server: Navidrome, or another that speaks the Subsonic API, at home or reached over Tailscale. GZJam signs in with your account there; your server and its music aren't changed." />
+            <ItemsControl x:Name="ServerList" ItemsSource="{Binding Servers.Items}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ServerItemViewModel">
+                  <Border Classes="settings-card" Margin="0,0,0,10">
+                    <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="3">
+                        <TextBlock Classes="setting" Text="{Binding Name}" />
+                        <TextBlock Classes="setting-help" Text="{Binding SignIn}" />
+                        <TextBlock x:Name="ServerStatus" Classes="setting-help" Classes.problem="{Binding IsProblem}" FontWeight="SemiBold"
+                                   Text="{Binding Status}" />
+                        <TextBlock Classes="setting-help problem" IsVisible="{Binding IsPreviewOnly}"
+                                   Text="Preview only: this account can't download songs, so they can be heard in the headphones but never played to the room. Whoever runs the server can allow downloads." />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Button Classes="hw" Content="TEST" IsEnabled="{Binding !IsChecking}" Click="OnTestServerClick"
+                                ToolTip.Tip="Sign in to the server again" />
+                        <Button Classes="hw" Content="EDIT…" Click="OnEditServerClick"
+                                ToolTip.Tip="Change the server's name, address, user name or password" />
+                        <Button Classes="hw" Content="REMOVE…" Click="OnRemoveServerClick"
+                                ToolTip.Tip="Forget this server and its password (asks first)" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Classes="settings-card" IsVisible="{Binding Servers.HasNoServers}" Margin="0,0,0,10">
+              <TextBlock Classes="setting-help" Margin="14,12" Text="No servers yet." />
+            </Border>
+            <Button x:Name="AddServerButton" Classes="hw" Content="ADD A SERVER…" HorizontalAlignment="Left" Margin="0,2,0,12"
+                    Click="OnAddServerClick" />
+            <TextBlock x:Name="PasswordsText" Classes="setting-help" Margin="2,0" Text="{Binding Servers.PasswordsText}" />
           </StackPanel>
         </ScrollViewer>
 

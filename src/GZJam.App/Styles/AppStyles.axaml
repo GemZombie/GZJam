@@ -1070,6 +1070,10 @@
     <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
+  <!-- Something wrong, to put right: a server that can't be reached, a wrong password -->
+  <Style Selector="TextBlock.setting-help.problem">
+    <Setter Property="Foreground" Value="{StaticResource Deck2Brush}" />
+  </Style>
 
   <!-- Settings: a panel over the dimmed screen, with sections down the side (Views/SettingsPanel) -->
   <Style Selector="Border.settings">
