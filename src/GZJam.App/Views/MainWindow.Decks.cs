@@ -279,6 +279,10 @@ public partial class MainWindow
     {
         UpdateLoadMenuItems([QueueLoad1, QueueLoad2, QueueLoad3, QueueLoad4], SelectedQueueItems().Count == 1);
         var tracks = SelectedQueueItems().Select(i => i.Track).ToList();
+        // A row still downloading (#290): its marks, EQ and info come once it's here, kept by its file.
+        bool waiting = tracks.Any(t => t.IsOnServerOnly);
+        foreach (Control item in (Control[])[QueueEqItem, QueueInfoItem, QueueRatingMenu, QueueLabelsMenu, QueueEnergyMenu, QueueBpmMenu])
+            item.IsVisible = !waiting;
         QueueEqItem.IsEnabled = tracks.Count == 1;
         QueueInfoItem.IsEnabled = tracks.Count > 0;
         QueueShuffleItem.IsEnabled = Vm.Queue.Items.Count > 1;
@@ -343,6 +347,12 @@ public partial class MainWindow
 
     private async void OnRemoveTracksFromLaptopClick(object? sender, RoutedEventArgs e) =>
         await Vm.Servers.RemoveFromLaptopAsync(Vm.Servers.DownloadsFor(SelectedTracks()));
+
+    private async void OnDownloadServerFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } folder)
+            await Vm.Servers.DownloadFolderAsync(id, folder.Node.RelativePath, folder.Name);
+    }
 
     private async void OnKeepServerPlaylistClick(object? sender, RoutedEventArgs e)
     {

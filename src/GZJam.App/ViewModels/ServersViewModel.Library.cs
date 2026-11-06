@@ -157,8 +157,7 @@ public sealed partial class ServersViewModel
             await EnsureDownloadsInLibraryAsync();
             AddChoices(item, [new ServerChoice(ServerChoiceKind.Song, remote.Song.Id,
                 remote.Song.Artist is { Length: > 0 } artist ? $"{title} ({artist})" : title)]);
-            var sync = new ServerSync(_database, client, item.Server, DownloadsFolder);
-            string path = await Task.Run(() => sync.GetOneAsync(remote.Song));
+            string path = await GetSongAsync(item, client, remote.Song);   // at once: a deck may be waiting
             Track here = await Task.Run(() => _database.TrackForFile(path));
             Log.Info($"Servers: {title} from {item.Name} is here, at {path}");
             _owner.ShowNotice($"{title} is on this laptop now.", seconds: 3);
@@ -179,6 +178,10 @@ public sealed partial class ServersViewModel
             _owner.ShowNotice($"Couldn't download {title}: {e.Message}", seconds: 8);
             return null;
         }
+        catch (OperationCanceledException)
+        {
+            return null;   // GZJam is closing
+        }
     }
 
     /// <summary>The song list's "Download to this laptop": the songs kept from their server, then synced.</summary>
@@ -190,6 +193,40 @@ public sealed partial class ServersViewModel
     public Task DownloadAlbumsAsync(IReadOnlyList<Track> tracks) => DownloadChoicesAsync(
         tracks.Where(t => t.OnServer?.Song.AlbumId is not null).DistinctBy(t => (t.OnServer!.ServerId, t.OnServer.Song.AlbumId)).ToList(),
         t => new ServerChoice(ServerChoiceKind.Album, t.OnServer!.Song.AlbumId!, t.Album ?? t.OnServer.Song.AlbumId!));
+
+    /// <summary>
+    /// "Download to this laptop" on a server's folder: every song in it and below it, kept from
+    /// then on (songs added there on the server come with a sync), after asking.
+    /// </summary>
+    public async Task DownloadFolderAsync(long serverId, string folder, string name)
+    {
+        if (ItemFor(serverId) is not { } item)
+            return;
+        if (item.IsPreviewOnly)
+        {
+            _owner.ShowNotice($"{item.Name} doesn't let this account download songs: they can be heard in the headphones only.", seconds: 8);
+            return;
+        }
+        var songs = _database.SearchServerCatalog(serverId, folder, null).Songs;
+        var here = LocalCopies(item);
+        var coming = songs.Where(s => !here.ContainsKey(s.Id)).ToList();
+        if (songs.Count == 0)
+        {
+            _owner.ShowNotice($"{name} has no songs in {item.Name}'s song list.", seconds: 6);
+            return;
+        }
+        long bytes = coming.Sum(s => s.Size ?? 0);
+        string count = coming.Count == 1 ? "1 song" : $"{Format.Count(coming.Count)} songs";
+        if (coming.Count > 0 && (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
+                $"Download {count}{(bytes > 0 ? $", {Format.Size(bytes)}," : "")} from {name}?",
+                $"They come onto this laptop now, from {item.Name}, and stay. Songs added to {name} on the server come with each sync.",
+                "Download")))
+            return;
+        AddChoices(item, [new ServerChoice(ServerChoiceKind.Folder, folder, folder.Replace("/", " › "))]);
+        _owner.ShowNotice(coming.Count == 0 ? $"{name} is on this laptop already: kept up to date from now on." : $"Downloading {count} from {item.Name}…", seconds: 4);
+        await SyncAsync(item);
+        _owner.Library.RefreshResults();
+    }
 
     private async Task DownloadChoicesAsync(IReadOnlyList<Track> tracks, Func<Track, ServerChoice> choice)
     {
@@ -272,6 +309,15 @@ public sealed partial class ServersViewModel
             });
             var started = System.Diagnostics.Stopwatch.StartNew();
             List<ServerSong> songs = await Task.Run(() => ServerCatalogReader.ReadAsync(client, progress));
+            if (songs.Count == 0 && _database.GetServerCatalogCount(serverId) > 0)
+            {
+                // No songs at all, from a server that had some: it's reading its music again, say,
+                // or a folder it reads is away. What it had stays, rather than the server emptying.
+                Log.Info($"Servers: {item.Name} listed no songs at all: its song list is kept as it was");
+                if (!quiet)
+                    _owner.ShowNotice($"{item.Name} listed no songs just now (is it still reading its music?): its song list is kept as it was.", seconds: 8);
+                return;
+            }
             await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
             await ReadPlaylistsAsync(item, client);

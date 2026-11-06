@@ -3,7 +3,16 @@ using Microsoft.Data.Sqlite;
 namespace GZJam.Library;
 
 /// <summary>A playlist: <paramref name="Count"/> entries (songs, a song perhaps more than once), <paramref name="Length"/> in all.</summary>
-public sealed record PlaylistInfo(long Id, string Name, int Count, TimeSpan Length);
+/// <param name="FollowsServer">The server whose playlist this is a kept copy of (#290): each sync makes it the server's again. Null for the DJ's own.</param>
+public sealed record PlaylistInfo(long Id, string Name, int Count, TimeSpan Length, string? FollowsServer = null)
+{
+    public bool IsFromServer => FollowsServer is not null;
+
+    /// <summary>Its name, and for a server's, that it follows the server.</summary>
+    public string Tip => FollowsServer is { } server
+        ? $"{Name}{Environment.NewLine}Kept from {server}: each sync makes it the server's again, so change it there (or copy it into a playlist of your own)."
+        : Name;
+}
 
 /// <summary>
 /// Playlists: a set planned before the night, in order, saved by name. Unlike labels (what a song
@@ -18,14 +27,17 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT p.id, p.name, COUNT(e.id), COALESCE(SUM(t.duration_ms), 0)
+            SELECT p.id, p.name, COUNT(e.id), COALESCE(SUM(t.duration_ms), 0),
+                   (SELECT s.name FROM server_choices sc JOIN servers s ON s.id = sc.server_id
+                    WHERE sc.playlist_id = p.id AND sc.kind = 'playlist' LIMIT 1)
             FROM playlists p LEFT JOIN playlist_entries e ON e.playlist_id = p.id LEFT JOIN tracks t ON t.path = e.path
             GROUP BY p.id ORDER BY p.name COLLATE NOCASE;
             """;
         using var r = cmd.ExecuteReader();
         var playlists = new List<PlaylistInfo>();
         while (r.Read())
-            playlists.Add(new PlaylistInfo(r.GetInt64(0), r.GetString(1), r.GetInt32(2), TimeSpan.FromMilliseconds(r.GetInt64(3))));
+            playlists.Add(new PlaylistInfo(r.GetInt64(0), r.GetString(1), r.GetInt32(2), TimeSpan.FromMilliseconds(r.GetInt64(3)),
+                r.IsDBNull(4) ? null : r.GetString(4)));
         return playlists;
     }
 

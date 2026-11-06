@@ -51,6 +51,7 @@ public partial class MainWindow
     /// </summary>
     internal async Task<SongInfoWindow?> OpenSongInfoAsync(IReadOnlyList<Track> tracks)
     {
+        tracks = tracks.Where(t => !t.IsOnServerOnly).ToList();   // still on a server (#290): its info is the file's, once it's here
         if (tracks.Count == 0)
             return null;
         if (_songInfo is { } open && !await open.AskToDiscardAsync())

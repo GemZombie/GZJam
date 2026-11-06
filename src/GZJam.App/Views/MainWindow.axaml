@@ -371,6 +371,8 @@
                       <Separator IsVisible="{Binding IsServerItself}" />
                       <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
                                 ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />
+                      <MenuItem Header="Download to this laptop" IsVisible="{Binding IsServerRealFolder}" Click="OnDownloadServerFolderClick"
+                                ToolTip.Tip="Download every song in this folder and the folders in it, and keep it up to date: songs added to it on the server come with each sync" />
                       <MenuItem Header="Keep on this laptop" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
                                 ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
                       <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
@@ -429,13 +431,20 @@
                                   ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
                         <Separator />
                         <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
+                        <MenuItem Header="Stop following the server" Click="OnStopFollowingServerClick" IsVisible="{Binding IsFromServer}"
+                                  ToolTip.Tip="Make it your own playlist, as it is now: a sync no longer changes it (its songs stay on this laptop)" />
                         <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
                       </ContextMenu>
                     </Grid.ContextMenu>
-                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
-                          Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" />
+                    <Panel>
+                      <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                            Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding !IsFromServer}" />
+                      <!-- A server's playlist kept on the laptop (#290): it follows the server -->
+                      <Path x:Name="FollowsServerMark" Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                            Stretch="Uniform" Width="14" Height="10" VerticalAlignment="Center" IsVisible="{Binding IsFromServer}" />
+                    </Panel>
                     <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-                               ToolTip.Tip="{Binding Name}" />
+                               ToolTip.Tip="{Binding Tip}" />
                     <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
                   </Grid>
                 </DataTemplate>

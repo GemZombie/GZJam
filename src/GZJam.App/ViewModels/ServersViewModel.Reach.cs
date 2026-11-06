@@ -136,6 +136,7 @@ public sealed partial class ServersViewModel
     public void Close()
     {
         _closed = true;
+        StopDownloads();
         _recheck?.Stop();
         _recheck = null;
         if (_availabilityChanged is not null)
@@ -184,22 +185,25 @@ public sealed partial class ServersViewModel
         }
 
         _fetching.Add(item);
-        item.ShowServerState("Downloading…", problem: false, canRetry: false);
+        item.ShowServerState(_queueSlots.CurrentCount > 0 ? "Downloading…" : "Waiting its turn…", problem: false, canRetry: false);
         try
         {
-            await EnsureDownloadsInLibraryAsync();
-            AddChoices(server, [new ServerChoice(ServerChoiceKind.Song, remote.Song.Id,
-                remote.Song.Artist is { Length: > 0 } artist ? $"{item.Title} ({artist})" : item.Title)]);
-            var sync = new ServerSync(_database, client, server.Server, DownloadsFolder);
-            string path = await Task.Run(() => sync.GetOneAsync(remote.Song));
-            Track here = await Task.Run(() => _database.TrackForFile(path));
-            Log.Info($"Servers: {item.Title} from {server.Name} is here, for the queue");
-            _owner.Queue.Replace(item, here);
-            if (_owner.Queue.Items.FirstOrDefault(q => q.Track == here) is { } arrived)
-                Arrived?.Invoke(remote.PseudoPath, arrived);
-            AfterSync();
-            RefreshKept(server);
-            RefreshDownloads();
+            await InQueueTurnAsync(item, async stop =>
+            {
+                item.ShowServerState("Downloading…", problem: false, canRetry: false);
+                await EnsureDownloadsInLibraryAsync();
+                AddChoices(server, [new ServerChoice(ServerChoiceKind.Song, remote.Song.Id,
+                    remote.Song.Artist is { Length: > 0 } artist ? $"{item.Title} ({artist})" : item.Title)]);
+                string path = await GetSongAsync(server, client, remote.Song, stop);
+                Track here = await Task.Run(() => _database.TrackForFile(path));
+                Log.Info($"Servers: {item.Title} from {server.Name} is here, for the queue");
+                _owner.Queue.Replace(item, here);
+                if (_owner.Queue.Items.FirstOrDefault(q => q.Track == here) is { } arrived)
+                    Arrived?.Invoke(remote.PseudoPath, arrived);
+                AfterSync();
+                RefreshKept(server);
+                RefreshDownloads();
+            });
         }
         catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
         {
@@ -209,6 +213,16 @@ public sealed partial class ServersViewModel
         catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
         {
             Log.Info($"Servers: couldn't download {item.Title} from {server.Name} for the queue: {e.Message}");
+            item.ShowServerState($"Couldn't download: {e.Message}", problem: true, canRetry: true);
+        }
+        catch (Exception) when (_closed)
+        {
+            // GZJam is closing: the download stopped with it.
+        }
+        catch (Exception e)
+        {
+            // Never the end of GZJam (this runs on its own): the row says so, and can try again.
+            Log.Error($"Servers: downloading {item.Title} from {server.Name} for the queue failed", e);
             item.ShowServerState($"Couldn't download: {e.Message}", problem: true, canRetry: true);
         }
         finally
