@@ -167,9 +167,11 @@ come as 1.2.1, 1.2.2 and so on, and new features as 1.3. Found something? Say so
 **Next, in 1.4:** your own keys, and your music from anywhere. With a beta first, since it
 reaches into the library and the network.
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
-  other Subsonic servers, one or several): songs copied to the laptop ahead of the night, so the
-  room never depends on the Wi-Fi, or kept in your library for good, to bring a library home a
-  bit at a time
+  other Subsonic servers, one or several), browsed and searched
+  [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
+  copied to the laptop ahead of the night, so the room never depends on the Wi-Fi, a song dragged
+  to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
+  home a bit at a time. 1.4 waits for this to work in the library itself.
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
