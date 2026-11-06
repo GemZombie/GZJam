@@ -30,7 +30,8 @@ public sealed partial class ServersViewModel
     /// </summary>
     public async Task CheckReachableAsync()
     {
-        WatchNetwork();
+        if (Items.Count > 0)
+            WatchNetwork();   // only with a server to ask
         foreach (ServerItemViewModel item in Items.ToList())
             await CheckReachableAsync(item);
     }
@@ -63,6 +64,8 @@ public sealed partial class ServersViewModel
         item.GoOffline(DateTime.Now);
         Log.Info($"Servers: {item.Name} can't be reached");
         Changed(item, offline: true);
+        if (_closed)
+            return;
         _recheck ??= new DispatcherTimer(RecheckEvery, DispatcherPriority.Background, async (_, _) => await RecheckOfflineAsync());
         _recheck.Start();
     }
@@ -105,15 +108,42 @@ public sealed partial class ServersViewModel
             await CheckReachableAsync(item);
     }
 
+    private NetworkAvailabilityChangedEventHandler? _availabilityChanged;
+    private NetworkAddressChangedEventHandler? _addressChanged;
+    private bool _closed;
+
     /// <summary>The network came or went (Wi-Fi joined, a cable unplugged): ask the servers again.</summary>
     private void WatchNetwork()
     {
-        if (_watchingNetwork)
+        if (_watchingNetwork || _closed)
             return;
         _watchingNetwork = true;
-        void Again() => Dispatcher.UIThread.Post(async () => await CheckReachableAsync());
-        NetworkChange.NetworkAvailabilityChanged += (_, _) => Again();
-        NetworkChange.NetworkAddressChanged += (_, _) => Again();
+        void Again() => Dispatcher.UIThread.Post(async () =>
+        {
+            if (!_closed)
+                await CheckReachableAsync();
+        });
+        _availabilityChanged = (_, _) => Again();
+        _addressChanged = (_, _) => Again();
+        NetworkChange.NetworkAvailabilityChanged += _availabilityChanged;
+        NetworkChange.NetworkAddressChanged += _addressChanged;
+    }
+
+    /// <summary>
+    /// GZJam is closing: let go of the network's events and the recheck timer, which would
+    /// otherwise keep everything alive (the events are the whole process's, not this window's).
+    /// </summary>
+    public void Close()
+    {
+        _closed = true;
+        _recheck?.Stop();
+        _recheck = null;
+        if (_availabilityChanged is not null)
+            NetworkChange.NetworkAvailabilityChanged -= _availabilityChanged;
+        if (_addressChanged is not null)
+            NetworkChange.NetworkAddressChanged -= _addressChanged;
+        _availabilityChanged = null;
+        _addressChanged = null;
     }
 
     // ───────────── The queue's songs still on a server ─────────────

@@ -1608,6 +1608,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         _clock.Stop();
         _playbackTimer.Stop();
+        Servers.Close();
         Library.Dispose();
         Art.Dispose();
         Analysis?.Dispose();   // stops decoding before BASS goes away
