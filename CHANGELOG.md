@@ -15,6 +15,7 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **When each song will play:** a *Plays at* column in the queue (Show in the queue's menu, off to start with) and on the decks atop it says when each queued song will start, by the clock: the song playing now is "now", and the rest follow it with auto-play's gaps and fade-after, up to its stop time. Before the music starts, the **Start time** button in the queue's header takes the time and day you mean to start, and the queue is counted from it: each song's *Plays at*, and **ENDS** beside the clock, show how the night would go while you build the set. Once a song plays the real time takes over.
 - **Your own music server, in Settings › Servers** (the first part of
   [#184](https://github.com/GemZombie/GZJam/issues/184)): sign in to Navidrome, or another server
   that speaks the Subsonic API, at home or over Tailscale. GZJam signs in before saving and says

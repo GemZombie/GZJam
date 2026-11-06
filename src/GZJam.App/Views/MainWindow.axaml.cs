@@ -23,6 +23,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         RevealMenuItem.Header = FileManager.RevealLabel;
         SetUpSongInfo();
+        SetUpPlannedStart();
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         TrackGrid.AddHandler(KeyDownEvent, OnGridKeyDown, RoutingStrategies.Tunnel);

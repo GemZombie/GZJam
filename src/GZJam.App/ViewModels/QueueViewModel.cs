@@ -54,6 +54,10 @@ public sealed partial class QueueItem : ObservableObject
         ServerProblem = problem;
         CanRetry = canRetry;
     }
+
+    /// <summary>When it will start playing, by the clock ("9:42 PM"); set with the time the queue ends (<see cref="MainWindowViewModel.UpdateQueueEnd"/>).</summary>
+    [ObservableProperty]
+    public partial string StartsText { get; set; } = "";
 }
 
 /// <summary>The upcoming tracks, in play order.</summary>

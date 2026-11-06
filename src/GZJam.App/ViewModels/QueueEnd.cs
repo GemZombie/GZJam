@@ -56,5 +56,27 @@ public static class QueueEnd
         return repeats ? new Estimate(Kind.Repeats, null) : new Estimate(Kind.Ends, at);
     }
 
+    /// <summary>
+    /// When each of <paramref name="lengths"/> (the songs to come, in order) starts, the first at
+    /// <paramref name="first"/>: each after the one before it, with auto-play's gap, and cut at its
+    /// fade after. Null for a song that never plays because auto-play stops first (at its stop time,
+    /// or after the song playing now: <paramref name="afterLive"/>). With Repeat only the first round
+    /// is given. By hand there are no gaps and no cuts.
+    /// </summary>
+    public static IReadOnlyList<DateTime?> Starts(DateTime first, IReadOnlyList<TimeSpan> lengths, Rules rules, bool afterLive)
+    {
+        var starts = new List<DateTime?>(lengths.Count);
+        DateTime at = first;
+        bool stopped = rules.AutoPlay && afterLive && rules.StopAfterThisSong;
+        foreach (TimeSpan length in lengths)
+        {
+            stopped |= rules.AutoPlay && rules.StopAt is { } stopAt && at >= stopAt;
+            starts.Add(stopped ? null : at);
+            TimeSpan plays = rules.AutoPlay && rules.FadeAfter is { } limit && length > limit ? limit : length;
+            at += plays + (rules.AutoPlay ? rules.Gap : TimeSpan.Zero);
+        }
+        return starts;
+    }
+
     private static TimeSpan Sum(IEnumerable<TimeSpan> lengths) => TimeSpan.FromTicks(lengths.Sum(l => l.Ticks));
 }

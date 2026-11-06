@@ -424,6 +424,7 @@
   <Style Selector=":is(Control).hide-played :is(Control).q-played"><Setter Property="IsVisible" Value="False" /></Style>
   <Style Selector=":is(Control).hide-bpm :is(Control).q-bpm"><Setter Property="IsVisible" Value="False" /></Style>
   <Style Selector=":is(Control).hide-time :is(Control).q-time"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Control).hide-starts :is(Control).q-starts"><Setter Property="IsVisible" Value="False" /></Style>
 
   <!-- The queue's column names (#188): drag one to move it, the line beside it (on the title's side) to resize it -->
   <Style Selector="Border.queue-columns">

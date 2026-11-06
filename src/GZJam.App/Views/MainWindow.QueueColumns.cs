@@ -20,18 +20,18 @@ public partial class MainWindow
     [
         ("Art", "Album art"), ("Rating", "♥ Rating"), ("Energy", "Energy"), ("Labels", "Labels"),
         ("Album", "Album"), ("Genre", "Genre"), ("Year", "Year"), ("Played", "Played"),
-        ("BPM", "BPM"), ("Time", "Time"),
+        ("BPM", "BPM"), ("Starts", "Plays at"), ("Time", "Time"),
     ];
 
     /// <summary>The parts that can move, as they come (the drag grip stays first, the preview key last).</summary>
     internal static readonly string[] QueueColumnOrder =
-        ["Number", "Art", "Title", "Album", "Genre", "Year", "Played", "Rating", "Energy", "BPM", "Time"];
+        ["Number", "Art", "Title", "Album", "Genre", "Year", "Played", "Rating", "Energy", "BPM", "Starts", "Time"];
 
     /// <summary>The text parts that resize: their widths to start with (margins included), and how far they go.</summary>
     internal static readonly Dictionary<string, (double Start, double Least, double Most)> QueueColumnSizes = new()
     {
         ["Album"] = (144, 50, 320), ["Genre"] = (84, 40, 220), ["Year"] = (34, 30, 60),
-        ["Played"] = (46, 34, 90), ["BPM"] = (27, 22, 60), ["Time"] = (36, 30, 70),
+        ["Played"] = (46, 34, 90), ["BPM"] = (27, 22, 60), ["Starts"] = (58, 44, 100), ["Time"] = (36, 30, 70),
     };
 
     /// <summary>
