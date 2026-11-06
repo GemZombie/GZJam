@@ -59,6 +59,13 @@ New:
   *Only on this laptop* turns on by itself to show what can be played tonight, and off again when the
   server answers. Asking for one of its songs says at once that it can't be reached, rather than
   trying for half a minute. GZJam asks again every couple of minutes, and when the network changes.
+- **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
+  of its folders) › *Remove from this laptop*, or right-click the server › *Free up space…*: what
+  was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,
+  with what each frees and what's left on the drive. They stay on the server, and a sync doesn't
+  bring them back: a double-click, the queue or a download does, with their hearts, cues and EQ.
+  Your own songs, and songs on a deck, in the queue or played tonight, are never removed. Adds one
+  more small thing to your library; older versions can still open it.
 - **A server's song in the queue waits in its place** (#290): added to the queue, it's there at
   once, *Downloading…*, then becomes the song itself. While its server can't be reached it says
   *Waiting for synology* and comes by itself when it answers; a download that fails says why, with

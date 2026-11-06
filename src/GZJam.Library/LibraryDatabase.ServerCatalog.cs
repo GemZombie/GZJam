@@ -79,6 +79,21 @@ public sealed partial class LibraryDatabase
             r.IsDBNull(13) ? null : r.GetDouble(13), Text(14));
     }
 
+    /// <summary>The IDs of an album's songs, from the catalog.</summary>
+    public IReadOnlyList<string> GetServerCatalogAlbumSongIds(long serverId, string albumId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT song_id FROM server_catalog WHERE server_id = $server AND album_id = $album;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$album", albumId);
+        using var r = cmd.ExecuteReader();
+        var ids = new List<string>();
+        while (r.Read())
+            ids.Add(r.GetString(0));
+        return ids;
+    }
+
     /// <summary>When the server's catalog was last read in full; null if never.</summary>
     public DateTime? GetServerCatalogTime(long serverId)
     {

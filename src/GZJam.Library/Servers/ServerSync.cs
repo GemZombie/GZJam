@@ -98,6 +98,9 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             }
         }
 
+        // The songs the DJ removed from the laptop stay on the server until they're asked for (#290).
+        var removed = database.GetRemovedServerSongs(server.Id);
+        wanted.RemoveAll(s => removed.Contains(s.Id));
         var known = database.GetServerSongs(server.Id).ToDictionary(s => s.SongId);
         var local = new Dictionary<string, string>();   // song ID → the file here
         (_, long used) = database.GetDownloadedTotals();
@@ -198,6 +201,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     /// </summary>
     public async Task<string> GetOneAsync(ServerSong song, CancellationToken cancel = default)
     {
+        database.ForgetServerSongsRemoved(server.Id, [song.Id]);   // asked for: no longer left on the server
         if (database.GetServerSongs(server.Id).FirstOrDefault(s => s.SongId == song.Id) is { } copy && File.Exists(copy.Path))
             return copy.Path;
         if (database.FindOwnCopy(song, downloadsFolder) is { } own)
@@ -209,7 +213,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             throw new IOException("The disk is nearly full.");
         string path = ServerPaths.Place(ServerFolder, ServerPaths.RelativeParts(song), p => File.Exists(p) || database.IsServerSongPath(p));
         long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
-        database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false), Now());
+        database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false, OnTheSpot: true), Now());
         return path;
     }
 

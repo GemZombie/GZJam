@@ -265,4 +265,56 @@ public sealed class ServerSyncTests : IDisposable
         var ella = await _server.Client().GetArtistAsync("ar-ella", TestContext.Current.CancellationToken);
         Assert.Equal("Ella Swings", Assert.Single(ella).Name);
     }
+
+    // ───────────── Removed from the laptop (#290) ─────────────
+
+    [Fact]
+    public async Task A_song_the_DJ_removed_isnt_downloaded_again_by_a_sync_until_its_asked_for()
+    {
+        Choose(Playlist("pl1", "Friday"));
+        await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+        var boogie = _lib.Database.GetServerSongs(_record.Id).Single(s => s.SongId == "s1");
+        File.Delete(boogie.Path);
+        _lib.Database.MarkServerSongsRemoved(_record.Id, ["s1"], DateTime.UtcNow);
+
+        SyncResult again = await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+        Assert.Equal(0, again.Downloaded);
+        Assert.False(File.Exists(boogie.Path));
+        Assert.Equal(2, PlaylistPaths("Friday").Count);   // the songs that are here
+
+        string path = await Sync().GetOneAsync(new ServerSong("s1", "Basie Boogie", "Count Basie", "Cute", null, 3, null, null,
+            "/music/Jazz & Swing/Count Basie/Cute/03 - Basie Boogie.mp3", "mp3", FakeNavidrome.Bytes("s1").Length, TimeSpan.FromMinutes(3)),
+            TestContext.Current.CancellationToken);
+        Assert.True(File.Exists(path));
+        Assert.Empty(_lib.Database.GetRemovedServerSongs(_record.Id));
+        Assert.True(_lib.Database.GetServerSongs(_record.Id).Single(s => s.SongId == "s1").OnTheSpot);
+        Assert.Equal(3, (await Sync().RunAsync(cancel: TestContext.Current.CancellationToken)).AlreadyHere);
+    }
+
+    [Fact]
+    public async Task Downloads_say_how_they_came_and_when_the_room_last_heard_them()
+    {
+        Choose(Playlist("pl1", "Friday"));
+        await Sync().RunAsync(cancel: TestContext.Current.CancellationToken);
+        string blues = Here("Blues", "Ma Rainey", "Mother of the Blues", "Lucky Rock Blues.mp3");
+        var session = _lib.Database.StartOrContinueSession(new DateTime(2026, 11, 1, 20, 0, 0, DateTimeKind.Utc), TimeSpan.FromHours(1));
+        _lib.Database.AddPlay(session.Id, new Track { Path = blues, Folder = "", FileName = "x", Title = "Lucky Rock Blues" },
+            new DateTime(2026, 11, 1, 21, 0, 0, DateTimeKind.Utc), "1", 0);
+
+        var downloads = _lib.Database.GetServerDownloads(_record.Id);
+        Assert.Equal(3, downloads.Count);
+        Assert.All(downloads, d => Assert.False(d.OnTheSpot));
+        Assert.Equal(new DateTime(2026, 11, 1, 21, 0, 0, DateTimeKind.Utc), downloads.Single(d => d.Path == blues).LastPlayedUtc);
+        Assert.Null(downloads.Single(d => d.SongId == "s1").LastPlayedUtc);
+        Assert.Contains(blues, _lib.Database.GetPathsPlayedSince(new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc)));
+    }
+
+    [Fact]
+    public void Removing_a_song_stops_keeping_it_on_its_own()
+    {
+        _lib.Database.AddServerChoices(_record.Id, [new ServerChoice(ServerChoiceKind.Song, "s1", "Basie Boogie")]);
+        _lib.Database.MarkServerSongsRemoved(_record.Id, ["s1"], DateTime.UtcNow);
+        Assert.Empty(_lib.Database.GetServerChoices(_record.Id));
+        Assert.Equal(["s1"], _lib.Database.GetRemovedServerSongs(_record.Id));
+    }
 }

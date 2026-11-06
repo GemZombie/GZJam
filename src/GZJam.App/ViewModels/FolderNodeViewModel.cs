@@ -36,6 +36,9 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     /// <summary>The server itself, not one of its folders: its own menu.</summary>
     public bool IsServerItself => IsServer && IsRoot;
 
+    /// <summary>One of a server's folders: its downloads can be removed from the laptop.</summary>
+    public bool IsServerFolder => IsServer && !IsRoot;
+
     /// <summary>The server can't be reached right now: a crossed-out cloud, and why in its tooltip.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOnline), nameof(NameTip))]
