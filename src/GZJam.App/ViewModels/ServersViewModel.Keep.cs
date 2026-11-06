@@ -150,7 +150,7 @@ public sealed partial class ServersViewModel
         if (count == 0)
         {
             _owner.ShowNotice(
-                cantDownload is not null ? $"{cantDownload}: the songs not on this laptop can't be kept now."
+                cantDownload is not null ? $"{cantDownload}: the songs not on this computer can't be kept now."
                 : plan.OnDeck.Count > 0 ? $"Take {plan.OnDeck[0]} off its deck first: its file can't move while it's on a deck."
                 : plan.Mine > 0 ? $"{what} {(songs.Count == 1 ? "is" : "are")} in your library already."
                 : $"{what}: nothing to keep.", seconds: 6);
@@ -212,7 +212,7 @@ public sealed partial class ServersViewModel
             lines.Add($"{SongCount(downloads.Count)} {(downloads.Count == 1 ? "comes" : "come")} from {item.Name} now{(bytes > 0 ? $", {Format.Size(bytes)}" : "")}.");
         }
         if (cantDownload is not null)
-            lines.Add($"{cantDownload}, so the {SongCount(plan.Downloads.Count)} not on this laptop {(plan.Downloads.Count == 1 ? "waits" : "wait")} for another time.");
+            lines.Add($"{cantDownload}, so the {SongCount(plan.Downloads.Count)} not on this computer {(plan.Downloads.Count == 1 ? "waits" : "wait")} for another time.");
         if (plan.Mine > 0)
             lines.Add($"{SongCount(plan.Mine)} {(plan.Mine == 1 ? "is" : "are")} in your library already: left as {(plan.Mine == 1 ? "it is" : "they are")}.");
         if (plan.OnDeck.Count > 0)
@@ -403,7 +403,7 @@ public sealed partial class ServersViewModel
             return ((from, step.Target), 0);
         }
         if (sync is null || step.Song is null)
-            throw new ServerException("It isn't on this laptop, and can't be downloaded now.");
+            throw new ServerException("It isn't on this computer, and can't be downloaded now.");
         return (null, await Task.Run(() => sync.KeepAsync(step.Song, step.Target, folder, stop), stop));
     }
 

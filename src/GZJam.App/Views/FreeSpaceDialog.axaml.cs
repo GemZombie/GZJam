@@ -5,7 +5,7 @@ using GZJam.Library;
 namespace GZJam.App.Views;
 
 /// <summary>
-/// Free up space… on a server (#290): what to remove from the laptop, with how much each frees and
+/// Free up space… on a server (#290): what to remove from the computer, with how much each frees and
 /// what's left on the drive. Closes with true once removed.
 /// </summary>
 public partial class FreeSpaceDialog : Window

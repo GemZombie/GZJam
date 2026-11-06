@@ -7,7 +7,7 @@ namespace GZJam.App.Views;
 
 /// <summary>
 /// CHOOSE… on a server's card (#283): what's starred there and each of its playlists, ticked to
-/// keep on the laptop. Asks the server what it has when it opens.
+/// keep on the computer. Asks the server what it has when it opens.
 /// </summary>
 public partial class ServerChoicesDialog : Window
 {

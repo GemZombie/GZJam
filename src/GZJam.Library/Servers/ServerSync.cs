@@ -4,7 +4,7 @@ namespace GZJam.Library.Servers;
 public sealed record SyncProgress(int Songs, int Done, int Downloaded, int Failed, long Bytes, string? Current);
 
 /// <summary>What a sync did.</summary>
-/// <param name="AlreadyHere">Songs already on the laptop: downloaded before, or the DJ's own copy.</param>
+/// <param name="AlreadyHere">Songs already on the computer: downloaded before, or the DJ's own copy.</param>
 /// <param name="Stopped">Why it stopped before the end (asked to, out of room, the server gone), or null if it finished.</param>
 /// <param name="Problems">A line for each song that couldn't be downloaded, and each choice that couldn't be read.</param>
 public sealed record SyncResult(
@@ -111,7 +111,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             }
         }
 
-        // The songs the DJ removed from the laptop stay on the server until they're asked for (#290).
+        // The songs the DJ removed from the computer stay on the server until they're asked for (#290).
         var removed = database.GetRemovedServerSongs(server.Id);
         wanted.RemoveAll(s => removed.Contains(s.Id));
         var known = database.GetServerSongs(server.Id).ToDictionary(s => s.SongId);
@@ -197,8 +197,11 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         progress?.Report(new SyncProgress(wanted.Count, wanted.Count, downloaded, failed, bytes, null));
 
         // Each chosen playlist, as a GZJam playlist, in the server's order: the songs here so far.
+        var stillChosen = database.GetServerChoices(server.Id);
         foreach ((ServerChoice choice, IReadOnlyList<ServerSong> songs) in playlists)
         {
+            if (!stillChosen.Any(c => c.Kind == choice.Kind && c.RemoteId == choice.RemoteId))
+                continue;   // no longer kept (Stop keeping, while this ran): no copy of it made now
             long playlistId = choice.PlaylistId is { } id && database.GetPlaylist(id) is not null
                 ? id
                 : database.CreatePlaylist(choice.Name).Id;
@@ -212,7 +215,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     }
 
     /// <summary>
-    /// One song onto this laptop, now: the copy here if there is one (downloaded before, or the
+    /// One song onto this computer, now: the copy here if there is one (downloaded before, or the
     /// DJ's own), else downloaded. Returns where it is.
     /// </summary>
     public async Task<string> GetOneAsync(ServerSong song, CancellationToken cancel = default)

@@ -8,7 +8,7 @@ using GZJam.Testing;
 
 namespace GZJam.App.Tests;
 
-/// <summary>Freeing up space (#290): songs downloaded from a server removed from the laptop, never what's needed.</summary>
+/// <summary>Freeing up space (#290): songs downloaded from a server removed from the computer, never what's needed.</summary>
 public sealed class ServerFreeSpaceAppTests
 {
     private static async Task<(AppHarness App, ServerItemViewModel Server)> WithDownloads()

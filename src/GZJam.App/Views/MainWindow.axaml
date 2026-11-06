@@ -88,6 +88,9 @@
           <TextBlock Classes="muted" FontSize="12" Text="{Binding BackgroundStatus}" VerticalAlignment="Center" />
           <ProgressBar Width="100" MinWidth="100" Height="4" Minimum="0" Maximum="100"
                        Value="{Binding BackgroundPercent}" Foreground="{StaticResource AccentBrush}" />
+          <Button x:Name="BackgroundStopButton" Classes="link" Content="Stop" Margin="0,-3" VerticalAlignment="Center"
+                  IsVisible="{Binding CanStopBackground}" Click="OnBackgroundStopClick"
+                  ToolTip.Tip="Stop the downloads after the song coming down: what's come so far stays, and SYNC (or Resume, for a whole server) goes on from there" />
         </StackPanel>
 
         <!-- Outputs; click either to change them -->
@@ -370,10 +373,10 @@
                                 IsVisible="{Binding IsRemovableRoot}"
                                 ToolTip.Tip="Forget this folder. Your files are not touched." />
                       <MenuItem Header="Sync now" IsVisible="{Binding CanSync}" Click="OnSyncServerClick"
-                                ToolTip.Tip="Download what's kept on this laptop from this server and isn't here yet, and bring its playlists up to date" />
+                                ToolTip.Tip="Download what's kept on this computer from this server and isn't here yet, and bring its playlists up to date" />
                       <MenuItem Header="Stop syncing" IsVisible="{Binding IsSyncing}" Click="OnStopSyncClick" />
-                      <MenuItem Header="Keep on this laptop…" IsVisible="{Binding IsServerItself}" Click="OnChooseServerClick"
-                                ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this laptop and up to date" />
+                      <MenuItem Header="Keep on this computer…" IsVisible="{Binding IsServerItself}" Click="OnChooseServerClick"
+                                ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this computer and up to date" />
                       <MenuItem Header="Keep the whole server in my library…" IsVisible="{Binding CanKeepWhole}" Click="OnKeepWholeClick"
                                 ToolTip.Tip="Every song of this server into your own music folder, a song at a time in the background: it waits while the room hears music, and picks up where it left off" />
                       <MenuItem Header="Pause keeping the whole server" IsVisible="{Binding CanPauseKeepWhole}" Click="OnPauseKeepWholeClick"
@@ -383,17 +386,19 @@
                                 ToolTip.Tip="No more of it comes. The songs kept so far stay in your library" />
                       <Separator IsVisible="{Binding IsServerItself}" />
                       <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
-                                ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />
-                      <MenuItem Header="Download to this laptop" IsVisible="{Binding IsServerRealFolder}" Click="OnDownloadServerFolderClick"
+                                ToolTip.Tip="Remove songs downloaded from this server from the computer: they stay on the server" />
+                      <MenuItem Header="Download to this computer" IsVisible="{Binding IsServerRealFolder}" Click="OnDownloadServerFolderClick"
                                 ToolTip.Tip="Download every song in this folder and the folders in it, and keep it up to date: songs added to it on the server come with each sync" />
                       <MenuItem Header="Keep a copy in my library…" IsVisible="{Binding IsServerFolder}" Click="OnKeepCopyClick"
                                 ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. Songs you have already are left as they are" />
-                      <MenuItem Header="Keep on this laptop" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
+                      <MenuItem Header="Keep on this computer" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
                                 ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
                       <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
-                                ToolTip.Tip="It's kept on this laptop: open your copy of it, among your playlists" />
-                      <MenuItem Header="Remove from this laptop" IsVisible="{Binding IsServerFolder}" Click="OnRemoveFolderFromLaptopClick"
-                                ToolTip.Tip="Remove the songs downloaded from here from the laptop: they stay on the server" />
+                                ToolTip.Tip="It's kept on this computer: open your copy of it, among your playlists" />
+                      <MenuItem Header="Stop keeping on this computer…" IsVisible="{Binding IsKept}" Click="OnStopKeepingServerPlaylistClick"
+                                ToolTip.Tip="No longer download it or keep it up to date (a sync running stops), then remove the songs downloaded for it if you like: they stay on the server" />
+                      <MenuItem Header="Remove from this computer" IsVisible="{Binding IsServerFolder}" Click="OnRemoveFolderFromLaptopClick"
+                                ToolTip.Tip="Remove the songs downloaded from here from the computer: they stay on the server" />
                       <MenuItem Header="Read its song list again" IsVisible="{Binding IsServerItself}" Click="OnReadServerCatalogClick"
                                 ToolTip.Tip="Ask the server for every song again, for songs added or changed there since" />
                       <MenuItem Header="Server settings…" IsVisible="{Binding IsServerItself}" Click="OnServerSettingsClick"
@@ -447,14 +452,14 @@
                         <Separator />
                         <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
                         <MenuItem Header="Stop following the server" Click="OnStopFollowingServerClick" IsVisible="{Binding IsFromServer}"
-                                  ToolTip.Tip="Make it your own playlist, as it is now: a sync no longer changes it (its songs stay on this laptop)" />
+                                  ToolTip.Tip="Make it your own playlist, as it is now: a sync no longer changes it (its songs stay on this computer)" />
                         <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
                       </ContextMenu>
                     </Grid.ContextMenu>
                     <Panel>
                       <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
                             Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding !IsFromServer}" />
-                      <!-- A server's playlist kept on the laptop (#290): it follows the server -->
+                      <!-- A server's playlist kept on the computer (#290): it follows the server -->
                       <Path x:Name="FollowsServerMark" Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
                             Stretch="Uniform" Width="14" Height="10" VerticalAlignment="Center" IsVisible="{Binding IsFromServer}" />
                     </Panel>
@@ -555,8 +560,8 @@
                 <!-- A server's songs, only those here (#290): on by itself while it can't be reached -->
                 <ToggleButton x:Name="OnlyHereSwitch" Classes="bpm-filter" IsChecked="{Binding Library.OnlyHere}"
                               IsVisible="{Binding Library.IsServerShowing}" VerticalAlignment="Center"
-                              ToolTip.Tip="Show only the songs that are on this laptop: what can be played tonight">
-                  <TextBlock Text="Only on this laptop" FontSize="12" />
+                              ToolTip.Tip="Show only the songs that are on this computer: what can be played tonight">
+                  <TextBlock Text="Only on this computer" FontSize="12" />
                 </ToggleButton>
                 <TextBlock x:Name="ResultSummaryText" Classes="muted" FontSize="12" VerticalAlignment="Center"
                            Text="{Binding Library.ResultSummary}" />
@@ -725,14 +730,14 @@
                           ToolTip.Tip="This song and the rest of the playlist after it" />
                 <Separator />
                 <MenuItem Header="Preview in headphones" InputGesture="Space" Click="OnPreviewSelectedClick" />
-                <MenuItem x:Name="TrackDownloadItem" Header="Download to this laptop" Click="OnDownloadTracksClick"
-                          ToolTip.Tip="Bring these songs from the server onto this laptop, and keep them" />
+                <MenuItem x:Name="TrackDownloadItem" Header="Download to this computer" Click="OnDownloadTracksClick"
+                          ToolTip.Tip="Bring these songs from the server onto this computer, and keep them" />
                 <MenuItem x:Name="TrackDownloadAlbumItem" Header="Download the album" Click="OnDownloadAlbumClick"
-                          ToolTip.Tip="Bring this song's whole album from the server onto this laptop, and keep it up to date" />
+                          ToolTip.Tip="Bring this song's whole album from the server onto this computer, and keep it up to date" />
                 <MenuItem x:Name="TrackKeepItem" Header="Keep a copy in my library…" Click="OnKeepTracksClick"
                           ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. One downloaded already moves there, with its hearts, cues and playlists" />
-                <MenuItem x:Name="TrackRemoveFromLaptopItem" Header="Remove from this laptop" Click="OnRemoveTracksFromLaptopClick"
-                          ToolTip.Tip="These songs were downloaded from a server: remove them from the laptop (they stay on the server)" />
+                <MenuItem x:Name="TrackRemoveFromLaptopItem" Header="Remove from this computer" Click="OnRemoveTracksFromLaptopClick"
+                          ToolTip.Tip="These songs were downloaded from a server: remove them from the computer (they stay on the server)" />
                 <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"
                           ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                 <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />

@@ -5,11 +5,11 @@ using GZJam.Library.Servers;
 
 namespace GZJam.App.ViewModels;
 
-/// <summary>What a server offers to keep on the laptop, for choosing (CHOOSE…): its playlists, what's starred, and what's chosen now.</summary>
+/// <summary>What a server offers to keep on the computer, for choosing (CHOOSE…): its playlists, what's starred, and what's chosen now.</summary>
 public sealed record ServerOffer(IReadOnlyList<ServerPlaylist> Playlists, ServerStarred Starred, IReadOnlyList<ServerChoice> Chosen);
 
 /// <summary>
-/// Settings › Servers, part 2 (#283): choosing what to keep on the laptop from each server, and
+/// Settings › Servers, part 2 (#283): choosing what to keep on the computer from each server, and
 /// syncing it into the downloads folder, a music folder like any other.
 /// </summary>
 public sealed partial class ServersViewModel
@@ -112,7 +112,7 @@ public sealed partial class ServersViewModel
 
     // ───────────── Choosing ─────────────
 
-    /// <summary>What a server offers to keep on the laptop, or a <see cref="ServerException"/> saying why it can't be asked.</summary>
+    /// <summary>What a server offers to keep on the computer, or a <see cref="ServerException"/> saying why it can't be asked.</summary>
     public async Task<ServerOffer> LoadOfferAsync(ServerItemViewModel item, CancellationToken cancel = default)
     {
         string password = TryGetPassword(item.Server.PasswordKey, out string? problem)
@@ -123,7 +123,7 @@ public sealed partial class ServersViewModel
         return new ServerOffer(playlists, starred, _database.GetServerChoices(item.Server.Id));
     }
 
-    /// <summary>Keeps these on the laptop from now on; what's no longer chosen stays until it's cleaned up (#286).</summary>
+    /// <summary>Keeps these on the computer from now on; what's no longer chosen stays until it's cleaned up (#286).</summary>
     public void SaveChoices(ServerItemViewModel item, IEnumerable<ServerChoice> choices)
     {
         var chosen = choices.ToList();
@@ -132,7 +132,7 @@ public sealed partial class ServersViewModel
         RefreshKept(item);
     }
 
-    /// <summary>The card's lines about what's kept on the laptop.</summary>
+    /// <summary>The card's lines about what's kept on the computer.</summary>
     private void RefreshKept(ServerItemViewModel item)
     {
         var choices = _database.GetServerChoices(item.Server.Id);
@@ -154,7 +154,7 @@ public sealed partial class ServersViewModel
     partial void OnSyncPercentChanged(double value) => _owner.BackgroundChanged();
 
     /// <summary>
-    /// Brings what's chosen from <paramref name="item"/> onto the laptop. One server at a time;
+    /// Brings what's chosen from <paramref name="item"/> onto the computer. One server at a time;
     /// another waits its turn. <paramref name="automatic"/> (at startup) stops, between songs, once
     /// the room starts hearing music.
     /// </summary>
@@ -241,6 +241,7 @@ public sealed partial class ServersViewModel
     {
         _owner.Library?.SetServerSyncing(item.Server.Id, syncing);
         OnPropertyChanged(nameof(CanChangeDownloadsFolder));
+        _owner.BackgroundChanged();   // the top bar's Stop
     }
 
     /// <summary>The library's "Sync now" on a server: what's chosen, or CHOOSE first when nothing is.</summary>
@@ -304,7 +305,7 @@ public sealed partial class ServerItemViewModel
 {
     private CancellationTokenSource? _stop;
 
-    /// <summary>"Keeping on this laptop: Friday, Saturday and what's starred", or that nothing is chosen yet.</summary>
+    /// <summary>"Keeping on this computer: Friday, Saturday and what's starred", or that nothing is chosen yet.</summary>
     [ObservableProperty]
     public partial string KeptText { get; private set; } = "";
 
@@ -339,7 +340,7 @@ public sealed partial class ServerItemViewModel
         HasChoices = choices.Count > 0;
         if (choices.Count == 0)
         {
-            KeptText = IsPreviewOnly ? "" : "Nothing chosen to keep on this laptop yet: press CHOOSE.";
+            KeptText = IsPreviewOnly ? "" : "Nothing chosen to keep on this computer yet: press CHOOSE.";
             return;
         }
         var names = choices.Where(c => c.Kind == ServerChoiceKind.Playlist).Select(c => c.Name).ToList();
@@ -354,7 +355,7 @@ public sealed partial class ServerItemViewModel
             names.Add(Format.Count(choices.Count) + " things");   // a kind this version doesn't name
         string list = names.Count == 1 ? names[0] : string.Join(", ", names[..^1]) + " and " + names[^1];
         string here = songs == 0 ? "" : $" · {(songs == 1 ? "1 song" : Format.Count(songs) + " songs")} downloaded, {Format.Size(bytes)}";
-        KeptText = $"Keeping on this laptop: {list}{here}";
+        KeptText = $"Keeping on this computer: {list}{here}";
     }
 
     internal void ShowSync(string text, bool problem)
@@ -406,11 +407,11 @@ public sealed partial class ServersViewModel
     public SubsonicClient? SignedIn(ServerItemViewModel item) =>
         TryGetPassword(item.Server.PasswordKey, out _) is { } password ? ClientFor(item.Server, password) : null;
 
-    /// <summary>Each of the server's songs that's on this laptop (by its ID there), and where. It reads the library: call it off the window's thread.</summary>
+    /// <summary>Each of the server's songs that's on this computer (by its ID there), and where. It reads the library: call it off the window's thread.</summary>
     public Dictionary<string, string> LocalCopies(ServerItemViewModel item) => _database.GetServerSongsHere(item.Server.Id);
 
     /// <summary>
-    /// The song list's rows for a server's songs: the library's own for those on this laptop (in
+    /// The song list's rows for a server's songs: the library's own for those on this computer (in
     /// one go), the server's for the rest. Off the window's thread, however many there are.
     /// </summary>
     private Task<List<Track>> RowsForAsync(ServerItemViewModel item, IReadOnlyList<ServerSong> songs, CancellationToken cancel)
@@ -428,12 +429,12 @@ public sealed partial class ServersViewModel
         }, cancel);
     }
 
-    /// <summary>Adds songs, albums or artists to what's kept on the laptop from the server.</summary>
+    /// <summary>Adds songs, albums or artists to what's kept on the computer from the server.</summary>
     public void AddChoices(ServerItemViewModel item, IEnumerable<ServerChoice> choices)
     {
         var added = choices.ToList();
         _database.AddServerChoices(item.Server.Id, added);
-        // Asked for: songs the DJ removed from the laptop before come back with them.
+        // Asked for: songs the DJ removed from the computer before come back with them.
         _database.ForgetServerSongsRemoved(item.Server.Id, added.SelectMany(c => c.Kind switch
         {
             ServerChoiceKind.Song => [c.RemoteId],
@@ -450,7 +451,7 @@ public sealed partial class ServersViewModel
     public string PreviewFolder { get; set; } = Path.Combine(Path.GetTempPath(), "GZJam previews");
 
     /// <summary>
-    /// Plays a server's song in the headphones: the copy on this laptop if there is one, else
+    /// Plays a server's song in the headphones: the copy on this computer if there is one, else
     /// fetched into <see cref="PreviewFolder"/> for the preview only (it's never played to the room
     /// from there, and isn't in the library). Returns a problem to say, or null.
     /// </summary>

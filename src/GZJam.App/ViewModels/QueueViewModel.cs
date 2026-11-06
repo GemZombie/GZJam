@@ -102,7 +102,7 @@ public sealed partial class QueueViewModel : ObservableObject
     public void PlayNext(IEnumerable<Track> tracks) => Add(tracks, 0);
 
     /// <summary>
-    /// Removes and returns the first song of the queue that's on this laptop (auto-play loading it
+    /// Removes and returns the first song of the queue that's on this computer (auto-play loading it
     /// onto a deck). Songs still on a server stay where they are, in front of it, until they're here
     /// (#290): <see cref="PassedOver"/> says which were.
     /// </summary>

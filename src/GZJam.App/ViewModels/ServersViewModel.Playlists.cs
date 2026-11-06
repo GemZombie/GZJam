@@ -5,7 +5,7 @@ namespace GZJam.App.ViewModels;
 
 /// <summary>
 /// A server's playlists in the library (#290): under "Playlists" in its tree, each opened in the
-/// song list like a folder (the songs not on the laptop marked), and kept on the laptop from
+/// song list like a folder (the songs not on the computer marked), and kept on the computer from
 /// there. They're read with the server's catalog, and again when one is opened while the server
 /// answers, so they show offline too, as last read.
 /// </summary>
@@ -18,7 +18,7 @@ public sealed partial class ServersViewModel
     internal static string? PlaylistIdOf(string folder) =>
         folder.Length > FolderNode.ServerPlaylistsPath.Length + 1 ? folder[(FolderNode.ServerPlaylistsPath.Length + 1)..] : null;
 
-    /// <summary>The GZJam playlist a server playlist is kept as on the laptop, if it is.</summary>
+    /// <summary>The GZJam playlist a server playlist is kept as on the computer, if it is.</summary>
     public PlaylistInfo? KeptAs(long serverId, string playlistId)
     {
         long? id = _database.GetServerChoices(serverId)
@@ -26,13 +26,13 @@ public sealed partial class ServersViewModel
         return id is null ? null : _database.GetPlaylists().FirstOrDefault(p => p.Id == id);
     }
 
-    /// <summary>Whether a server playlist is among what's kept on the laptop (synced yet or not).</summary>
+    /// <summary>Whether a server playlist is among what's kept on the computer (synced yet or not).</summary>
     public bool IsKept(long serverId, string playlistId) =>
         _database.GetServerChoices(serverId).Any(c => c.Kind == ServerChoiceKind.Playlist && c.RemoteId == playlistId);
 
     /// <summary>
     /// "Stop following the server" on a kept playlist: it's the DJ's own from now on, as it is (its
-    /// songs stay on the laptop), and a sync no longer changes it.
+    /// songs stay on the computer), and a sync no longer changes it.
     /// </summary>
     public void StopFollowing(PlaylistInfo playlist)
     {
@@ -50,7 +50,7 @@ public sealed partial class ServersViewModel
         _owner.Library.RefreshServers();
     }
 
-    /// <summary>"Keep on this laptop" on one of the server's playlists: kept from now on, and synced now.</summary>
+    /// <summary>"Keep on this computer" on one of the server's playlists: kept from now on, and synced now.</summary>
     public async Task KeepPlaylistAsync(long serverId, string playlistId)
     {
         if (ItemFor(serverId) is not { } item || _database.GetServerPlaylist(serverId, playlistId) is not { } playlist)
@@ -108,11 +108,11 @@ public sealed partial class ServersViewModel
             var matching = found.Songs.Select(s => s.Id).ToHashSet();
             songs = songs.Where(s => matching.Contains(s.Id)).ToList();
             if (found.LeftOut.Count > 0)
-                note = $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
+                note = $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this computer: left out here.";
         }
         var rows = await RowsForAsync(item, songs, cancel);
         note ??= KeptAs(item.Server.Id, id) is { } kept
-            ? $"Kept on this laptop: it's in your playlists too, as {kept.Name}."
+            ? $"Kept on this computer: it's in your playlists too, as {kept.Name}."
             : missing > 0 ? $"{(missing == 1 ? "1 song" : $"{Format.Count(missing)} songs")} in it aren't in {item.Name}'s song list yet: Read its song list again." : null;
         return new(rows, Note: note);
     }

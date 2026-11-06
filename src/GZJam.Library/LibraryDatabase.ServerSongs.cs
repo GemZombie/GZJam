@@ -4,14 +4,14 @@ using Microsoft.Data.Sqlite;
 namespace GZJam.Library;
 
 /// <summary>A server song on this computer: the file it became, or the DJ's own copy of it.</summary>
-/// <param name="OnTheSpot">Downloaded when it was asked for (a double-click, the queue, a deck), not with a list kept on the laptop.</param>
+/// <param name="OnTheSpot">Downloaded when it was asked for (a double-click, the queue, a deck), not with a list kept on the computer.</param>
 public sealed record ServerSongCopy(long ServerId, string SongId, string Path, long? Size, string? ServerPath, bool OwnCopy, bool OnTheSpot = false);
 
 /// <summary>A song GZJam downloaded from a server, for freeing up space: when it came, how, and when the room last heard it.</summary>
 public sealed record ServerDownload(long ServerId, string SongId, string Path, long Size, DateTime DownloadedUtc, bool OnTheSpot, DateTime? LastPlayedUtc);
 
 /// <summary>
-/// What a server's songs to keep on the laptop are: a playlist there, or what's starred (chosen
+/// What a server's songs to keep on the computer are: a playlist there, or what's starred (chosen
 /// with CHOOSE…), or an album, an artist or a song downloaded while browsing the server (#284).
 /// </summary>
 public enum ServerChoiceKind
@@ -27,7 +27,7 @@ public enum ServerChoiceKind
 }
 
 /// <summary>
-/// Something the DJ chose to keep on the laptop from a server (#283): a playlist (by its ID
+/// Something the DJ chose to keep on the computer from a server (#283): a playlist (by its ID
 /// there), everything starred, or an album, artist or song (#284). A playlist fills a GZJam
 /// playlist, <see cref="PlaylistId"/>.
 /// </summary>
@@ -56,7 +56,7 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
-    /// Each of a server's songs on this laptop (by its ID there), and where. From the library's
+    /// Each of a server's songs on this computer (by its ID there), and where. From the library's
     /// index, so it's quick however many there are (a DJ's own copies of a whole server, say, and
     /// their music on a network drive): only a file not read into the library yet (downloaded a
     /// moment ago) is looked for on the disk.
@@ -170,7 +170,7 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
-    /// The DJ removed these songs from the laptop: their download is forgotten, a sync doesn't
+    /// The DJ removed these songs from the computer: their download is forgotten, a sync doesn't
     /// download them again, and they're no longer kept as songs on their own. (The file is the
     /// caller's to delete; hearts, cues and EQ stay, kept by path, for when one comes back.)
     /// </summary>
@@ -194,7 +194,7 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
-    /// <summary>The songs the DJ removed from the laptop, which a sync leaves on the server.</summary>
+    /// <summary>The songs the DJ removed from the computer, which a sync leaves on the server.</summary>
     public IReadOnlySet<string> GetRemovedServerSongs(long serverId)
     {
         using var c = Open();
@@ -432,7 +432,7 @@ public sealed partial class LibraryDatabase
         return r.Read() ? (r.GetInt64(0), r.GetString(1)) : null;
     }
 
-    // ───────────── What to keep on the laptop ─────────────
+    // ───────────── What to keep on the computer ─────────────
 
     public IReadOnlyList<ServerChoice> GetServerChoices(long serverId)
     {
@@ -454,7 +454,7 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>
-    /// What to keep on the laptop from a server, all at once. A choice kept from before keeps its
+    /// What to keep on the computer from a server, all at once. A choice kept from before keeps its
     /// GZJam playlist and when it was synced; one no longer chosen is forgotten (its playlist and
     /// songs stay).
     /// </summary>
@@ -526,7 +526,7 @@ public sealed partial class LibraryDatabase
     private static ServerChoiceKind KindOf(string text) =>
         Enum.TryParse(text, ignoreCase: true, out ServerChoiceKind kind) ? kind : ServerChoiceKind.Playlist;
 
-    /// <summary>Adds to what's kept on the laptop from a server, leaving the rest as it is (DOWNLOAD while browsing).</summary>
+    /// <summary>Adds to what's kept on the computer from a server, leaving the rest as it is (DOWNLOAD while browsing).</summary>
     public void AddServerChoices(long serverId, IEnumerable<ServerChoice> choices)
     {
         using var c = Open();

@@ -105,7 +105,7 @@ public sealed class ServerLibraryAppTests
         WaitFor(() => library.Results.Count == 1, "the search's one song");
 
         Assert.Equal("Lucky Rock Blues", library.Results[0].Title);
-        Assert.Equal("rating: is for the songs on this laptop: left out here.", library.ServerNote);
+        Assert.Equal("rating: is for the songs on this computer: left out here.", library.ServerNote);
     }
 
     [AvaloniaFact]
@@ -210,7 +210,7 @@ public sealed class ServerLibraryAppTests
         library.SearchText = "basie";
         WaitFor(() => library.HasAlsoOn, "the Also on line");
 
-        Assert.Equal("Also on synology: 2 songs not on this laptop", library.AlsoOnText);
+        Assert.Equal("Also on synology: 2 songs not on this computer", library.AlsoOnText);
         library.ShowAlsoOnCommand.Execute(null);
         WaitFor(() => library.Results.Count == 2 && library.Results.All(t => t.IsOnServerOnly), "the server's songs");
         Assert.True(library.SelectedFolder?.IsServer);

@@ -13,7 +13,7 @@ public sealed record FreeUpOffer(
 
 /// <summary>
 /// Freeing up space (#290), for a laptop too small for the library: songs downloaded from a
-/// server are removed from the laptop (they stay on the server, and come back when asked for).
+/// server are removed from the computer (they stay on the server, and come back when asked for).
 /// Only GZJam's downloads, never the DJ's own copies or songs kept in their music folders; never
 /// the song on a deck, in the queue, or played in tonight's session.
 /// </summary>
@@ -77,7 +77,7 @@ public sealed partial class ServersViewModel
     public static string Describe(IReadOnlyCollection<ServerDownload> downloads) =>
         $"{(downloads.Count == 1 ? "1 song" : $"{Format.Count(downloads.Count)} songs")}, {Format.Size(downloads.Sum(d => d.Size))}";
 
-    /// <summary>Asks, then removes these downloads from the laptop (Remove from this laptop).</summary>
+    /// <summary>Asks, then removes these downloads from the computer (Remove from this computer).</summary>
     public async Task RemoveFromLaptopAsync(IReadOnlyList<ServerDownload> downloads)
     {
         if (downloads.Count == 0)
@@ -87,14 +87,14 @@ public sealed partial class ServersViewModel
         }
         string where = string.Join(" and ", downloads.Select(d => ItemFor(d.ServerId)?.Name).OfType<string>().Distinct());
         if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
-                downloads.Count == 1 ? "Remove this song from this laptop?" : $"Remove {Format.Count(downloads.Count)} songs from this laptop?",
+                downloads.Count == 1 ? "Remove this song from this computer?" : $"Remove {Format.Count(downloads.Count)} songs from this computer?",
                 $"They stay on {where}, and come back when you ask for one. Their hearts, cues and EQ are kept. Frees {Format.Size(downloads.Sum(d => d.Size))}.",
                 "Remove"))
             return;
         await RemoveNowAsync(downloads);
     }
 
-    /// <summary>Removes these downloads from the laptop, without asking (Free up space… has asked).</summary>
+    /// <summary>Removes these downloads from the computer, without asking (Free up space… has asked).</summary>
     public async Task RemoveNowAsync(IReadOnlyList<ServerDownload> downloads)
     {
         var keep = ProtectedPaths();
@@ -121,9 +121,9 @@ public sealed partial class ServersViewModel
             return gone;
         });
         long freed = removed.Sum(d => d.Size);
-        Log.Info($"Servers: removed {removed.Count} downloaded songs from this laptop, {Format.Size(freed)}");
+        Log.Info($"Servers: removed {removed.Count} downloaded songs from this computer, {Format.Size(freed)}");
         _owner.ShowNotice(removed.Count == removable.Count
-            ? $"Removed {Describe(removed)} from this laptop."
+            ? $"Removed {Describe(removed)} from this computer."
             : $"Removed {Describe(removed)}; {removable.Count - removed.Count} couldn't be (in use?): the activity log says which.", seconds: 6);
         AfterSync();
         foreach (ServerItemViewModel item in Items)

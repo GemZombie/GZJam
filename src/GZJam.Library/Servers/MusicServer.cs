@@ -119,7 +119,7 @@ public sealed record ServerAlbum(string Id, string Name, string? Artist, int? Ye
 public sealed record ServerArtist(string Id, string Name, int AlbumCount);
 
 /// <summary>
-/// A song on a server that isn't on this laptop, as a row in the library's song list (#290): it
+/// A song on a server that isn't on this computer, as a row in the library's song list (#290): it
 /// can be heard in the headphones and downloaded, but goes on a deck or into the queue only once
 /// it's here. Its <see cref="Track.Path"/> is <c>gzjam-server:&lt;server&gt;/&lt;song&gt;</c>, never a file.
 /// </summary>

@@ -38,7 +38,7 @@ public sealed partial class ServersViewModel
     private List<Task<string>> DownloadsUnderWay() => _downloads.Values.Select(d => d.Done).Where(t => !t.IsCompleted).ToList();
 
     /// <summary>
-    /// The song on this laptop: the copy here, or downloaded, sharing a download already under way.
+    /// The song on this computer: the copy here, or downloaded, sharing a download already under way.
     /// <paramref name="cancel"/> lets this caller go; the download stops only once nobody's waiting.
     /// </summary>
     private async Task<string> GetSongAsync(ServerItemViewModel item, SubsonicClient client, ServerSong song, CancellationToken cancel = default)

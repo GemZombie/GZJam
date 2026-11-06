@@ -186,8 +186,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ? $"Keeping all of your server in your library, in {Servers.KeepFolder}, a song at a time: your own songs from then on. Right-click the server in the library to pause or stop it."
         : Analysis?.StatusTip;
 
+    /// <summary>
+    /// The top bar's Stop, beside the progress: while what it shows is songs coming down from a
+    /// server (a sync, songs being kept, or a whole server), not a scan or an export.
+    /// </summary>
+    public bool CanStopBackground => ExportStatus is null && Servers is { } servers && servers.CanStopInBackground
+        && (servers.SyncStatus is not null || (Library.ScanStatus is null && servers.KeepWholeStatus is not null));
+
     internal void BackgroundChanged()
     {
+        OnPropertyChanged(nameof(CanStopBackground));
         OnPropertyChanged(nameof(BackgroundStatus));
         OnPropertyChanged(nameof(BackgroundPercent));
         OnPropertyChanged(nameof(BackgroundTip));
@@ -1395,7 +1403,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (track.IsOnServerOnly)
         {
-            // A server's song (#290): onto a deck only once it's on this laptop.
+            // A server's song (#290): onto a deck only once it's on this computer.
             if (Servers.IsFetching(track))
             {
                 // It's on its way: this deck takes it the moment it's here, unless the room hears it by then.

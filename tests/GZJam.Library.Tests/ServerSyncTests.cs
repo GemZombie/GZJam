@@ -6,7 +6,7 @@ using GZJam.Testing;
 
 namespace GZJam.Library.Tests;
 
-/// <summary>Bringing a server's chosen songs onto the laptop (#283): where they go, what isn't downloaded twice, and the playlists they fill.</summary>
+/// <summary>Bringing a server's chosen songs onto the computer (#283): where they go, what isn't downloaded twice, and the playlists they fill.</summary>
 public sealed class ServerSyncTests : IDisposable
 {
     private readonly TempLibrary _lib = new();
@@ -280,7 +280,7 @@ public sealed class ServerSyncTests : IDisposable
         Assert.Equal("Ella Swings", Assert.Single(ella).Name);
     }
 
-    // ───────────── Removed from the laptop (#290) ─────────────
+    // ───────────── Removed from the computer (#290) ─────────────
 
     [Fact]
     public async Task A_song_the_DJ_removed_isnt_downloaded_again_by_a_sync_until_its_asked_for()
