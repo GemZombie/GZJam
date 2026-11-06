@@ -337,6 +337,10 @@ public sealed partial class ServerItemViewModel
         var names = choices.Where(c => c.Kind == ServerChoiceKind.Playlist).Select(c => c.Name).ToList();
         if (choices.Any(c => c.Kind == ServerChoiceKind.Starred))
             names.Add("what's starred");
+        foreach ((ServerChoiceKind kind, string one, string many) in (ReadOnlySpan<(ServerChoiceKind, string, string)>)
+                 [(ServerChoiceKind.Artist, "artist", "artists"), (ServerChoiceKind.Album, "album", "albums"), (ServerChoiceKind.Song, "song", "songs")])
+            if (choices.Count(c => c.Kind == kind) is var n and > 0)
+                names.Add(n == 1 ? $"1 {one}" : $"{Format.Count(n)} {many}");
         string list = names.Count == 1 ? names[0] : string.Join(", ", names[..^1]) + " and " + names[^1];
         string here = songs == 0 ? "" : $" · {(songs == 1 ? "1 song" : Format.Count(songs) + " songs")} downloaded, {Format.Size(bytes)}";
         KeptText = $"Keeping on this laptop: {list}{here}";
@@ -377,5 +381,100 @@ public sealed partial class ServerItemViewModel
     {
         OnPropertyChanged(nameof(CanSync));
         OnPropertyChanged(nameof(CanChoose));
+    }
+}
+
+/// <summary>Browsing a server (#284): what the browser asks of the servers.</summary>
+public sealed partial class ServersViewModel
+{
+    private string? _previewFolderCleared;
+
+    /// <summary>A client signed in to the server, or null if its password isn't on this computer.</summary>
+    public SubsonicClient? SignedIn(ServerItemViewModel item) =>
+        TryGetPassword(item.Server.PasswordKey, out _) is { } password ? ClientFor(item.Server, password) : null;
+
+    /// <summary>Each of the server's songs that's on this laptop (by its ID there), and where.</summary>
+    public Dictionary<string, string> LocalCopies(ServerItemViewModel item) =>
+        _database.GetServerSongs(item.Server.Id).Where(s => File.Exists(s.Path)).ToDictionary(s => s.SongId, s => s.Path);
+
+    /// <summary>Adds songs, albums or artists to what's kept on the laptop from the server.</summary>
+    public void AddChoices(ServerItemViewModel item, IEnumerable<ServerChoice> choices)
+    {
+        var added = choices.ToList();
+        _database.AddServerChoices(item.Server.Id, added);
+        Log.Info($"Servers: keeping from {item.Name}, as well: {string.Join(", ", added.Select(c => $"{c.Kind.ToString().ToLowerInvariant()} {c.Name}"))}");
+        RefreshKept(item);
+    }
+
+    /// <summary>Where a song fetched only for the headphones goes: a temporary folder, emptied each session.</summary>
+    public string PreviewFolder { get; set; } = Path.Combine(Path.GetTempPath(), "GZJam previews");
+
+    /// <summary>
+    /// Plays a server's song in the headphones: the copy on this laptop if there is one, else
+    /// fetched into <see cref="PreviewFolder"/> for the preview only (it's never played to the room
+    /// from there, and isn't in the library). Returns a problem to say, or null.
+    /// </summary>
+    public async Task<string?> PreviewAsync(ServerItemViewModel item, ServerSong song, string? localPath)
+    {
+        if (_owner.Preview is null)
+            return "The headphone preview isn't available: the sound didn't start.";
+        if (!_owner.HasCueOutput)
+            return "Choose a headphone output in Settings › Sound to preview songs.";
+        string? path = localPath;
+        if (path is null)
+        {
+            if (SignedIn(item) is not { } client)
+                return "The password isn't on this computer: press EDIT on the server in Settings › Servers to type it.";
+            try
+            {
+                path = await Task.Run(async () =>
+                {
+                    ClearPreviewsOnce();
+                    Directory.CreateDirectory(PreviewFolder);
+                    string extension = Path.GetExtension(ServerPaths.RelativeParts(song)[^1]);
+                    string file = Path.Combine(PreviewFolder, ServerPaths.Safe($"{item.Server.Id}-{song.Id}") + extension);
+                    if (!File.Exists(file))
+                    {
+                        string partial = file + ServerSync.PartialExtension;
+                        await using (var stream = File.Create(partial))
+                            await client.DownloadAsync(song.Id, stream);
+                        File.Move(partial, file, overwrite: true);
+                    }
+                    return file;
+                });
+            }
+            catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
+            {
+                return $"Couldn't get the song from the server: {e.Message}";
+            }
+        }
+        var track = new Track
+        {
+            Path = path,
+            Folder = "",
+            FileName = Path.GetFileName(path),
+            Title = song.Title,
+            Artist = song.Artist,
+            Album = song.Album,
+        };
+        if (_owner.Preview.Track?.Path != path)
+            _owner.Preview.Toggle(track);
+        return null;
+    }
+
+    private void ClearPreviewsOnce()
+    {
+        if (_previewFolderCleared == PreviewFolder)
+            return;
+        _previewFolderCleared = PreviewFolder;
+        try
+        {
+            if (Directory.Exists(PreviewFolder))
+                Directory.Delete(PreviewFolder, recursive: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // one is playing, or in use: left for next time
+        }
     }
 }

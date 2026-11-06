@@ -34,6 +34,13 @@ New:
   Servers shows how much is downloaded and the room left, lets you set a limit, and can sync each
   server when GZJam starts (pausing once the room hears music). Adds one more small thing to your
   library; older versions can still open it.
+- **Browse your server** ([#284](https://github.com/GemZombie/GZJam/issues/284)): the library's
+  *Server* link (or *BROWSE…* on a server in Settings › Servers) opens the server in a window
+  beside GZJam: what was added lately, a search of its songs, albums and artists, and each
+  artist's albums. Double-click a song to hear it in the headphones, even one that isn't on the
+  laptop (it's fetched for the preview only, and never reaches the room). *DOWNLOAD* brings the
+  selected songs, albums or artists to the laptop, into *GZJam from servers*, and keeps them up to
+  date with the rest; songs already here say *On this laptop*.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

@@ -333,8 +333,14 @@
                   <TextBlock Classes="label" Text="LIBRARY" />
                 </StackPanel>
               </Button>
-              <Button Grid.Column="1" Classes="link" Content="+ Folder" Click="OnAddFolderClick"
-                      ToolTip.Tip="Add a music folder to the library" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <!-- A music server's songs (#284): only once one is added, in Settings › Servers -->
+                <Button x:Name="BrowseServerButton" Classes="link" Content="Server" Click="OnBrowseServerClick"
+                        IsVisible="{Binding Servers.HasServers}"
+                        ToolTip.Tip="Browse your music server: search it, preview songs, download them to this laptop" />
+                <Button Classes="link" Content="+ Folder" Click="OnAddFolderClick"
+                        ToolTip.Tip="Add a music folder to the library" />
+              </StackPanel>
               <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
               <Button x:Name="FoldLibraryButton" Grid.Column="2" Classes="link panel-fold" Click="OnFoldLibraryClick"
                       ToolTip.Tip="Fold the library panel away">

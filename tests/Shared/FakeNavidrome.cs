@@ -19,6 +19,27 @@ public sealed class FakeNavidrome : HttpMessageHandler
         ["s4"] = ("Li'l Darlin'", "Count Basie", "Cute", "al-cute", 5, "/music/Jazz & Swing/Count Basie/Cute/05 - Li'l Darlin'.mp3", "mp3"),
     };
 
+    private static readonly Dictionary<string, (string Name, string Artist, int Year)> Albums = new()
+    {
+        ["al-cute"] = ("Cute", "Count Basie", 1958),
+        ["al-ella"] = ("Ella Swings", "Ella Fitzgerald", 1961),
+        ["al-ma"] = ("Mother of the Blues", "Ma Rainey", 1925),
+    };
+
+    private static readonly Dictionary<string, string> ArtistIds = new()
+    {
+        ["Count Basie"] = "ar-basie", ["Ella Fitzgerald"] = "ar-ella", ["Ma Rainey"] = "ar-ma",
+    };
+
+    private static string Query(Uri uri) => System.Web.HttpUtility.ParseQueryString(uri.Query)["query"] ?? "";
+
+    private object Album(string id)
+    {
+        var a = Albums[id];
+        int songs = Songs.Count(s => s.Value.AlbumId == id);
+        return new { id, name = a.Name, artist = a.Artist, year = a.Year, songCount = songs, duration = 180 * songs };
+    }
+
     public Dictionary<string, string[]> Playlists { get; } = new() { ["pl1"] = ["s2", "s1", "s3"] };
     public Dictionary<string, string> PlaylistNames { get; } = new() { ["pl1"] = "Friday" };
     public Dictionary<string, long> Sizes { get; } = [];
@@ -30,11 +51,16 @@ public sealed class FakeNavidrome : HttpMessageHandler
     public string? Truncate { get; set; }
     public int Downloads { get; private set; }
 
+    /// <summary>A song's file, in place of its made-up bytes: a real MP3, for previewing.</summary>
+    public Dictionary<string, byte[]> Files { get; } = [];
+
     public static byte[] Bytes(string id) => Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat(id + "-audio-", 100)));
 
-    private long SizeOf(string id) => Sizes.TryGetValue(id, out long size) ? size : Bytes(id).Length;
+    private long SizeOf(string id) => Sizes.TryGetValue(id, out long size) ? size : FileOf(id).Length;
 
-    public SubsonicClient Client() => new(new HttpClient(this), "http://synology:4533", "gzjam", "sesame");
+    private byte[] FileOf(string id) => Files.TryGetValue(id, out byte[]? file) ? file : Bytes(id);
+
+    public SubsonicClient Client() => new(new HttpClient(this), "http://synology:4533", "gzjam", "sesame") { RetryAfter = TimeSpan.Zero };
 
     private object Song(string id)
     {
@@ -64,7 +90,7 @@ public sealed class FakeNavidrome : HttpMessageHandler
         if (uri.AbsolutePath == "/rest/download.view")
         {
             Downloads++;
-            byte[] bytes = Bytes(id);
+            byte[] bytes = FileOf(id);
             if (id == Truncate)
                 bytes = bytes[..(bytes.Length / 2)];
             var content = new ByteArrayContent(bytes);
@@ -73,6 +99,21 @@ public sealed class FakeNavidrome : HttpMessageHandler
         }
         string json = uri.AbsolutePath switch
         {
+            "/rest/search3.view" => Ok(new
+            {
+                searchResult3 = new
+                {
+                    artist = Query(uri) is var q && "count basie".Contains(q, StringComparison.OrdinalIgnoreCase)
+                        ? new[] { new { id = "ar-basie", name = "Count Basie", albumCount = 1 } } : [],
+                    album = Albums.Where(a => a.Value.Name.Contains(Query(uri), StringComparison.OrdinalIgnoreCase) || a.Value.Artist.Contains(Query(uri), StringComparison.OrdinalIgnoreCase))
+                        .Select(a => Album(a.Key)).ToArray(),
+                    song = Songs.Where(s => s.Value.Title.Contains(Query(uri), StringComparison.OrdinalIgnoreCase) || s.Value.Artist.Contains(Query(uri), StringComparison.OrdinalIgnoreCase))
+                        .Select(s => Song(s.Key)).ToArray(),
+                },
+            }),
+            "/rest/getAlbumList2.view" => Ok(new { albumList2 = new { album = Albums.Keys.Select(Album).ToArray() } }),
+            "/rest/getSong.view" => Songs.ContainsKey(id) ? Ok(new { song = Song(id) })
+                : "{\"subsonic-response\":{\"status\":\"failed\",\"version\":\"1.16.1\",\"error\":{\"code\":70,\"message\":\"Song not found\"}}}",
             "/rest/getPlaylists.view" => Ok(new
             {
                 playlists = new
@@ -91,7 +132,7 @@ public sealed class FakeNavidrome : HttpMessageHandler
                 },
             }),
             "/rest/getAlbum.view" => Ok(new { album = new { id, song = Songs.Where(s => s.Value.AlbumId == id).Select(s => Song(s.Key)).ToArray() } }),
-            "/rest/getArtist.view" => Ok(new { artist = new { id, album = id == "ar-ella" ? new[] { new { id = "al-ella" } } : [] } }),
+            "/rest/getArtist.view" => Ok(new { artist = new { id, album = Albums.Where(a => ArtistIds.GetValueOrDefault(a.Value.Artist) == id).Select(a => Album(a.Key)).ToArray() } }),
             _ => Ok(new { }),
         };
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });

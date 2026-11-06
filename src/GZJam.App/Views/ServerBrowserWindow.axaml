@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        x:Class="GZJam.App.Views.ServerBrowserWindow"
+        x:DataType="vm:ServerBrowserViewModel"
+        Width="820" Height="640" MinWidth="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource PanelBrush}"
+        Title="{Binding WindowTitle}">
+  <!-- A music server's songs (#284): search, or look through what was added lately; preview in the
+       headphones; download songs, albums or artists to the laptop. Not modal: GZJam goes on behind it. -->
+  <DockPanel Margin="16,14">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,0,0,10">
+      <Button x:Name="BackButton" Classes="hw" Content="‹ BACK" IsEnabled="{Binding CanGoBack}" Click="OnBackClick"
+              ToolTip.Tip="Back to the list before" />
+      <TextBox x:Name="SearchBox" Grid.Column="1" PlaceholderText="{Binding SearchPlaceholder}"
+               Text="{Binding SearchText}" />
+    </Grid>
+
+    <TextBlock x:Name="HeadingText" DockPanel.Dock="Top" Classes="label" Margin="2,0,0,8" Text="{Binding Heading}" />
+
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,10,0,0">
+      <TextBlock x:Name="StatusText" Classes="setting-help" Classes.problem="{Binding StatusProblem}" FontSize="12"
+                 VerticalAlignment="Center" Text="{Binding Status}" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <Button x:Name="PreviewButton" Classes="hw" Content="PREVIEW" Click="OnPreviewClick"
+                ToolTip.Tip="Play the selected song in the headphones (not to the room)" />
+        <Button x:Name="DownloadButton" Classes="hw" Content="DOWNLOAD" Click="OnDownloadClick"
+                ToolTip.Tip="Download the selected songs, albums or artists to this laptop, and keep them up to date" />
+        <Button x:Name="DownloadAllButton" Classes="hw" Content="{Binding DownloadAllText}" IsVisible="{Binding CanDownloadAll}"
+                Click="OnDownloadAllClick" ToolTip.Tip="Download everything on this page to this laptop, and keep it up to date" />
+        <Button x:Name="CloseButton" Classes="hw" Content="CLOSE" IsCancel="True" Click="OnCloseClick" />
+      </StackPanel>
+    </Grid>
+
+    <Border Classes="settings-card" Margin="0">
+      <ListBox x:Name="RowList" ItemsSource="{Binding Rows}" SelectionMode="Multiple" Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:BrowseRow">
+            <Grid ColumnDefinitions="62,*,Auto" ColumnSpacing="10" Margin="2,3">
+              <TextBlock Classes="setting-help" FontSize="10" FontWeight="Bold" LetterSpacing="1" VerticalAlignment="Center"
+                         Text="{Binding KindText}" />
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Classes="setting" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="setting-help" Text="{Binding Detail}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+              </StackPanel>
+              <TextBlock Grid.Column="2" Classes="setting-help" VerticalAlignment="Center" Text="{Binding HereText}" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+  </DockPanel>
+</Window>

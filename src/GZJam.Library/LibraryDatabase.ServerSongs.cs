@@ -6,16 +6,23 @@ namespace GZJam.Library;
 /// <summary>A server song on this computer: the file it became, or the DJ's own copy of it.</summary>
 public sealed record ServerSongCopy(long ServerId, string SongId, string Path, long? Size, string? ServerPath, bool OwnCopy);
 
-/// <summary>What a server's songs to keep on the laptop are: a playlist there, or what's starred.</summary>
+/// <summary>
+/// What a server's songs to keep on the laptop are: a playlist there, or what's starred (chosen
+/// with CHOOSE…), or an album, an artist or a song downloaded while browsing the server (#284).
+/// </summary>
 public enum ServerChoiceKind
 {
     Playlist,
     Starred,
+    Album,
+    Artist,
+    Song,
 }
 
 /// <summary>
 /// Something the DJ chose to keep on the laptop from a server (#283): a playlist (by its ID
-/// there), or everything starred. A playlist fills a GZJam playlist, <see cref="PlaylistId"/>.
+/// there), everything starred, or an album, artist or song (#284). A playlist fills a GZJam
+/// playlist, <see cref="PlaylistId"/>.
 /// </summary>
 public sealed record ServerChoice(ServerChoiceKind Kind, string RemoteId, string Name, long? PlaylistId = null, DateTime? SyncedUtc = null)
 {
@@ -127,13 +134,14 @@ public sealed partial class LibraryDatabase
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
             SELECT kind, remote_id, name, playlist_id, synced_utc FROM server_choices WHERE server_id = $server
-            ORDER BY kind = 'playlist', name COLLATE NOCASE;
+            ORDER BY CASE kind WHEN 'starred' THEN 0 WHEN 'playlist' THEN 1 WHEN 'artist' THEN 2 WHEN 'album' THEN 3 ELSE 4 END,
+                name COLLATE NOCASE;
             """;
         cmd.Parameters.AddWithValue("$server", serverId);
         using var r = cmd.ExecuteReader();
         var choices = new List<ServerChoice>();
         while (r.Read())
-            choices.Add(new ServerChoice(r.GetString(0) == "starred" ? ServerChoiceKind.Starred : ServerChoiceKind.Playlist,
+            choices.Add(new ServerChoice(KindOf(r.GetString(0)),
                 r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt64(3),
                 r.IsDBNull(4) ? null : new DateTime(r.GetInt64(4), DateTimeKind.Utc)));
         return choices;
@@ -207,5 +215,29 @@ public sealed partial class LibraryDatabase
         transaction.Commit();
     }
 
-    private static string KindText(ServerChoiceKind kind) => kind == ServerChoiceKind.Starred ? "starred" : "playlist";
+    private static string KindText(ServerChoiceKind kind) => kind.ToString().ToLowerInvariant();
+
+    private static ServerChoiceKind KindOf(string text) =>
+        Enum.TryParse(text, ignoreCase: true, out ServerChoiceKind kind) ? kind : ServerChoiceKind.Playlist;
+
+    /// <summary>Adds to what's kept on the laptop from a server, leaving the rest as it is (DOWNLOAD while browsing).</summary>
+    public void AddServerChoices(long serverId, IEnumerable<ServerChoice> choices)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (ServerChoice choice in choices)
+        {
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = """
+                INSERT INTO server_choices (server_id, kind, remote_id, name) VALUES ($server, $kind, $remote, $name)
+                ON CONFLICT (server_id, kind, remote_id) DO NOTHING;
+                """;
+            cmd.Parameters.AddWithValue("$server", serverId);
+            cmd.Parameters.AddWithValue("$kind", KindText(choice.Kind));
+            cmd.Parameters.AddWithValue("$remote", choice.RemoteId);
+            cmd.Parameters.AddWithValue("$name", choice.Name);
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
 }

@@ -361,6 +361,8 @@
                       </StackPanel>
                       <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                          <Button Classes="hw" Content="BROWSE…" Click="OnBrowseServerClick"
+                                  ToolTip.Tip="Search the server, preview its songs in the headphones, and download songs, albums or artists" />
                           <Button Classes="hw" Content="CHOOSE…" IsEnabled="{Binding CanChoose}" Click="OnChooseServerClick"
                                   ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this laptop" />
                           <Button Classes="hw" Content="{Binding SyncButtonText}" MinWidth="64" Click="OnSyncServerClick"

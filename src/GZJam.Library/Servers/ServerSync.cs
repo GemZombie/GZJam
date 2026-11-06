@@ -22,6 +22,7 @@ public sealed record SyncResult(
 /// <summary>
 /// Brings what the DJ chose from a server onto this computer (#283): every song of the chosen
 /// playlists and of what's starred (starred songs, and the songs of starred albums and artists),
+/// and of the albums, artists and songs downloaded while browsing (#284),
 /// downloaded into the server's folder under the downloads folder, as the server has it laid out.
 /// A song already here (downloaded before, or the DJ's own copy) isn't downloaded again. Each
 /// file arrives as <c>.partial</c> and gets its name only once it's whole, so a sync stopped
@@ -64,14 +65,30 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         {
             try
             {
-                if (choice.Kind == ServerChoiceKind.Playlist)
+                switch (choice.Kind)
                 {
-                    var songs = await client.GetPlaylistSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false);
-                    playlists.Add((choice, songs));
-                    Want(songs);
+                    case ServerChoiceKind.Playlist:
+                        var songs = await client.GetPlaylistSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false);
+                        playlists.Add((choice, songs));
+                        Want(songs);
+                        break;
+                    case ServerChoiceKind.Starred:
+                        Want(await StarredSongsAsync(cancel).ConfigureAwait(false));
+                        break;
+                    case ServerChoiceKind.Album:
+                        Want(await client.GetAlbumSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false));
+                        break;
+                    case ServerChoiceKind.Artist:
+                        foreach (string albumId in await client.GetArtistAlbumsAsync(choice.RemoteId, cancel).ConfigureAwait(false))
+                            Want(await client.GetAlbumSongsAsync(albumId, cancel).ConfigureAwait(false));
+                        break;
+                    case ServerChoiceKind.Song:
+                        if (await client.GetSongAsync(choice.RemoteId, cancel).ConfigureAwait(false) is { } one)
+                            Want([one]);
+                        else
+                            problems.Add($"{choice.Name}: no longer on the server.");
+                        break;
                 }
-                else
-                    Want(await StarredSongsAsync(cancel).ConfigureAwait(false));
             }
             catch (ServerException e)
             {
