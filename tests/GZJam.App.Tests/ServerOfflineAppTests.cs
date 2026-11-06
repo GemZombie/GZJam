@@ -169,4 +169,65 @@ public sealed class ServerOfflineAppTests
         Assert.Equal("Air Mail Special", again.Title);
         Assert.Null(app.ViewModel.Servers.TrackFor(ServerTrack.PathPrefix + "999/s1"));
     }
+
+    [AvaloniaFact]
+    public async Task A_deck_asked_for_a_song_still_downloading_takes_it_when_its_here()
+    {
+        var (app, fake) = await WithServer();
+        using var _ = app;
+        fake.DownloadDelay = TimeSpan.FromMilliseconds(600);
+        app.ViewModel.AddToQueue([Remote(app, "Basie Boogie")]);
+        QueueItem waiting = Assert.Single(app.ViewModel.Queue.Items);
+        DeckViewModel deck = app.ViewModel.Decks[1];
+
+        Assert.False(await app.ViewModel.LoadToDeckAsync(deck, waiting.Track));
+        Assert.Contains("as soon as it's here", app.ViewModel.Notice);
+
+        WaitFor(() => deck.Track is not null, "the deck, loaded when the song came");
+        Assert.Equal("03 - Basie Boogie.mp3", Path.GetFileName(deck.Track!.Path));
+        Assert.Empty(app.ViewModel.Queue.Items);   // loaded from the queue: it left it
+    }
+
+    [AvaloniaFact]
+    public async Task When_the_queue_ends_counts_songs_still_downloading_and_says_so()
+    {
+        var (app, fake) = await WithServer();
+        using var _ = app;
+        var vm = app.ViewModel;
+        fake.Down = true;
+        await vm.Servers.CheckReachableAsync();
+        Assert.True(AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[0], app.ToneTrack("Playing", seconds: 30))));
+        vm.AddToQueue([Remote(app, "Lucky Rock Blues")]);
+        vm.Decks[0].TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+
+        AppHarness.WaitFor(() =>
+        {
+            vm.UpdateQueueEnd();
+            return vm.QueueEndText != "—";
+        });
+        Assert.EndsWith(" ↓", vm.QueueEndText);
+        Assert.EndsWith("It counts 1 song still downloading.", vm.QueueEndTip);
+    }
+
+    [AvaloniaFact]
+    public async Task The_server_shows_its_sync_in_the_tree()
+    {
+        var (app, _) = await WithServer();
+        using var _ = app;
+        var servers = app.ViewModel.Servers;
+        ServerItemViewModel server = servers.Items[0];
+        servers.SaveChoices(server, [new ServerChoice(ServerChoiceKind.Playlist, "pl1", "Friday")]);
+        FolderNodeViewModel node = Assert.Single(app.ViewModel.Library.Roots, r => r.IsServerItself);
+        Assert.True(node.CanSync);
+
+        Task sync = servers.SyncAsync(server);
+        Assert.True(node.IsSyncing);
+        Assert.Equal("↻", node.CountText);
+        Assert.False(node.CanSync);
+        WaitFor(() => sync.IsCompleted, "the sync");
+        FolderNodeViewModel after = Assert.Single(app.ViewModel.Library.Roots, r => r.IsServerItself);
+        Assert.False(after.IsSyncing);
+        Assert.Equal("4", after.CountText);
+    }
 }

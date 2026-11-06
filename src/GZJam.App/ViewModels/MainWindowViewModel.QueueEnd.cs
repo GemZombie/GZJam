@@ -115,5 +115,13 @@ public sealed partial class MainWindowViewModel
                 ? "When the music queued runs out: what's left of this song, the songs ready on the decks and in the queue, and the gaps between them"
                 : "When the music queued runs out, played one after another: what's left of this song, the songs ready on the decks and in the queue"),
         };
+        // Songs still on a server (#290) count, but may not be here in time: said, with a mark.
+        if (estimate.Kind != QueueEnd.Kind.Repeats && Queue.Items.Count(i => i.IsWaiting) is var waiting and > 0)
+        {
+            QueueEndText += " ↓";
+            QueueEndTip += waiting == 1
+                ? ". It counts 1 song still downloading."
+                : $". It counts {waiting} songs still downloading.";
+        }
     }
 }

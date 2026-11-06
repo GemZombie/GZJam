@@ -51,6 +51,9 @@ public sealed class FakeNavidrome : HttpMessageHandler
     public string? Truncate { get; set; }
     public int Downloads { get; private set; }
 
+    /// <summary>How long a download takes to start: for a song that's still on its way.</summary>
+    public TimeSpan DownloadDelay { get; set; }
+
     /// <summary>A song's file, in place of its made-up bytes: a real MP3, for previewing.</summary>
     public Dictionary<string, byte[]> Files { get; } = [];
 
@@ -81,12 +84,29 @@ public sealed class FakeNavidrome : HttpMessageHandler
         return JsonSerializer.Serialize(new Dictionary<string, object> { ["subsonic-response"] = response });
     }
 
+    private async Task<HttpResponseMessage> DelayedAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        TimeSpan delay = DownloadDelay;
+        await Task.Delay(delay, cancellationToken);
+        DownloadDelay = TimeSpan.Zero;
+        try
+        {
+            return await SendAsync(request, cancellationToken);
+        }
+        finally
+        {
+            DownloadDelay = delay;
+        }
+    }
+
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (Down)
             throw new HttpRequestException("No connection could be made.");
         Uri uri = request.RequestUri!;
         string id = System.Web.HttpUtility.ParseQueryString(uri.Query)["id"] ?? "";
+        if (uri.AbsolutePath == "/rest/download.view" && DownloadDelay > TimeSpan.Zero)
+            return DelayedAsync(request, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view")
         {
             Downloads++;

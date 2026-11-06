@@ -350,6 +350,33 @@ public partial class MainWindow
             await Vm.Servers.RemoveFromLaptopAsync(Vm.Servers.DownloadsInFolder(id, folder.Node.RelativePath));
     }
 
+    private ServerItemViewModel? ServerOf(object? sender) =>
+        (sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } ? Vm.Servers.Item(id) : null;
+
+    private async void OnSyncServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is not { } server)
+            return;
+        if (server.CanSync)
+            await Vm.Servers.SyncAsync(server);
+        else if (server.CanChoose)
+            await new ServerChoicesDialog(Vm.Servers, server).ShowDialog<bool>(this);   // nothing chosen yet: choose first
+        else
+            Vm.ShowNotice($"{server.Name} doesn't let this account download songs: they can be heard in the headphones only.", seconds: 8);
+    }
+
+    private void OnStopSyncClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            Vm.Servers.StopSync(server);
+    }
+
+    private async void OnChooseServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            await new ServerChoicesDialog(Vm.Servers, server).ShowDialog<bool>(this);
+    }
+
     private async void OnFreeUpSpaceClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } server)

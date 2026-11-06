@@ -25,22 +25,15 @@ New:
   desktop with no keychain keeps it in a file only you can read. Adds one small thing to your
   library; older versions can still open it.
 - **A server's songs on the laptop before the night** ([#283](https://github.com/GemZombie/GZJam/issues/283)):
-  on a server's card, *CHOOSE…* its playlists, and what's starred there (songs, whole albums and
-  artists you starred in Navidrome's web page or app), then *SYNC*. GZJam downloads the original
-  files into *GZJam from servers* in your Music folder, laid out as the server has them, as a music
-  folder like your others: the room never depends on the Wi-Fi. Each playlist becomes a GZJam
-  playlist and follows the server's on every sync. A song you already have (the same title, artist
-  and file size) isn't downloaded again, and a half-downloaded song never shows up. Settings ›
-  Servers shows how much is downloaded and the room left, lets you set a limit, and can sync each
-  server when GZJam starts (pausing once the room hears music). Adds one more small thing to your
-  library; older versions can still open it.
-- **Browse your server** ([#284](https://github.com/GemZombie/GZJam/issues/284)): the library's
-  *Server* link (or *BROWSE…* on a server in Settings › Servers) opens the server in a window
-  beside GZJam: what was added lately, a search of its songs, albums and artists, and each
-  artist's albums. Double-click a song to hear it in the headphones, even one that isn't on the
-  laptop (it's fetched for the preview only, and never reaches the room). *DOWNLOAD* brings the
-  selected songs, albums or artists to the laptop, into *GZJam from servers*, and keeps them up to
-  date with the rest; songs already here say *On this laptop*.
+  right-click the server in the library › *Keep on this laptop…*: its playlists, and what's starred
+  there (songs, whole albums and artists you starred in Navidrome's web page or app), then *Sync
+  now*. GZJam downloads the original files into *GZJam from servers* in your Music folder, laid out
+  as the server has them, as a music folder like your others: the room never depends on the Wi-Fi.
+  Each playlist becomes a GZJam playlist and follows the server's on every sync. A song you already
+  have (the same title, artist and file size) isn't downloaded again, and a half-downloaded song
+  never shows up. Settings › Servers shows how much is downloaded and the room left, lets you set a
+  limit, and can sync each server when GZJam starts (pausing once the room hears music). Adds one
+  more small thing to your library; older versions can still open it.
 - **Your server in the library** ([#290](https://github.com/GemZombie/GZJam/issues/290)): each server
   sits in the folder tree after your music folders, with its own folders under it, as they are on
   the server (or by artist and album, for a server that doesn't say). GZJam reads its song list when
@@ -66,6 +59,11 @@ New:
   bring them back: a double-click, the queue or a download does, with their hearts, cues and EQ.
   Your own songs, and songs on a deck, in the queue or played tonight, are never removed. Adds one
   more small thing to your library; older versions can still open it.
+- **Move the downloaded songs to another drive** (#290): Settings › Servers › *Downloaded to* ›
+  *CHANGE…* works at any time now. The songs already downloaded move to the new folder, with their
+  hearts, cues, EQ, playlists and history, and the queue follows them; songs downloaded from then on
+  go there too. GZJam checks there's room first, and the old folder leaves the library once it's
+  empty. A song on a deck has to come off it first.
 - **A server's song in the queue waits in its place** (#290): added to the queue, it's there at
   once, *Downloading…*, then becomes the song itself. While its server can't be reached it says
   *Waiting for synology* and comes by itself when it answers; a download that fails says why, with

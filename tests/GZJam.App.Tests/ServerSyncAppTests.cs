@@ -81,7 +81,7 @@ public sealed class ServerSyncAppTests
         Assert.False(card.SyncProblem);
         Assert.Contains("3 songs downloaded", card.KeptText);
         Assert.StartsWith("3 songs,", servers.DownloadsText);
-        Assert.False(servers.CanChangeDownloadsFolder);   // songs are there now
+        Assert.True(servers.CanChangeDownloadsFolder);   // its songs would move with it
         Assert.Null(servers.SyncStatus);
         Assert.False(card.IsSyncing);
     }
