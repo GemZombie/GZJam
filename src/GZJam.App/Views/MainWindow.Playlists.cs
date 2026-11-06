@@ -175,6 +175,12 @@ public partial class MainWindow
             _ = Vm.RenamePlaylistAsync(playlist);
     }
 
+    private void OnStopFollowingServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (PlaylistOf(sender) is { } playlist)
+            Vm.Servers.StopFollowing(playlist);
+    }
+
     private void OnDeletePlaylistItemClick(object? sender, RoutedEventArgs e)
     {
         if (PlaylistOf(sender) is { } playlist)

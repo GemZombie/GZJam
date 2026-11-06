@@ -296,7 +296,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public void SetManualBpm(IReadOnlyList<Track> tracks, double? bpm)
     {
-        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        // Not a song still on a server: what's given it is kept by its file, which isn't here yet (#290).
+        var paths = tracks.Where(t => !t.IsOnServerOnly).Select(t => t.Path).Distinct().ToList();
         if (paths.Count == 0)
             return;
         _database.SetManualBpm(paths, bpm);
@@ -408,7 +409,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Rates tracks (saved in the library, never in the files) wherever they are on screen.</summary>
     public void SetRating(IReadOnlyList<Track> tracks, Rating rating)
     {
-        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        // Not a song still on a server: what's given it is kept by its file, which isn't here yet (#290).
+        var paths = tracks.Where(t => !t.IsOnServerOnly).Select(t => t.Path).Distinct().ToList();
         _database.SetRating(paths, rating);
         foreach (string path in paths)
             foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
@@ -419,7 +421,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Marks tracks' energy wherever they are on screen.</summary>
     public void SetEnergy(IReadOnlyList<Track> tracks, Energy energy)
     {
-        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        // Not a song still on a server: what's given it is kept by its file, which isn't here yet (#290).
+        var paths = tracks.Where(t => !t.IsOnServerOnly).Select(t => t.Path).Distinct().ToList();
         _database.SetEnergy(paths, energy);
         foreach (string path in paths)
             foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
@@ -435,7 +438,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Puts a label on tracks (creating it if new) or takes it off, wherever they are on screen.</summary>
     public void SetLabel(IReadOnlyList<Track> tracks, string name, bool on)
     {
-        var paths = tracks.Select(t => t.Path).Distinct().ToList();
+        // Not a song still on a server: what's given it is kept by its file, which isn't here yet (#290).
+        var paths = tracks.Where(t => !t.IsOnServerOnly).Select(t => t.Path).Distinct().ToList();
         if (paths.Count == 0 || string.IsNullOrWhiteSpace(name))
             return;
         if (on)
@@ -538,7 +542,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 Library.RefreshPlaylists(playlist.Id);
             });
         }
-        else if (Library.SelectedPlaylist?.Id != playlist.Id)
+        else if (!NoteFollowsServer(playlist) && Library.SelectedPlaylist?.Id != playlist.Id)
         {
             ShowNotice(songs.Count == 1 ? $"Added to {playlist.Name}" : $"{songs.Count} songs added to {playlist.Name}");
         }
@@ -596,6 +600,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         _database.RemoveFromPlaylist(playlist.Id, entries);
         Log.Info($"Removed {entries.Count} from playlist \"{playlist.Name}\"");
+        NoteFollowsServer(playlist);
         Library.RefreshPlaylists(playlist.Id);
     }
 
@@ -606,6 +611,23 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         _database.MovePlaylistEntries(playlist.Id, entries, index);
         Library.RefreshPlaylists(playlist.Id);
+        NoteFollowsServer(playlist);
+    }
+
+    private readonly HashSet<long> _toldFollowsServer = [];
+
+    /// <summary>
+    /// A playlist kept from a server was changed here (#290): the next sync makes it the server's
+    /// again, so say so, once, and how to keep the change.
+    /// </summary>
+    /// <returns>Whether it said so.</returns>
+    private bool NoteFollowsServer(PlaylistInfo playlist)
+    {
+        if (_database.GetPlaylist(playlist.Id)?.FollowsServer is not { } server || !_toldFollowsServer.Add(playlist.Id))
+            return false;
+        ShowNotice($"{playlist.Name} follows {server}: the next sync makes it the server's again. "
+            + $"To keep your change, right-click it › Stop following {server}.", seconds: 12);
+        return true;
     }
 
     public async Task RenamePlaylistAsync(PlaylistInfo playlist)
@@ -1365,6 +1387,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 // It's on its way: this deck takes it the moment it's here, unless the room hears it by then.
                 _loadWhenHere[track.Path] = deck;
+                Servers.Hurry(track);
                 ShowNotice($"{track.DisplayTitle} is still downloading: it goes onto Deck {deck.Label} as soon as it's here.", seconds: 6);
                 return false;
             }

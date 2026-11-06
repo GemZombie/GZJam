@@ -39,6 +39,9 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     /// <summary>One of a server's folders, or playlists: its downloads can be removed from the laptop.</summary>
     public bool IsServerFolder => IsServer && !IsRoot && !Node.IsServerPlaylists;
 
+    /// <summary>A folder on a server (not its playlists): "Download to this laptop".</summary>
+    public bool IsServerRealFolder => IsServerFolder && !IsServerPlaylist;
+
     /// <summary>One of a server's playlists (#290), under its "Playlists".</summary>
     public bool IsServerPlaylist => Node.ServerPlaylistId is not null;
 

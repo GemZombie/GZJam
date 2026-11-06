@@ -48,6 +48,52 @@ public sealed class FakeNavidrome : HttpMessageHandler
     public string[] StarredArtists { get; set; } = [];
     public bool RealPaths { get; set; } = true;
     public bool Down { get; set; }
+
+    /// <summary>Lists no songs at all (a server reading its music again).</summary>
+    public bool Empty { get; set; }
+
+    /// <summary>While set, downloads wait for it: to see how many come down at once, and in what order.</summary>
+    public TaskCompletionSource? Hold { get; set; }
+
+    private int _atOnce;
+
+    /// <summary>The most downloads under way at once, while <see cref="Hold"/> held them.</summary>
+    public int MostAtOnce { get; private set; }
+
+    /// <summary>The songs whose downloads started, in order (while <see cref="Hold"/> is set).</summary>
+    public List<string> Started { get; } = [];
+
+    /// <summary>Downloads stopped by GZJam before they finished.</summary>
+    public int Canceled { get; private set; }
+
+    private async Task<HttpResponseMessage> HeldAsync(HttpRequestMessage request, TaskCompletionSource hold, CancellationToken cancellationToken)
+    {
+        string id = System.Web.HttpUtility.ParseQueryString(request.RequestUri!.Query)["id"] ?? "";
+        lock (Started)
+        {
+            Started.Add(id);
+            MostAtOnce = Math.Max(MostAtOnce, ++_atOnce);
+        }
+        try
+        {
+            await hold.Task.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            lock (Started)
+                Canceled++;
+            throw;
+        }
+        finally
+        {
+            lock (Started)
+                _atOnce--;
+        }
+        Downloads++;
+        var content = new ByteArrayContent(FileOf(id));
+        content.Headers.ContentType = new("audio/mpeg");
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+    }
     public string? Truncate { get; set; }
     public int Downloads { get; private set; }
 
@@ -105,6 +151,8 @@ public sealed class FakeNavidrome : HttpMessageHandler
             throw new HttpRequestException("No connection could be made.");
         Uri uri = request.RequestUri!;
         string id = System.Web.HttpUtility.ParseQueryString(uri.Query)["id"] ?? "";
+        if (uri.AbsolutePath == "/rest/download.view" && Hold is { } hold)
+            return HeldAsync(request, hold, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view" && DownloadDelay > TimeSpan.Zero)
             return DelayedAsync(request, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view")
@@ -127,11 +175,11 @@ public sealed class FakeNavidrome : HttpMessageHandler
                         ? new[] { new { id = "ar-basie", name = "Count Basie", albumCount = 1 } } : [],
                     album = Albums.Where(a => a.Value.Name.Contains(Query(uri), StringComparison.OrdinalIgnoreCase) || a.Value.Artist.Contains(Query(uri), StringComparison.OrdinalIgnoreCase))
                         .Select(a => Album(a.Key)).ToArray(),
-                    song = Songs.Where(s => s.Value.Title.Contains(Query(uri), StringComparison.OrdinalIgnoreCase) || s.Value.Artist.Contains(Query(uri), StringComparison.OrdinalIgnoreCase))
+                    song = Songs.Where(s => !Empty && (s.Value.Title.Contains(Query(uri), StringComparison.OrdinalIgnoreCase) || s.Value.Artist.Contains(Query(uri), StringComparison.OrdinalIgnoreCase)))
                         .Select(s => Song(s.Key)).ToArray(),
                 },
             }),
-            "/rest/getAlbumList2.view" => Ok(new { albumList2 = new { album = Albums.Keys.Select(Album).ToArray() } }),
+            "/rest/getAlbumList2.view" => Ok(new { albumList2 = new { album = Empty ? [] : Albums.Keys.Select(Album).ToArray() } }),
             "/rest/getSong.view" => Songs.ContainsKey(id) ? Ok(new { song = Song(id) })
                 : "{\"subsonic-response\":{\"status\":\"failed\",\"version\":\"1.16.1\",\"error\":{\"code\":70,\"message\":\"Song not found\"}}}",
             "/rest/getPlaylists.view" => Ok(new

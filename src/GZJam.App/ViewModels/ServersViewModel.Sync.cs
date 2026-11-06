@@ -346,9 +346,12 @@ public sealed partial class ServerItemViewModel
         if (choices.Any(c => c.Kind == ServerChoiceKind.Starred))
             names.Add("what's starred");
         foreach ((ServerChoiceKind kind, string one, string many) in (ReadOnlySpan<(ServerChoiceKind, string, string)>)
-                 [(ServerChoiceKind.Artist, "artist", "artists"), (ServerChoiceKind.Album, "album", "albums"), (ServerChoiceKind.Song, "song", "songs")])
+                 [(ServerChoiceKind.Folder, "folder", "folders"), (ServerChoiceKind.Artist, "artist", "artists"),
+                  (ServerChoiceKind.Album, "album", "albums"), (ServerChoiceKind.Song, "song", "songs")])
             if (choices.Count(c => c.Kind == kind) is var n and > 0)
                 names.Add(n == 1 ? $"1 {one}" : $"{Format.Count(n)} {many}");
+        if (names.Count == 0)
+            names.Add(Format.Count(choices.Count) + " things");   // a kind this version doesn't name
         string list = names.Count == 1 ? names[0] : string.Join(", ", names[..^1]) + " and " + names[^1];
         string here = songs == 0 ? "" : $" · {(songs == 1 ? "1 song" : Format.Count(songs) + " songs")} downloaded, {Format.Size(bytes)}";
         KeptText = $"Keeping on this laptop: {list}{here}";
@@ -418,6 +421,7 @@ public sealed partial class ServersViewModel
             ServerChoiceKind.Song => [c.RemoteId],
             ServerChoiceKind.Album => _database.GetServerCatalogAlbumSongIds(item.Server.Id, c.RemoteId),
             ServerChoiceKind.Playlist => _database.GetServerPlaylist(item.Server.Id, c.RemoteId)?.SongIds ?? [],
+            ServerChoiceKind.Folder => _database.SearchServerCatalog(item.Server.Id, c.RemoteId, null).Songs.Select(s => s.Id).ToList(),
             _ => (IReadOnlyList<string>)[],
         }));
         Log.Info($"Servers: keeping from {item.Name}, as well: {string.Join(", ", added.Select(c => $"{c.Kind.ToString().ToLowerInvariant()} {c.Name}"))}");

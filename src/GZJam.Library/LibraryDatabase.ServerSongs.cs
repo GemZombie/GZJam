@@ -21,6 +21,9 @@ public enum ServerChoiceKind
     Album,
     Artist,
     Song,
+
+    /// <summary>A folder of the server's, by its place there ("Jazz &amp; Swing/Count Basie"), with what's below it, from its catalog (#290).</summary>
+    Folder,
 }
 
 /// <summary>

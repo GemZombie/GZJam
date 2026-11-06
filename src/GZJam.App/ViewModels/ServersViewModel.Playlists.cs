@@ -30,6 +30,26 @@ public sealed partial class ServersViewModel
     public bool IsKept(long serverId, string playlistId) =>
         _database.GetServerChoices(serverId).Any(c => c.Kind == ServerChoiceKind.Playlist && c.RemoteId == playlistId);
 
+    /// <summary>
+    /// "Stop following the server" on a kept playlist: it's the DJ's own from now on, as it is (its
+    /// songs stay on the laptop), and a sync no longer changes it.
+    /// </summary>
+    public void StopFollowing(PlaylistInfo playlist)
+    {
+        foreach (ServerItemViewModel item in Items)
+        {
+            var choices = _database.GetServerChoices(item.Server.Id);
+            if (!choices.Any(c => c.Kind == ServerChoiceKind.Playlist && c.PlaylistId == playlist.Id))
+                continue;
+            _database.SetServerChoices(item.Server.Id, choices.Where(c => !(c.Kind == ServerChoiceKind.Playlist && c.PlaylistId == playlist.Id)));
+            Log.Info($"Servers: {playlist.Name} no longer follows {item.Name}: it's the DJ's own");
+            RefreshKept(item);
+            _owner.ShowNotice($"{playlist.Name} is yours now: a sync with {item.Name} no longer changes it.", seconds: 6);
+        }
+        _owner.Library.RefreshPlaylists();
+        _owner.Library.RefreshServers();
+    }
+
     /// <summary>"Keep on this laptop" on one of the server's playlists: kept from now on, and synced now.</summary>
     public async Task KeepPlaylistAsync(long serverId, string playlistId)
     {

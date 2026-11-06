@@ -67,11 +67,12 @@ public partial class ServerChoicesDialog : Window
         foreach (ServerChoice gone in offer.Chosen.Where(c => c.Kind == ServerChoiceKind.Playlist && offer.Playlists.All(p => p.Id != c.RemoteId)))
             Add(gone, gone.Name, "No longer on the server", ticked: true);
         // Albums, artists and songs downloaded while browsing (#284): untick to stop keeping them up to date.
-        foreach (ServerChoice browsed in offer.Chosen.Where(c => c.Kind is ServerChoiceKind.Album or ServerChoiceKind.Artist or ServerChoiceKind.Song))
+        foreach (ServerChoice browsed in offer.Chosen.Where(c => c.Kind is ServerChoiceKind.Album or ServerChoiceKind.Artist or ServerChoiceKind.Song or ServerChoiceKind.Folder))
             Add(browsed, browsed.Name, browsed.Kind switch
             {
                 ServerChoiceKind.Album => "Album, downloaded while browsing",
                 ServerChoiceKind.Artist => "Artist, downloaded while browsing",
+                ServerChoiceKind.Folder => "Folder, with the folders in it",
                 _ => "Song, downloaded while browsing",
             }, ticked: true);
 

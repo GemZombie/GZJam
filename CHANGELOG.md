@@ -44,12 +44,14 @@ New:
   with a cloud by the title: preview them in the headphones as usual, and a double-click, a load
   onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
   and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
-  the album* keeps them. Under an ordinary library search, *Also on synology: 12 songs not on this
+  the album* keeps them, and right-click a server's folder › *Download to this laptop* brings
+  everything in it, kept up to date as songs are added to it. Under an ordinary library search, *Also on synology: 12 songs not on this
   laptop · Show* opens the same search on the server. The server's playlists are under *Playlists*, first under
   the server: one opens in the song list in its order, as the server has it now (or as last read,
   offline), and its right-click › *Keep on this laptop* downloads it into a playlist of yours, kept
-  up to date on every sync. Adds one more small thing to your library; older versions can still
-  open it.
+  up to date on every sync. In your playlists, a cloud marks one kept from a server: a sync makes it
+  the server's again, so changing it here says so, and its right-click › *Stop following the server*
+  makes it yours. Adds one more small thing to your library; older versions can still open it.
 - **When a server can't be reached** (#290): no Wi-Fi, venue Wi-Fi without your Tailscale, the NAS
   off. Its folders and songs still show (GZJam keeps its song list), and everything already on the
   laptop plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;
@@ -73,7 +75,9 @@ New:
   *Waiting for synology* and comes by itself when it answers; a download that fails says why, with
   *Try again*. It's never taken out of the queue by itself, can't go on a deck until it's here, and
   auto-play plays the next song that's here rather than waiting in silence, saying so. One left
-  waiting when GZJam closes is back in its place the next time.
+  waiting when GZJam closes is back in its place the next time. The queue's songs download two at
+  a time, in its order, and a song a deck is waiting for goes first; a song asked for twice at once
+  comes down once, and one taken out of the queue stops downloading.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

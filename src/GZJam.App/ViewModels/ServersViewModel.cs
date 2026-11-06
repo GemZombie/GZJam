@@ -107,7 +107,24 @@ public sealed partial class ServersViewModel : ObservableObject
         if (password is null)
             return new(false, "Type the password too.");
 
-        ServerCheck check = await CheckServer(address, user, password, cancel);
+        ServerCheck check;
+        if (SecureFirst(edit.Address, address) is { } secure)
+        {
+            // A name on the internet (a friend's server), typed without http:// or https://: https
+            // if it answers that way, so the sign-in never crosses the internet in the clear.
+            check = await CheckServer(secure, user, password, cancel);
+            if (check.Outcome is ServerCheckOutcome.Connected or ServerCheckOutcome.WrongSignIn)   // a music server answered over https
+            {
+                address = secure;
+                key = PasswordStore.KeyFor(address, user);
+                if (Items.FirstOrDefault(i => i != existing && i.Server.PasswordKey == key) is { } same)
+                    return new(false, $"That server and user name are already here, as {same.Name}.");
+            }
+            else
+                check = await CheckServer(address, user, password, cancel);
+        }
+        else
+            check = await CheckServer(address, user, password, cancel);
         if (!check.Connected && !(evenIfUnreachable && check.Outcome == ServerCheckOutcome.Unreachable))
             return new(false, ServerItemViewModel.Describe(check), CanSaveAnyway: check.Outcome == ServerCheckOutcome.Unreachable);
 
@@ -142,6 +159,21 @@ public sealed partial class ServersViewModel : ObservableObject
                 item.ShowProblem("Not signed in yet: nothing answered at that address. Press TEST when the server can be reached.");
         }
         return new(true);
+    }
+
+    /// <summary>
+    /// The https:// address to try first for one typed without http:// or https:// whose name is on
+    /// the internet (it has a dot, and isn't a number like 192.168.1.20); null to use http:// as
+    /// normalized (a name at home such as synology:4533).
+    /// </summary>
+    internal static string? SecureFirst(string typed, string normalized)
+    {
+        if (typed.Contains("://", StringComparison.Ordinal) || !normalized.StartsWith("http://", StringComparison.Ordinal)
+            || !Uri.TryCreate(normalized, UriKind.Absolute, out Uri? uri))
+            return null;
+        if (!uri.Host.Contains('.') || System.Net.IPAddress.TryParse(uri.Host, out _))
+            return null;
+        return "https://" + normalized["http://".Length..];
     }
 
     /// <summary>Forgets a server and its password, after asking.</summary>

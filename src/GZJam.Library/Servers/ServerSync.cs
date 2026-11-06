@@ -82,6 +82,13 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                         foreach (string albumId in await client.GetArtistAlbumsAsync(choice.RemoteId, cancel).ConfigureAwait(false))
                             Want(await client.GetAlbumSongsAsync(albumId, cancel).ConfigureAwait(false));
                         break;
+                    case ServerChoiceKind.Folder:
+                        // From the catalog (the server has no call for a folder's songs): songs added there come once it's read again.
+                        var inFolder = database.SearchServerCatalog(server.Id, choice.RemoteId, null, cancel).Songs;
+                        if (inFolder.Count == 0)
+                            problems.Add($"{choice.Name}: no songs in it in the server's song list.");
+                        Want(inFolder);
+                        break;
                     case ServerChoiceKind.Song:
                         if (await client.GetSongAsync(choice.RemoteId, cancel).ConfigureAwait(false) is { } one)
                             Want([one]);
