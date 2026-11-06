@@ -13,7 +13,17 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.3.0-beta.1.
+New:
+
+- **Your own music server, in Settings › Servers** (the first part of
+  [#184](https://github.com/GemZombie/GZJam/issues/184)): sign in to Navidrome, or another server
+  that speaks the Subsonic API, at home or over Tailscale. GZJam signs in before saving and says
+  what it found: the server, how many songs it has, and whether your account may download them (if
+  not, its songs will be for the headphones only, never the room). Add as many as you like, your
+  own and a friend's. The password is kept in the computer's keychain (Windows Credential Manager,
+  the Mac's Keychain, or the Linux desktop's), never in GZJam's settings or a backup; a Linux
+  desktop with no keychain keeps it in a file only you can read. Getting songs from a server onto
+  the laptop comes next. Adds one small thing to your library; older versions can still open it.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

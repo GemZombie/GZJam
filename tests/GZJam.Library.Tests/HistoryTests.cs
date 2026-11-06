@@ -134,6 +134,7 @@ public sealed class HistoryTests : IDisposable
                 ALTER TABLE tracks DROP COLUMN tag_text;
                 DROP TABLE tag_edits;                         -- added by upgrade 23
                 ALTER TABLE trims DROP COLUMN fade_out;       -- added by upgrade 24
+                DROP TABLE servers;                           -- added by upgrade 25
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

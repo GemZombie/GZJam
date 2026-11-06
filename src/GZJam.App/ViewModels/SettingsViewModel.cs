@@ -27,6 +27,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         RefreshDevices();
     }
 
+    /// <summary>Settings › Servers.</summary>
+    public ServersViewModel Servers => _owner.Servers;
+
     [ObservableProperty]
     public partial IReadOnlyList<AudioDevice> MainDevices { get; private set; } = [];
 

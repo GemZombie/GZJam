@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GZJam.App.Views.ServerDialog"
+        Width="440" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        Title="GZJam">
+  <!-- Adds a music server, or changes one (Settings › Servers, #282): signs in before saving -->
+  <StackPanel Margin="20" Spacing="12">
+    <TextBlock x:Name="Heading" Classes="label" Text="ADD A SERVER" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="setting" Text="Address" />
+      <TextBox x:Name="AddressBox" PlaceholderText="synology:4533" />
+      <TextBlock Classes="setting-help" Text="Where you open the server in a browser, with its port: Navidrome's is 4533 unless it was changed." />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="setting" Text="User name" />
+      <TextBox x:Name="UserBox" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="setting" Text="Password" />
+      <TextBox x:Name="PasswordBox" PasswordChar="•" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="setting" Text="Name" />
+      <TextBox x:Name="NameBox" />
+      <TextBlock Classes="setting-help" Text="What GZJam calls it, such as Navidrome (mine) or Dave's server." />
+    </StackPanel>
+
+    <TextBlock x:Name="Message" Classes="setting-help" FontSize="12" IsVisible="False" />
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
+      <Button x:Name="CancelButton" Classes="hw" Content="CANCEL" IsCancel="True" MinWidth="88" />
+      <Button x:Name="OkButton" Classes="hw" IsDefault="True" MinWidth="88" Content="ADD" />
+    </StackPanel>
+  </StackPanel>
+</Window>

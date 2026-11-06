@@ -39,14 +39,14 @@ public sealed class NewerLibraryTests : IDisposable
     [Fact]
     public void One_whose_newer_upgrades_only_added_things_opens_as_it_is()
     {
-        string path = NewerLibrary(version: 25, oldestReader: 19);
+        string path = NewerLibrary(version: 40, oldestReader: 19);
         Assert.Null(LibraryDatabase.CheckCanOpen(path));
 
         var db = new LibraryDatabase(path);
         db.AddRoot(_lib.MusicPath);
         Assert.Single(db.GetRoots());           // and it works
         SqliteConnection.ClearAllPools();
-        Assert.Equal(25, UserVersion(path));    // not "upgraded" back down
+        Assert.Equal(40, UserVersion(path));    // not "upgraded" back down
     }
 
     [Theory]
