@@ -22,8 +22,18 @@ New:
   not, its songs will be for the headphones only, never the room). Add as many as you like, your
   own and a friend's. The password is kept in the computer's keychain (Windows Credential Manager,
   the Mac's Keychain, or the Linux desktop's), never in GZJam's settings or a backup; a Linux
-  desktop with no keychain keeps it in a file only you can read. Getting songs from a server onto
-  the laptop comes next. Adds one small thing to your library; older versions can still open it.
+  desktop with no keychain keeps it in a file only you can read. Adds one small thing to your
+  library; older versions can still open it.
+- **A server's songs on the laptop before the night** ([#283](https://github.com/GemZombie/GZJam/issues/283)):
+  on a server's card, *CHOOSE…* its playlists, and what's starred there (songs, whole albums and
+  artists you starred in Navidrome's web page or app), then *SYNC*. GZJam downloads the original
+  files into *GZJam from servers* in your Music folder, laid out as the server has them, as a music
+  folder like your others: the room never depends on the Wi-Fi. Each playlist becomes a GZJam
+  playlist and follows the server's on every sync. A song you already have (the same title, artist
+  and file size) isn't downloaded again, and a half-downloaded song never shows up. Settings ›
+  Servers shows how much is downloaded and the room left, lets you set a limit, and can sync each
+  server when GZJam starts (pausing once the room hears music). Adds one more small thing to your
+  library; older versions can still open it.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

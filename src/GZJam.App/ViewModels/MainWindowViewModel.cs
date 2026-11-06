@@ -113,7 +113,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 };
             }
         }
-        Servers = new ServersViewModel(this, database, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
+        Servers = new ServersViewModel(this, database, settings, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -142,18 +142,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public AlbumArtCache Art { get; }
 
     /// <summary>What's happening in the background (copying songs out, scanning, then analyzing), for the top bar.</summary>
-    public string? BackgroundStatus => ExportStatus ?? Library.ScanStatus ?? Analysis?.Status;
+    public string? BackgroundStatus => ExportStatus ?? Servers.SyncStatus ?? Library.ScanStatus ?? Analysis?.Status;
     public double BackgroundPercent => ExportStatus is not null ? ExportPercent
+        : Servers.SyncStatus is not null ? Servers.SyncPercent
         : Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
 
     /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
     public string? BackgroundTip => _export is { } export
         ? $"Copying the songs to {export.Folder}. Your own files aren't changed."
+        : Servers.SyncStatus is not null
+        ? $"Downloading the songs you chose from your server, into {Servers.DownloadsFolder}. Settings › Servers can stop it."
         : Library.ScanStatus is not null
         ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
         : Analysis?.StatusTip;
 
-    private void BackgroundChanged()
+    internal void BackgroundChanged()
     {
         OnPropertyChanged(nameof(BackgroundStatus));
         OnPropertyChanged(nameof(BackgroundPercent));
@@ -1006,6 +1009,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
         await KeepAutomaticBackupAsync();
+        if (_settings.SyncServersAtStartup)
+            await Servers.SyncAtStartupAsync();
     }
 
     /// <summary>

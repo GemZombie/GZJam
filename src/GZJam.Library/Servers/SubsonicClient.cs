@@ -110,6 +110,195 @@ public sealed class SubsonicClient
         return new ServerCheck(ServerCheckOutcome.Connected, ping.ServerType, ping.ServerVersion, ping.OpenSubsonic, canDownload, songs);
     }
 
+    // ───────────── What's on the server (#283) ─────────────
+
+    /// <summary>The server's playlists that this account can see: its own and public ones.</summary>
+    public async Task<IReadOnlyList<ServerPlaylist>> GetPlaylistsAsync(CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getPlaylists", [], cancel).ConfigureAwait(false);
+        var playlists = new List<ServerPlaylist>();
+        if (body.TryGetProperty("playlists", out JsonElement list))
+            foreach (JsonElement p in Items(list, "playlist"))
+                playlists.Add(new ServerPlaylist(Text(p, "id") ?? "", Text(p, "name") ?? "", Int(p, "songCount") ?? 0,
+                    TimeSpan.FromSeconds(Int(p, "duration") ?? 0), Text(p, "owner")));
+        return playlists;
+    }
+
+    /// <summary>A playlist's songs, in its order.</summary>
+    public async Task<IReadOnlyList<ServerSong>> GetPlaylistSongsAsync(string playlistId, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getPlaylist", [("id", playlistId)], cancel).ConfigureAwait(false);
+        return body.TryGetProperty("playlist", out JsonElement playlist) ? Songs(Items(playlist, "entry")) : [];
+    }
+
+    /// <summary>What this account starred: songs, whole albums and artists.</summary>
+    public async Task<ServerStarred> GetStarredAsync(CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getStarred2", [], cancel).ConfigureAwait(false);
+        if (!body.TryGetProperty("starred2", out JsonElement starred))
+            return new ServerStarred([], [], []);
+        return new ServerStarred(
+            Songs(Items(starred, "song")),
+            Items(starred, "album").Select(a => (Text(a, "id") ?? "", Text(a, "name") ?? Text(a, "title") ?? "")).ToList(),
+            Items(starred, "artist").Select(a => (Text(a, "id") ?? "", Text(a, "name") ?? "")).ToList());
+    }
+
+    /// <summary>An album's songs, in order.</summary>
+    public async Task<IReadOnlyList<ServerSong>> GetAlbumSongsAsync(string albumId, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getAlbum", [("id", albumId)], cancel).ConfigureAwait(false);
+        return body.TryGetProperty("album", out JsonElement album) ? Songs(Items(album, "song")) : [];
+    }
+
+    /// <summary>The IDs of an artist's albums.</summary>
+    public async Task<IReadOnlyList<string>> GetArtistAlbumsAsync(string artistId, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getArtist", [("id", artistId)], cancel).ConfigureAwait(false);
+        return body.TryGetProperty("artist", out JsonElement artist)
+            ? Items(artist, "album").Select(a => Text(a, "id")).OfType<string>().ToList()
+            : [];
+    }
+
+    /// <summary>
+    /// Downloads a song's original file (the API's <c>download</c>, never converted) into
+    /// <paramref name="destination"/>, reporting the bytes so far. Gives up if the server sends
+    /// nothing for <paramref name="stall"/> (30 seconds unless said), rather than waiting forever on
+    /// a connection that has quietly gone.
+    /// </summary>
+    public async Task DownloadAsync(string songId, Stream destination, IProgress<long>? progress = null, TimeSpan? stall = null,
+        CancellationToken cancel = default)
+    {
+        TimeSpan quiet = stall ?? TimeSpan.FromSeconds(30);
+        using var watchdog = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+        watchdog.CancelAfter(quiet);
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.GetAsync(UriFor("download", [("id", songId)]), HttpCompletionOption.ResponseHeadersRead, watchdog.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
+        {
+            throw new ServerException("The server stopped answering.", outcome: ServerCheckOutcome.Unreachable);
+        }
+        catch (HttpRequestException e)
+        {
+            throw new ServerException(e.Message, e, ServerCheckOutcome.Unreachable);
+        }
+        using (response)
+        {
+            string? type = response.Content.Headers.ContentType?.MediaType;
+            if (!response.IsSuccessStatusCode || type is "application/json" or "text/xml" or "application/xml" or "text/html")
+            {
+                // A failed download is answered with an error, not the file.
+                string text = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
+                throw new ServerException(ErrorIn(text) ?? $"The server said no (HTTP {(int)response.StatusCode}).");
+            }
+            await using Stream source = await response.Content.ReadAsStreamAsync(cancel).ConfigureAwait(false);
+            byte[] buffer = new byte[81920];
+            long total = 0;
+            try
+            {
+                while (true)
+                {
+                    watchdog.CancelAfter(quiet);
+                    int read = await source.ReadAsync(buffer, watchdog.Token).ConfigureAwait(false);
+                    if (read == 0)
+                        break;
+                    await destination.WriteAsync(buffer.AsMemory(0, read), cancel).ConfigureAwait(false);
+                    total += read;
+                    progress?.Report(total);
+                }
+            }
+            catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
+            {
+                throw new ServerException("The server stopped sending the song.", outcome: ServerCheckOutcome.Unreachable);
+            }
+            catch (HttpRequestException e)
+            {
+                throw new ServerException(e.Message, e, ServerCheckOutcome.Unreachable);
+            }
+        }
+    }
+
+    /// <summary>A Subsonic error's message, from an error answer's text; null if it isn't one.</summary>
+    private static string? ErrorIn(string text)
+    {
+        try
+        {
+            using var json = JsonDocument.Parse(text);
+            return json.RootElement.TryGetProperty("subsonic-response", out JsonElement root)
+                && root.TryGetProperty("error", out JsonElement error) && error.TryGetProperty("message", out JsonElement m)
+                ? m.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>An API call that must work: its answer, or a <see cref="ServerException"/> saying why not.</summary>
+    private async Task<JsonElement> GetAsync(string endpoint, IEnumerable<(string, string)> args, CancellationToken cancel)
+    {
+        Answer answer = await CallAsync(endpoint, args, cancel).ConfigureAwait(false);
+        if (answer.Error == 41 && !_sendPassword)
+        {
+            _sendPassword = true;
+            answer = await CallAsync(endpoint, args, cancel).ConfigureAwait(false);
+        }
+        if (answer.Body is { } body)
+            return body;
+        ServerCheckOutcome outcome = answer.Outcome
+            ?? (answer.Error is 40 or 41 or 42 or 43 or 44 ? ServerCheckOutcome.WrongSignIn : ServerCheckOutcome.Failed);
+        throw new ServerException(answer.Message ?? (outcome == ServerCheckOutcome.Unreachable
+            ? "The server can't be reached."
+            : "The server said no."), outcome: outcome);
+    }
+
+    /// <summary>A list in an answer: the API gives one item as an object, several as an array, none as nothing.</summary>
+    private static IEnumerable<JsonElement> Items(JsonElement parent, string name)
+    {
+        if (!parent.TryGetProperty(name, out JsonElement value))
+            yield break;
+        if (value.ValueKind == JsonValueKind.Array)
+            foreach (JsonElement item in value.EnumerateArray())
+                yield return item;
+        else if (value.ValueKind == JsonValueKind.Object)
+            yield return value;
+    }
+
+    private static string? Text(JsonElement e, string name) =>
+        e.TryGetProperty(name, out JsonElement v) ? v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString(),
+            JsonValueKind.Number => v.GetRawText(),
+            _ => null,
+        } : null;
+
+    private static long? Long(JsonElement e, string name) =>
+        e.TryGetProperty(name, out JsonElement v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt64(out long n) ? n : null;
+
+    private static int? Int(JsonElement e, string name) => Long(e, name) is { } n ? (int)Math.Clamp(n, int.MinValue, int.MaxValue) : null;
+
+    private static List<ServerSong> Songs(IEnumerable<JsonElement> items) =>
+        items.Where(s => !(s.TryGetProperty("isDir", out JsonElement dir) && dir.ValueKind == JsonValueKind.True))
+            .Select(s => new ServerSong(
+                Text(s, "id") ?? "",
+                Text(s, "title"),
+                Text(s, "artist"),
+                Text(s, "album"),
+                Text(s, "displayAlbumArtist") ?? Text(s, "albumArtist"),
+                Int(s, "track"),
+                Int(s, "discNumber"),
+                Int(s, "year"),
+                Text(s, "path"),
+                Text(s, "suffix"),
+                Long(s, "size"),
+                TimeSpan.FromSeconds(Int(s, "duration") ?? 0)))
+            .Where(s => s.Id.Length > 0)
+            .ToList();
+
     /// <summary>The address of an API call, signed in: a fresh salt and token each time.</summary>
     internal Uri UriFor(string endpoint, IEnumerable<(string Name, string Value)> args)
     {

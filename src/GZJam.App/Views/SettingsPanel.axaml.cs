@@ -67,7 +67,10 @@ public partial class SettingsPanel : UserControl
         if (AboutPage.IsVisible)
             FillAbout();
         if (ServersPage.IsVisible && DataContext is ViewModels.SettingsViewModel vm)
+        {
             vm.Servers.Shown();
+            vm.Servers.RefreshDownloads();
+        }
     }
 
     /// <summary>The About section reads the license notices, so only when it's first shown.</summary>
@@ -107,6 +110,31 @@ public partial class SettingsPanel : UserControl
     {
         if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
             await new ServerDialog(vm.Servers, server).ShowDialog<bool>(window);
+    }
+
+    private async void OnChooseServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
+            await new ServerChoicesDialog(vm.Servers, server).ShowDialog<bool>(window);
+    }
+
+    private async void OnSyncServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            await server.SyncOrStopAsync();
+    }
+
+    private async void OnDownloadsFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.SettingsViewModel vm)
+            return;
+        var folders = await TopLevel.GetTopLevel(this)!.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Where to put songs downloaded from servers",
+            AllowMultiple = false,
+        });
+        if (folders is [var folder] && folder.TryGetLocalPath() is { } path)
+            vm.Servers.SetDownloadsFolder(path);
     }
 
     private async void OnTestServerClick(object? sender, RoutedEventArgs e)
