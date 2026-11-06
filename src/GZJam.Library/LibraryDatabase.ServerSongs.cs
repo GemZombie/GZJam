@@ -224,29 +224,162 @@ public sealed partial class LibraryDatabase
         return (r.GetInt32(0), r.GetInt64(1));
     }
 
+    /// <summary>How near a song's length must be to the server's for a copy with other tags (another size) to be the same song.</summary>
+    public const int SameLengthMs = 1500;
+
     /// <summary>
-    /// A song already in the library that is the server's <paramref name="song"/>: the same title,
-    /// artist and file size, outside <paramref name="notUnder"/> (the downloads folder). Null if none.
+    /// A song already in the library that is the server's <paramref name="song"/> (#285): the same
+    /// title and artist, and the same file size or, for a copy whose tags were changed, the same
+    /// length to a second and a half; outside <paramref name="notUnder"/> (the downloads folder).
+    /// The same size first. Null if none.
     /// </summary>
     public string? FindOwnCopy(ServerSong song, string notUnder)
     {
-        if (song.Size is not { } size || string.IsNullOrWhiteSpace(song.Title))
+        if (string.IsNullOrWhiteSpace(song.Title) || (song.Size is null && song.Duration <= TimeSpan.Zero))
             return null;
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
             SELECT path FROM tracks
-            WHERE file_size = $size AND title = $title COLLATE NOCASE AND IFNULL(artist, '') = $artist COLLATE NOCASE
+            WHERE title = $title COLLATE NOCASE AND IFNULL(artist, '') = $artist COLLATE NOCASE
+              AND (file_size = $size OR ($ms > 0 AND duration_ms > 0 AND abs(duration_ms - $ms) <= $near))
               AND substr(path, 1, $length) <> $under COLLATE NOCASE
+            ORDER BY file_size = $size DESC
             LIMIT 1;
             """;
         string under = Path.TrimEndingDirectorySeparator(notUnder) + Path.DirectorySeparatorChar;
-        cmd.Parameters.AddWithValue("$size", size);
+        cmd.Parameters.AddWithValue("$size", (object?)song.Size ?? -1L);
+        cmd.Parameters.AddWithValue("$ms", (long)song.Duration.TotalMilliseconds);
+        cmd.Parameters.AddWithValue("$near", SameLengthMs);
         cmd.Parameters.AddWithValue("$title", song.Title.Trim());
         cmd.Parameters.AddWithValue("$artist", song.Artist?.Trim() ?? "");
         cmd.Parameters.AddWithValue("$under", under);
         cmd.Parameters.AddWithValue("$length", under.Length);
         return cmd.ExecuteScalar() as string;
+    }
+
+    /// <summary>
+    /// "Already have it" (#285), for the whole catalog at once: each of the server's songs that's
+    /// in the library already (as <see cref="FindOwnCopy"/> finds, outside <paramref name="notUnder"/>)
+    /// and has no copy here yet is linked to the DJ's own copy, so it shows as theirs when browsing
+    /// and is never downloaded. Returns how many were linked.
+    /// </summary>
+    public int LinkOwnCopies(long serverId, string notUnder, DateTime nowUtc)
+    {
+        string under = Path.TrimEndingDirectorySeparator(notUnder) + Path.DirectorySeparatorChar;
+        using var c = Open();
+        var mine = new Dictionary<(string, string), List<(string Path, long Size, long Ms)>>();
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = "SELECT path, title, IFNULL(artist, ''), file_size, duration_ms FROM tracks WHERE IFNULL(title, '') <> '';";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                string path = r.GetString(0);
+                if (path.StartsWith(under, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var key = (Same(r.GetString(1)), Same(r.GetString(2)));
+                if (!mine.TryGetValue(key, out var list))
+                    mine[key] = list = [];
+                list.Add((path, r.GetInt64(3), r.GetInt64(4)));
+            }
+        }
+        if (mine.Count == 0)
+            return 0;
+
+        var have = new HashSet<string>(StringComparer.Ordinal);
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = "SELECT song_id, path FROM server_songs WHERE server_id = $server;";
+            cmd.Parameters.AddWithValue("$server", serverId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+                if (File.Exists(r.GetString(1)))
+                    have.Add(r.GetString(0));
+        }
+
+        var links = new List<(string SongId, string Path, long? Size, string? ServerPath)>();
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = """
+                SELECT song_id, title, IFNULL(artist, ''), size, duration_ms, path FROM server_catalog
+                WHERE server_id = $server AND IFNULL(title, '') <> '';
+                """;
+            cmd.Parameters.AddWithValue("$server", serverId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                string songId = r.GetString(0);
+                if (have.Contains(songId) || !mine.TryGetValue((Same(r.GetString(1)), Same(r.GetString(2))), out var candidates))
+                    continue;
+                long? size = r.IsDBNull(3) ? null : r.GetInt64(3);
+                long ms = r.GetInt64(4);
+                var match = candidates.FirstOrDefault(m => m.Size == size);
+                if (match.Path is null && ms > 0)
+                    match = candidates.FirstOrDefault(m => m.Ms > 0 && Math.Abs(m.Ms - ms) <= SameLengthMs);
+                if (match.Path is not null && File.Exists(match.Path))
+                    links.Add((songId, match.Path, size, r.IsDBNull(5) ? null : r.GetString(5)));
+            }
+        }
+        if (links.Count == 0)
+            return 0;
+
+        using var tx = c.BeginTransaction();
+        using var insert = c.CreateCommand();
+        insert.CommandText = """
+            INSERT INTO server_songs (server_id, song_id, path, size, server_path, own_copy, downloaded_utc, on_the_spot)
+            VALUES ($server, $song, $path, $size, $serverPath, 1, $now, 0)
+            ON CONFLICT (server_id, song_id) DO UPDATE SET
+                path = excluded.path, size = excluded.size, server_path = excluded.server_path,
+                own_copy = 1, downloaded_utc = excluded.downloaded_utc, on_the_spot = 0;
+            """;
+        insert.Parameters.AddWithValue("$server", serverId);
+        insert.Parameters.AddWithValue("$now", nowUtc.Ticks);
+        var songParameter = insert.Parameters.Add("$song", SqliteType.Text);
+        var pathParameter = insert.Parameters.Add("$path", SqliteType.Text);
+        var sizeParameter = insert.Parameters.Add("$size", SqliteType.Integer);
+        var serverPathParameter = insert.Parameters.Add("$serverPath", SqliteType.Text);
+        foreach (var link in links)
+        {
+            songParameter.Value = link.SongId;
+            pathParameter.Value = link.Path;
+            sizeParameter.Value = (object?)link.Size ?? DBNull.Value;
+            serverPathParameter.Value = (object?)link.ServerPath ?? DBNull.Value;
+            insert.ExecuteNonQuery();
+        }
+        tx.Commit();
+        return links.Count;
+
+        static string Same(string text) => text.Trim().ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// A server song is the DJ's own from now on (#285, Keep a copy in my library): at
+    /// <paramref name="path"/>, never removed to free up space, never counted as a download.
+    /// </summary>
+    public void SetServerSongKept(long serverId, string songId, string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            UPDATE server_songs SET path = $path, own_copy = 1, on_the_spot = 0 WHERE server_id = $server AND song_id = $song;
+            DELETE FROM server_removed WHERE server_id = $server AND song_id = $song;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$song", songId);
+        cmd.Parameters.AddWithValue("$path", path);
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>The server song GZJam downloaded to <paramref name="path"/> (not the DJ's own), or null.</summary>
+    public (long ServerId, string SongId)? GetServerDownloadAt(string path)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT server_id, song_id FROM server_songs WHERE path = $path AND own_copy = 0 LIMIT 1;";
+        cmd.Parameters.AddWithValue("$path", path);
+        using var r = cmd.ExecuteReader();
+        return r.Read() ? (r.GetInt64(0), r.GetString(1)) : null;
     }
 
     // ───────────── What to keep on the laptop ─────────────

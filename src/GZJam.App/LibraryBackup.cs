@@ -284,13 +284,14 @@ internal static class LibraryBackup
                     json["SelectedRootPath"] = to;
                     changed = true;
                 }
-                // Where songs from music servers go (#290): in a music folder that moved, or one itself.
-                if (json[nameof(AppSettings.ServerDownloadsFolder)]?.GetValue<string>() is { Length: > 0 } downloads
-                    && moves.Select(m => LibraryDatabase.MovedPath(downloads, m.From, m.To)).FirstOrDefault(p => p is not null) is { } moved)
-                {
-                    json[nameof(AppSettings.ServerDownloadsFolder)] = moved;
-                    changed = true;
-                }
+                // Where songs from music servers go (#290), and those kept from them (#285): in a music folder that moved, or one itself.
+                foreach (string setting in (string[])[nameof(AppSettings.ServerDownloadsFolder), nameof(AppSettings.ServerKeepFolder)])
+                    if (json[setting]?.GetValue<string>() is { Length: > 0 } folder
+                        && moves.Select(m => LibraryDatabase.MovedPath(folder, m.From, m.To)).FirstOrDefault(p => p is not null) is { } moved)
+                    {
+                        json[setting] = moved;
+                        changed = true;
+                    }
                 return changed;
             });
 

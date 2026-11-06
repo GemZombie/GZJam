@@ -228,6 +228,22 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         return path;
     }
 
+    /// <summary>
+    /// One song into the DJ's own music (#285, Keep a copy in my library), at <paramref name="path"/>
+    /// under <paramref name="keepFolder"/>, never over a file there: by way of a .partial file,
+    /// with the album's picture if its folder has none, and the DJ's own from then on (never
+    /// removed by GZJam). Returns its size.
+    /// </summary>
+    public async Task<long> KeepAsync(ServerSong song, string path, string keepFolder, CancellationToken cancel = default)
+    {
+        if (FreeSpace(keepFolder) is { } free && free - (song.Size ?? 0) < KeepFree)
+            throw new IOException("The disk is nearly full.");
+        long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
+        database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: true), Now());
+        await AddFolderArtAsync(song, path, cancel, under: keepFolder).ConfigureAwait(false);
+        return got;
+    }
+
     /// <summary>The folders whose picture was looked at in this sync: each album's once.</summary>
     private readonly HashSet<string> _artLooked = new(StringComparer.OrdinalIgnoreCase);
 
@@ -239,13 +255,14 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     /// in the album's folder, which a song's download doesn't bring. If the song has no picture of
     /// its own and its folder here has none, the server's (getCoverArt) is saved there as
     /// cover.jpg, so the song has its art offline and in any other app. Only in GZJam's downloads
-    /// folder, never the DJ's own; a picture that can't be had is no problem.
+    /// folder, or under <paramref name="under"/> for a song kept in the DJ's music (#285); a
+    /// picture that can't be had is no problem.
     /// </summary>
-    private async Task AddFolderArtAsync(ServerSong song, string path, CancellationToken cancel)
+    private async Task AddFolderArtAsync(ServerSong song, string path, CancellationToken cancel, string? under = null)
     {
         if (song.CoverArt is not { Length: > 0 } art || Path.GetDirectoryName(path) is not { } folder || !_artLooked.Add(folder))
             return;
-        string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ServerFolder)) + Path.DirectorySeparatorChar;
+        string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(under ?? ServerFolder)) + Path.DirectorySeparatorChar;
         if (!Path.GetFullPath(path).StartsWith(top, StringComparison.OrdinalIgnoreCase))
             return;
         try
@@ -309,11 +326,11 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         }
     }
 
-    private long? FreeSpace()
+    private long? FreeSpace(string? folder = null)
     {
         try
         {
-            return new DriveInfo(Path.GetPathRoot(Path.GetFullPath(downloadsFolder))!).AvailableFreeSpace;
+            return new DriveInfo(Path.GetPathRoot(Path.GetFullPath(folder ?? downloadsFolder))!).AvailableFreeSpace;
         }
         catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException)
         {

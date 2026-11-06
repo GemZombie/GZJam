@@ -164,19 +164,21 @@ come as 1.2.1, 1.2.2 and so on, and new features as 1.3. Found something? Say so
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.4:** your own keys, and your music from anywhere. With a beta first, since it
+**Next, in 1.4:** your music from anywhere. With a beta first, since it
 reaches into the library and the network.
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
   other Subsonic servers, one or several), browsed and searched
   [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
   copied to the laptop ahead of the night, so the room never depends on the Wi-Fi, a song dragged
   to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
-  home a bit at a time. It's in the library now; next, keeping a copy in your library for good
-  and stars sent back to the server, then the beta.
-- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
-  action, chosen in Settings, with clashes shown and a way back to the defaults
+  home a bit at a time. It's in the library now, and songs can be kept in your library for good;
+  next, keeping the whole server in the background, stars sent back to the server, then the beta.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
+
+**1.5:**
+- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
+  action, chosen in Settings, with clashes shown and a way back to the defaults
 
 **After that:**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to

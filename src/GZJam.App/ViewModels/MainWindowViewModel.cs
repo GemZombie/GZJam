@@ -61,6 +61,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             };
         }
         Library.SongsMoved += OnSongsMoved;
+        Library.Scanned += () =>
+        {
+            if (Servers is { HasServers: true } servers)
+                _ = servers.LinkOwnCopiesAsync();   // songs of the servers' in the library now (#285)
+        };
         Library.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(LibraryViewModel.ScanStatus) or nameof(LibraryViewModel.ScanPercent))
@@ -169,6 +174,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ? $"Copying the songs to {export.Folder}. Your own files aren't changed."
         : Servers.IsMovingDownloads
         ? $"Moving the songs downloaded from your servers into {Servers.DownloadsFolder}, with their hearts, cues and EQ."
+        : Servers.IsKeeping
+        ? $"Keeping songs from your server in your library, in {Servers.KeepFolder}: your own files from then on. Right-click the server in the library to stop it."
         : Servers.SyncStatus is not null
         ? $"Downloading the songs you chose from your server, into {Servers.DownloadsFolder}. Right-click the server in the library to stop it."
         : Library.ScanStatus is not null

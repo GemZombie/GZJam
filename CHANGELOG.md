@@ -83,6 +83,19 @@ New:
   waiting when GZJam closes is back in its place the next time. The queue's songs download two at
   a time, in its order, and a song a deck is waiting for goes first; a song asked for twice at once
   comes down once, and one taken out of the queue stops downloading.
+- **Keep a copy in my library** ([#285](https://github.com/GemZombie/GZJam/issues/285)), to bring
+  a library home from the server a bit at a time: right-click songs from a server, or one of its
+  folders or playlists in the tree › *Keep a copy in my library…*. They go into a music folder of
+  yours (asked the first time; Settings › Servers › *Songs you keep go to* changes it), laid out as
+  on the server, and GZJam shows where they'll go before anything moves. A song downloaded already
+  moves there with its hearts, cues, labels, playlists and plays; one not on the laptop comes from
+  the server straight into its place, with its album's picture. Nothing in the folder is ever
+  replaced. Kept songs are your own from then on: never removed to free up space, and tag edits can
+  be written into them.
+- **Songs you already have** (#285): a server's song that's in your library already (the same title
+  and artist, and the same file size, or the same length for a copy you tagged your own way) shows
+  as yours when you browse the server, isn't downloaded for the queue or a sync, and is left as it
+  is when you keep a copy. GZJam looks after reading the server's song list and after a scan.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

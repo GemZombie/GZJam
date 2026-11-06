@@ -198,7 +198,7 @@ public sealed partial class ServersViewModel
                 AddChoices(server, [new ServerChoice(ServerChoiceKind.Song, remote.Song.Id,
                     remote.Song.Artist is { Length: > 0 } artist ? $"{item.Title} ({artist})" : item.Title)]);
                 string path = await GetSongAsync(server, client, remote.Song, stop);
-                Track here = await Task.Run(() => _database.TrackForFile(path));
+                Track here = await Task.Run(() => _database.TrackForFile(WhereNow(server, remote.Song.Id, path)));   // kept meanwhile, say
                 Log.Info($"Servers: {item.Title} from {server.Name} is here, for the queue");
                 _owner.Queue.Replace(item, here);
                 if (_owner.Queue.Items.FirstOrDefault(q => q.Track == here) is { } arrived)

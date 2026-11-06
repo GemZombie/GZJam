@@ -211,6 +211,12 @@ public sealed class AppSettings
     /// </summary>
     public string? ServerDownloadsFolder { get; set; }
 
+    /// <summary>
+    /// Where Keep a copy in my library (#285) puts a server's songs: one of the DJ's music
+    /// folders, laid out as the server has it. Null: asked the first time.
+    /// </summary>
+    public string? ServerKeepFolder { get; set; }
+
     /// <summary>Room the songs downloaded from servers may take, in GB; null: as much as the disk has (leaving some free).</summary>
     public double? ServerDownloadsLimitGb { get; set; }
 

@@ -399,6 +399,18 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Songs you keep go to" />
+                    <TextBlock x:Name="KeepFolderText" Classes="setting-help" Text="{Binding Servers.KeepFolderText}" />
+                    <TextBlock Classes="setting-help"
+                               Text="Keep a copy in my library, on a server's songs, folders or playlists, puts them here, laid out as on the server: your own songs from then on, never removed by GZJam." />
+                  </StackPanel>
+                  <Button x:Name="KeepFolderButton" Grid.Column="1" Classes="hw" Content="CHANGE…" VerticalAlignment="Center"
+                          Click="OnKeepFolderClick"
+                          ToolTip.Tip="Another music folder for the songs you keep from here on: those kept already stay where they are" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Room for downloaded songs" />
                     <TextBlock Classes="setting-help" Text="A sync stops when it's full, and says so. GZJam always leaves 1 GB free on the disk." />
                   </StackPanel>
