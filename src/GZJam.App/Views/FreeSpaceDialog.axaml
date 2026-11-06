@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GZJam.App.Views.FreeSpaceDialog"
+        Width="460" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        Title="GZJam">
+  <!-- Free up space… on a server (#290): its downloads removed from the laptop, by what's ticked -->
+  <StackPanel Margin="20" Spacing="12">
+    <TextBlock x:Name="Heading" Classes="label" Text="FREE UP SPACE" />
+    <TextBlock x:Name="Intro" Classes="setting-help" FontSize="12"
+               Text="Songs GZJam downloaded are removed from this laptop. They stay on the server, and come back when you ask for one; their hearts, cues and EQ are kept. Your own songs, and songs on a deck, in the queue or played tonight, are never removed." />
+    <Border Classes="settings-card" Margin="0">
+      <StackPanel Margin="12,8" Spacing="6">
+        <CheckBox x:Name="LastNightBox">
+          <StackPanel Spacing="1">
+            <TextBlock Classes="setting" Text="Downloaded for the last night" />
+            <TextBlock x:Name="LastNightText" Classes="setting-help" />
+          </StackPanel>
+        </CheckBox>
+        <CheckBox x:Name="NotPlayedBox">
+          <StackPanel Spacing="1">
+            <TextBlock Classes="setting" Text="Not played in the last 4 weeks" />
+            <TextBlock x:Name="NotPlayedText" Classes="setting-help" />
+          </StackPanel>
+        </CheckBox>
+        <CheckBox x:Name="EverythingBox">
+          <StackPanel Spacing="1">
+            <TextBlock x:Name="EverythingName" Classes="setting" Text="Everything downloaded from the server" />
+            <TextBlock x:Name="EverythingText" Classes="setting-help" />
+          </StackPanel>
+        </CheckBox>
+      </StackPanel>
+    </Border>
+    <TextBlock x:Name="TotalText" Classes="setting-help" FontSize="12" FontWeight="SemiBold" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
+      <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" IsDefault="True" MinWidth="96" MinHeight="38"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+      <Button x:Name="RemoveButton" Content="Remove" MinWidth="96" MinHeight="38" IsEnabled="False"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+              Background="{StaticResource OnAirBrush}" Foreground="White" />
+    </StackPanel>
+  </StackPanel>
+</Window>

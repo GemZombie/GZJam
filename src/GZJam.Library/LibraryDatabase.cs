@@ -541,6 +541,19 @@ public sealed partial class LibraryDatabase
             CREATE INDEX ix_server_catalog_folder ON server_catalog(server_id, folder);
             ALTER TABLE servers ADD COLUMN catalog_utc INTEGER;
             """,
+
+        // 28: Freeing up space (#290): which downloads were fetched on the spot (a double-click, the
+        // queue, a deck) rather than with a list kept on the laptop, and the songs the DJ removed
+        // from the laptop, which a sync doesn't download again until they're asked for. Only adds.
+        """
+            ALTER TABLE server_songs ADD COLUMN on_the_spot INTEGER NOT NULL DEFAULT 0;
+            CREATE TABLE server_removed (
+                server_id   INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                song_id     TEXT NOT NULL,
+                removed_utc INTEGER NOT NULL,
+                PRIMARY KEY (server_id, song_id)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

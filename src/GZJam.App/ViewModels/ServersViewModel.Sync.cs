@@ -402,6 +402,13 @@ public sealed partial class ServersViewModel
     {
         var added = choices.ToList();
         _database.AddServerChoices(item.Server.Id, added);
+        // Asked for: songs the DJ removed from the laptop before come back with them.
+        _database.ForgetServerSongsRemoved(item.Server.Id, added.SelectMany(c => c.Kind switch
+        {
+            ServerChoiceKind.Song => [c.RemoteId],
+            ServerChoiceKind.Album => _database.GetServerCatalogAlbumSongIds(item.Server.Id, c.RemoteId),
+            _ => (IReadOnlyList<string>)[],
+        }));
         Log.Info($"Servers: keeping from {item.Name}, as well: {string.Join(", ", added.Select(c => $"{c.Kind.ToString().ToLowerInvariant()} {c.Name}"))}");
         RefreshKept(item);
     }

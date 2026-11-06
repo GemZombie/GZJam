@@ -263,6 +263,7 @@ public partial class MainWindow
                      TrackRatingMenu, TrackLabelsMenu, TrackEnergyMenu, TrackBpmMenu])
             item.IsVisible = !remote;
         TrackDownloadItem.IsVisible = remote;
+        TrackRemoveFromLaptopItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.DownloadsFor(tracks).Count > 0;
         TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
@@ -338,6 +339,21 @@ public partial class MainWindow
     {
         if ((sender as Control)?.DataContext is QueueItem item)
             Vm.Servers.FetchForQueue(item);
+    }
+
+    private async void OnRemoveTracksFromLaptopClick(object? sender, RoutedEventArgs e) =>
+        await Vm.Servers.RemoveFromLaptopAsync(Vm.Servers.DownloadsFor(SelectedTracks()));
+
+    private async void OnRemoveFolderFromLaptopClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } folder)
+            await Vm.Servers.RemoveFromLaptopAsync(Vm.Servers.DownloadsInFolder(id, folder.Node.RelativePath));
+    }
+
+    private async void OnFreeUpSpaceClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id } server)
+            await new FreeSpaceDialog(Vm.Servers, Vm.Servers.OfferToFreeUp(id), server.Name).ShowDialog<bool>(this);
     }
 
     private async void OnReadServerCatalogClick(object? sender, RoutedEventArgs e)

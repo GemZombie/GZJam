@@ -4,7 +4,11 @@ using Microsoft.Data.Sqlite;
 namespace GZJam.Library;
 
 /// <summary>A server song on this computer: the file it became, or the DJ's own copy of it.</summary>
-public sealed record ServerSongCopy(long ServerId, string SongId, string Path, long? Size, string? ServerPath, bool OwnCopy);
+/// <param name="OnTheSpot">Downloaded when it was asked for (a double-click, the queue, a deck), not with a list kept on the laptop.</param>
+public sealed record ServerSongCopy(long ServerId, string SongId, string Path, long? Size, string? ServerPath, bool OwnCopy, bool OnTheSpot = false);
+
+/// <summary>A song GZJam downloaded from a server, for freeing up space: when it came, how, and when the room last heard it.</summary>
+public sealed record ServerDownload(long ServerId, string SongId, string Path, long Size, DateTime DownloadedUtc, bool OnTheSpot, DateTime? LastPlayedUtc);
 
 /// <summary>
 /// What a server's songs to keep on the laptop are: a playlist there, or what's starred (chosen
@@ -38,13 +42,13 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = "SELECT server_id, song_id, path, size, server_path, own_copy FROM server_songs WHERE server_id = $server;";
+        cmd.CommandText = "SELECT server_id, song_id, path, size, server_path, own_copy, on_the_spot FROM server_songs WHERE server_id = $server;";
         cmd.Parameters.AddWithValue("$server", serverId);
         using var r = cmd.ExecuteReader();
         var songs = new List<ServerSongCopy>();
         while (r.Read())
             songs.Add(new ServerSongCopy(r.GetInt64(0), r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt64(3),
-                r.IsDBNull(4) ? null : r.GetString(4), r.GetInt64(5) != 0));
+                r.IsDBNull(4) ? null : r.GetString(4), r.GetInt64(5) != 0, r.GetInt64(6) != 0));
         return songs;
     }
 
@@ -63,11 +67,12 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO server_songs (server_id, song_id, path, size, server_path, own_copy, downloaded_utc)
-            VALUES ($server, $song, $path, $size, $serverPath, $own, $now)
+            INSERT INTO server_songs (server_id, song_id, path, size, server_path, own_copy, downloaded_utc, on_the_spot)
+            VALUES ($server, $song, $path, $size, $serverPath, $own, $now, $spot)
             ON CONFLICT (server_id, song_id) DO UPDATE SET
                 path = excluded.path, size = excluded.size, server_path = excluded.server_path,
-                own_copy = excluded.own_copy, downloaded_utc = excluded.downloaded_utc;
+                own_copy = excluded.own_copy, downloaded_utc = excluded.downloaded_utc, on_the_spot = excluded.on_the_spot;
+            DELETE FROM server_removed WHERE server_id = $server AND song_id = $song;
             """;
         cmd.Parameters.AddWithValue("$server", song.ServerId);
         cmd.Parameters.AddWithValue("$song", song.SongId);
@@ -76,7 +81,99 @@ public sealed partial class LibraryDatabase
         cmd.Parameters.AddWithValue("$serverPath", (object?)song.ServerPath ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$own", song.OwnCopy ? 1 : 0);
         cmd.Parameters.AddWithValue("$now", nowUtc.Ticks);
+        cmd.Parameters.AddWithValue("$spot", song.OnTheSpot ? 1 : 0);
         cmd.ExecuteNonQuery();
+    }
+
+    // ───────────── Freeing up space (#290) ─────────────
+
+    /// <summary>Every song GZJam downloaded from the server (never the DJ's own copies), with when the room last heard it.</summary>
+    public IReadOnlyList<ServerDownload> GetServerDownloads(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT s.server_id, s.song_id, s.path, IFNULL(s.size, 0), s.downloaded_utc, s.on_the_spot,
+                   (SELECT MAX(p.played_utc) FROM plays p WHERE p.path = s.path)
+            FROM server_songs s WHERE s.server_id = $server AND s.own_copy = 0;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var downloads = new List<ServerDownload>();
+        while (r.Read())
+            downloads.Add(new ServerDownload(r.GetInt64(0), r.GetString(1), r.GetString(2), r.GetInt64(3),
+                new DateTime(r.GetInt64(4), DateTimeKind.Utc), r.GetInt64(5) != 0,
+                r.IsDBNull(6) ? null : new DateTime(r.GetInt64(6), DateTimeKind.Utc)));
+        return downloads;
+    }
+
+    /// <summary>
+    /// The DJ removed these songs from the laptop: their download is forgotten, a sync doesn't
+    /// download them again, and they're no longer kept as songs on their own. (The file is the
+    /// caller's to delete; hearts, cues and EQ stay, kept by path, for when one comes back.)
+    /// </summary>
+    public void MarkServerSongsRemoved(long serverId, IEnumerable<string> songIds, DateTime nowUtc)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (string songId in songIds)
+        {
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = """
+                DELETE FROM server_songs WHERE server_id = $server AND song_id = $song;
+                DELETE FROM server_choices WHERE server_id = $server AND kind = 'song' AND remote_id = $song;
+                INSERT OR REPLACE INTO server_removed (server_id, song_id, removed_utc) VALUES ($server, $song, $now);
+                """;
+            cmd.Parameters.AddWithValue("$server", serverId);
+            cmd.Parameters.AddWithValue("$song", songId);
+            cmd.Parameters.AddWithValue("$now", nowUtc.Ticks);
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
+    /// <summary>The songs the DJ removed from the laptop, which a sync leaves on the server.</summary>
+    public IReadOnlySet<string> GetRemovedServerSongs(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT song_id FROM server_removed WHERE server_id = $server;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var removed = new HashSet<string>();
+        while (r.Read())
+            removed.Add(r.GetString(0));
+        return removed;
+    }
+
+    /// <summary>Songs asked for again (an album downloaded, say): a sync downloads them again.</summary>
+    public void ForgetServerSongsRemoved(long serverId, IEnumerable<string> songIds)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (string songId in songIds)
+        {
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = "DELETE FROM server_removed WHERE server_id = $server AND song_id = $song;";
+            cmd.Parameters.AddWithValue("$server", serverId);
+            cmd.Parameters.AddWithValue("$song", songId);
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
+    /// <summary>The paths played since <paramref name="sinceUtc"/> (tonight's session): never removed.</summary>
+    public IReadOnlySet<string> GetPathsPlayedSince(DateTime sinceUtc)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT DISTINCT path FROM plays WHERE played_utc >= $since;";
+        cmd.Parameters.AddWithValue("$since", sinceUtc.Ticks);
+        using var r = cmd.ExecuteReader();
+        var paths = new HashSet<string>(StringComparer.Ordinal);
+        while (r.Read())
+            paths.Add(r.GetString(0));
+        return paths;
     }
 
     public void ForgetServerSong(long serverId, string songId)

@@ -369,6 +369,10 @@
                       <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"
                                 IsVisible="{Binding IsRemovableRoot}"
                                 ToolTip.Tip="Forget this folder. Your files are not touched." />
+                      <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
+                                ToolTip.Tip="Remove songs downloaded from this server from the laptop: they stay on the server" />
+                      <MenuItem Header="Remove from this laptop" IsVisible="{Binding IsServerFolder}" Click="OnRemoveFolderFromLaptopClick"
+                                ToolTip.Tip="Remove this folder's downloaded songs from the laptop: they stay on the server" />
                       <MenuItem Header="Read its song list again" IsVisible="{Binding IsServerItself}" Click="OnReadServerCatalogClick"
                                 ToolTip.Tip="Ask the server for every song again, for songs added or changed there since" />
                       <MenuItem Header="Server settings…" IsVisible="{Binding IsServerItself}" Click="OnServerSettingsClick"
@@ -695,6 +699,8 @@
                           ToolTip.Tip="Bring these songs from the server onto this laptop, and keep them" />
                 <MenuItem x:Name="TrackDownloadAlbumItem" Header="Download the album" Click="OnDownloadAlbumClick"
                           ToolTip.Tip="Bring this song's whole album from the server onto this laptop, and keep it up to date" />
+                <MenuItem x:Name="TrackRemoveFromLaptopItem" Header="Remove from this laptop" Click="OnRemoveTracksFromLaptopClick"
+                          ToolTip.Tip="These songs were downloaded from a server: remove them from the laptop (they stay on the server)" />
                 <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"
                           ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                 <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />
