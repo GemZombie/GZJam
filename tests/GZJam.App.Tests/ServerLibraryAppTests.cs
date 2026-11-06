@@ -68,7 +68,7 @@ public sealed class ServerLibraryAppTests
 
         Assert.True(roots[^1].IsServer);
         Assert.Equal("synology", roots[^1].Name);
-        Assert.Equal("", roots[^1].CountText);
+        Assert.True(roots[^1].IsServerItself);
         Assert.False(roots[^1].IsRemovableRoot);   // removed in Settings, not here
 
         app.ViewModel.ConfirmAsync = (_, _, _) => Task.FromResult(true);
@@ -94,18 +94,38 @@ public sealed class ServerLibraryAppTests
     }
 
     [AvaloniaFact]
-    public async Task Typing_searches_the_server_and_says_the_librarys_filters_are_left_out()
+    public async Task Typing_searches_the_server_and_says_the_librarys_own_filters_are_left_out()
     {
         var (app, _, _) = await WithServer();
         using var _ = app;
         ShowServer(app);
         var library = app.ViewModel.Library;
 
-        library.SearchText = "blues bpm:120-180";
+        library.SearchText = "blues rating:yes";
         WaitFor(() => library.Results.Count == 1, "the search's one song");
 
         Assert.Equal("Lucky Rock Blues", library.Results[0].Title);
-        Assert.Contains("Filters such as bpm:", library.ServerNote);
+        Assert.Equal("rating: is for the songs on this laptop: left out here.", library.ServerNote);
+    }
+
+    [AvaloniaFact]
+    public async Task The_servers_folders_are_in_the_tree_and_a_folder_shows_its_songs()
+    {
+        var (app, _, _) = await WithServer();
+        using var _ = app;
+        WaitFor(() => ServerNode(app).Children.Count > 0, "the server's folders");
+        FolderNodeViewModel server = ServerNode(app);
+
+        Assert.Equal(["Blues", "Jazz & Swing"], server.Children.Select(c => c.Name));
+        Assert.Equal("4", server.CountText);
+        FolderNodeViewModel basie = server.Children[1].Children[0];
+        Assert.Equal(("Count Basie", "2"), (basie.Name, basie.CountText));
+        Assert.False(basie.IsServerItself);
+
+        app.ViewModel.Library.SelectedFolder = basie;
+        WaitFor(() => app.ViewModel.Library.Results.Count == 2 && app.ViewModel.Library.Results.All(t => t.IsOnServerOnly), "the folder's songs");
+        Assert.Equal(["Basie Boogie", "Li'l Darlin'"], app.ViewModel.Library.Results.Select(t => t.Title));
+        Assert.Contains("synology › Jazz & Swing › Count Basie", app.ViewModel.Library.ScopeText);
     }
 
     [AvaloniaFact]

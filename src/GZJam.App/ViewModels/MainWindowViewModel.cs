@@ -1033,6 +1033,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
         await KeepAutomaticBackupAsync();
+        await Servers.ReadCatalogsAsync();
         if (_settings.SyncServersAtStartup)
             await Servers.SyncAtStartupAsync();
     }

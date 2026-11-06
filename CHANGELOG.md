@@ -42,8 +42,12 @@ New:
   selected songs, albums or artists to the laptop, into *GZJam from servers*, and keeps them up to
   date with the rest; songs already here say *On this laptop*.
 - **Your server in the library** ([#290](https://github.com/GemZombie/GZJam/issues/290)): each server
-  sits in the folder tree after your music folders. Select it and the song list shows what was
-  added there lately; type, and it searches the server. Songs that aren't on this laptop are dimmed,
+  sits in the folder tree after your music folders, with its own folders under it, as they are on
+  the server (or by artist and album, for a server that doesn't say). GZJam reads its song list when
+  it's added and at most twice a day (*Read its song list again* on its right-click menu), so it's
+  browsed and searched as fast as your own folders, offline too, and filters such as `year:`,
+  `bpm:` and `genre:` work on its songs (hearts, labels and plays are for the songs on this laptop).
+  Songs that aren't on this laptop are dimmed,
   with a cloud by the title: preview them in the headphones as usual, and a double-click, a load
   onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
   and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download

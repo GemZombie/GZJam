@@ -511,6 +511,36 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (server_id, kind, remote_id)
             );
             """,
+
+        // 27: Each server's catalog (#290): every song on it, with its tags and its place in the
+        // server's folders, read a page at a time, so the server's folder tree and its songs can be
+        // shown, searched and filtered like the library's, offline too. A copy of what the server
+        // says, made again when it's read again. Only adds.
+        """
+            CREATE TABLE server_catalog (
+                server_id    INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                song_id      TEXT NOT NULL,
+                folder       TEXT NOT NULL,
+                file_name    TEXT NOT NULL,
+                title        TEXT,
+                artist       TEXT,
+                album        TEXT,
+                album_artist TEXT,
+                album_id     TEXT,
+                genre        TEXT,
+                year         INTEGER,
+                track        INTEGER,
+                disc         INTEGER,
+                bpm          REAL,
+                duration_ms  INTEGER NOT NULL DEFAULT 0,
+                size         INTEGER,
+                path         TEXT,
+                suffix       TEXT,
+                PRIMARY KEY (server_id, song_id)
+            );
+            CREATE INDEX ix_server_catalog_folder ON server_catalog(server_id, folder);
+            ALTER TABLE servers ADD COLUMN catalog_utc INTEGER;
+            """,
     ];
 
     // ───────────── Roots ─────────────
