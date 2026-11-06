@@ -324,6 +324,7 @@ public sealed partial class ServersViewModel
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
             await ReadPlaylistsAsync(item, client);
             _ = LinkOwnCopiesAsync();   // which of them are in the library already
+            StartKeepWhole(item);   // songs added there, if it's kept whole
         }
         catch (ServerException e)
         {

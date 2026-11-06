@@ -171,8 +171,8 @@ reaches into the library and the network.
   [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
   copied to the laptop ahead of the night, so the room never depends on the Wi-Fi, a song dragged
   to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
-  home a bit at a time. It's in the library now, and songs can be kept in your library for good;
-  next, keeping the whole server in the background, stars sent back to the server, then the beta.
+  home a bit at a time, or the whole server in the background. Next, stars sent back to the
+  server, cleaning up what was downloaded, and the guide, then the beta.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
 

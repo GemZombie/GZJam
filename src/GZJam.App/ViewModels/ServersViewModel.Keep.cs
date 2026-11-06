@@ -127,25 +127,8 @@ public sealed partial class ServersViewModel
             return;
         }
 
-        string? folder = KeepFolder;
-        bool choosing = folder is null;
-        if (folder is null)
-        {
-            folder = ChooseFolderAsync is { } choose ? await choose("Where to keep songs from your servers (one of your music folders)") : null;
-            if (folder is null)
-                return;
-            folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
-            if (IsUnder(folder, DownloadsFolder))
-            {
-                _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and kept songs never are.", seconds: 8);
-                return;
-            }
-        }
-        else if (Path.GetPathRoot(folder) is { } drive && !Directory.Exists(drive))
-        {
-            _owner.ShowNotice($"{folder} isn't there (a drive unplugged?): plug it in, or choose another folder in Settings › Servers.", seconds: 8);
+        if (await KeepFolderToUseAsync() is not var (folder, choosing))
             return;
-        }
 
         var onDecks = _owner.Decks.Select(d => d.Track?.Path).OfType<string>().ToHashSet(StringComparer.Ordinal);
         string keepIn = folder;
@@ -175,6 +158,34 @@ public sealed partial class ServersViewModel
         if (choosing && !SetKeepFolder(keepIn))
             return;
         await RunKeepAsync(item, plan.Moves.Concat(downloads).ToList(), keepIn);
+    }
+
+    /// <summary>
+    /// The folder kept songs go to: the one chosen, or asked for now (the first time), with
+    /// whether it was asked for (it's saved once the DJ says yes). Null, with a notice, if there's
+    /// none to use.
+    /// </summary>
+    private async Task<(string Folder, bool Choosing)?> KeepFolderToUseAsync()
+    {
+        if (KeepFolder is { } folder)
+        {
+            if (Path.GetPathRoot(folder) is { } drive && !Directory.Exists(drive))
+            {
+                _owner.ShowNotice($"{folder} isn't there (a drive unplugged?): plug it in, or choose another folder in Settings › Servers.", seconds: 8);
+                return null;
+            }
+            return (folder, false);
+        }
+        string? chosen = ChooseFolderAsync is { } choose ? await choose("Where to keep songs from your servers (one of your music folders)") : null;
+        if (chosen is null)
+            return null;
+        chosen = Path.TrimEndingDirectorySeparator(Path.GetFullPath(chosen));
+        if (IsUnder(chosen, DownloadsFolder))
+        {
+            _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and kept songs never are.", seconds: 8);
+            return null;
+        }
+        return (chosen, true);
     }
 
     /// <summary>What's to happen, with the paths first (#285: "with the paths shown first").</summary>
@@ -303,27 +314,10 @@ public sealed partial class ServersViewModel
                 item.ShowSync($"Keeping in your library… {Format.Count(i)} of {Format.Count(steps.Count)} songs", problem: false);
                 try
                 {
-                    string? from = step.From;
-                    if (from is null && _downloads.TryGetValue((item.Server.Id, step.SongId), out Download? coming))
-                    {
-                        // Coming down already (for the queue, say): it finishes in the downloads folder, then moves.
-                        try
-                        {
-                            from = await coming.Done;
-                        }
-                        catch (Exception) when (!stop.IsCancellationRequested)
-                        {
-                            from = null;
-                        }
-                    }
-                    if (from is not null)
-                    {
-                        var move = step with { From = from };
-                        await _owner.Library.WithoutScansAsync(() => Task.Run(() => KeepMove(item, move)));   // no scan halfway
-                        moved.Add((from, step.Target));
-                    }
-                    else
-                        bytes += await Task.Run(() => sync!.KeepAsync(step.Song!, step.Target, folder, stop.Token));
+                    var (move, got) = await KeepOneAsync(item, step, sync, folder, stop.Token);
+                    if (move is { } made)
+                        moved.Add(made);
+                    bytes += got;
                     kept++;
                 }
                 catch (OperationCanceledException) when (stop.IsCancellationRequested)
@@ -373,6 +367,37 @@ public sealed partial class ServersViewModel
             : done;
         item.ShowSync(text, problem: stopped is not null || failed > 0);
         _owner.ShowNotice(text, seconds: 8);
+    }
+
+    /// <summary>
+    /// One song kept: its download moved there (one coming down already, for the queue say,
+    /// finishes first), or it downloads straight into its place. Returns the move, if it was one,
+    /// and the bytes downloaded.
+    /// </summary>
+    private async Task<((string From, string To)? Move, long Bytes)> KeepOneAsync(
+        ServerItemViewModel item, KeepStep step, ServerSync? sync, string folder, CancellationToken stop)
+    {
+        string? from = step.From;
+        if (from is null && _downloads.TryGetValue((item.Server.Id, step.SongId), out Download? coming))
+        {
+            try
+            {
+                from = await coming.Done;
+            }
+            catch (Exception) when (!stop.IsCancellationRequested)
+            {
+                from = null;
+            }
+        }
+        if (from is not null)
+        {
+            var move = step with { From = from };
+            await _owner.Library.WithoutScansAsync(() => Task.Run(() => KeepMove(item, move)));   // no scan halfway
+            return ((from, step.Target), 0);
+        }
+        if (sync is null || step.Song is null)
+            throw new ServerException("It isn't on this laptop, and can't be downloaded now.");
+        return (null, await Task.Run(() => sync.KeepAsync(step.Song, step.Target, folder, stop), stop));
     }
 
     /// <summary>A downloaded song into the DJ's music: its file moved, and everything kept by its path with it.</summary>

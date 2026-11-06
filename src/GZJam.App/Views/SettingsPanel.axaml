@@ -411,6 +411,26 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Keeping a whole server: speed" />
+                    <TextBlock Classes="setting-help"
+                               Text="Right-click a server › Keep the whole server in my library brings every song of it, in the background. Slower leaves room on the home connection and the NAS for everyone else." />
+                  </StackPanel>
+                  <ComboBox x:Name="KeepSpeedBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.KeepSpeedChoices}"
+                            SelectedItem="{Binding Servers.KeepSpeed}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Keep a whole server while the room hears music" />
+                    <TextBlock Classes="setting-help"
+                               Text="Off: it waits for a quiet moment, so the night never shares the laptop with it. On: it goes on while you play." />
+                  </StackPanel>
+                  <ToggleButton x:Name="KeepWhilePlayingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                                IsChecked="{Binding Servers.KeepWhilePlaying}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Room for downloaded songs" />
                     <TextBlock Classes="setting-help" Text="A sync stops when it's full, and says so. GZJam always leaves 1 GB free on the disk." />
                   </StackPanel>

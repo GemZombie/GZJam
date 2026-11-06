@@ -354,6 +354,30 @@ public partial class MainWindow
         return folders is [var folder] ? folder.TryGetLocalPath() : null;
     }
 
+    private async void OnKeepWholeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            await Vm.Servers.KeepWholeServerAsync(server.Server.Id);
+    }
+
+    private void OnPauseKeepWholeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            Vm.Servers.PauseKeepWhole(server.Server.Id);
+    }
+
+    private void OnResumeKeepWholeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            Vm.Servers.ResumeKeepWhole(server.Server.Id);
+    }
+
+    private async void OnStopKeepWholeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ServerOf(sender) is { } server)
+            await Vm.Servers.StopKeepWholeAsync(server.Server.Id);
+    }
+
     private async void OnKeepTracksClick(object? sender, RoutedEventArgs e) =>
         await Vm.Servers.KeepTracksAsync(SelectedTracks());
 
