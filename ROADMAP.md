@@ -164,14 +164,20 @@ come as 1.2.1, 1.2.2 and so on, and new features as 1.3. Found something? Say so
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.4:** your own keys, and your library: versions of a song, and tags from file names.
+**Next, in 1.4:** your own keys, and your music from anywhere. With a beta first, since it
+reaches into the library and the network.
+- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
+  other Subsonic servers, one or several): songs copied to the laptop ahead of the night, so the
+  room never depends on the Wi-Fi, or kept in your library for good, to bring a library home a
+  bit at a time
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
-- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
 
 **After that:**
+- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
+  choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
@@ -212,9 +218,6 @@ to one you'd use.
   taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 
 **Elsewhere**
-- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
-  other Subsonic servers), copied to the laptop ahead of the night, for a laptop too small for the
-  whole library
 - [A visiting or remote DJ](https://github.com/GemZombie/GZJam/issues/204): sign in to your own
   library on a borrowed laptop and leave nothing behind, or play a dance from somewhere else, the
   songs sent ahead to a laptop in the room
