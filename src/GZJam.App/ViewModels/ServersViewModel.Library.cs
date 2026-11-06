@@ -19,8 +19,9 @@ public sealed partial class ServersViewModel
 
     private string? _previewPath;
 
-    /// <summary>The servers' places in the library's folder tree, after the music folders.</summary>
-    public IReadOnlyList<(long Id, string Name)> TreeNodes => Items.Select(i => (i.Server.Id, i.Name)).ToList();
+    /// <summary>The servers' places in the library's folder tree, after the music folders, each with its folders from its catalog.</summary>
+    public IReadOnlyList<FolderNode> TreeNodes =>
+        Items.Select(i => FolderTree.BuildServer(i.Server.Id, i.Name, _database.GetServerCatalogFolders(i.Server.Id))).ToList();
 
     private ServerItemViewModel? ItemFor(long serverId) => Items.FirstOrDefault(i => i.Server.Id == serverId);
 
@@ -32,10 +33,25 @@ public sealed partial class ServersViewModel
     /// albums), or what <paramref name="text"/> finds. Songs on this laptop are the library's own
     /// rows; the rest are rows of the server's (<see cref="Track.IsOnServerOnly"/>).
     /// </summary>
-    public async Task<ServerBrowse> BrowseAsync(long serverId, string text, CancellationToken cancel)
+    public async Task<ServerBrowse> BrowseAsync(long serverId, string folder, string text, CancellationToken cancel)
     {
         if (ItemFor(serverId) is not { } item)
             return new([], "That server isn't in Settings › Servers any more.");
+
+        // From its catalog when it has one: as fast as the library, its folders, its filters, offline too.
+        if (_database.GetServerCatalogCount(serverId) > 0)
+        {
+            CatalogSearch found = await Task.Run(() => _database.SearchServerCatalog(serverId, folder, text, cancel), cancel);
+            var here = LocalCopies(item);
+            var rows = await Task.Run(() => found.Songs.Select(s => here.TryGetValue(s.Id, out string? path)
+                ? _database.TrackForFile(path)
+                : new ServerTrack(item.Server.Id, item.Name, s).ToTrack()).ToList(), cancel);
+            string? leftOut = found.LeftOut.Count == 0 ? null
+                : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
+            return new(rows, Note: leftOut ?? (IsReadingCatalog(item) ? $"Reading {item.Name}'s song list again…" : null));
+        }
+        if (IsReadingCatalog(item))
+            return new([], $"Reading {item.Name}'s song list… its songs show here in a moment.");
         if (SignedIn(item) is not { } client)
             return new([], "The password isn't on this computer: Settings › Servers › EDIT to type it.");
 
@@ -77,6 +93,16 @@ public sealed partial class ServersViewModel
             return null;
         foreach (ServerItemViewModel item in Items.ToList())
         {
+            if (_database.GetServerCatalogCount(item.Server.Id) > 0)
+            {
+                // At once, from the catalog.
+                var catalog = await Task.Run(() => _database.SearchServerCatalog(item.Server.Id, "", words, cancel), cancel);
+                var local = LocalCopies(item);
+                int notHere = catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                if (notHere > 0)
+                    return (item.Server.Id, $"Also on {item.Name}: {(notHere == 1 ? "1 song" : $"{Format.Count(notHere)} songs")} not on this laptop");
+                continue;
+            }
             if (SignedIn(item) is not { } client)
                 continue;
             try
@@ -188,4 +214,61 @@ public sealed partial class ServersViewModel
 
     /// <summary>The library's tree and song list follow the servers being added, renamed or removed.</summary>
     partial void ServersChanged() => _owner.Library?.RefreshServers();
+
+    // ───────────── The catalog ─────────────
+
+    private readonly HashSet<long> _readingCatalog = [];
+
+    /// <summary>How old a catalog may be before GZJam's start reads it again.</summary>
+    public TimeSpan CatalogAge { get; set; } = TimeSpan.FromHours(12);
+
+    private bool IsReadingCatalog(ServerItemViewModel item) => _readingCatalog.Contains(item.Server.Id);
+
+    /// <summary>At GZJam's start: each server's catalog, if it's never been read or is older than <see cref="CatalogAge"/>.</summary>
+    public async Task ReadCatalogsAsync()
+    {
+        foreach (ServerItemViewModel item in Items.ToList())
+            if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge)
+                await ReadCatalogAsync(item.Server.Id, quiet: true);
+    }
+
+    /// <summary>
+    /// Reads every song on the server into its catalog, so its folders and songs show in the
+    /// library (about 30 seconds for 18,000 songs, the first time). <paramref name="quiet"/>: at
+    /// startup, a server that doesn't answer is left as it was without a word.
+    /// </summary>
+    public async Task ReadCatalogAsync(long serverId, bool quiet = false)
+    {
+        if (ItemFor(serverId) is not { } item || IsReadingCatalog(item) || SignedIn(item) is not { } client)
+            return;
+        _readingCatalog.Add(serverId);
+        _owner.Library.RefreshResults();   // says it's reading, if the server is showing
+        try
+        {
+            SyncStatus ??= $"Reading {item.Name}'s song list…";
+            var progress = new Progress<int>(n =>
+            {
+                if (SyncStatus is null || SyncStatus.StartsWith("Reading", StringComparison.Ordinal))
+                    SyncStatus = $"Reading {item.Name}'s song list… {Format.Count(n)}";
+            });
+            var started = System.Diagnostics.Stopwatch.StartNew();
+            List<ServerSong> songs = await Task.Run(() => ServerCatalogReader.ReadAsync(client, progress));
+            await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
+            Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
+        }
+        catch (ServerException e)
+        {
+            Log.Info($"Servers: couldn't read {item.Name}'s song list: {e.Message}");
+            if (!quiet)
+                _owner.ShowNotice($"Couldn't read {item.Name}'s song list: {e.Message}", seconds: 8);
+        }
+        finally
+        {
+            _readingCatalog.Remove(serverId);
+            if (SyncStatus?.StartsWith("Reading", StringComparison.Ordinal) == true)
+                SyncStatus = null;
+            _owner.Library.RefreshServers();
+            _owner.Library.RefreshResults();
+        }
+    }
 }

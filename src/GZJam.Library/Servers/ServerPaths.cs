@@ -42,6 +42,20 @@ public static class ServerPaths
     }
 
     /// <summary>
+    /// Where a song shows in the server's folder tree (#290): its real folders, the server's own
+    /// mount folder left off, or Album Artist / Album when the server gives no real path. The
+    /// names as the server has them ('/'-separated); a file name too.
+    /// </summary>
+    public static (string Folder, string FileName) CatalogPlace(ServerSong song)
+    {
+        if (FromServerPath(song.Path) is { } parts)
+            return (string.Join('/', parts[..^1]), parts[^1]);
+        string artist = First(song.AlbumArtist, song.Artist) ?? "Unknown artist";
+        string album = First(song.Album) ?? "Unknown album";
+        return ($"{artist.Replace('/', '-')}/{album.Replace('/', '-')}", (First(song.Title) ?? song.Id) + Extension(song));
+    }
+
+    /// <summary>
     /// A server path's folders and file name, the server's own mount folder left off: null if
     /// there's no path, or only a file name (no layout to copy).
     /// </summary>

@@ -128,6 +128,8 @@ public sealed partial class ServersViewModel : ObservableObject
         Log.Info($"Servers: {(existing is null ? "added" : "changed")} {name} ({user} at {address}): {check.Outcome}");
 
         Refresh();
+        if (check.Connected && existing?.Server.Address != saved.Address)
+            _ = ReadCatalogAsync(saved.Id, quiet: true);   // a new server, or one somewhere else: its songs
         if (Items.FirstOrDefault(i => i.Server.Id == saved.Id) is { } item)
         {
             if (check.Connected)

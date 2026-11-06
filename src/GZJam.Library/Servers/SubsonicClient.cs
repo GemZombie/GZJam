@@ -305,10 +305,12 @@ public sealed class SubsonicClient
     // ───────────── Browsing the server (#284) ─────────────
 
     /// <summary>Songs, albums and artists matching <paramref name="query"/>, as the server finds them.</summary>
-    public async Task<ServerSearch> SearchAsync(string query, int songs = 60, int albums = 20, int artists = 10, CancellationToken cancel = default)
+    public async Task<ServerSearch> SearchAsync(string query, int songs = 60, int albums = 20, int artists = 10, CancellationToken cancel = default,
+        int songOffset = 0)
     {
         JsonElement body = await GetAsync("search3",
             [("query", query), ("songCount", songs.ToString(CultureInfo.InvariantCulture)),
+             ("songOffset", songOffset.ToString(CultureInfo.InvariantCulture)),
              ("albumCount", albums.ToString(CultureInfo.InvariantCulture)), ("artistCount", artists.ToString(CultureInfo.InvariantCulture))],
             cancel).ConfigureAwait(false);
         if (!body.TryGetProperty("searchResult3", out JsonElement found))

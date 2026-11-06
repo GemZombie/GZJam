@@ -293,8 +293,9 @@ public sealed class RenameTests : IDisposable
                 tables.Add(r.GetString(0));
 
         // The index itself is rebuilt from the file, album art depends on the folder, and roots
-        // are the music folders, not songs.
-        string[] notMoved = ["tracks", "art", "roots"];
+        // are the music folders, not songs. A server's catalog keeps where a song is on the server,
+        // not a file here.
+        string[] notMoved = ["tracks", "art", "roots", "server_catalog"];
         Assert.Equal(tables.Except(notMoved).Order(), LibraryDatabase.MovedTables.Order());
     }
 }

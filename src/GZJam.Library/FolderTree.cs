@@ -27,7 +27,7 @@ public sealed class FolderNode
     public bool IsRoot => RelativePath.Length == 0;
 
     /// <summary>A music server in the tree (#290), beside the music folders; null for a folder.</summary>
-    public long? ServerId { get; private init; }
+    public long? ServerId { get; internal init; }
 
     public bool IsServer => ServerId is not null;
 
@@ -50,6 +50,43 @@ public sealed class FolderNode
 
 public static class FolderTree
 {
+    /// <summary>
+    /// A server's tree (#290): the server, and under it its folders, from its catalog's per-folder
+    /// song counts ('/'-separated, as the server lays them out).
+    /// </summary>
+    public static FolderNode BuildServer(long serverId, string name, IEnumerable<(string Folder, int Count)> folderCounts)
+    {
+        FolderNode server = FolderNode.ForServer(serverId, name);
+        var nodes = new Dictionary<string, FolderNode> { [""] = server };
+        foreach (var (folder, count) in folderCounts)
+        {
+            server.TrackCount += count;
+            if (folder.Length == 0)
+                continue;
+            FolderNode parent = server;
+            int start = 0;
+            while (true)
+            {
+                int slash = folder.IndexOf('/', start);
+                string relative = slash < 0 ? folder : folder[..slash];
+                if (!nodes.TryGetValue(relative, out FolderNode? node))
+                {
+                    string part = slash < 0 ? folder[start..] : folder[start..slash];
+                    node = new FolderNode(-serverId, part, relative, $"{Servers.ServerTrack.PathPrefix}{serverId}/{relative}") { ServerId = serverId };
+                    nodes[relative] = node;
+                    parent.AddChild(node);
+                }
+                node.TrackCount += count;
+                if (slash < 0)
+                    break;
+                parent = node;
+                start = slash + 1;
+            }
+        }
+        server.SortChildren();
+        return server;
+    }
+
     /// <summary>
     /// Builds one tree per root from per-folder track counts. Only folders that contain audio
     /// (directly or below) appear, so cover-art and download folders stay out of the way.

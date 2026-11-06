@@ -333,6 +333,12 @@ public partial class MainWindow
 
     private void OnServerSettingsClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Servers);
 
+    private async void OnReadServerCatalogClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id })
+            await Vm.Servers.ReadCatalogAsync(id);
+    }
+
     private void OnRatingCellClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is Track { IsOnServerOnly: false } track)

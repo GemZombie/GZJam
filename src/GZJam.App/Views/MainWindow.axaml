@@ -369,14 +369,16 @@
                       <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"
                                 IsVisible="{Binding IsRemovableRoot}"
                                 ToolTip.Tip="Forget this folder. Your files are not touched." />
-                      <MenuItem Header="Server settings…" IsVisible="{Binding IsServer}" Click="OnServerSettingsClick"
+                      <MenuItem Header="Read its song list again" IsVisible="{Binding IsServerItself}" Click="OnReadServerCatalogClick"
+                                ToolTip.Tip="Ask the server for every song again, for songs added or changed there since" />
+                      <MenuItem Header="Server settings…" IsVisible="{Binding IsServerItself}" Click="OnServerSettingsClick"
                                 ToolTip.Tip="Settings › Servers: its address, user name and password, and where downloads go" />
                     </ContextMenu>
                   </Grid.ContextMenu>
                   <Panel>
-                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFolder}" />
+                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding !IsServerItself}" />
                     <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
-                          Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServer}" />
+                          Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServerItself}" />
                   </Panel>
                   <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"
                              VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />

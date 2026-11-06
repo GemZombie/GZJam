@@ -220,7 +220,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public bool HasNoResults => HasLoaded && Roots.Count > 0 && Results.Count == 0;
     public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
-        : SelectedFolder is { IsServer: true } s ? $"on {s.Name}: songs not on this laptop are marked"
+        : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this laptop are marked"
         : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
 
@@ -602,8 +602,13 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !AreFoldersFolded);
             Roots.Add(vm);
         }
-        foreach ((long id, string name) in ServerNodes())
-            Roots.Add(new FolderNodeViewModel(this, FolderNode.ForServer(id, name), null));
+        foreach (FolderNode server in ServerNodes())
+        {
+            var vm = new FolderNodeViewModel(this, server, null);
+            foreach (var n in vm.SelfAndDescendants())
+                n.IsExpanded = expanded.Contains(n.Key);
+            Roots.Add(vm);
+        }
         SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;
         _suppressSearch = false;
         OnPropertyChanged(nameof(HasNoRoots));
@@ -664,7 +669,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         ServerNote = null;
         if (SelectedPlaylist is null && SelectedFolder is { IsServer: true, Node.ServerId: long serverId })
         {
-            _ = RunServerSearchAsync(serverId, text, version, cancel.Token);
+            _ = RunServerSearchAsync(serverId, SelectedFolder.Node.RelativePath, text, version, cancel.Token);
             return;
         }
         FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;
@@ -711,10 +716,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     // ───────────── Servers in the library (#290) ─────────────
 
     /// <summary>The servers' places in the tree, after the music folders.</summary>
-    public Func<IReadOnlyList<(long Id, string Name)>> ServerNodes { get; set; } = () => [];
+    public Func<IReadOnlyList<FolderNode>> ServerNodes { get; set; } = () => [];
 
     /// <summary>A server's songs for the song list: what was added lately, or a search's.</summary>
-    public Func<long, string, CancellationToken, Task<ServerBrowse>>? BrowseServer { get; set; }
+    public Func<long, string, string, CancellationToken, Task<ServerBrowse>>? BrowseServer { get; set; }
 
     /// <summary>Under a library search: a server with songs it finds that aren't here, and what to say.</summary>
     public Func<string, CancellationToken, Task<(long ServerId, string Text)?>>? AlsoOnServers { get; set; }
@@ -752,18 +757,18 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void ShowAlsoOn()
     {
-        if (_alsoOnServer is { } id && Roots.FirstOrDefault(r => r.Node.ServerId == id) is { } node)
+        if (_alsoOnServer is { } id && Roots.FirstOrDefault(r => r.IsServer && r.Node.ServerId == id) is { } node)
             SelectedFolder = node;
     }
 
-    private async Task RunServerSearchAsync(long serverId, string text, int version, CancellationToken cancel)
+    private async Task RunServerSearchAsync(long serverId, string folder, string text, int version, CancellationToken cancel)
     {
         if (BrowseServer is null)
             return;
         ServerBrowse found;
         try
         {
-            found = await BrowseServer(serverId, text, cancel);
+            found = await BrowseServer(serverId, folder, text, cancel);
         }
         catch (OperationCanceledException)
         {
