@@ -33,6 +33,9 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
 {
     public const string PartialExtension = ".partial";
 
+    /// <summary>Why a song wasn't downloaded: the disk would have less than <see cref="KeepFree"/> left.</summary>
+    public const string DiskNearlyFull = "The disk is nearly full.";
+
     /// <summary>Room the downloads may take in all (every server's), in bytes; null: no limit but the disk.</summary>
     public long? Limit { get; init; }
 
@@ -43,6 +46,9 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     public Func<string?>? StopBefore { get; init; }
 
     public Func<DateTime> Now { get; init; } = () => DateTime.UtcNow;
+
+    /// <summary>The fastest songs may come, in bytes a second (keeping a whole server, #285); null: as fast as they come.</summary>
+    public long? BytesPerSecond { get; init; }
 
     public string ServerFolder => ServerPaths.ServerFolder(downloadsFolder, server.Name);
 
@@ -220,7 +226,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             return own;
         }
         if (FreeSpace() is { } free && free - (song.Size ?? 0) < KeepFree)
-            throw new IOException("The disk is nearly full.");
+            throw new IOException(DiskNearlyFull);
         string path = ServerPaths.Place(ServerFolder, ServerPaths.RelativeParts(song), p => File.Exists(p) || database.IsServerSongPath(p));
         long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
         database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false, OnTheSpot: true), Now());
@@ -237,7 +243,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     public async Task<long> KeepAsync(ServerSong song, string path, string keepFolder, CancellationToken cancel = default)
     {
         if (FreeSpace(keepFolder) is { } free && free - (song.Size ?? 0) < KeepFree)
-            throw new IOException("The disk is nearly full.");
+            throw new IOException(DiskNearlyFull);
         long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
         database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: true), Now());
         await AddFolderArtAsync(song, path, cancel, under: keepFolder).ConfigureAwait(false);
@@ -311,7 +317,8 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             long length;
             await using (var file = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
             {
-                await client.DownloadAsync(song.Id, file, cancel: cancel).ConfigureAwait(false);
+                Stream to = BytesPerSecond is { } limit and > 0 ? new ThrottledStream(file, limit) : file;
+                await client.DownloadAsync(song.Id, to, cancel: cancel).ConfigureAwait(false);
                 length = file.Length;
             }
             if (song.Size is { } expected and > 0 && length != expected)

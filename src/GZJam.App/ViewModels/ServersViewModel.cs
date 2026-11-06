@@ -189,6 +189,7 @@ public sealed partial class ServersViewModel : ObservableObject
                 $"GZJam forgets this server, and its password is removed from {Passwords.Where}. The server and its music aren't touched.{songs}",
                 "Remove"))
             return;
+        ForgetKeepWhole(item.Server.Id);
         _database.RemoveServer(item.Server.Id);
         TryForget(item.Server.PasswordKey);
         Log.Info($"Servers: removed {item.Name} ({item.Server.UserName} at {item.Server.Address})");

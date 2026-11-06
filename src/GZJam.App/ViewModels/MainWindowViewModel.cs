@@ -129,6 +129,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         Library.ServerOffline = Servers.IsOffline;
         Library.ServerSyncing = id => Servers.Items.FirstOrDefault(i => i.Server.Id == id)?.IsSyncing == true;
+        Library.ServerKeepWhole = Servers.KeepWholeState;
         Library.ServerPlaylistKept = Servers.IsKept;
         Art.ServerArt = Servers.ArtFor;   // the pictures of songs still on a server
         Queue.PassedOver += waiting => ShowNotice(waiting.Count == 1
@@ -164,10 +165,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public AlbumArtCache Art { get; }
 
     /// <summary>What's happening in the background (copying songs out, scanning, then analyzing), for the top bar.</summary>
-    public string? BackgroundStatus => ExportStatus ?? Servers.SyncStatus ?? Library.ScanStatus ?? Analysis?.Status;
+    public string? BackgroundStatus => ExportStatus ?? Servers.SyncStatus ?? Library.ScanStatus ?? Servers.KeepWholeStatus ?? Analysis?.Status;
     public double BackgroundPercent => ExportStatus is not null ? ExportPercent
         : Servers.SyncStatus is not null ? Servers.SyncPercent
-        : Library.ScanStatus is not null ? Library.ScanPercent : Analysis?.Percent ?? 0;
+        : Library.ScanStatus is not null ? Library.ScanPercent
+        : Servers.KeepWholeStatus is not null ? Servers.KeepWholePercent : Analysis?.Percent ?? 0;
 
     /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
     public string? BackgroundTip => _export is { } export
@@ -180,6 +182,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ? $"Downloading the songs you chose from your server, into {Servers.DownloadsFolder}. Right-click the server in the library to stop it."
         : Library.ScanStatus is not null
         ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
+        : Servers.KeepWholeStatus is not null
+        ? $"Keeping all of your server in your library, in {Servers.KeepFolder}, a song at a time: your own songs from then on. Right-click the server in the library to pause or stop it."
         : Analysis?.StatusTip;
 
     internal void BackgroundChanged()
@@ -1083,6 +1087,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         await Servers.ReadCatalogsAsync();
         if (_settings.SyncServersAtStartup)
             await Servers.SyncAtStartupAsync();
+        Servers.ResumeKeepingWhole();   // a whole server being kept picks up where it left off (#285)
     }
 
     /// <summary>

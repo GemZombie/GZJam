@@ -68,6 +68,20 @@ public sealed partial class FolderNodeViewModel : ObservableObject
 
     public bool CanSync => IsServerItself && !IsSyncing;
 
+    /// <summary>The whole server is being kept in the DJ's library, in the background (#285).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanKeepWhole), nameof(CanPauseKeepWhole), nameof(CanResumeKeepWhole))]
+    public partial bool IsKeepingWhole { get; set; }
+
+    /// <summary>Keeping the whole server waits until the DJ resumes it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseKeepWhole), nameof(CanResumeKeepWhole))]
+    public partial bool IsKeepWholePaused { get; set; }
+
+    public bool CanKeepWhole => IsServerItself && !IsKeepingWhole;
+    public bool CanPauseKeepWhole => IsServerItself && IsKeepingWhole && !IsKeepWholePaused;
+    public bool CanResumeKeepWhole => IsServerItself && IsKeepingWhole && IsKeepWholePaused;
+
     public string NameTip => IsOffline ? $"{Name} can't be reached right now. Songs on this laptop play as usual." : Name;
     public (long RootId, string Folder) Key => (Node.RootId, Node.RelativePath);
 
