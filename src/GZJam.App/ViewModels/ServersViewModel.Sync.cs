@@ -15,7 +15,7 @@ public sealed record ServerOffer(IReadOnlyList<ServerPlaylist> Playlists, Server
 public sealed partial class ServersViewModel
 {
     /// <summary>For songs and lists: a song can take a while, so no overall time limit (a stalled one is given up on, see SubsonicClient.DownloadAsync).</summary>
-    private static readonly HttpClient DownloadHttp = new()
+    private static readonly HttpClient DownloadHttp = new(QuickToConnect())
     {
         Timeout = TimeSpan.FromMinutes(30),
         DefaultRequestHeaders = { { "User-Agent", $"GZJam/{About.Version}" } },

@@ -19,7 +19,10 @@ public sealed record ServerSaveResult(bool Saved, string? Problem = null, bool C
 /// </summary>
 public sealed partial class ServersViewModel : ObservableObject
 {
-    private static readonly HttpClient Http = new()
+    /// <summary>A connection that can't be made is given up on in 5 seconds (an unreachable server, venue Wi-Fi), not the system's 20 or more.</summary>
+    internal static SocketsHttpHandler QuickToConnect() => new() { ConnectTimeout = TimeSpan.FromSeconds(5) };
+
+    private static readonly HttpClient Http = new(QuickToConnect())
     {
         Timeout = TimeSpan.FromSeconds(15),
         DefaultRequestHeaders = { { "User-Agent", $"GZJam/{About.Version}" } },

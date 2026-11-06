@@ -115,6 +115,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         Servers = new ServersViewModel(this, database, settings, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
         Library.ServerNodes = () => Servers.TreeNodes;
+        Library.ServerOffline = Servers.IsOffline;
+        Queue.PassedOver += waiting => ShowNotice(waiting.Count == 1
+            ? $"{waiting[0].Title} is still downloading: auto-play played the next song, and it waits at the top."
+            : $"{waiting.Count} songs are still downloading: auto-play played the next song, and they wait at the top.", seconds: 6);
         Library.BrowseServer = Servers.BrowseAsync;
         Library.AlsoOnServers = Servers.AlsoOnAsync;
         Settings = new SettingsViewModel(this, settings);
@@ -536,16 +540,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public void AddToQueue(IReadOnlyList<Track> tracks, int? index = null)
     {
-        if (tracks.Any(t => t.IsOnServerOnly))
-        {
-            // Songs still on a server (#290) join once they're here; for now, in turn, after the rest.
-            _ = AddFromServerAsync(tracks.Where(t => t.IsOnServerOnly).ToList(), here => AddToQueue([here], index));
-            tracks = tracks.Where(t => !t.IsOnServerOnly).ToList();
-        }
         if (tracks.Count == 0)
             return;
         var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
-        var repeats = Queue.Add(tracks, index).Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
+        var added = Queue.Add(tracks, index);
+        // Songs still on a server (#290) wait in their place, downloading, and become themselves when they're here.
+        foreach (QueueItem waiting in added.Where(i => i.IsWaiting))
+            Servers.FetchForQueue(waiting);
+        var repeats = added.Where(i => earlier.ContainsKey(i.Track.Path)).ToList();
         if (repeats.Count > 0)
             NoticeRepeatsInQueue(repeats, tracks.Count, earlier);
     }
@@ -1033,6 +1035,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
         await KeepAutomaticBackupAsync();
+        await Servers.CheckReachableAsync();
         await Servers.ReadCatalogsAsync();
         if (_settings.SyncServersAtStartup)
             await Servers.SyncAtStartupAsync();
@@ -1344,6 +1347,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (track.IsOnServerOnly)
         {
             // A server's song (#290): onto a deck only once it's on this laptop.
+            if (Servers.IsFetching(track))
+            {
+                ShowNotice($"{track.DisplayTitle} is still downloading: it can go on a deck once it's here.");
+                return false;
+            }
             if (await Servers.BringHereAsync(track) is not { } here)
                 return false;
             track = here;

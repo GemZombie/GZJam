@@ -45,7 +45,7 @@ public sealed partial class ServersViewModel
             var here = LocalCopies(item);
             var rows = await Task.Run(() => found.Songs.Select(s => here.TryGetValue(s.Id, out string? path)
                 ? _database.TrackForFile(path)
-                : new ServerTrack(item.Server.Id, item.Name, s).ToTrack()).ToList(), cancel);
+                : new ServerTrack(item.Server.Id, item.Name, s) { Unreachable = item.IsOffline }.ToTrack()).ToList(), cancel);
             string? leftOut = found.LeftOut.Count == 0 ? null
                 : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this laptop: left out here.";
             return new(rows, Note: leftOut ?? (IsReadingCatalog(item) ? $"Reading {item.Name}'s song list again…" : null));
@@ -91,7 +91,7 @@ public sealed partial class ServersViewModel
         string words = text.Trim();
         if (words.Length < 2 || Filters.IsMatch(words))
             return null;
-        foreach (ServerItemViewModel item in Items.ToList())
+        foreach (ServerItemViewModel item in Items.Where(i => !i.IsOffline).ToList())
         {
             if (_database.GetServerCatalogCount(item.Server.Id) > 0)
             {
@@ -137,6 +137,11 @@ public sealed partial class ServersViewModel
             _owner.ShowNotice($"{item.Name} doesn't let this account download songs: they can be heard in the headphones only.", seconds: 8);
             return null;
         }
+        if (item.IsOffline)
+        {
+            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this laptop play as usual.", seconds: 6);
+            return null;
+        }
         if (SignedIn(item) is not { } client)
         {
             _owner.ShowNotice($"The password for {item.Name} isn't on this computer: Settings › Servers › EDIT to type it.", seconds: 8);
@@ -158,6 +163,12 @@ public sealed partial class ServersViewModel
             RefreshKept(item);
             RefreshDownloads();
             return here;
+        }
+        catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
+        {
+            MarkOffline(item);
+            _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this laptop play as usual.", seconds: 6);
+            return null;
         }
         catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
         {
@@ -200,6 +211,11 @@ public sealed partial class ServersViewModel
     {
         if (track.OnServer is not { } remote || ItemFor(remote.ServerId) is not { } item)
             return;
+        if (item.IsOffline)
+        {
+            _owner.ShowNotice($"{item.Name} can't be reached right now, so its songs can't be heard from it.", seconds: 6);
+            return;
+        }
         _owner.ShowNotice($"Getting {track.DisplayTitle} for the headphones…", seconds: 30);
         string? problem = await PreviewAsync(item, remote.Song, null);
         _owner.ShowNotice(problem ?? $"In the headphones: {track.DisplayTitle}", seconds: problem is null ? 2 : 8);
@@ -227,7 +243,7 @@ public sealed partial class ServersViewModel
     /// <summary>At GZJam's start: each server's catalog, if it's never been read or is older than <see cref="CatalogAge"/>.</summary>
     public async Task ReadCatalogsAsync()
     {
-        foreach (ServerItemViewModel item in Items.ToList())
+        foreach (ServerItemViewModel item in Items.Where(i => !i.IsOffline).ToList())
             if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge)
                 await ReadCatalogAsync(item.Server.Id, quiet: true);
     }
@@ -258,6 +274,8 @@ public sealed partial class ServersViewModel
         }
         catch (ServerException e)
         {
+            if (e.Outcome == ServerCheckOutcome.Unreachable)
+                MarkOffline(item);
             Log.Info($"Servers: couldn't read {item.Name}'s song list: {e.Message}");
             if (!quiet)
                 _owner.ShowNotice($"Couldn't read {item.Name}'s song list: {e.Message}", seconds: 8);

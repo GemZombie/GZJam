@@ -289,6 +289,12 @@
     <Setter Property="Opacity" Value="{Binding IsDimmed, Converter={x:Static app:Converters.Dimmed}}" />
   </Style>
   <!-- A song still on a music server (#290): heard in the headphones, downloaded when it's wanted -->
+  <Style Selector="Path.server-mark.offline">
+    <Setter Property="Data" Value="{StaticResource IconServerOffline}" />
+    <Setter Property="Stroke" Value="{StaticResource Deck2Brush}" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="Height" Value="12" />
+  </Style>
   <Style Selector="Path.server-mark">
     <Setter Property="Data" Value="{StaticResource IconServer}" />
     <Setter Property="Stroke" Value="{StaticResource TextBrush}" />

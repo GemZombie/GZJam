@@ -333,6 +333,13 @@ public partial class MainWindow
 
     private void OnServerSettingsClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Servers);
 
+    /// <summary>A queued song whose download failed: Try again.</summary>
+    private void OnQueueRetryClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is QueueItem item)
+            Vm.Servers.FetchForQueue(item);
+    }
+
     private async void OnReadServerCatalogClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id })

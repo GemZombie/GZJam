@@ -282,6 +282,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
+        OnPropertyChanged(nameof(IsServerShowing));
         if (!_suppressSearch)
             RunSearch();
     }
@@ -604,7 +605,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         foreach (FolderNode server in ServerNodes())
         {
-            var vm = new FolderNodeViewModel(this, server, null);
+            var vm = new FolderNodeViewModel(this, server, null) { IsOffline = server.ServerId is { } id && ServerOffline(id) };
             foreach (var n in vm.SelfAndDescendants())
                 n.IsExpanded = expanded.Contains(n.Key);
             Roots.Add(vm);
@@ -718,6 +719,32 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>The servers' places in the tree, after the music folders.</summary>
     public Func<IReadOnlyList<FolderNode>> ServerNodes { get; set; } = () => [];
 
+    /// <summary>Whether a server can't be reached right now, for its mark in the tree.</summary>
+    public Func<long, bool> ServerOffline { get; set; } = _ => false;
+
+    /// <summary>A server went or came back: its mark in the tree.</summary>
+    public void SetServerOffline(long serverId, bool offline)
+    {
+        foreach (FolderNodeViewModel node in Roots.Where(r => r.IsServerItself && r.Node.ServerId == serverId))
+            node.IsOffline = offline;
+    }
+
+    /// <summary>
+    /// A server's songs, only those on this laptop: what can be played tonight. On by itself while
+    /// the server can't be reached (and off again when it answers), or by hand.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool OnlyHere { get; set; }
+
+    partial void OnOnlyHereChanged(bool value)
+    {
+        if (SelectedFolder?.IsServer == true)
+            RunSearch();
+    }
+
+    /// <summary>A server, or one of its folders, is showing: the "Only on this laptop" switch shows.</summary>
+    public bool IsServerShowing => SelectedPlaylist is null && SelectedFolder?.IsServer == true;
+
     /// <summary>A server's songs for the song list: what was added lately, or a search's.</summary>
     public Func<long, string, string, CancellationToken, Task<ServerBrowse>>? BrowseServer { get; set; }
 
@@ -780,7 +807,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         DidYouMeanText = null;
         ServerProblem = found.Problem;
         ServerNote = found.Note;
-        Results = found.Tracks;
+        Results = OnlyHere ? found.Tracks.Where(t => !t.IsOnServerOnly).ToList() : found.Tracks;
         IsSearching = false;
         OnPropertyChanged(nameof(EmptyMessage));
     }
