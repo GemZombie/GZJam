@@ -150,6 +150,9 @@ public sealed partial class ServersViewModel
 
     private readonly HashSet<QueueItem> _fetching = [];
 
+    /// <summary>A queued song still on a server is here now (its path on the server, and its new row).</summary>
+    public event Action<string, QueueItem>? Arrived;
+
     /// <summary>Whether this song, still on a server, is being downloaded for the queue now.</summary>
     public bool IsFetching(Track track) => _fetching.Any(q => q.Track.Path == track.Path);
 
@@ -192,6 +195,8 @@ public sealed partial class ServersViewModel
             Track here = await Task.Run(() => _database.TrackForFile(path));
             Log.Info($"Servers: {item.Title} from {server.Name} is here, for the queue");
             _owner.Queue.Replace(item, here);
+            if (_owner.Queue.Items.FirstOrDefault(q => q.Track == here) is { } arrived)
+                Arrived?.Invoke(remote.PseudoPath, arrived);
             AfterSync();
             RefreshKept(server);
             RefreshDownloads();

@@ -22,7 +22,7 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     public IReadOnlyList<FolderNodeViewModel> Children { get; }
 
     public string Name => Node.Name;
-    public string CountText => IsServer && Node.TrackCount == 0 ? "" : Format.Count(Node.TrackCount);
+    public string CountText => IsSyncing ? "↻" : IsServer && Node.TrackCount == 0 ? "" : Format.Count(Node.TrackCount);
     public bool IsRoot => Node.IsRoot;
 
     /// <summary>A music server (#290), not a folder: its songs are the server's.</summary>
@@ -45,6 +45,13 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     public partial bool IsOffline { get; set; }
 
     public bool IsOnline => IsServerItself && !IsOffline;
+
+    /// <summary>The server is syncing now: its count says so, and its menu can stop it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CountText), nameof(CanSync))]
+    public partial bool IsSyncing { get; set; }
+
+    public bool CanSync => IsServerItself && !IsSyncing;
 
     public string NameTip => IsOffline ? $"{Name} can't be reached right now. Songs on this laptop play as usual." : Name;
     public (long RootId, string Folder) Key => (Node.RootId, Node.RelativePath);

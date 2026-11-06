@@ -495,6 +495,39 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         await ScanAsync(root);
     }
 
+    /// <summary>
+    /// Work that moves songs' files itself (the downloads folder moving, #290), with no scan
+    /// meanwhile: a scan halfway through would take a moved song for one gone.
+    /// </summary>
+    public async Task<T> WithoutScansAsync<T>(Func<Task<T>> work)
+    {
+        await _scanLock.WaitAsync();
+        try
+        {
+            return await work();
+        }
+        finally
+        {
+            _scanLock.Release();
+        }
+    }
+
+    /// <summary>Scans a music folder again, and returns once it's done.</summary>
+    public async Task ScanRootAsync(long rootId)
+    {
+        if (_database.GetRoots().FirstOrDefault(r => r.Id == rootId) is { } root)
+            await ScanAsync(root);
+    }
+
+    /// <summary>GZJam moved these songs' files: the tree and results show them there, and the queue and decks follow.</summary>
+    public void FollowMoves(IReadOnlyList<(string From, string To)> moves)
+    {
+        RefreshTree();
+        RunSearch("songs moved");
+        if (moves.Count > 0)
+            SongsMoved?.Invoke(moves);
+    }
+
     public void RemoveRoot(long rootId)
     {
         _watcher.Unwatch(rootId);
@@ -605,7 +638,11 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         foreach (FolderNode server in ServerNodes())
         {
-            var vm = new FolderNodeViewModel(this, server, null) { IsOffline = server.ServerId is { } id && ServerOffline(id) };
+            var vm = new FolderNodeViewModel(this, server, null)
+            {
+                IsOffline = server.ServerId is { } id && ServerOffline(id),
+                IsSyncing = server.ServerId is { } syncing && ServerSyncing(syncing),
+            };
             foreach (var n in vm.SelfAndDescendants())
                 n.IsExpanded = expanded.Contains(n.Key);
             Roots.Add(vm);
@@ -721,6 +758,16 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     /// <summary>Whether a server can't be reached right now, for its mark in the tree.</summary>
     public Func<long, bool> ServerOffline { get; set; } = _ => false;
+
+    /// <summary>Whether a server is syncing now, for its node.</summary>
+    public Func<long, bool> ServerSyncing { get; set; } = _ => false;
+
+    /// <summary>A server started or finished syncing: its node in the tree.</summary>
+    public void SetServerSyncing(long serverId, bool syncing)
+    {
+        foreach (FolderNodeViewModel node in Roots.Where(r => r.IsServerItself && r.Node.ServerId == serverId))
+            node.IsSyncing = syncing;
+    }
 
     /// <summary>A server went or came back: its mark in the tree.</summary>
     public void SetServerOffline(long serverId, bool offline)

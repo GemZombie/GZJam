@@ -130,10 +130,10 @@ public sealed partial class ServersViewModel
         _owner.Library.RefreshResults();
     }
 
-    /// <summary>Folders left empty under the downloads folder go too, up to (not including) it.</summary>
-    private void RemoveEmptyFolders(string? folder)
+    /// <summary>Folders left empty under the downloads folder (or <paramref name="under"/>) go too, up to (not including) it.</summary>
+    private void RemoveEmptyFolders(string? folder, string? under = null)
     {
-        string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(DownloadsFolder));
+        string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(under ?? DownloadsFolder));
         while (folder is not null && Path.GetFullPath(folder).Length > top.Length
                && Path.GetFullPath(folder).StartsWith(top, StringComparison.OrdinalIgnoreCase)
                && Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())

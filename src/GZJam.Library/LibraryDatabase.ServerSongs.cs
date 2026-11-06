@@ -162,6 +162,29 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
+    /// <summary>
+    /// Songs whose files GZJam moved (the downloads folder moved, #290): out of the index at the
+    /// old path, with everything kept by it (hearts, cues, EQ, playlists, plays, which server song
+    /// it is) at the new one, ready for a scan to read the file there.
+    /// </summary>
+    public void MoveSongFiles(IReadOnlyList<(string From, string To)> moves)
+    {
+        var ids = new List<long>();
+        using (var c = Open())
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = "SELECT id FROM tracks WHERE path = $path;";
+            var path = cmd.Parameters.Add("$path", SqliteType.Text);
+            foreach (var (from, _) in moves)
+            {
+                path.Value = from;
+                if (cmd.ExecuteScalar() is long id)
+                    ids.Add(id);
+            }
+        }
+        RemoveTracks(ids, moves);
+    }
+
     /// <summary>The paths played since <paramref name="sinceUtc"/> (tonight's session): never removed.</summary>
     public IReadOnlySet<string> GetPathsPlayedSince(DateTime sinceUtc)
     {

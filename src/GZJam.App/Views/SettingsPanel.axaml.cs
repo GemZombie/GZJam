@@ -112,24 +112,6 @@ public partial class SettingsPanel : UserControl
             await new ServerDialog(vm.Servers, server).ShowDialog<bool>(window);
     }
 
-    private void OnBrowseServerClick(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
-            ServerBrowserWindow.Show(window, vm.Servers, server);
-    }
-
-    private async void OnChooseServerClick(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ViewModels.SettingsViewModel vm && ServerOf(sender) is { } server && TopLevel.GetTopLevel(this) is Window window)
-            await new ServerChoicesDialog(vm.Servers, server).ShowDialog<bool>(window);
-    }
-
-    private async void OnSyncServerClick(object? sender, RoutedEventArgs e)
-    {
-        if (ServerOf(sender) is { } server)
-            await server.SyncOrStopAsync();
-    }
-
     private async void OnDownloadsFolderClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ViewModels.SettingsViewModel vm)
@@ -140,7 +122,7 @@ public partial class SettingsPanel : UserControl
             AllowMultiple = false,
         });
         if (folders is [var folder] && folder.TryGetLocalPath() is { } path)
-            vm.Servers.SetDownloadsFolder(path);
+            await vm.Servers.ChangeDownloadsFolderAsync(path);
     }
 
     private async void OnTestServerClick(object? sender, RoutedEventArgs e)

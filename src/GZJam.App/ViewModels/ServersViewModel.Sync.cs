@@ -58,8 +58,8 @@ public sealed partial class ServersViewModel
         }
     }
 
-    /// <summary>The folder can be changed while it's empty; moving downloaded songs comes later (#286).</summary>
-    public bool CanChangeDownloadsFolder => _database.GetDownloadedTotals().Songs == 0;
+    /// <summary>The folder can be changed (its songs moving with it) unless they're moving already, or a sync is running.</summary>
+    public bool CanChangeDownloadsFolder => !_moving && !Items.Any(i => i.IsSyncing);
 
     public IReadOnlyList<Choice<double?>> LimitChoices { get; } =
     [
@@ -83,11 +83,9 @@ public sealed partial class ServersViewModel
         }
     }
 
-    /// <summary>Puts downloads in another folder (only while nothing's downloaded yet).</summary>
+    /// <summary>Puts downloads in another folder, without moving any (see <see cref="ChangeDownloadsFolderAsync"/>).</summary>
     public void SetDownloadsFolder(string folder)
     {
-        if (!CanChangeDownloadsFolder)
-            return;
         _settings.ServerDownloadsFolder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
         Log.Info($"Servers: songs will be downloaded to {_settings.ServerDownloadsFolder}");
         RefreshDownloads();
@@ -104,7 +102,7 @@ public sealed partial class ServersViewModel
     {
         try
         {
-            return new DriveInfo(Path.GetPathRoot(Path.GetFullPath(DownloadsFolder))!).AvailableFreeSpace;
+            return DriveOf(DownloadsFolder)?.AvailableFreeSpace;
         }
         catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException)
         {
@@ -238,6 +236,16 @@ public sealed partial class ServersViewModel
 
     public void StopSync(ServerItemViewModel item) => item.RequestStop();
 
+    /// <summary>A server's node in the library shows its sync.</summary>
+    internal void SyncingChanged(ServerItemViewModel item, bool syncing)
+    {
+        _owner.Library?.SetServerSyncing(item.Server.Id, syncing);
+        OnPropertyChanged(nameof(CanChangeDownloadsFolder));
+    }
+
+    /// <summary>The library's "Sync now" on a server: what's chosen, or CHOOSE first when nothing is.</summary>
+    public ServerItemViewModel? Item(long serverId) => Items.FirstOrDefault(i => i.Server.Id == serverId);
+
     /// <summary>At startup: each server that has something chosen, quietly; one that doesn't answer is left for later.</summary>
     public async Task SyncAtStartupAsync()
     {
@@ -364,6 +372,8 @@ public sealed partial class ServerItemViewModel
         _stop = null;
         IsSyncing = false;
     }
+
+    partial void OnIsSyncingChanged(bool value) => _owner.SyncingChanged(this, value);
 
     internal void RequestStop() => _stop?.Cancel();
 

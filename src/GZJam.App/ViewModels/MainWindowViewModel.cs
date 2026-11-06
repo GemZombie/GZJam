@@ -115,7 +115,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         Servers = new ServersViewModel(this, database, settings, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
         Library.ServerNodes = () => Servers.TreeNodes;
+        Servers.Arrived += async (waitingPath, item) =>
+        {
+            if (!_loadWhenHere.Remove(waitingPath, out DeckViewModel? deck) || deck.IsOnAir)
+                return;
+            if (await LoadToDeckAsync(deck, item.Track))
+                Queue.Loaded([item]);   // it was loaded from the queue: it leaves it, as any song would
+        };
         Library.ServerOffline = Servers.IsOffline;
+        Library.ServerSyncing = id => Servers.Items.FirstOrDefault(i => i.Server.Id == id)?.IsSyncing == true;
         Queue.PassedOver += waiting => ShowNotice(waiting.Count == 1
             ? $"{waiting[0].Title} is still downloading: auto-play played the next song, and it waits at the top."
             : $"{waiting.Count} songs are still downloading: auto-play played the next song, and they wait at the top.", seconds: 6);
@@ -157,8 +165,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
     public string? BackgroundTip => _export is { } export
         ? $"Copying the songs to {export.Folder}. Your own files aren't changed."
+        : Servers.IsMovingDownloads
+        ? $"Moving the songs downloaded from your servers into {Servers.DownloadsFolder}, with their hearts, cues and EQ."
         : Servers.SyncStatus is not null
-        ? $"Downloading the songs you chose from your server, into {Servers.DownloadsFolder}. Settings › Servers can stop it."
+        ? $"Downloading the songs you chose from your server, into {Servers.DownloadsFolder}. Right-click the server in the library to stop it."
         : Library.ScanStatus is not null
         ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
         : Analysis?.StatusTip;
@@ -748,6 +758,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             if (await Servers.BringHereAsync(song) is { IsOnServerOnly: false } here)
                 arrived(here);
     }
+
+    /// <summary>Songs still downloading that a deck is waiting for, by their path on the server.</summary>
+    private readonly Dictionary<string, DeckViewModel> _loadWhenHere = new(StringComparer.Ordinal);
 
     public void CycleRating(Track track) => SetRating([track], track.Rating switch
     {
@@ -1349,7 +1362,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             // A server's song (#290): onto a deck only once it's on this laptop.
             if (Servers.IsFetching(track))
             {
-                ShowNotice($"{track.DisplayTitle} is still downloading: it can go on a deck once it's here.");
+                // It's on its way: this deck takes it the moment it's here, unless the room hears it by then.
+                _loadWhenHere[track.Path] = deck;
+                ShowNotice($"{track.DisplayTitle} is still downloading: it goes onto Deck {deck.Label} as soon as it's here.", seconds: 6);
                 return false;
             }
             if (await Servers.BringHereAsync(track) is not { } here)
