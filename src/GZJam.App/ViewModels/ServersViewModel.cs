@@ -28,10 +28,11 @@ public sealed partial class ServersViewModel : ObservableObject
     private readonly LibraryDatabase _database;
     private readonly MainWindowViewModel _owner;
 
-    public ServersViewModel(MainWindowViewModel owner, LibraryDatabase database, PasswordStore passwords)
+    public ServersViewModel(MainWindowViewModel owner, LibraryDatabase database, AppSettings settings, PasswordStore passwords)
     {
         _owner = owner;
         _database = database;
+        _settings = settings;
         Passwords = passwords;
         Refresh();
     }
@@ -66,6 +67,7 @@ public sealed partial class ServersViewModel : ObservableObject
         {
             var item = known.GetValueOrDefault(server.Id) ?? new ServerItemViewModel(this, server);
             item.Server = server;
+            RefreshKept(item);
             Items.Add(item);
         }
         HasServers = Items.Count > 0;
@@ -136,8 +138,13 @@ public sealed partial class ServersViewModel : ObservableObject
     /// <summary>Forgets a server and its password, after asking.</summary>
     public async Task RemoveAsync(ServerItemViewModel item)
     {
+        if (item.IsSyncing)
+            StopSync(item);
+        int downloaded = _database.GetDownloadedTotals(item.Server.Id).Songs;
+        string songs = downloaded == 0 ? ""
+            : $" The {(downloaded == 1 ? "song" : Format.Count(downloaded) + " songs")} downloaded from it stay on this computer, in {DownloadsFolder}, as ordinary songs, and its playlists stay too.";
         if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Remove {item.Name}?",
-                $"GZJam forgets this server, and its password is removed from {Passwords.Where}. The server and its music aren't touched.",
+                $"GZJam forgets this server, and its password is removed from {Passwords.Where}. The server and its music aren't touched.{songs}",
                 "Remove"))
             return;
         _database.RemoveServer(item.Server.Id);

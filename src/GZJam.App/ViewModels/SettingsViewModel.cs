@@ -30,6 +30,17 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Settings › Servers.</summary>
     public ServersViewModel Servers => _owner.Servers;
 
+    /// <summary>Sync each server when GZJam starts (#283).</summary>
+    public bool SyncServersAtStartup
+    {
+        get => _settings.SyncServersAtStartup;
+        set
+        {
+            _settings.SyncServersAtStartup = value;
+            OnPropertyChanged();
+        }
+    }
+
     [ObservableProperty]
     public partial IReadOnlyList<AudioDevice> MainDevices { get; private set; } = [];
 

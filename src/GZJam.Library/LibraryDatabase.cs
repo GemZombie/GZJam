@@ -483,6 +483,34 @@ public sealed partial class LibraryDatabase
                 UNIQUE (address, user_name)
             );
             """,
+
+        // 26: Songs from a server on this computer (#283): which file each server song became, by
+        // its ID there, so a sync knows what it already has. own_copy: a song the DJ already had
+        // (same title, artist and file size), used rather than downloaded again, and never
+        // removed by GZJam. And what the DJ chose to keep on the laptop: a server's playlists, and
+        // what's starred there, each with the GZJam playlist it fills. Only adds.
+        """
+            CREATE TABLE server_songs (
+                server_id      INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                song_id        TEXT NOT NULL,
+                path           TEXT NOT NULL,
+                size           INTEGER,
+                server_path    TEXT,
+                own_copy       INTEGER NOT NULL DEFAULT 0,
+                downloaded_utc INTEGER NOT NULL,
+                PRIMARY KEY (server_id, song_id)
+            );
+            CREATE INDEX ix_server_songs_path ON server_songs(path);
+            CREATE TABLE server_choices (
+                server_id   INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                kind        TEXT NOT NULL,
+                remote_id   TEXT NOT NULL,
+                name        TEXT NOT NULL,
+                playlist_id INTEGER REFERENCES playlists(id) ON DELETE SET NULL,
+                synced_utc  INTEGER,
+                PRIMARY KEY (server_id, kind, remote_id)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────
@@ -640,8 +668,12 @@ public sealed partial class LibraryDatabase
     internal static readonly string[] SongDataTables =
         ["marks", "track_labels", "eq", "trims", "cues", "jumps", "manual_bpm", "bpm_ranges", "analysis", "tag_edits"];
 
-    /// <summary>Of those, the ones where a song can have any number of rows: never cleared at the new path.</summary>
-    private static readonly string[] SongListTables = ["playlist_entries", "plays"];
+    /// <summary>
+    /// Of those, the ones where a song can have any number of rows: never cleared at the new path.
+    /// server_songs: a song from a server that moved here stays linked to it, so a sync doesn't
+    /// download it again (two servers' songs can share one of the DJ's own copies).
+    /// </summary>
+    private static readonly string[] SongListTables = ["playlist_entries", "plays", "server_songs"];
 
     /// <summary>
     /// A song renamed or moved: its marks, labels, EQ, trims, cues, jumps, BPMs and analysis go

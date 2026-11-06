@@ -205,6 +205,18 @@ public sealed class AppSettings
     /// </summary>
     public bool WriteTagsToFiles { get; set; }
 
+    /// <summary>
+    /// Where songs from music servers are downloaded to (#283); null: a folder in the computer's
+    /// Music folder (<see cref="ViewModels.ServersViewModel.DefaultDownloadsFolder"/>).
+    /// </summary>
+    public string? ServerDownloadsFolder { get; set; }
+
+    /// <summary>Room the songs downloaded from servers may take, in GB; null: as much as the disk has (leaving some free).</summary>
+    public double? ServerDownloadsLimitGb { get; set; }
+
+    /// <summary>Sync each server when GZJam starts, if it answers (#283). Never while the room hears music.</summary>
+    public bool SyncServersAtStartup { get; set; } = true;
+
     /// <summary>The queue's parts in the order the DJ dragged them into (#188), by name; null: as they come.</summary>
     public List<string>? QueueColumnOrder { get; set; }
 

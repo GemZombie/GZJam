@@ -354,14 +354,27 @@
                                    Text="{Binding Status}" />
                         <TextBlock Classes="setting-help problem" IsVisible="{Binding IsPreviewOnly}"
                                    Text="Preview only: this account can't download songs, so they can be heard in the headphones but never played to the room. Whoever runs the server can allow downloads." />
+                        <TextBlock x:Name="ServerKept" Classes="setting-help" Text="{Binding KeptText}" Margin="0,4,0,0"
+                                   IsVisible="{Binding KeptText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <TextBlock x:Name="ServerSync" Classes="setting-help" Classes.problem="{Binding SyncProblem}" FontWeight="SemiBold"
+                                   Text="{Binding SyncText}" IsVisible="{Binding HasSyncText}" />
                       </StackPanel>
-                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Button Classes="hw" Content="TEST" IsEnabled="{Binding !IsChecking}" Click="OnTestServerClick"
-                                ToolTip.Tip="Sign in to the server again" />
-                        <Button Classes="hw" Content="EDIT…" Click="OnEditServerClick"
-                                ToolTip.Tip="Change the server's name, address, user name or password" />
-                        <Button Classes="hw" Content="REMOVE…" Click="OnRemoveServerClick"
-                                ToolTip.Tip="Forget this server and its password (asks first)" />
+                      <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                          <Button Classes="hw" Content="CHOOSE…" IsEnabled="{Binding CanChoose}" Click="OnChooseServerClick"
+                                  ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this laptop" />
+                          <Button Classes="hw" Content="{Binding SyncButtonText}" MinWidth="64" Click="OnSyncServerClick"
+                                  IsEnabled="{Binding CanSync}"
+                                  ToolTip.Tip="Download what's chosen and not on this laptop yet, and bring its playlists up to date" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                          <Button Classes="hw" Content="TEST" IsEnabled="{Binding !IsChecking}" Click="OnTestServerClick"
+                                  ToolTip.Tip="Sign in to the server again" />
+                          <Button Classes="hw" Content="EDIT…" Click="OnEditServerClick"
+                                  ToolTip.Tip="Change the server's name, address, user name or password" />
+                          <Button Classes="hw" Content="REMOVE…" Click="OnRemoveServerClick"
+                                  ToolTip.Tip="Forget this server and its password (asks first)" />
+                        </StackPanel>
                       </StackPanel>
                     </Grid>
                   </Border>
@@ -373,7 +386,44 @@
             </Border>
             <Button x:Name="AddServerButton" Classes="hw" Content="ADD A SERVER…" HorizontalAlignment="Left" Margin="0,2,0,12"
                     Click="OnAddServerClick" />
-            <TextBlock x:Name="PasswordsText" Classes="setting-help" Margin="2,0" Text="{Binding Servers.PasswordsText}" />
+            <TextBlock x:Name="PasswordsText" Classes="setting-help" Margin="2,0,2,20" Text="{Binding Servers.PasswordsText}" />
+
+            <TextBlock Classes="settings-group" Text="DOWNLOADED SONGS" />
+            <Border Classes="settings-card">
+              <StackPanel>
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Downloaded to" />
+                    <TextBlock x:Name="DownloadsFolderText" Classes="setting-help" Text="{Binding Servers.DownloadsFolder}" />
+                    <TextBlock x:Name="DownloadsText" Classes="setting-help" FontWeight="SemiBold" Text="{Binding Servers.DownloadsText}" />
+                    <TextBlock Classes="setting-help"
+                               Text="A music folder like your others, laid out as the server has it: songs from a server are on this laptop before the night, so the room never depends on the Wi-Fi." />
+                  </StackPanel>
+                  <Button x:Name="DownloadsFolderButton" Grid.Column="1" Classes="hw" Content="CHANGE…" VerticalAlignment="Center"
+                          IsEnabled="{Binding Servers.CanChangeDownloadsFolder}" Click="OnDownloadsFolderClick"
+                          ToolTip.Tip="Another folder for downloaded songs, such as one on a bigger drive (while nothing's downloaded yet)" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Room for downloaded songs" />
+                    <TextBlock Classes="setting-help" Text="A sync stops when it's full, and says so. GZJam always leaves 1 GB free on the disk." />
+                  </StackPanel>
+                  <ComboBox x:Name="DownloadsLimitBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.LimitChoices}"
+                            SelectedItem="{Binding Servers.Limit}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Sync when GZJam starts" />
+                    <TextBlock Classes="setting-help"
+                               Text="Each server that answers brings what you chose up to date, in the background. It pauses once the room hears music; SYNC finishes it." />
+                  </StackPanel>
+                  <ToggleButton x:Name="SyncAtStartupSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
+                                IsChecked="{Binding SyncServersAtStartup}" />
+                </Grid>
+              </StackPanel>
+            </Border>
           </StackPanel>
         </ScrollViewer>
 

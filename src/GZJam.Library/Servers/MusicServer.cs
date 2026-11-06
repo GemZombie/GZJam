@@ -63,3 +63,41 @@ public sealed record ServerCheck(
         ? (char.ToUpperInvariant(type[0]) + type[1..] + (ServerVersion is { } v ? " " + v : "")).Trim()
         : null;
 }
+
+/// <summary>A playlist on a server, as its list of playlists says.</summary>
+public sealed record ServerPlaylist(string Id, string Name, int SongCount, TimeSpan Length, string? Owner);
+
+/// <summary>What an account starred on a server: songs, and whole albums and artists by ID and name.</summary>
+public sealed record ServerStarred(
+    IReadOnlyList<ServerSong> Songs,
+    IReadOnlyList<(string Id, string Name)> Albums,
+    IReadOnlyList<(string Id, string Name)> Artists)
+{
+    public bool IsEmpty => Songs.Count == 0 && Albums.Count == 0 && Artists.Count == 0;
+}
+
+/// <summary>
+/// A song on a server: its ID there, what it says about the song, and its file. <see cref="Path"/>
+/// is the file's place on the server, real or made up from the tags (Navidrome reports real
+/// paths only to the apps it's told to).
+/// </summary>
+public sealed record ServerSong(
+    string Id,
+    string? Title,
+    string? Artist,
+    string? Album,
+    string? AlbumArtist,
+    int? Track,
+    int? Disc,
+    int? Year,
+    string? Path,
+    string? Suffix,
+    long? Size,
+    TimeSpan Duration);
+
+/// <summary>A server call that didn't work, with words for why.</summary>
+public sealed class ServerException(string message, Exception? inner = null, ServerCheckOutcome outcome = ServerCheckOutcome.Failed)
+    : Exception(message, inner)
+{
+    public ServerCheckOutcome Outcome { get; } = outcome;
+}
