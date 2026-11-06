@@ -93,7 +93,10 @@ public sealed record ServerSong(
     string? Path,
     string? Suffix,
     long? Size,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    string? Genre = null,
+    double? Bpm = null,
+    string? AlbumId = null);
 
 /// <summary>A server call that didn't work, with words for why.</summary>
 public sealed class ServerException(string message, Exception? inner = null, ServerCheckOutcome outcome = ServerCheckOutcome.Failed)
@@ -113,3 +116,33 @@ public sealed record ServerAlbum(string Id, string Name, string? Artist, int? Ye
 
 /// <summary>An artist on a server.</summary>
 public sealed record ServerArtist(string Id, string Name, int AlbumCount);
+
+/// <summary>
+/// A song on a server that isn't on this laptop, as a row in the library's song list (#290): it
+/// can be heard in the headphones and downloaded, but goes on a deck or into the queue only once
+/// it's here. Its <see cref="Track.Path"/> is <c>gzjam-server:&lt;server&gt;/&lt;song&gt;</c>, never a file.
+/// </summary>
+public sealed record ServerTrack(long ServerId, string ServerName, ServerSong Song)
+{
+    public const string PathPrefix = "gzjam-server:";
+
+    public string PseudoPath => $"{PathPrefix}{ServerId}/{Song.Id}";
+
+    public Track ToTrack() => new()
+    {
+        Path = PseudoPath,
+        Folder = "",
+        FileName = System.IO.Path.GetFileName(Song.Path ?? (Song.Title ?? Song.Id)),
+        FileSize = Song.Size ?? 0,
+        Title = Song.Title,
+        Artist = Song.Artist,
+        Album = Song.Album,
+        AlbumArtist = Song.AlbumArtist,
+        Genre = Song.Genre,
+        Year = Song.Year is > 0 ? Song.Year : null,
+        TrackNumber = Song.Track is > 0 ? Song.Track : null,
+        TagBpm = Song.Bpm is > 0 ? Song.Bpm : null,
+        Duration = Song.Duration,
+        OnServer = this,
+    };
+}

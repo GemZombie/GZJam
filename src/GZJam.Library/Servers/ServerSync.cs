@@ -192,6 +192,27 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         return new SyncResult(wanted.Count, downloaded, already, failed, bytes, stopped, problems);
     }
 
+    /// <summary>
+    /// One song onto this laptop, now: the copy here if there is one (downloaded before, or the
+    /// DJ's own), else downloaded. Returns where it is.
+    /// </summary>
+    public async Task<string> GetOneAsync(ServerSong song, CancellationToken cancel = default)
+    {
+        if (database.GetServerSongs(server.Id).FirstOrDefault(s => s.SongId == song.Id) is { } copy && File.Exists(copy.Path))
+            return copy.Path;
+        if (database.FindOwnCopy(song, downloadsFolder) is { } own)
+        {
+            database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, own, song.Size, song.Path, OwnCopy: true), Now());
+            return own;
+        }
+        if (FreeSpace() is { } free && free - (song.Size ?? 0) < KeepFree)
+            throw new IOException("The disk is nearly full.");
+        string path = ServerPaths.Place(ServerFolder, ServerPaths.RelativeParts(song), p => File.Exists(p) || database.IsServerSongPath(p));
+        long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
+        database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false), Now());
+        return path;
+    }
+
     /// <summary>Starred songs, then the songs of starred albums, then those of starred artists' albums.</summary>
     private async Task<List<ServerSong>> StarredSongsAsync(CancellationToken cancel)
     {

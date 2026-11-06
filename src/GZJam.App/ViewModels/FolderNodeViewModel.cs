@@ -22,8 +22,16 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     public IReadOnlyList<FolderNodeViewModel> Children { get; }
 
     public string Name => Node.Name;
-    public string CountText => Format.Count(Node.TrackCount);
+    public string CountText => IsServer ? "" : Format.Count(Node.TrackCount);
     public bool IsRoot => Node.IsRoot;
+
+    /// <summary>A music server (#290), not a folder: its songs are the server's.</summary>
+    public bool IsServer => Node.IsServer;
+
+    public bool IsFolder => !IsServer;
+
+    /// <summary>A music folder, which can be removed from the library (a server is removed in Settings).</summary>
+    public bool IsRemovableRoot => IsRoot && !IsServer;
     public (long RootId, string Folder) Key => (Node.RootId, Node.RelativePath);
 
     [ObservableProperty]

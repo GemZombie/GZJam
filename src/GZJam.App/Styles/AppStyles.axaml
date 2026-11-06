@@ -286,7 +286,19 @@
   <!-- A missing file: grayed out, as players show one. Played tonight is a check by the title
        instead (it was dimmed, and taken for missing). -->
   <Style Selector="DataGrid.tracks DataGridRow" x:DataType="lib:Track">
-    <Setter Property="Opacity" Value="{Binding IsMissing, Converter={x:Static app:Converters.Dimmed}}" />
+    <Setter Property="Opacity" Value="{Binding IsDimmed, Converter={x:Static app:Converters.Dimmed}}" />
+  </Style>
+  <!-- A song still on a music server (#290): heard in the headphones, downloaded when it's wanted -->
+  <Style Selector="Path.server-mark">
+    <Setter Property="Data" Value="{StaticResource IconServer}" />
+    <Setter Property="Stroke" Value="{StaticResource TextBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeJoin" Value="Round" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="Margin" Value="0,0,6,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="Path.played-check">
     <Setter Property="Data" Value="{StaticResource IconPlayed}" />

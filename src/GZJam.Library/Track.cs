@@ -265,6 +265,20 @@ public sealed class Track : INotifyPropertyChanged
     /// <summary>Not in the library: a song from outside the music folders, in a playlist or the queue.</summary>
     public bool IsOutsideLibrary => Id == 0;
 
+    /// <summary>A song on a music server that isn't on this laptop (#290); null for every song that is.</summary>
+    public Servers.ServerTrack? OnServer { get; init; }
+
+    /// <summary>On a server only: heard in the headphones and downloaded, never played from there.</summary>
+    public bool IsOnServerOnly => OnServer is not null;
+
+    /// <summary>The cloud mark's tooltip on a song still on a server; null for every other song.</summary>
+    public string? OnServerTip => OnServer is { } server
+        ? $"On {server.ServerName}, not on this laptop yet: double-click or load it to download it, or preview it in the headphones"
+        : null;
+
+    /// <summary>Shown dimmed in the song list: a missing file, or a song still on a server.</summary>
+    public bool IsDimmed => IsMissing || IsOnServerOnly;
+
     /// <summary>Played in the session going on now (tonight's gig): shown with a check so it isn't repeated (#238).</summary>
     public bool IsPlayedTonight
     {
@@ -292,6 +306,7 @@ public sealed class Track : INotifyPropertyChanged
         Id = Id, RootId = RootId, Path = Path, Folder = Folder, FileName = FileName, FileSize = FileSize, ModifiedUtc = ModifiedUtc,
         Title = Title, Artist = Artist, Album = Album, AlbumArtist = AlbumArtist, Genre = Genre, Comment = Comment, Grouping = Grouping,
         Year = Year, TrackNumber = TrackNumber, TagBpm = TagBpm, Tags = Tags, Duration = Duration, IsMissing = IsMissing,
+        OnServer = OnServer,
     };
 
     internal Track InPlaylist(long entryId, int number)

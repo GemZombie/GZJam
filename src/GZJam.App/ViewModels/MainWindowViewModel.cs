@@ -114,6 +114,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
         Servers = new ServersViewModel(this, database, settings, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
+        Library.ServerNodes = () => Servers.TreeNodes;
+        Library.BrowseServer = Servers.BrowseAsync;
+        Library.AlsoOnServers = Servers.AlsoOnAsync;
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -492,6 +495,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Adds songs to a playlist: at the end, or before its entry number <paramref name="index"/> (from 0).</summary>
     public void AddToPlaylist(PlaylistInfo playlist, IReadOnlyList<Track> songs, int? index = null)
     {
+        if (songs.Any(t => t.IsOnServerOnly))
+        {
+            _ = AddFromServerAsync(songs.Where(t => t.IsOnServerOnly).ToList(), here => AddToPlaylist(playlist, [here], index));
+            songs = songs.Where(t => !t.IsOnServerOnly).ToList();
+            if (songs.Count == 0)
+                return;
+        }
         if (songs.Count == 0)
             return;
         var before = _database.GetPlaylistEntries(playlist.Id);
@@ -526,6 +536,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public void AddToQueue(IReadOnlyList<Track> tracks, int? index = null)
     {
+        if (tracks.Any(t => t.IsOnServerOnly))
+        {
+            // Songs still on a server (#290) join once they're here; for now, in turn, after the rest.
+            _ = AddFromServerAsync(tracks.Where(t => t.IsOnServerOnly).ToList(), here => AddToQueue([here], index));
+            tracks = tracks.Where(t => !t.IsOnServerOnly).ToList();
+        }
         if (tracks.Count == 0)
             return;
         var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
@@ -723,6 +739,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public Func<string, string, string, string, Task<string?>>? PromptAsync { get; set; }
 
     /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
+    /// <summary>Songs still on a server, brought here one at a time; each goes where it was meant to as it arrives.</summary>
+    private async Task AddFromServerAsync(IReadOnlyList<Track> songs, Action<Track> arrived)
+    {
+        foreach (Track song in songs)
+            if (await Servers.BringHereAsync(song) is { IsOnServerOnly: false } here)
+                arrived(here);
+    }
+
     public void CycleRating(Track track) => SetRating([track], track.Rating switch
     {
         Rating.Unrated => Rating.Loved,
@@ -1316,6 +1340,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task<bool> LoadToDeckAsync(DeckViewModel deck, Track track)
     {
+        if (track.IsOnServerOnly)
+        {
+            // A server's song (#290): onto a deck only once it's on this laptop.
+            if (await Servers.BringHereAsync(track) is not { } here)
+                return false;
+            track = here;
+        }
         if (deck.IsOnAir)
         {
             switch (_settings.LoadOntoPlayingDeck)
@@ -1390,6 +1421,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task<bool> PlaySongAsync(Track track, QueueItem? queued = null)
     {
+        if (track.IsOnServerOnly)
+        {
+            if (await Servers.BringHereAsync(track) is not { } here)
+                return false;
+            track = here;
+        }
         DeckViewModel? deck;
         if (AutoPlay is { IsOn: true } auto)
         {

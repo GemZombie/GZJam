@@ -459,8 +459,11 @@ public sealed partial class ServersViewModel
         };
         if (_owner.Preview.Track?.Path != path)
             _owner.Preview.Toggle(track);
+        PreviewStarted(path);
         return null;
     }
+
+    partial void PreviewStarted(string path);
 
     private void ClearPreviewsOnce()
     {

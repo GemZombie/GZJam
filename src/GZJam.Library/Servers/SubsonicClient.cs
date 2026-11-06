@@ -295,7 +295,10 @@ public sealed class SubsonicClient
                 Text(s, "path"),
                 Text(s, "suffix"),
                 Long(s, "size"),
-                TimeSpan.FromSeconds(Int(s, "duration") ?? 0)))
+                TimeSpan.FromSeconds(Int(s, "duration") ?? 0),
+                Text(s, "genre"),
+                Int(s, "bpm") is { } bpm and > 0 ? bpm : null,
+                Text(s, "albumId")))
             .Where(s => s.Id.Length > 0)
             .ToList();
 
