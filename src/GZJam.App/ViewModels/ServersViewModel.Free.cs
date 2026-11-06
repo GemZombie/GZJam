@@ -132,16 +132,36 @@ public sealed partial class ServersViewModel
         _owner.Library.RefreshResults();
     }
 
-    /// <summary>Folders left empty under the downloads folder (or <paramref name="under"/>) go too, up to (not including) it.</summary>
+    /// <summary>
+    /// Folders left empty under the downloads folder (or <paramref name="under"/>) go too, up to
+    /// (not including) it; one with nothing left but the album's picture (a cover.jpg GZJam
+    /// brought from the server) is empty too.
+    /// </summary>
     private void RemoveEmptyFolders(string? folder, string? under = null)
     {
         string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(under ?? DownloadsFolder));
         while (folder is not null && Path.GetFullPath(folder).Length > top.Length
                && Path.GetFullPath(folder).StartsWith(top, StringComparison.OrdinalIgnoreCase)
-               && Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())
+               && Directory.Exists(folder) && OnlyArtLeft(folder) is { } art)
         {
+            foreach (string picture in art)
+                File.Delete(picture);
             Directory.Delete(folder);
             folder = Path.GetDirectoryName(folder);
         }
+    }
+
+    private static readonly string[] ArtNames = ["cover", "folder", "front"];
+    private static readonly string[] ArtExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+    /// <summary>The folder's album pictures if they're all that's in it (no songs, no folders); empty if it's empty; null otherwise.</summary>
+    internal static List<string>? OnlyArtLeft(string folder)
+    {
+        if (Directory.EnumerateDirectories(folder).Any())
+            return null;
+        var files = Directory.EnumerateFiles(folder).ToList();
+        return files.All(f => ArtNames.Contains(Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
+                              && ArtExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+            ? files : null;
     }
 }

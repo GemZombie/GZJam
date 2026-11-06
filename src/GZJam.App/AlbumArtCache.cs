@@ -41,6 +41,25 @@ public sealed class AlbumArtCache : IDisposable
         _worker.Start();
     }
 
+    /// <summary>
+    /// The picture of a song still on a server (#290), by its row's path there: what names it (the
+    /// same for an album's songs, so one picture serves them all) and how to fetch it, small, from
+    /// the server; null if it has none, or the server can't be asked now. Called on the art thread.
+    /// </summary>
+    public Func<string, (string Name, Func<byte[]?> Fetch)?>? ServerArt { get; set; }
+
+    /// <summary>
+    /// Server songs found with no picture are looked for again (their server answers again). The
+    /// small copies made before are kept: those are shown offline too.
+    /// </summary>
+    public void ForgetMissingServerArt()
+    {
+        lock (_lock)
+            foreach (string path in _keys.Where(k => k.Value is null && k.Key.StartsWith(Library.Servers.ServerTrack.PathPrefix, StringComparison.Ordinal))
+                         .Select(k => k.Key).ToList())
+                _keys.Remove(path);
+    }
+
     /// <summary>Raised on the UI thread when a song's art has been found (path); <see cref="Get"/> has it now.</summary>
     public event Action<string>? Found;
 
@@ -123,6 +142,8 @@ public sealed class AlbumArtCache : IDisposable
     /// <summary>A song's art: its key and the small copy (from the art folder, made first if need be).</summary>
     private (string? Key, Bitmap? Bitmap) Load(string path)
     {
+        if (path.StartsWith(Library.Servers.ServerTrack.PathPrefix, StringComparison.Ordinal))
+            return LoadFromServer(path);
         if (FileVersion.Of(path) is not { } version)
             return (null, null);
         long folderTicks = FolderTicks(path);
@@ -144,6 +165,19 @@ public sealed class AlbumArtCache : IDisposable
                 key = null;   // a picture that can't be decoded: as good as none
         }
         _database.SaveArt(path, version, folderTicks, new StoredArt(key));
+        return (key, made);
+    }
+
+    /// <summary>A server song's picture: the small copy made before (offline too), else fetched small from the server.</summary>
+    private (string? Key, Bitmap? Bitmap) LoadFromServer(string path)
+    {
+        if (ServerArt?.Invoke(path) is not var (name, fetch))
+            return (null, null);
+        string key = "server-" + Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(name)))[..24];
+        if (ReadSmallCopy(key) is { } kept)
+            return (key, kept);
+        if (fetch() is not { Length: > 0 } picture || MakeSmallCopy(key, picture) is not { } made)
+            return (null, null);
         return (key, made);
     }
 

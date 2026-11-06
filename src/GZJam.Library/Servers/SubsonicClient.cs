@@ -221,6 +221,35 @@ public sealed class SubsonicClient
         }
     }
 
+    /// <summary>
+    /// A song's or album's picture (the API's <c>getCoverArt</c>, by the <see cref="ServerSong.CoverArt"/>
+    /// the server gave it): the server's choice of a cover.jpg in its folder, the picture in the
+    /// file, or one from the internet. <paramref name="size"/>: a square that size, made by the
+    /// server; null for the picture as it is. Null if the server has none.
+    /// </summary>
+    public async Task<byte[]?> GetCoverArtAsync(string coverArt, int? size = null, CancellationToken cancel = default)
+    {
+        (string, string)[] query = size is { } px
+            ? [("id", coverArt), ("size", px.ToString(CultureInfo.InvariantCulture))]
+            : [("id", coverArt)];
+        try
+        {
+            using var response = await _http.GetAsync(UriFor("getCoverArt", query), cancel).ConfigureAwait(false);
+            string? type = response.Content.Headers.ContentType?.MediaType;
+            if (!response.IsSuccessStatusCode || type is null || !type.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return null;   // none, or an error answered in words
+            return await response.Content.ReadAsByteArrayAsync(cancel).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
+        {
+            throw new ServerException("The server stopped answering.", outcome: ServerCheckOutcome.Unreachable);
+        }
+        catch (HttpRequestException e)
+        {
+            throw new ServerException(e.Message, e, ServerCheckOutcome.Unreachable);
+        }
+    }
+
     /// <summary>A Subsonic error's message, from an error answer's text; null if it isn't one.</summary>
     private static string? ErrorIn(string text)
     {
@@ -298,7 +327,8 @@ public sealed class SubsonicClient
                 TimeSpan.FromSeconds(Int(s, "duration") ?? 0),
                 Text(s, "genre"),
                 Int(s, "bpm") is { } bpm and > 0 ? bpm : null,
-                Text(s, "albumId")))
+                Text(s, "albumId"),
+                Text(s, "coverArt")))
             .Where(s => s.Id.Length > 0)
             .ToList();
 

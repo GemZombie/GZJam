@@ -46,7 +46,10 @@ New:
   and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
   the album* keeps them, and right-click a server's folder › *Download to this laptop* brings
   everything in it, kept up to date as songs are added to it. Under an ordinary library search, *Also on synology: 12 songs not on this
-  laptop · Show* opens the same search on the server. The server's playlists are under *Playlists*, first under
+  laptop · Show* opens the same search on the server. Album art comes from the server too: small
+  in the rows of songs not on this laptop (kept, so it shows offline), and for a downloaded song
+  with no picture of its own, the album's picture is saved beside it as *cover.jpg*, as the server
+  keeps it in the album's folder. The server's playlists are under *Playlists*, first under
   the server: one opens in the song list in its order, as the server has it now (or as last read,
   offline), and its right-click › *Keep on this laptop* downloads it into a playlist of yours, kept
   up to date on every sync. In your playlists, a cloud marks one kept from a server: a sync makes it
@@ -69,7 +72,9 @@ New:
   *CHANGE…* works at any time now. The songs already downloaded move to the new folder, with their
   hearts, cues, EQ, playlists and history, and the queue follows them; songs downloaded from then on
   go there too. GZJam checks there's room first, and the old folder leaves the library once it's
-  empty. A song on a deck has to come off it first.
+  empty. A song on a deck has to come off it first; one still downloading finishes first and moves
+  too. A backup restored on another computer takes the downloads folder where its music is now, or
+  back to that computer's own place for them if it isn't there.
 - **A server's song in the queue waits in its place** (#290): added to the queue, it's there at
   once, *Downloading…*, then becomes the song itself. While its server can't be reached it says
   *Waiting for synology* and comes by itself when it answers; a download that fails says why, with

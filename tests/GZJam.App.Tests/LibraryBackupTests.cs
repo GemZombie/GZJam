@@ -74,6 +74,48 @@ public sealed class LibraryBackupTests : IDisposable
         Assert.Null(LibraryBackup.ApplyPending(db, settings));   // once only
     }
 
+    /// <summary>A backup whose settings put server downloads at <paramref name="downloads"/>, readied in another computer's data folder.</summary>
+    private (string Data, string Db, string Settings, string MusicFolder) StagedWithDownloads(Func<string, string> downloads)
+    {
+        string backup = Path.Combine(_dir, "GZJam backup.gzjam");
+        string music;
+        using (var app = new AppHarness())
+        {
+            music = Assert.Single(app.Database.GetRoots()).Path;
+            app.Settings.ServerDownloadsFolder = downloads(music);
+            LibraryBackup.Create(app.Database, app.ViewModel.SettingsJson(), backup);
+        }
+        string data = Path.Combine(_dir, "data");
+        Directory.CreateDirectory(data);
+        string db = Path.Combine(data, "library.db"), settings = Path.Combine(data, "settings.json");
+        File.WriteAllText(settings, "{}");
+        LibraryBackup.Stage(backup, data);
+        return (data, db, settings, music);
+    }
+
+    [AvaloniaFact]
+    public void Restored_where_the_music_moved_server_downloads_go_where_their_folder_is_now()
+    {
+        var (data, db, settings, music) = StagedWithDownloads(m => Path.Combine(m, "GZJam from servers"));
+        string there = Path.Combine(_dir, "Music on this laptop");
+        Directory.CreateDirectory(Path.Combine(there, "GZJam from servers"));
+
+        LibraryBackup.MoveStaged(data, [(music, there)], ["moved"]);
+        LibraryBackup.ApplyPending(db, settings);
+
+        Assert.Equal(Path.Combine(there, "GZJam from servers"), AppSettings.Load(settings).ServerDownloadsFolder);
+    }
+
+    [AvaloniaFact]
+    public void Restored_where_the_downloads_folder_isnt_server_songs_go_to_this_computers_own_place()
+    {
+        var (_, db, settings, _) = StagedWithDownloads(_ => OperatingSystem.IsWindows() ? @"Q:\Nowhere\GZJam from servers" : "/nowhere/GZJam from servers");
+
+        LibraryBackup.ApplyPending(db, settings);
+
+        Assert.Null(AppSettings.Load(settings).ServerDownloadsFolder);   // the default, in this computer's Music folder
+    }
+
     [Fact]
     public void A_file_thats_not_a_backup_is_refused_and_nothing_is_readied()
     {

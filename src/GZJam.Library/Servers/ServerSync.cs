@@ -130,6 +130,8 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             {
                 local[song.Id] = copy.Path;
                 already++;
+                if (!copy.OwnCopy)
+                    await AddFolderArtAsync(song, copy.Path, cancel).ConfigureAwait(false);   // one downloaded before there was art
                 continue;
             }
             if (database.FindOwnCopy(song, downloadsFolder) is { } own)
@@ -163,6 +165,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             {
                 long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
                 database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false), Now());
+                await AddFolderArtAsync(song, path, cancel).ConfigureAwait(false);
                 local[song.Id] = path;
                 downloaded++;
                 bytes += got;
@@ -221,8 +224,52 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         string path = ServerPaths.Place(ServerFolder, ServerPaths.RelativeParts(song), p => File.Exists(p) || database.IsServerSongPath(p));
         long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
         database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false, OnTheSpot: true), Now());
+        await AddFolderArtAsync(song, path, cancel).ConfigureAwait(false);
         return path;
     }
+
+    /// <summary>The folders whose picture was looked at in this sync: each album's once.</summary>
+    private readonly HashSet<string> _artLooked = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>What the album's picture is called when GZJam brings it from the server.</summary>
+    public const string CoverName = "cover";
+
+    /// <summary>
+    /// The album's picture beside a downloaded song (#290): a server often keeps it as a cover.jpg
+    /// in the album's folder, which a song's download doesn't bring. If the song has no picture of
+    /// its own and its folder here has none, the server's (getCoverArt) is saved there as
+    /// cover.jpg, so the song has its art offline and in any other app. Only in GZJam's downloads
+    /// folder, never the DJ's own; a picture that can't be had is no problem.
+    /// </summary>
+    private async Task AddFolderArtAsync(ServerSong song, string path, CancellationToken cancel)
+    {
+        if (song.CoverArt is not { Length: > 0 } art || Path.GetDirectoryName(path) is not { } folder || !_artLooked.Add(folder))
+            return;
+        string top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ServerFolder)) + Path.DirectorySeparatorChar;
+        if (!Path.GetFullPath(path).StartsWith(top, StringComparison.OrdinalIgnoreCase))
+            return;
+        try
+        {
+            if (AlbumArtFinder.FolderImage(folder) is not null || AlbumArtFinder.Embedded(path) is not null)
+                return;
+            if (await client.GetCoverArtAsync(art, cancel: cancel).ConfigureAwait(false) is not { Length: > 0 } picture)
+                return;
+            string file = Path.Combine(folder, CoverName + ImageExtension(picture));
+            string temp = file + PartialExtension;
+            await File.WriteAllBytesAsync(temp, picture, cancel).ConfigureAwait(false);
+            File.Move(temp, file, overwrite: false);
+        }
+        catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
+        {
+            // No picture this time: the song is here all the same.
+        }
+    }
+
+    /// <summary>".jpg", ".png" or ".webp", from the picture's first bytes.</summary>
+    internal static string ImageExtension(byte[] picture) =>
+        picture is [0x89, 0x50, 0x4E, 0x47, ..] ? ".png"
+        : picture is [(byte)'R', (byte)'I', (byte)'F', (byte)'F', _, _, _, _, (byte)'W', (byte)'E', (byte)'B', (byte)'P', ..] ? ".webp"
+        : ".jpg";
 
     /// <summary>Starred songs, then the songs of starred albums, then those of starred artists' albums.</summary>
     private async Task<List<ServerSong>> StarredSongsAsync(CancellationToken cancel)

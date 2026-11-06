@@ -141,6 +141,30 @@ public sealed class ServerMoveAppTests
     }
 
     [AvaloniaFact]
+    public async Task A_song_still_downloading_finishes_first_and_moves_too()
+    {
+        var (app, server, fake) = await WithDownloads();
+        using var _ = app;
+        var servers = app.ViewModel.Servers;
+        string old = app.Settings.ServerDownloadsFolder!, bigger = Path.Combine(app.WorkDirectory, "Bigger drive");
+        fake.Hold = new TaskCompletionSource();
+        Task<Track?> coming = servers.BringHereAsync(servers.TrackFor($"{ServerTrack.PathPrefix}{server.Server.Id}/s4")!);   // into the old folder
+        WaitFor(() => fake.Started.Count == 1, "Li'l Darlin' coming down");
+
+        Task move = servers.ChangeDownloadsFolderAsync(bigger);
+        AppHarness.Settle(300);
+        Assert.False(move.IsCompleted);
+        Assert.Equal("Waiting for a song still downloading…", servers.SyncStatus);
+
+        fake.Hold.SetResult();
+        Finish(move);
+        Assert.True(coming.IsCompleted);
+        Assert.StartsWith(bigger, PathOf(app, server, "s4"));   // moved with the rest
+        Assert.All(app.Database.GetServerDownloads(server.Server.Id), d => Assert.StartsWith(bigger, d.Path));
+        Assert.False(Directory.Exists(old));
+    }
+
+    [AvaloniaFact]
     public async Task Saying_no_moves_nothing()
     {
         var (app, server, _) = await WithDownloads();

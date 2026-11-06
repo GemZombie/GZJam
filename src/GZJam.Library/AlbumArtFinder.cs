@@ -42,7 +42,7 @@ public static class AlbumArtFinder
     }
 
     /// <summary>The picture in the file: the front cover if it's marked, otherwise the first.</summary>
-    private static byte[]? Embedded(string path)
+    internal static byte[]? Embedded(string path)
     {
         try
         {

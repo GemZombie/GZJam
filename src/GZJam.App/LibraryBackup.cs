@@ -275,18 +275,52 @@ internal static class LibraryBackup
             LibraryDatabase.MoveMusicFolders(Path.Combine(pending, LibraryEntry), moves);
 
         string settings = Path.Combine(pending, SettingsEntry);
-        if (moves.Count > 0 && File.Exists(settings) && System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(settings)) is System.Text.Json.Nodes.JsonObject json
-            && json["SelectedRootPath"]?.GetValue<string>() is { } open && moves.FirstOrDefault(m => m.From == open) is { To: { } to })
-        {
-            json["SelectedRootPath"] = to;
-            File.WriteAllText(settings, json.ToJsonString(JsonOptions));
-        }
+        if (moves.Count > 0)
+            ChangeSettings(settings, json =>
+            {
+                bool changed = false;
+                if (json["SelectedRootPath"]?.GetValue<string>() is { } open && moves.FirstOrDefault(m => m.From == open) is { To: { } to })
+                {
+                    json["SelectedRootPath"] = to;
+                    changed = true;
+                }
+                // Where songs from music servers go (#290): in a music folder that moved, or one itself.
+                if (json[nameof(AppSettings.ServerDownloadsFolder)]?.GetValue<string>() is { Length: > 0 } downloads
+                    && moves.Select(m => LibraryDatabase.MovedPath(downloads, m.From, m.To)).FirstOrDefault(p => p is not null) is { } moved)
+                {
+                    json[nameof(AppSettings.ServerDownloadsFolder)] = moved;
+                    changed = true;
+                }
+                return changed;
+            });
 
         string infoPath = Path.Combine(pending, InfoEntry);
         BackupInfo info = JsonSerializer.Deserialize<BackupInfo>(File.ReadAllText(infoPath), JsonOptions)!;
         File.WriteAllText(infoPath, JsonSerializer.Serialize(info with { Moved = notes }, JsonOptions));
         SqliteConnection.ClearAllPools();
     }
+
+    /// <summary>Changes a settings file's JSON in place, if <paramref name="change"/> says it changed it.</summary>
+    private static void ChangeSettings(string settings, Func<System.Text.Json.Nodes.JsonObject, bool> change)
+    {
+        if (File.Exists(settings) && System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(settings)) is System.Text.Json.Nodes.JsonObject json
+            && change(json))
+            File.WriteAllText(settings, json.ToJsonString(JsonOptions));
+    }
+
+    /// <summary>
+    /// Settings restored from another computer (#290): a downloads folder for music servers that
+    /// isn't on this one (another user's, another drive, a Windows path on a Mac) is forgotten, so
+    /// songs go to this computer's own place for them rather than somewhere that doesn't belong here.
+    /// </summary>
+    internal static void ForgetMissingDownloadsFolder(string settingsFile) => ChangeSettings(settingsFile, json =>
+    {
+        if (json[nameof(AppSettings.ServerDownloadsFolder)]?.GetValue<string>() is not { Length: > 0 } folder
+            || Path.IsPathFullyQualified(folder) && Directory.Exists(folder))
+            return false;
+        json.Remove(nameof(AppSettings.ServerDownloadsFolder));
+        return true;
+    });
 
     /// <summary>Lets go of a readied restore the DJ thought better of.</summary>
     public static void Unstage(string dataDirectory)
@@ -318,6 +352,7 @@ internal static class LibraryBackup
                 File.Copy(settingsFile, Path.Combine(kept, SettingsEntry), overwrite: true);
             Directory.CreateDirectory(Path.GetDirectoryName(settingsFile)!);
             File.Move(settings, settingsFile, overwrite: true);
+            ForgetMissingDownloadsFolder(settingsFile);
         }
         TryDelete(pending);
         return (info, kept);
