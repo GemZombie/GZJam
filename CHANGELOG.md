@@ -41,6 +41,14 @@ New:
   laptop (it's fetched for the preview only, and never reaches the room). *DOWNLOAD* brings the
   selected songs, albums or artists to the laptop, into *GZJam from servers*, and keeps them up to
   date with the rest; songs already here say *On this laptop*.
+- **Your server in the library** ([#290](https://github.com/GemZombie/GZJam/issues/290)): each server
+  sits in the folder tree after your music folders. Select it and the song list shows what was
+  added there lately; type, and it searches the server. Songs that aren't on this laptop are dimmed,
+  with a cloud by the title: preview them in the headphones as usual, and a double-click, a load
+  onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
+  and never onto the deck the room hears). Right-click › *Download to this laptop* or *Download
+  the album* keeps them. Under an ordinary library search, *Also on synology: 12 songs not on this
+  laptop · Show* opens the same search on the server.
 
 ## 1.3.0-beta.1 (2026-11-05)
 

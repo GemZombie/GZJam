@@ -362,16 +362,22 @@
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                   <Grid.ContextMenu>
                     <ContextMenu>
-                      <MenuItem Header="Rescan" Command="{Binding RescanCommand}" />
-                      <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" />
-                      <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" />
-                      <Separator IsVisible="{Binding IsRoot}" />
+                      <MenuItem Header="Rescan" Command="{Binding RescanCommand}" IsVisible="{Binding IsFolder}" />
+                      <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" IsVisible="{Binding IsFolder}" />
+                      <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" IsVisible="{Binding IsFolder}" />
+                      <Separator IsVisible="{Binding IsRemovableRoot}" />
                       <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"
-                                IsVisible="{Binding IsRoot}"
+                                IsVisible="{Binding IsRemovableRoot}"
                                 ToolTip.Tip="Forget this folder. Your files are not touched." />
+                      <MenuItem Header="Server settings…" IsVisible="{Binding IsServer}" Click="OnServerSettingsClick"
+                                ToolTip.Tip="Settings › Servers: its address, user name and password, and where downloads go" />
                     </ContextMenu>
                   </Grid.ContextMenu>
-                  <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" />
+                  <Panel>
+                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFolder}" />
+                    <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
+                          Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServer}" />
+                  </Panel>
                   <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"
                              VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
                   <TextBlock Grid.Column="2" Classes="dim" Text="{Binding CountText}" FontSize="11"
@@ -601,6 +607,8 @@
                       <DockPanel Grid.Column="1">
                         <Path DockPanel.Dock="Left" Classes="missing-mark" IsVisible="{Binding IsMissing}"
                               ToolTip.Tip="{Binding Path, StringFormat='Not found: {0}'}" />
+                        <Path DockPanel.Dock="Left" Classes="server-mark" IsVisible="{Binding IsOnServerOnly}"
+                              ToolTip.Tip="{Binding OnServerTip}" />
                         <Path DockPanel.Dock="Left" Classes="played-check" ToolTip.Tip="Played tonight">
                           <Path.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -668,6 +676,10 @@
                           ToolTip.Tip="This song and the rest of the playlist after it" />
                 <Separator />
                 <MenuItem Header="Preview in headphones" InputGesture="Space" Click="OnPreviewSelectedClick" />
+                <MenuItem x:Name="TrackDownloadItem" Header="Download to this laptop" Click="OnDownloadTracksClick"
+                          ToolTip.Tip="Bring these songs from the server onto this laptop, and keep them" />
+                <MenuItem x:Name="TrackDownloadAlbumItem" Header="Download the album" Click="OnDownloadAlbumClick"
+                          ToolTip.Tip="Bring this song's whole album from the server onto this laptop, and keep it up to date" />
                 <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"
                           ToolTip.Tip="This song's EQ, heard in the headphones and used when it's loaded: for a song that needs it, while preparing a set" />
                 <MenuItem x:Name="TrackLoad1" Header="Load to Deck 1" Tag="0" Click="OnLoadSelectedToDeckClick" />
@@ -705,6 +717,18 @@
             <Button Content="Add folder…" HorizontalAlignment="Center" Padding="16,8" Click="OnAddFolderClick"
                     Background="{StaticResource AccentBrush}" Foreground="White" />
           </StackPanel>
+          <Border x:Name="AlsoOnBar" Grid.Row="2" Classes="chip" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                  Margin="0,0,0,12" Padding="12,6" IsVisible="{Binding Library.HasFooter}" ZIndex="2">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <TextBlock x:Name="ServerNoteText" Classes="muted" FontSize="12" VerticalAlignment="Center"
+                         Text="{Binding Library.ServerNote}" IsVisible="{Binding Library.ServerNote, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock x:Name="AlsoOnText" FontSize="12" VerticalAlignment="Center" Text="{Binding Library.AlsoOnText}"
+                         IsVisible="{Binding Library.HasAlsoOn}" />
+              <Button x:Name="AlsoOnButton" Classes="link" FontSize="12" Content="Show" Foreground="{StaticResource AccentBrush}"
+                      Command="{Binding Library.ShowAlsoOnCommand}" IsVisible="{Binding Library.HasAlsoOn}"
+                      ToolTip.Tip="The same search, on the server" />
+            </StackPanel>
+          </Border>
           <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
                       IsVisible="{Binding Library.HasNoResults}">
             <TextBlock Classes="muted" HorizontalAlignment="Center" Text="{Binding Library.EmptyMessage}" />

@@ -21,6 +21,15 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
     /// <summary>Starts previewing, or stops if this track is already previewing (a second tap stops it).</summary>
     public void Toggle(Track track)
     {
+        if (track.IsOnServerOnly)
+        {
+            // Not on this laptop (#290): fetched from its server for the headphones.
+            if (owner.Servers.IsPreviewing(track))
+                Stop();
+            else
+                _ = owner.Servers.PreviewTrackAsync(track);
+            return;
+        }
         if (Track?.Path == track.Path)
         {
             Stop();

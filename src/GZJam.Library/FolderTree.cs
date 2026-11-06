@@ -25,6 +25,15 @@ public sealed class FolderNode
     public int TrackCount { get; internal set; }
 
     public bool IsRoot => RelativePath.Length == 0;
+
+    /// <summary>A music server in the tree (#290), beside the music folders; null for a folder.</summary>
+    public long? ServerId { get; private init; }
+
+    public bool IsServer => ServerId is not null;
+
+    /// <summary>A server's place in the tree: no folders under it, its songs are the server's.</summary>
+    public static FolderNode ForServer(long serverId, string name) =>
+        new(-serverId, name, "", Servers.ServerTrack.PathPrefix + serverId) { ServerId = serverId };
     public IReadOnlyList<FolderNode> Children => _children;
     public FolderScope Scope => new(RootId, RelativePath);
 

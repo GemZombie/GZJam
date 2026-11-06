@@ -71,7 +71,10 @@ public sealed partial class ServersViewModel : ObservableObject
             Items.Add(item);
         }
         HasServers = Items.Count > 0;
+        ServersChanged();
     }
+
+    partial void ServersChanged();
 
     /// <summary>The name a server gets when none is typed: its host ("synology").</summary>
     public static string DefaultName(string address) =>

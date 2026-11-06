@@ -220,6 +220,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public bool HasNoResults => HasLoaded && Roots.Count > 0 && Results.Count == 0;
     public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
+        : SelectedFolder is { IsServer: true } s ? $"on {s.Name}: songs not on this laptop are marked"
         : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
 
@@ -227,6 +228,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     {
         get
         {
+            if (SelectedFolder is { IsServer: true } server)
+                return ServerProblem ?? (string.IsNullOrWhiteSpace(SearchText)
+                    ? $"Nothing added to {server.Name} lately."
+                    : $"Nothing on {server.Name} matches \"{SearchText.Trim()}\".");
             if (SelectedPlaylist is { } playlist && string.IsNullOrWhiteSpace(SearchText))
                 return $"\"{playlist.Name}\" is empty. Drag songs onto its name, or right-click songs › Add to playlist.";
             string where = SelectedPlaylist is { } p ? $" in {p.Name}" : SelectedFolder is { } f ? $" in {f.Name}" : "";
@@ -597,6 +602,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !AreFoldersFolded);
             Roots.Add(vm);
         }
+        foreach ((long id, string name) in ServerNodes())
+            Roots.Add(new FolderNodeViewModel(this, FolderNode.ForServer(id, name), null));
         SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;
         _suppressSearch = false;
         OnPropertyChanged(nameof(HasNoRoots));
@@ -653,6 +660,13 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var cancel = _searchCancel = new CancellationTokenSource();
         int version = ++_searchVersion;
         string text = SearchText;
+        AlsoOnText = null;
+        ServerNote = null;
+        if (SelectedPlaylist is null && SelectedFolder is { IsServer: true, Node.ServerId: long serverId })
+        {
+            _ = RunServerSearchAsync(serverId, text, version, cancel.Token);
+            return;
+        }
         FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;
         long? playlist = SelectedPlaylist?.Id;
         double near = NearBpm;
@@ -686,10 +700,95 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                             ? $"Did you mean {better}?  {(count == 1 ? "1 song" : $"{Format.Count(count)} songs")}"
                             : null;
                         Results = t.Result;
+                        if (playlist is null && text.Trim().Length > 1)
+                            _ = FindAlsoOnAsync(text, version, cancel.Token);
                     }
                     IsSearching = false;
                 });
         }, TaskScheduler.Default);
+    }
+
+    // ───────────── Servers in the library (#290) ─────────────
+
+    /// <summary>The servers' places in the tree, after the music folders.</summary>
+    public Func<IReadOnlyList<(long Id, string Name)>> ServerNodes { get; set; } = () => [];
+
+    /// <summary>A server's songs for the song list: what was added lately, or a search's.</summary>
+    public Func<long, string, CancellationToken, Task<ServerBrowse>>? BrowseServer { get; set; }
+
+    /// <summary>Under a library search: a server with songs it finds that aren't here, and what to say.</summary>
+    public Func<string, CancellationToken, Task<(long ServerId, string Text)?>>? AlsoOnServers { get; set; }
+
+    /// <summary>Why a server's songs can't be shown, for the empty list; null when they can.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EmptyMessage))]
+    public partial string? ServerProblem { get; private set; }
+
+    /// <summary>A word about a server's search: that the library's own filters were left out.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasFooter))]
+    public partial string? ServerNote { get; private set; }
+
+    /// <summary>"Also on synology: 12 songs not on this laptop", under a library search; null if none.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAlsoOn), nameof(HasFooter))]
+    public partial string? AlsoOnText { get; private set; }
+
+    public bool HasAlsoOn => AlsoOnText is not null;
+    public bool HasFooter => AlsoOnText is not null || ServerNote is not null;
+
+    private long? _alsoOnServer;
+
+    /// <summary>The servers were added, renamed or removed: the tree again, and the song list if a server was showing.</summary>
+    public void RefreshServers()
+    {
+        bool showingServer = SelectedFolder?.IsServer == true;
+        RefreshTree();
+        if (showingServer && SelectedFolder is null)
+            RunSearch();
+    }
+
+    /// <summary>The server the "Also on" line names, with the same search.</summary>
+    [RelayCommand]
+    private void ShowAlsoOn()
+    {
+        if (_alsoOnServer is { } id && Roots.FirstOrDefault(r => r.Node.ServerId == id) is { } node)
+            SelectedFolder = node;
+    }
+
+    private async Task RunServerSearchAsync(long serverId, string text, int version, CancellationToken cancel)
+    {
+        if (BrowseServer is null)
+            return;
+        ServerBrowse found;
+        try
+        {
+            found = await BrowseServer(serverId, text, cancel);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        if (version != _searchVersion)
+            return;
+        DidYouMean = null;
+        DidYouMeanText = null;
+        ServerProblem = found.Problem;
+        ServerNote = found.Note;
+        Results = found.Tracks;
+        IsSearching = false;
+        OnPropertyChanged(nameof(EmptyMessage));
+    }
+
+    private async Task FindAlsoOnAsync(string text, int version, CancellationToken cancel)
+    {
+        if (AlsoOnServers is null)
+            return;
+        var found = await AlsoOnServers(text, cancel);
+        if (version != _searchVersion || cancel.IsCancellationRequested)
+            return;
+        _alsoOnServer = found?.ServerId;
+        AlsoOnText = found?.Text;
     }
 
     public void Dispose()

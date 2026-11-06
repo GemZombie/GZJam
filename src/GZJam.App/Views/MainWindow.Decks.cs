@@ -257,6 +257,13 @@ public partial class MainWindow
     {
         UpdateLoadMenuItems([TrackLoad1, TrackLoad2, TrackLoad3, TrackLoad4], SelectedTracks().Count == 1);
         var tracks = SelectedTracks();
+        // Songs still on a server (#290): heard, downloaded, or loaded (which downloads first); not yet marked or changed.
+        bool remote = tracks.Any(t => t.IsOnServerOnly);
+        foreach (Control item in (Control[])[TrackEqItem, TrackInfoItem, TrackShowInTreeItem, RevealMenuItem,
+                     TrackRatingMenu, TrackLabelsMenu, TrackEnergyMenu, TrackBpmMenu])
+            item.IsVisible = !remote;
+        TrackDownloadItem.IsVisible = remote;
+        TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
         TrackShowInTreeItem.IsEnabled = tracks.FirstOrDefault() is { IsOutsideLibrary: false };   // one outside the music folders isn't in the tree
@@ -318,15 +325,23 @@ public partial class MainWindow
             Vm.Preview?.Toggle(track);
     }
 
+    private async void OnDownloadTracksClick(object? sender, RoutedEventArgs e) =>
+        await Vm.Servers.DownloadAsync(SelectedTracks());
+
+    private async void OnDownloadAlbumClick(object? sender, RoutedEventArgs e) =>
+        await Vm.Servers.DownloadAlbumsAsync(SelectedTracks());
+
+    private void OnServerSettingsClick(object? sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Servers);
+
     private void OnRatingCellClick(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is Track track)
+        if ((sender as Control)?.DataContext is Track { IsOnServerOnly: false } track)
             Vm.CycleRating(track);
     }
 
     private void OnEnergyCellClick(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is Track track)
+        if ((sender as Control)?.DataContext is Track { IsOnServerOnly: false } track)
             Vm.CycleEnergy(track);
     }
 
