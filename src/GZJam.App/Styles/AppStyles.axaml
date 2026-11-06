@@ -729,6 +729,21 @@
     <Setter Property="RenderTransform" Value="scaleX(-1)" />
   </Style>
 
+  <!-- The planned start's clock in the queue's header: lit once a start time is set -->
+  <Style Selector="Path.start-clock">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Fill" Value="Transparent" />
+    <Setter Property="Stroke" Value="{StaticResource MutedBrush}" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="Button.planned Path.start-clock">
+    <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+  </Style>
+
   <Style Selector="Border.splitter-grip">
     <Setter Property="Width" Value="4" />
     <Setter Property="Height" Value="36" />

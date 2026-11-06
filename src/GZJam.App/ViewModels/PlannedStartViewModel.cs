@@ -28,6 +28,9 @@ public sealed partial class PlannedStartViewModel(MainWindowViewModel owner, App
 
     public bool HasPlannedStart => PlannedStart is not null;
 
+    /// <summary>The planned time alone ("7:30 PM"), shown beside the clock in the queue's header while there is room.</summary>
+    public string PlannedTimeText => PlannedStart is { } start ? Clock(start, owner.Now()) : "";
+
     /// <summary>For the button in the queue's header: "Start 7:30 PM", or what it is for.</summary>
     public string PlannedStartText => PlannedStart is { } start ? "Start " + Clock(start, owner.Now()) : "Set start time";
 
@@ -40,6 +43,7 @@ public sealed partial class PlannedStartViewModel(MainWindowViewModel owner, App
         OnPropertyChanged(nameof(PlannedStart));
         OnPropertyChanged(nameof(HasPlannedStart));
         OnPropertyChanged(nameof(PlannedStartText));
+        OnPropertyChanged(nameof(PlannedTimeText));
         OnPropertyChanged(nameof(PlannedStartTip));
     }
 
