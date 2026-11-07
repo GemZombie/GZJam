@@ -175,6 +175,11 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.5:**
+- [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318),
+  the headline: your music, your servers (their songs kept for offline as part of them) and the
+  computer's files and USB sticks, each browsed and searched on its own, with *Add to my music*
+  from any of them. A request on a stick plays without leaving GZJam, and pulling the stick never
+  stops the room
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
