@@ -7,7 +7,7 @@ using GZJam.Testing;
 namespace GZJam.App.Tests;
 
 /// <summary>
-/// Keep a copy in my library (#285): a server's songs into the DJ's own music folder, laid out as
+/// Add to my music (#285, once Keep a copy in my library): a server's songs into the DJ's own music folder, laid out as
 /// on the server, never over a file; a downloaded one moves with all that's kept by its path; a
 /// song the DJ has already is left as it is; kept songs are the DJ's own from then on.
 /// </summary>
@@ -197,7 +197,7 @@ public sealed class ServerKeepAppTests
             return Task.FromResult(true);
         };
         Finish(servers.KeepFolderCopyAsync(server.Server.Id, "Jazz & Swing/Count Basie", "Count Basie"));
-        Assert.Contains("1 song is in your library already", asked);
+        Assert.Contains("1 song is in My music already", asked);
         Assert.True(File.Exists(Kept(app, BoogiePlace)));
         Assert.False(File.Exists(Kept(app, DarlinPlace)));   // not twice
         Assert.True(File.Exists(mine));

@@ -214,6 +214,38 @@ public sealed class ScanningTests : IDisposable
         Assert.Empty(_lib.Database.Search("a"));
         Assert.True(File.Exists(file));
     }
+
+    [Fact]
+    public void A_music_folder_added_inside_another_takes_its_songs_with_what_the_DJ_gave_them()
+    {
+        // 1.4's servers' downloads folder inside the DJ's Music (#318): its songs were Music's.
+        string mine = _lib.AddMp3("Swing/mine.mp3", new TestMp3.Tags(Title: "Mine"));
+        string synced = _lib.AddMp3("GZJam from servers/synology/Basie/Cute/boogie.mp3", new TestMp3.Tags(Title: "Boogie"));
+        LibraryRoot music = _lib.AddRootAndScan();
+        _lib.Database.SetRating([synced], Rating.Loved);
+        long id = _lib.Database.TrackForFile(synced).Id;
+
+        LibraryRoot downloads = _lib.Database.AddRoot(Path.Combine(_lib.MusicPath, "GZJam from servers"));
+
+        Track boogie = _lib.Database.TrackForFile(synced);
+        Assert.Equal((downloads.Id, "synology/Basie/Cute", id), (boogie.RootId, boogie.Folder, boogie.Id));
+        Assert.Equal(Rating.Loved, _lib.Database.GetMarks(synced).Rating);
+        Assert.Equal(music.Id, _lib.Database.TrackForFile(mine).RootId);
+
+        // Music scanned again leaves the inner folder to itself: its song neither found there nor gone.
+        ScanResult again = _lib.Scanner.Scan(music);
+        Assert.Equal((0, 0, 0), (again.Added, again.Removed, again.Moved));
+        Assert.Equal(downloads.Id, _lib.Database.TrackForFile(synced).RootId);
+        Assert.Equal(1, _lib.Scanner.Scan(downloads).Unchanged);
+        Assert.Equal(["Mine"], _lib.Database.Search(null, notInRoots: [downloads.Id]).Select(t => t.Title));
+        Assert.Equal(["Boogie"], _lib.Database.Search(null, new FolderScope(downloads.Id, "")).Select(t => t.Title));
+
+        // A song added in there later is the inner folder's, not Music's.
+        string later = _lib.AddMp3("GZJam from servers/synology/Basie/Cute/darlin.mp3", new TestMp3.Tags(Title: "Darlin"));
+        Assert.Equal(0, _lib.Scanner.Scan(music).Added);
+        Assert.Equal(1, _lib.Scanner.Scan(downloads).Added);
+        Assert.Equal(downloads.Id, _lib.Database.TrackForFile(later).RootId);
+    }
 }
 
 public sealed class SearchTests : IDisposable

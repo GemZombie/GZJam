@@ -127,7 +127,8 @@ public sealed class ServerMoveAppTests
         });
         using var _ = app;
         var servers = app.ViewModel.Servers;
-        Assert.Single(app.Database.GetRoots());   // inside Music: not a music folder of its own
+        // Inside Music, but the servers' songs, not the DJ's (#318): a music folder of its own, left out of Music.
+        Assert.Contains(app.Database.GetRoots(), r => r.Path == Path.Combine(music, "GZJam from servers"));
         string bigger = Path.Combine(app.WorkDirectory, "Bigger drive");
 
         Finish(servers.ChangeDownloadsFolderAsync(bigger));

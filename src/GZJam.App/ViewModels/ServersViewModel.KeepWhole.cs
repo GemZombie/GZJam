@@ -104,7 +104,7 @@ public sealed partial class ServersViewModel
         int count = plan.Moves.Count + plan.Downloads.Count + plan.OnDeck.Count;
         if (count == 0)
         {
-            _owner.ShowNotice($"All of {item.Name}'s songs are in your library already.", seconds: 6);
+            _owner.ShowNotice($"All of {item.Name}'s songs are in My music already.", seconds: 6);
             return;
         }
 
@@ -116,7 +116,7 @@ public sealed partial class ServersViewModel
         if (plan.Moves.Count > 0)
             lines.Add($"{SongCount(plan.Moves.Count)} downloaded already {(plan.Moves.Count == 1 ? "moves" : "move")} there first, with their hearts, cues, labels, playlists and plays.");
         if (plan.Mine > 0)
-            lines.Add($"{SongCount(plan.Mine)} in your library already {(plan.Mine == 1 ? "is" : "are")} left as {(plan.Mine == 1 ? "it is" : "they are")}.");
+            lines.Add($"{SongCount(plan.Mine)} in My music already {(plan.Mine == 1 ? "is" : "are")} left as {(plan.Mine == 1 ? "it is" : "they are")}.");
         if (DriveOf(folder)?.AvailableFreeSpace is { } free)
             lines.Add(free < bytes + (1L << 30)
                 ? $"There's {Format.Size(free)} free on that drive: not enough for all of them, so it stops when the drive is nearly full."
@@ -125,8 +125,8 @@ public sealed partial class ServersViewModel
         lines.Add($"It goes on in the background, a song at a time{(KeepSpeed.Value is { } mb ? $", at most {mb:0.#} MB a second" : "")}, "
             + (KeepWhilePlaying ? "even while a song plays to the speakers" : "pausing while a song plays to the speakers")
             + $" (Settings › Servers changes both, once it's started). It picks up where it left off when GZJam starts again, and songs added to {item.Name} later come too. Right-click the server to pause or stop it.");
-        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Keep all of {item.Name} in your library?",
-                string.Join(Environment.NewLine, lines), "Keep all"))
+        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Add all of {item.Name} to My music?",
+                string.Join(Environment.NewLine, lines), "Add all"))
             return;
         if (choosing && !SetKeepFolder(folder))
             return;
@@ -136,7 +136,7 @@ public sealed partial class ServersViewModel
         _settings.ServerKeepWholePaused.Remove(serverId);
         Log.Info($"Servers: keeping all of {item.Name} in {folder}, in the background");
         TreeKeepWhole(serverId);
-        _owner.ShowNotice($"Keeping all of {item.Name} in your library, in the background.", seconds: 5);
+        _owner.ShowNotice($"Adding all of {item.Name} to My music, in the background.", seconds: 5);
         StartKeepWhole(item);
     }
 
@@ -150,7 +150,7 @@ public sealed partial class ServersViewModel
         _wholeRuns.GetValueOrDefault(serverId)?.Cancel();
         Log.Info($"Servers: keeping all of {item.Name} paused");
         TreeKeepWhole(serverId);
-        _owner.ShowNotice($"Paused keeping all of {item.Name}: Resume picks up where it left off.", seconds: 5);
+        _owner.ShowNotice($"Paused adding all of {item.Name}: Resume picks up where it left off.", seconds: 5);
     }
 
     public void ResumeKeepWhole(long serverId)
@@ -170,8 +170,8 @@ public sealed partial class ServersViewModel
     {
         if (!IsKeepingWhole(serverId) || ItemFor(serverId) is not { } item)
             return;
-        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Stop keeping all of {item.Name}?",
-                "The songs kept so far stay in your library, as your own. You can keep more of it, or all of it again, at any time.", "Stop"))
+        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Stop adding all of {item.Name}?",
+                "The songs added so far stay in My music, as your own. You can add more of it, or all of it again, at any time.", "Stop"))
             return;
         ForgetKeepWhole(serverId);
         Log.Info($"Servers: no longer keeping all of {item.Name}");
@@ -251,8 +251,8 @@ public sealed partial class ServersViewModel
                 return;
             }
             Log.Info($"Servers: keeping all of {item.Name}: {Format.Count(plan.Moves.Count)} to move, {Format.Count(plan.Downloads.Count)} to download");
-            var batch = Downloads.StartBatch(("whole", id), $"Keeping all of {item.Name} in your library", "Pause", () => PauseKeepWhole(id));
-            var report = ReportTo(item, "Keeping the whole server", ("whole", id), _ =>
+            var batch = Downloads.StartBatch(("whole", id), $"Adding all of {item.Name} to My music", "Pause", () => PauseKeepWhole(id));
+            var report = ReportTo(item, "Adding the whole server", ("whole", id), _ =>
             {
                 StartKeepWhole(item);
                 return Task.CompletedTask;
@@ -264,7 +264,7 @@ public sealed partial class ServersViewModel
                 await _oneSync.WaitAsync(stop.Token);
                 try
                 {
-                    KeepWholeStatus = $"Keeping all of {item.Name} in your library… {Format.Count(i)} / {Format.Count(total)}";
+                    KeepWholeStatus = $"Adding all of {item.Name} to My music… {Format.Count(i)} / {Format.Count(total)}";
                     KeepWholePercent = 100.0 * i / total;
                     batch.Detail = $"{Format.Count(i)} of {Format.Count(total)} songs";
                     batch.Percent = KeepWholePercent;
@@ -297,7 +297,7 @@ public sealed partial class ServersViewModel
                 {
                     if (!_settings.ServerKeepWholePaused.Contains(id))
                         _settings.ServerKeepWholePaused.Add(id);
-                    _owner.ShowNotice($"Keeping all of {item.Name} is paused: the drive {keepIn} is on is nearly full. Make room, then right-click the server › Resume.", seconds: 10);
+                    _owner.ShowNotice($"Adding all of {item.Name} is paused: the drive {keepIn} is on is nearly full. Make room, then right-click the server › Resume.", seconds: 10);
                     break;
                 }
                 catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
@@ -348,7 +348,7 @@ public sealed partial class ServersViewModel
         RefreshDownloads();
         _owner.Library.RefreshResults();
         if (kept == total)
-            _owner.ShowNotice($"All of {item.Name} is in your library now. Songs added to it later come too.", seconds: 6);
+            _owner.ShowNotice($"All of {item.Name} is in My music now. Songs added to it later come too.", seconds: 6);
     }
 
     /// <summary>Waits while the room hears music, unless the DJ allows keeping a server then; the top bar says nothing meanwhile.</summary>

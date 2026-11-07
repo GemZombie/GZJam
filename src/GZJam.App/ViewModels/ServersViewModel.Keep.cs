@@ -27,7 +27,7 @@ public sealed partial class ServersViewModel
     /// <summary>Where kept songs go, or null until the DJ chooses (the first time they keep one).</summary>
     public string? KeepFolder => _settings.ServerKeepFolder is { Length: > 0 } folder ? folder : null;
 
-    public string KeepFolderText => KeepFolder ?? "Not chosen yet: you're asked the first time you keep a song.";
+    public string KeepFolderText => KeepFolder ?? "Not chosen yet: you're asked the first time you add a song.";
 
     /// <summary>While songs are being kept: the top bar says so.</summary>
     public bool IsKeeping => _keeping;
@@ -38,7 +38,7 @@ public sealed partial class ServersViewModel
         string full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
         if (IsUnder(full, DownloadsFolder))
         {
-            _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and kept songs never are.", seconds: 8);
+            _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and songs you add never are.", seconds: 8);
             return false;
         }
         _settings.ServerKeepFolder = full;
@@ -73,7 +73,7 @@ public sealed partial class ServersViewModel
                 wanted.Add((download.ServerId, download.SongId, null));
         if (wanted.Count == 0)
         {
-            _owner.ShowNotice("Those are in your library already: only songs from a server, or downloaded from one, can be kept.", seconds: 6);
+            _owner.ShowNotice("Those are in My music already: only a server's songs can be added to it.", seconds: 6);
             return;
         }
         foreach (var server in wanted.GroupBy(w => w.ServerId))
@@ -150,17 +150,17 @@ public sealed partial class ServersViewModel
         if (count == 0)
         {
             _owner.ShowNotice(
-                cantDownload is not null ? $"{cantDownload}: the songs not on this computer can't be kept now."
+                cantDownload is not null ? $"{cantDownload}: the songs not on this computer can't be added now."
                 : plan.OnDeck.Count > 0 ? $"Take {plan.OnDeck[0]} off its deck first: its file can't move while it's on a deck."
-                : plan.Mine > 0 ? $"{what} {(songs.Count == 1 ? "is" : "are")} in your library already."
-                : $"{what}: nothing to keep.", seconds: 6);
+                : plan.Mine > 0 ? $"{what} {(songs.Count == 1 ? "is" : "are")} in My music already."
+                : $"{what}: nothing to add.", seconds: 6);
             return;
         }
 
         if (ask && (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
-                $"Keep a copy of {SongCount(count)} in your library?",
+                $"Add {SongCount(count)} to My music?",
                 KeepQuestion(item, plan, downloads, keepIn, cantDownload),
-                "Keep")))
+                "Add")))
             return;
         if (choosing && !SetKeepFolder(keepIn))
             return;
@@ -183,13 +183,13 @@ public sealed partial class ServersViewModel
             }
             return (folder, false);
         }
-        string? chosen = ChooseFolderAsync is { } choose ? await choose("Where to keep songs from your servers (one of your music folders)") : null;
+        string? chosen = ChooseFolderAsync is { } choose ? await choose("Where songs you add to My music go (one of your music folders)") : null;
         if (chosen is null)
             return null;
         chosen = Path.TrimEndingDirectorySeparator(Path.GetFullPath(chosen));
         if (IsUnder(chosen, DownloadsFolder))
         {
-            _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and kept songs never are.", seconds: 8);
+            _owner.ShowNotice($"Choose a folder outside {DownloadsFolder}: songs there are removed when space is needed, and songs you add never are.", seconds: 8);
             return null;
         }
         return (chosen, true);
@@ -214,9 +214,9 @@ public sealed partial class ServersViewModel
         if (cantDownload is not null)
             lines.Add($"{cantDownload}, so the {SongCount(plan.Downloads.Count)} not on this computer {(plan.Downloads.Count == 1 ? "waits" : "wait")} for another time.");
         if (plan.Mine > 0)
-            lines.Add($"{SongCount(plan.Mine)} {(plan.Mine == 1 ? "is" : "are")} in your library already: left as {(plan.Mine == 1 ? "it is" : "they are")}.");
+            lines.Add($"{SongCount(plan.Mine)} {(plan.Mine == 1 ? "is" : "are")} in My music already: left as {(plan.Mine == 1 ? "it is" : "they are")}.");
         if (plan.OnDeck.Count > 0)
-            lines.Add($"{string.Join(" and ", plan.OnDeck)} {(plan.OnDeck.Count == 1 ? "is" : "are")} on a deck: keep {(plan.OnDeck.Count == 1 ? "it" : "them")} once {(plan.OnDeck.Count == 1 ? "it's" : "they're")} off.");
+            lines.Add($"{string.Join(" and ", plan.OnDeck)} {(plan.OnDeck.Count == 1 ? "is" : "are")} on a deck: add {(plan.OnDeck.Count == 1 ? "it" : "them")} once {(plan.OnDeck.Count == 1 ? "it's" : "they're")} off.");
         lines.Add("They're your own songs from then on: GZJam never removes them, and nothing in the folder is replaced.");
         return string.Join(Environment.NewLine, lines);
     }
@@ -289,7 +289,7 @@ public sealed partial class ServersViewModel
         item.BeginSync(stop);
         _keeping = true;
         item.ShowSync("Waiting for another server's sync…", problem: false);
-        var batch = Downloads.StartBatch(("keep", item.Server.Id), $"Keeping songs from {item.Name} in your library", "Stop", () => StopSync(item));
+        var batch = Downloads.StartBatch(("keep", item.Server.Id), $"Adding songs from {item.Name} to My music", "Stop", () => StopSync(item));
         batch.Detail = "Waiting for another server's sync…";
         await _oneSync.WaitAsync();
         var moved = new List<(string From, string To)>();
@@ -309,7 +309,7 @@ public sealed partial class ServersViewModel
             SubsonicClient? client = steps.Any(s => s.From is null) ? SignedIn(item) : null;
             var sync = client is null ? null : new ServerSync(_database, client, item.Server, DownloadsFolder)
             {
-                Report = ReportTo(item, "Keep a copy in my library", ("keep", item.Server.Id), rows => KeepAgainAsync(item, rows)),
+                Report = ReportTo(item, "Add to my music", ("keep", item.Server.Id), rows => KeepAgainAsync(item, rows)),
             };
             Log.Info($"Servers: keeping {steps.Count} songs from {item.Name} in {folder}");
 
@@ -321,9 +321,9 @@ public sealed partial class ServersViewModel
                     break;
                 }
                 KeepStep step = steps[i];
-                SyncStatus = $"Keeping songs in your library… {Format.Count(i)} / {Format.Count(steps.Count)}";
+                SyncStatus = $"Adding songs to My music… {Format.Count(i)} / {Format.Count(steps.Count)}";
                 SyncPercent = 100.0 * i / steps.Count;
-                item.ShowSync($"Keeping in your library… {Format.Count(i)} of {Format.Count(steps.Count)} songs", problem: false);
+                item.ShowSync($"Adding to My music… {Format.Count(i)} of {Format.Count(steps.Count)} songs", problem: false);
                 batch.Detail = $"{Format.Count(i)} of {Format.Count(steps.Count)} songs";
                 batch.Percent = SyncPercent;
                 try
@@ -380,7 +380,7 @@ public sealed partial class ServersViewModel
         RefreshDownloads();
         _owner.Library.RefreshResults();
 
-        string done = $"Kept {SongCount(kept)} in your library, in {folder}.";
+        string done = $"Added {SongCount(kept)} to My music, in {folder}.";
         string text = stopped is { } reason ? $"{reason} {done}"
             : failed > 0 ? $"{done} {SongCount(failed)} couldn't be: the activity log says why."
             : done;

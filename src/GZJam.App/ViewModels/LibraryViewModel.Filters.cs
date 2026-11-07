@@ -80,7 +80,8 @@ public sealed partial class LibraryViewModel
     /// corrected, and how many songs that finds, where it was searched. Null if no word was
     /// misspelled, or the corrected search finds nothing either.
     /// </summary>
-    private (string Text, int Count)? DidYouMeanFor(string text, FolderScope? scope, CancellationToken cancel, double near, long? playlist)
+    private (string Text, int Count)? DidYouMeanFor(string text, FolderScope? scope, CancellationToken cancel, double near, long? playlist,
+        IReadOnlyCollection<long>? notInRoots)
     {
         if (!HasWords(text))
             return null;
@@ -88,7 +89,7 @@ public sealed partial class LibraryViewModel
         cancel.ThrowIfCancellationRequested();
         if (SearchSpelling.Suggest(text, words) is not { } better)
             return null;
-        int count = _database.Search(better, scope, cancel, near, playlist).Count;
+        int count = _database.Search(better, scope, cancel, near, playlist, notInRoots).Count;
         return count > 0 ? (better, count) : null;
     }
 

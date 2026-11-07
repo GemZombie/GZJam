@@ -60,6 +60,9 @@ public sealed class AppSettings
     /// <summary>The playlist open in the song list, if one was (instead of a folder).</summary>
     public long? OpenPlaylist { get; set; }
 
+    /// <summary>The library's source shown last (#318): "MyMusic" or "Servers"; null for the first time.</summary>
+    public string? LibrarySource { get; set; }
+
     /// <summary>Speakers. Matched by name and driver ID, since device numbers change between sessions.</summary>
     public AudioDevicePreference? MainDevice { get; set; }
 

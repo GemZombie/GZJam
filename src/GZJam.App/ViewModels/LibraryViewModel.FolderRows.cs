@@ -37,7 +37,7 @@ public sealed partial class LibraryViewModel
     private bool IsInTree(FolderNodeViewModel folder)
     {
         FolderNodeViewModel root = folder.SelfAndAncestors().Last();
-        return Roots.Contains(root);
+        return Roots.Contains(root) && InSource(root);
     }
 
     /// <summary>A folder was opened or closed: its folders come or go.</summary>
@@ -68,7 +68,7 @@ public sealed partial class LibraryViewModel
     private void SyncFolderRows()
     {
         var want = new List<FolderNodeViewModel>(FolderRows.Count + 16);
-        foreach (FolderNodeViewModel root in Roots)
+        foreach (FolderNodeViewModel root in Roots.Where(InSource))   // the source's own folders (#318)
             AddRows(want, root);
 
         int start = 0;

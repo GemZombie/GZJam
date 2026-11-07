@@ -329,6 +329,7 @@
            header was dragged (MainWindow.Playlists, #163). -->
       <Border x:Name="LibraryPanel" Classes="panel">
         <Grid x:Name="LibraryColumn" RowDefinitions="Auto,*,Auto">
+          <StackPanel>
           <Border Classes="panel-header" Padding="14,0,6,0">
             <Grid ColumnDefinitions="*,Auto,Auto">
               <Button x:Name="FoldFoldersButton" Classes="link" Margin="-6,0,0,0" HorizontalAlignment="Left"
@@ -347,6 +348,29 @@
               </Button>
             </Grid>
           </Border>
+          <!-- The sources (#318): My music and Servers, each apart, each with its own folders in the
+               tree below and its own search. Chosen, one shows all of it; its name stays bold while
+               a folder of it is showing. -->
+          <ListBox x:Name="SourceList" Classes="playlists sources" Margin="4,4,4,2"
+                   ItemsSource="{Binding Library.Sources}" SelectedItem="{Binding Library.SelectedSource, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:SourceViewModel">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
+                  <Panel Width="15">
+                    <Path Data="{StaticResource IconMyMusic}" Stroke="#8F9BB0" StrokeThickness="2" Stretch="Uniform"
+                          Width="13" Height="13" VerticalAlignment="Center" IsVisible="{Binding IsMyMusic}" />
+                    <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
+                          Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServers}" />
+                  </Panel>
+                  <TextBlock Grid.Column="1" Classes="source-name" Classes.current="{Binding IsCurrent}" Text="{Binding Name}"
+                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Classes="dim" Text="{Binding CountText}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <Border Classes="sources-rule" />
+          </StackPanel>
           <!-- The folder tree as one list of rows, each indented for its place: rows only for the
                folders in view, a server having thousands in one folder (#290). See
                LibraryViewModel.FolderRows. -->
@@ -377,13 +401,13 @@
                       <MenuItem Header="Stop syncing" IsVisible="{Binding IsSyncing}" Click="OnStopSyncClick" />
                       <MenuItem Header="Keep on this computer…" IsVisible="{Binding IsServerItself}" Click="OnChooseServerClick"
                                 ToolTip.Tip="Choose the server's playlists, and what's starred there, to keep on this computer and up to date" />
-                      <MenuItem Header="Keep the whole server in my library…" IsVisible="{Binding CanKeepWhole}" Click="OnKeepWholeClick"
-                                ToolTip.Tip="Every song of this server into your own music folder, a song at a time in the background: it pauses while a song plays to the speakers, and picks up where it left off" />
-                      <MenuItem Header="Pause keeping the whole server" IsVisible="{Binding CanPauseKeepWhole}" Click="OnPauseKeepWholeClick"
-                                ToolTip.Tip="It waits, even after GZJam starts again, until you resume it. The songs kept so far stay" />
-                      <MenuItem Header="Resume keeping the whole server" IsVisible="{Binding CanResumeKeepWhole}" Click="OnResumeKeepWholeClick" />
-                      <MenuItem Header="Stop keeping the whole server" IsVisible="{Binding IsKeepingWhole}" Click="OnStopKeepWholeClick"
-                                ToolTip.Tip="No more of it comes. The songs kept so far stay in your library" />
+                      <MenuItem Header="Add the whole server to my music…" IsVisible="{Binding CanKeepWhole}" Click="OnKeepWholeClick"
+                                ToolTip.Tip="Every song of this server copied into My music, a song at a time in the background: it pauses while a song plays to the speakers, and picks up where it left off" />
+                      <MenuItem Header="Pause adding the whole server" IsVisible="{Binding CanPauseKeepWhole}" Click="OnPauseKeepWholeClick"
+                                ToolTip.Tip="It waits, even after GZJam starts again, until you resume it. The songs added so far stay" />
+                      <MenuItem Header="Resume adding the whole server" IsVisible="{Binding CanResumeKeepWhole}" Click="OnResumeKeepWholeClick" />
+                      <MenuItem Header="Stop adding the whole server" IsVisible="{Binding IsKeepingWhole}" Click="OnStopKeepWholeClick"
+                                ToolTip.Tip="No more of it comes. The songs added so far stay in My music" />
                       <Separator IsVisible="{Binding IsServerItself}" />
                       <MenuItem Header="Free up space…" IsVisible="{Binding IsServerItself}" Click="OnFreeUpSpaceClick"
                                 ToolTip.Tip="Remove songs downloaded from this server from the computer: they stay on the server" />
@@ -391,8 +415,8 @@
                                 ToolTip.Tip="Everything coming down from your servers: each song, why it's coming, how far along, and what failed and why" />
                       <MenuItem Header="Download to this computer" IsVisible="{Binding IsServerRealFolder}" Click="OnDownloadServerFolderClick"
                                 ToolTip.Tip="Download every song in this folder and the folders in it, and keep it up to date: songs added to it on the server come with each sync" />
-                      <MenuItem Header="Keep a copy in my library…" IsVisible="{Binding IsServerFolder}" Click="OnKeepCopyClick"
-                                ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. Songs you have already are left as they are" />
+                      <MenuItem Header="Add to my music…" IsVisible="{Binding IsServerFolder}" Click="OnKeepCopyClick"
+                                ToolTip.Tip="Copy these songs into My music, laid out as on the server: yours from then on, never removed by GZJam. Songs you have already are left as they are" />
                       <MenuItem Header="Keep on this computer" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
                                 ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
                       <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
@@ -495,7 +519,7 @@
             <Grid x:Name="SearchHeader" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10">
               <Panel>
                 <TextBox x:Name="SearchBox" Classes="search" Text="{Binding Library.SearchText}"
-                         PlaceholderText="Search, or filter: bpm:130-150  artist:basie  rating:yes" />
+                         PlaceholderText="{Binding Library.SearchPlaceholder}" />
                 <Path Data="{StaticResource IconSearch}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.2"
                       StrokeLineCap="Round" Stretch="Uniform" Width="14" Height="14"
                       HorizontalAlignment="Left" Margin="12,0" IsHitTestVisible="False" />
@@ -553,7 +577,7 @@
                   <TextBlock Text="{Binding Library.ScopeText}" FontSize="12" Foreground="{StaticResource TextBrush}"
                              VerticalAlignment="Center" MaxWidth="340" TextTrimming="CharacterEllipsis" />
                   <Button Classes="link" Padding="5" Command="{Binding Library.ClearScopeCommand}"
-                          ToolTip.Tip="Search the whole library">
+                          ToolTip.Tip="{Binding Library.ClearScopeTip}">
                     <Path Data="{StaticResource IconClose}" Stroke="{StaticResource MutedBrush}" StrokeThickness="2.4"
                           StrokeLineCap="Round" Stretch="Uniform" Width="8" Height="8" />
                   </Button>
@@ -674,6 +698,11 @@
                             </MultiBinding>
                           </Path.IsVisible>
                         </Path>
+                        <!-- Among a server's songs, one that's in My music too (#318) -->
+                        <Border DockPanel.Dock="Right" Classes="yours-tag" IsVisible="{Binding IsYours}"
+                                ToolTip.Tip="Yours: in My music as well, never removed by GZJam">
+                          <TextBlock Text="yours" />
+                        </Border>
                         <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                    Classes.from-name="{Binding IsTitleFromName}" />
                       </DockPanel>
@@ -745,8 +774,8 @@
                           ToolTip.Tip="Bring these songs from the server onto this computer, and keep them" />
                 <MenuItem x:Name="TrackDownloadAlbumItem" Header="Download the album" Click="OnDownloadAlbumClick"
                           ToolTip.Tip="Bring this song's whole album from the server onto this computer, and keep it up to date" />
-                <MenuItem x:Name="TrackKeepItem" Header="Keep a copy in my library…" Click="OnKeepTracksClick"
-                          ToolTip.Tip="Copy these songs into your own music folder, laid out as on the server: yours from then on, never removed by GZJam. One downloaded already moves there, with its hearts, cues and playlists" />
+                <MenuItem x:Name="TrackKeepItem" Header="Add to my music…" Click="OnKeepTracksClick"
+                          ToolTip.Tip="Copy these songs into My music, laid out as on the server: yours from then on, never removed by GZJam. One downloaded already moves there, with its hearts, cues and playlists" />
                 <MenuItem x:Name="TrackRemoveFromLaptopItem" Header="Remove from this computer" Click="OnRemoveTracksFromLaptopClick"
                           ToolTip.Tip="These songs were downloaded from a server: remove them from the computer (they stay on the server)" />
                 <MenuItem x:Name="TrackEqItem" Header="EQ…" Click="OnTrackEqClick"
@@ -795,7 +824,7 @@
                          IsVisible="{Binding Library.HasAlsoOn}" />
               <Button x:Name="AlsoOnButton" Classes="link" FontSize="12" Content="Show" Foreground="{StaticResource AccentBrush}"
                       Command="{Binding Library.ShowAlsoOnCommand}" IsVisible="{Binding Library.HasAlsoOn}"
-                      ToolTip.Tip="The same search, on the server" />
+                      ToolTip.Tip="The same search, there" />
             </StackPanel>
           </Border>
           <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
