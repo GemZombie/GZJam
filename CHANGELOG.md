@@ -13,7 +13,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.4.0-beta.2.
+Fixed:
+
+- **Your server is back in the library's folder tree** (it went missing in 1.4.0-beta.2): the
+  tree was first made a moment before GZJam had read your servers, and kept that.
 
 ## 1.4.0-beta.2 (2026-11-06)
 
