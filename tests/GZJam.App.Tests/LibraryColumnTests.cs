@@ -40,7 +40,7 @@ public sealed class LibraryColumnTests
         Assert.True(app.Settings.FoldersFolded);   // remembered
         Assert.DoesNotContain(AllFolders(app), n => n.IsExpanded);
         Assert.True(Playlists(app).Bounds.Height > MainWindow.DefaultPlaylistsHeight + 100, $"playlists {Playlists(app).Bounds.Height} px");
-        Assert.True(app.Window.FindControl<TreeView>("FolderTree")!.Bounds.Height < 80, "one row for the music folder");
+        Assert.True(app.Window.FindControl<ListBox>("FolderTree")!.Bounds.Height < 80, "one row for the music folder");
         Assert.False(app.Window.FindControl<Control>("PlaylistsGrip")!.IsVisible);
         Assert.Equal("Show the folders", app.Library.FoldTip);
 
@@ -91,7 +91,7 @@ public sealed class LibraryColumnTests
         // All the way up: the folders keep a couple of rows.
         from = at();
         app.MouseDrag(from, new Point(from.X, 0));
-        Assert.True(app.Window.FindControl<TreeView>("FolderTree")!.Bounds.Height >= 69);
+        Assert.True(app.Window.FindControl<ListBox>("FolderTree")!.Bounds.Height >= 69);
 
         // All the way down: two rows of playlists stay.
         from = at();
