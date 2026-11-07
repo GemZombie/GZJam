@@ -28,7 +28,7 @@ public sealed partial class QueueItem : ObservableObject
     public bool IsNext => Number == 1;
 
     public string Title => Track.DisplayTitle;
-    public string Artist => Track.Artist ?? "";
+    public string Artist => Track.DisplayArtist;
     public string BpmText => Format.Bpm(Track.Bpm);
     public string DurationText => Format.Duration(Track.Duration);
 

@@ -43,10 +43,15 @@ public sealed partial class MainWindowViewModel
     /// library instead. Every copy of the songs on screen shows the edit. Songs outside the library
     /// are left out. Null if there was nothing to save.
     /// </summary>
-    public async Task<TagEditOutcome?> EditTagsAsync(IReadOnlyList<Track> tracks, IReadOnlyDictionary<string, string?> changes)
+    public Task<TagEditOutcome?> EditTagsAsync(IReadOnlyList<Track> tracks, IReadOnlyDictionary<string, string?> changes) =>
+        EditTagsAsync([.. tracks.Select(t => (t, changes))]);
+
+    /// <summary>The same, with each song's own changes (Fill tags from file name, #273).</summary>
+    public async Task<TagEditOutcome?> EditTagsAsync(IReadOnlyList<(Track Track, IReadOnlyDictionary<string, string?> Changes)> edits)
     {
-        var songs = tracks.Where(t => !t.IsOutsideLibrary).DistinctBy(t => t.Path).ToList();
-        if (songs.Count == 0 || changes.Count == 0)
+        var each = edits.Where(e => !e.Track.IsOutsideLibrary && e.Changes.Count > 0).DistinctBy(e => e.Track.Path).ToList();
+        var songs = each.Select(e => e.Track).ToList();
+        if (songs.Count == 0)
             return null;
         bool write = _settings.WriteTagsToFiles;
         var playing = songs.Where(t => IsPlayingFile(t.Path)).Select(t => t.Path).ToHashSet(StringComparer.Ordinal);
@@ -56,13 +61,13 @@ public sealed partial class MainWindowViewModel
         var kept = new List<(Track Track, string Why)>();
         await Task.Run(() =>
         {
-            var libraryOnly = new List<string>();
-            foreach (Track song in songs)
+            var libraryOnly = new List<(string Path, IReadOnlyDictionary<string, string?> Changes)>();
+            foreach (var (song, changes) in each)
             {
                 editsBefore[song.Path] = _database.GetTagEdits(song.Path);
                 if (!write)
                 {
-                    libraryOnly.Add(song.Path);
+                    libraryOnly.Add((song.Path, changes));
                     continue;
                 }
                 string? why;
@@ -78,19 +83,19 @@ public sealed partial class MainWindowViewModel
                 {
                     fileBefore[song.Path] = old;
                     _database.TagsWritten(song.Path, version);
+                    _database.ClearTagEdits([song.Path], changes.Keys);   // the file says it now; read it again
                     continue;
                 }
                 kept.Add((song, why));
-                libraryOnly.Add(song.Path);
+                libraryOnly.Add((song.Path, changes));
             }
-            _database.EditTags(libraryOnly, changes);
-            if (fileBefore.Count > 0)
-                _database.ClearTagEdits(fileBefore.Keys, changes.Keys);   // the files say it now; read them again
+            foreach (var group in libraryOnly.GroupBy(l => l.Changes))   // the same changes on every song, as a rule: at once
+                _database.EditTags([.. group.Select(l => l.Path)], group.Key);
         });
         await ShowTagsChangedAsync(songs);
 
         string what = songs.Count == 1 ? $"\"{songs[0].DisplayTitle}\"" : $"{songs.Count} songs";
-        string fields = string.Join(", ", changes.Keys.Select(SongFields.Describe));
+        string fields = string.Join(", ", each.SelectMany(e => e.Changes.Keys).Distinct().Select(SongFields.Describe));
         Log.Info($"Tags edited ({fields}) for {what}: " + (write
             ? $"{fileBefore.Count} written to the files, {kept.Count} kept in the library" + string.Concat(kept.Select(k => $"; {k.Track.Path}: {k.Why}"))
             : "kept in the library"));

@@ -39,6 +39,10 @@
   <Style Selector="TextBlock.dim">
     <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
   </Style>
+  <!-- A title or artist that comes from the file name, the song having no such tag (#273) -->
+  <Style Selector="TextBlock.from-name">
+    <Setter Property="FontStyle" Value="Italic" />
+  </Style>
   <Style Selector="TextBlock.mono">
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
   </Style>

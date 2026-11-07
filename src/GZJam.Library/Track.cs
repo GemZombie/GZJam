@@ -21,8 +21,8 @@ public sealed class Track : INotifyPropertyChanged
     // The tags: read from the file, and changed in place when the DJ edits them (#129), so every
     // copy of the song on screen shows the edit.
 
-    public string? Title { get => _title; set => Set(ref _title, value, nameof(Title), nameof(DisplayTitle)); }
-    public string? Artist { get => _artist; set => Set(ref _artist, value, nameof(Artist)); }
+    public string? Title { get => _title; set => Set(ref _title, value, nameof(Title), nameof(DisplayTitle), nameof(IsTitleFromName)); }
+    public string? Artist { get => _artist; set => Set(ref _artist, value, nameof(Artist), nameof(DisplayArtist), nameof(IsArtistFromName)); }
     public string? Album { get => _album; set => Set(ref _album, value, nameof(Album)); }
     public string? AlbumArtist { get => _albumArtist; set => Set(ref _albumArtist, value, nameof(AlbumArtist)); }
     public string? Genre { get => _genre; set => Set(ref _genre, value, nameof(Genre)); }
@@ -50,14 +50,14 @@ public sealed class Track : INotifyPropertyChanged
     private double? _tagBpm;
     private IReadOnlyList<SongTag> _tags = [];
 
-    private void Set<T>(ref T field, T value, string name, string? also = null)
+    private void Set<T>(ref T field, T value, string name, params string[] also)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
             return;
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        if (also is not null)
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(also));
+        foreach (string other in also)
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(other));
     }
 
     /// <summary>Takes <paramref name="other"/>'s tags, as read again or edited: the song's marks stay.</summary>
@@ -323,12 +323,26 @@ public sealed class Track : INotifyPropertyChanged
         return this;
     }
 
-    /// <summary>Title tag, or the file name when the tag is missing.</summary>
-    public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
+    /// <summary>The title tag, or what the file name says when the tag is missing (#273).</summary>
+    public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? NameSays.Title ?? System.IO.Path.GetFileNameWithoutExtension(FileName) : Title;
+
+    /// <summary>The artist tag, or what the file name says when the tag is missing (#273): "" if neither.</summary>
+    public string DisplayArtist => string.IsNullOrWhiteSpace(Artist) ? NameSays.Artist ?? "" : Artist;
+
+    /// <summary>The title shown comes from the file name, not a tag: shown in italics.</summary>
+    public bool IsTitleFromName => string.IsNullOrWhiteSpace(Title) && OnServer is null;
+
+    /// <summary>The artist shown comes from the file name, not a tag: shown in italics.</summary>
+    public bool IsArtistFromName => string.IsNullOrWhiteSpace(Artist) && OnServer is null && NameSays.Artist is not null;
+
+    private NameTags? _nameSays;
+
+    /// <summary>What the file name says (<see cref="FileNameTags.Guess"/>), worked out once.</summary>
+    public NameTags NameSays => _nameSays ??= OnServer is null ? FileNameTags.Guess(FileName) : new NameTags(null, null);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public override string ToString() => $"{DisplayTitle} - {Artist}";
+    public override string ToString() => $"{DisplayTitle} - {DisplayArtist}";
 }
 
 /// <summary>A folder added to the library by the user.</summary>

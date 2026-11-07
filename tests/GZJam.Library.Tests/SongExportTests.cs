@@ -34,7 +34,7 @@ public sealed class SongExportTests : IDisposable
         Assert.Equal(3200, export.Bytes);
         Assert.Empty(export.Missing);
         Assert.True(export.HasRoom);
-        Assert.Equal(["01 - Count Basie - Jumpin' at the Woodside.mp3", "02 - 03 Track.flac", "03 - Chick Webb - Stompin' at the Savoy_ _live__.mp3"],
+        Assert.Equal(["01 - Count Basie - Jumpin' at the Woodside.mp3", "02 - Track.flac", "03 - Chick Webb - Stompin' at the Savoy_ _live__.mp3"],
             export.Files.Select(f => f.FileName));
 
         var progress = new List<int>();
@@ -50,7 +50,7 @@ public sealed class SongExportTests : IDisposable
         Assert.Equal("#EXTM3U", lines[0]);
         Assert.Equal("#EXTINF:180,Count Basie - Jumpin' at the Woodside", lines[1]);
         Assert.Equal("01 - Count Basie - Jumpin' at the Woodside.mp3", lines[2]);
-        Assert.Equal("#EXTINF:-1,03 Track", lines[3]);
+        Assert.Equal("#EXTINF:-1,Track", lines[3]);   // untagged: what the file name says (#273)
         Assert.Equal(export.Files.Select(f => Path.Combine(export.Folder, f.FileName)), PlaylistFile.Read(export.PlaylistPath));
     }
 

@@ -485,6 +485,15 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   spelled one way) and open their info. A field they all share shows its value; one where they
   differ says *(several)* and is left as each song has it, unless you type over it. To take such a
   tag off all of them, click its ✕. GZJam says how many songs before it changes them.
+- **Tags from file names:** a song with no title or artist tag shows what its file name says,
+  in italics (`1924 Ma Rainey - Lucky Rock Blues.mp3` reads as *Lucky Rock Blues* by *Ma Rainey*),
+  in the song list, the queue, the decks, History and set lists. To make it stick, select the
+  songs, open their info, and click **Fill tags from file name…**: GZJam guesses how the names
+  are laid out (`{year} {artist} - {title}`, `{artist} - {track} - {title}`…), shows what each
+  name gives, and fills the empty tags (untick *Only tags that are empty* to fill over the others
+  too), each song its own. Change the pattern if the guess is wrong: `{artist}`, `{title}`,
+  `{year}`, `{track}` and `{album}` where they are, `{skip}` for a part to leave out. Undo puts
+  them back.
 - **Kept in GZJam, or written into the files:** at first, your edits are kept in GZJam's library
   only. GZJam shows and searches them, a backup keeps them, and they last even if the file's tags
   change later. A dot beside a tag's name marks one of these edits; *Use the files' tags* forgets

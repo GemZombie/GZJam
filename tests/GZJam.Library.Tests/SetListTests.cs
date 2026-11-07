@@ -32,7 +32,7 @@ public sealed class SetListTests
         Assert.Equal("Saturday, October 17, 2026 · 7:42 PM to 8:50 PM · 3 songs · 1:08:20", lines[1].Replace('\u202F', ' '));
         Assert.Equal("", lines[2]);
         Assert.Equal(" 1  7:42 PM  Jumpin' at the Woodside · Count Basie · 236 BPM · 3:10", lines[3].Replace('\u202F', ' '));
-        Assert.Equal(" 2  7:45 PM  03 Track · 3:05", lines[4].Replace('\u202F', ' '));   // untagged: the file name, nothing else
+        Assert.Equal(" 2  7:45 PM  Track · 3:05", lines[4].Replace('\u202F', ' '));   // untagged: what the file name says (#273), nothing else
         Assert.Equal(" 3  7:48 PM  Stompin' at the Savoy, \"live\" · Chick Webb · 192 BPM · 1:02:05", lines[5].Replace('\u202F', ' '));
     }
 
@@ -52,7 +52,7 @@ public sealed class SetListTests
 
         Assert.Equal("#,Date,Time,Title,Artist,Album,BPM,Tempo,Length,Deck,File", rows[0]);
         Assert.Equal("1,2026-10-17,19:42:00,Jumpin' at the Woodside,Count Basie,Count Basie Story,236.4,-1.5%,3:10,1," + Song("Basie", "Woodside.mp3"), rows[1]);
-        Assert.Equal("2,2026-10-17,19:45:00,03 Track,,,,,3:05,2," + Song("Misc", "03 Track.mp3"), rows[2]);
+        Assert.Equal("2,2026-10-17,19:45:00,Track,,,,,3:05,2," + Song("Misc", "03 Track.mp3"), rows[2]);
         Assert.Equal(@"3,2026-10-17,19:48:00,""Stompin' at the Savoy, """"live"""""",Chick Webb,,191.8,+2.0%,1:02:05,1," + Song("Webb", "Stompin.mp3"), rows[3]);
     }
 

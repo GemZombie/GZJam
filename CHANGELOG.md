@@ -93,6 +93,13 @@ New:
   downloaded one moves to its new place, with its hearts, cues, labels, playlists and plays; one
   kept in your music stays where it is. (Navidrome gives a moved song a new ID; GZJam finds it by
   its size and its file name, or title and artist.)
+- **Artist and title from file names** ([#273](https://github.com/GemZombie/GZJam/issues/273)):
+  for old transfers and rips with empty tags but good names, a song with no title or artist tag
+  shows what its file name says, in italics, everywhere: `1924 Ma Rainey - Lucky Rock Blues.mp3`
+  reads as *Lucky Rock Blues* by *Ma Rainey*. In a song's info, **Fill tags from file name…**
+  fills them for good, for one song or many: GZJam guesses how the names are laid out, shows what
+  each one gives before anything changes, fills only the empty tags unless you say, and Undo puts
+  them back (kept in GZJam's library, or written into the files if you've turned that on).
 - **The guide's [Your own music server](docs/GUIDE.md#your-own-music-server)**: adding a server,
   browsing it, songs on the computer before the night, keeping songs for good, hearts, room on a
   small drive, and setting up Navidrome on a Synology, with Tailscale, and a friend's server.

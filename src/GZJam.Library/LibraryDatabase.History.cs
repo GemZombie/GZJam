@@ -14,7 +14,12 @@ public sealed record PlayRecord(
     long Id, long SessionId, DateTime PlayedUtc, string Path, string? Title, string? Artist, string? Album,
     double? Bpm, TimeSpan Duration, string? Deck, double TempoPercent)
 {
-    public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? System.IO.Path.GetFileNameWithoutExtension(Path) : Title;
+    public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? NameSays.Title ?? System.IO.Path.GetFileNameWithoutExtension(Path) : Title;
+
+    /// <summary>The artist, or what the file name says when the song had none (#273).</summary>
+    public string DisplayArtist => string.IsNullOrWhiteSpace(Artist) ? NameSays.Artist ?? "" : Artist;
+
+    private NameTags NameSays => Servers.ServerTrack.Parse(Path) is null ? FileNameTags.Guess(Path) : new NameTags(null, null);
 
     /// <summary>A library-style track for dragging back onto a deck or into the queue.</summary>
     public Track ToTrack() => new()

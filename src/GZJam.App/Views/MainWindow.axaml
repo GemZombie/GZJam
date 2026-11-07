@@ -675,15 +675,23 @@
                             </MultiBinding>
                           </Path.IsVisible>
                         </Path>
-                        <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Classes.from-name="{Binding IsTitleFromName}" />
                       </DockPanel>
                       <c:LabelChips Grid.Column="2" ItemsSource="{Binding Labels}" MaxWidth="140" HorizontalAlignment="Left" />
                     </Grid>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Artist" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
-                                  Binding="{Binding Artist, Mode=OneWay}" />
+              <!-- The artist tag, or what the file name says, in italics, when there's none (#273) -->
+              <DataGridTemplateColumn Header="Artist" Width="1.3*" MinWidth="100" SortMemberPath="DisplayArtist">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="lib:Track">
+                    <TextBlock Text="{Binding DisplayArtist}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               Classes.from-name="{Binding IsArtistFromName}" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Album" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
                                   Binding="{Binding Album, Mode=OneWay}" />
               <DataGridTextColumn Header="Genre" Width="88" x:DataType="lib:Track"
@@ -1090,7 +1098,7 @@
                                    Classes.muted="{Binding !HasTrack}" />
                         <c:PriorityRow Spacing="5">
                           <TextBlock Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-                                     Text="{Binding Track.Artist, FallbackValue='Drag a song here'}" />
+                                     Text="{Binding Track.DisplayArtist, FallbackValue='Drag a song here'}" />
                           <c:LabelChips Classes="small q-labels song" ItemsSource="{Binding Track.Labels, FallbackValue={x:Null}}" />
                         </c:PriorityRow>
                       </StackPanel>

@@ -85,6 +85,16 @@ public partial class SongInfoWindow : Window
 
     private async void OnUseFileTagsClick(object? sender, RoutedEventArgs e) => await Vm.UseFileTagsAsync();
 
+    private void OnFillOpenClick(object? sender, RoutedEventArgs e)
+    {
+        Vm.OpenFill();
+        FillPatternBox.Focus();
+    }
+
+    private void OnFillCloseClick(object? sender, RoutedEventArgs e) => Vm.IsFillOpen = false;
+
+    private async void OnFillClick(object? sender, RoutedEventArgs e) => await Vm.FillAsync();
+
     private void OnAddTagClick(object? sender, RoutedEventArgs e)
     {
         Vm.AddTag();
