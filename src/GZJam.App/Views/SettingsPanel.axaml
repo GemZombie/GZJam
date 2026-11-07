@@ -358,6 +358,10 @@
                                    IsVisible="{Binding KeptText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         <TextBlock x:Name="ServerSync" Classes="setting-help" Classes.problem="{Binding SyncProblem}" FontWeight="SemiBold"
                                    Text="{Binding SyncText}" IsVisible="{Binding HasSyncText}" />
+                        <CheckBox x:Name="SendHeartsBox" IsChecked="{Binding SendHearts}" Margin="0,4,0,0"
+                                  ToolTip.Tip="Stars are saved under your account on the server, so a friend's own aren't changed">
+                          <TextBlock Classes="setting-help" Text="Send my hearts: a ♥ on one of its songs stars it there, so its own app shows the same favorites" TextWrapping="Wrap" />
+                        </CheckBox>
                       </StackPanel>
                       <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
@@ -431,8 +435,17 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Keep downloaded songs" />
+                    <TextBlock x:Name="KeepDownloadsHelp" Classes="setting-help" Text="{Binding Servers.KeepDownloadsHelp}" />
+                  </StackPanel>
+                  <ComboBox x:Name="KeepDownloadsBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.KeepDownloadsChoices}"
+                            SelectedItem="{Binding Servers.KeepDownloadsChoice}" />
+                </Grid>
+                <Border Classes="settings-rule" />
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Room for downloaded songs" />
-                    <TextBlock Classes="setting-help" Text="A sync stops when it's full, and says so. GZJam always leaves 1 GB free on the disk." />
+                    <TextBlock Classes="setting-help" Text="When a sync would pass it, the downloads played least recently make room, never those of lists kept on this computer, the queue or a deck; a sync that still can't fit stops and says so. GZJam always leaves 1 GB free on the disk." />
                   </StackPanel>
                   <ComboBox x:Name="DownloadsLimitBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.LimitChoices}"
                             SelectedItem="{Binding Servers.Limit}" />

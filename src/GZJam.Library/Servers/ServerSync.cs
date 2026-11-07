@@ -57,6 +57,14 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     /// </summary>
     public Func<ServerSong, string?, IDownloadReport?>? Report { get; init; }
 
+    /// <summary>
+    /// Asked when the next song would pass <see cref="Limit"/> (#286): removes downloads that
+    /// nothing kept needs (never those in the set given: what this sync keeps), the least
+    /// recently played first, until there's room for the bytes asked; returns the songs removed
+    /// and their sizes. Null: the sync stops there.
+    /// </summary>
+    public Func<long, IReadOnlySet<string>, IReadOnlyList<(string SongId, long Bytes)>>? MakeRoom { get; init; }
+
     public string ServerFolder => ServerPaths.ServerFolder(downloadsFolder, server.Name);
 
     public async Task<SyncResult> RunAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancel = default)
@@ -66,16 +74,22 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
 
         // What's wanted: each choice's songs, in order, and every song once.
         var playlists = new List<(ServerChoice Choice, IReadOnlyList<ServerSong> Songs)>();
+        var brought = new List<(ServerChoice Choice, List<string> Songs)>();   // each choice's songs, kept with it
         var wanted = new List<ServerSong>();
         var why = new Dictionary<string, string>();   // song ID → the choice it's for (the first, of several)
+        List<string> mine = [];
         void Want(IEnumerable<ServerSong> songs, string reason)
         {
             foreach (ServerSong song in songs)
+            {
+                mine.Add(song.Id);
                 if (why.TryAdd(song.Id, reason))
                     wanted.Add(song);
+            }
         }
         foreach (ServerChoice choice in choices)
         {
+            mine = [];
             try
             {
                 switch (choice.Kind)
@@ -109,6 +123,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                             problems.Add($"{choice.Name}: no longer on the server.");
                         break;
                 }
+                brought.Add((choice, mine));
             }
             catch (ServerException e)
             {
@@ -122,6 +137,13 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         var removed = database.GetRemovedServerSongs(server.Id);
         wanted.RemoveAll(s => removed.Contains(s.Id));
         var known = database.GetServerSongs(server.Id).ToDictionary(s => s.SongId);
+        // Never removed to make room: what the lists bring, and songs downloaded on purpose (a
+        // song downloaded on the spot, for the queue say, is wanted only by its own choice).
+        var keeping = new HashSet<string>();
+        foreach ((ServerChoice choice, List<string> songs) in brought)
+            keeping.UnionWith(choice.Kind != ServerChoiceKind.Song ? songs
+                : songs.Where(id => !(known.TryGetValue(id, out var k) && k.OnTheSpot)));
+        var madeRoom = new HashSet<string>();   // removed to make room: not downloaded again now
         var left = wanted.Where(s => !known.ContainsKey(s.Id)).Select(s => s.Id).ToHashSet();   // to come, as far as is known now
         var local = new Dictionary<string, string>();   // song ID → the file here
         (_, long used) = database.GetDownloadedTotals();
@@ -141,6 +163,8 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                 break;
             }
 
+            if (madeRoom.Contains(song.Id))
+                continue;
             if (known.TryGetValue(song.Id, out ServerSongCopy? copy) && File.Exists(copy.Path))
             {
                 local[song.Id] = copy.Path;
@@ -163,7 +187,13 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                 break;
             }
             long size = song.Size ?? 0;
-            if (Limit is { } limit && used + size > limit)
+            if (Limit is { } limit && used + size > limit && MakeRoom is { } makeRoom)
+                foreach ((string id, long freed) in makeRoom(used + size - limit, keeping))
+                {
+                    madeRoom.Add(id);
+                    used -= freed;
+                }
+            if (Limit is { } full && used + size > full)
             {
                 stopped = "The room set aside for downloaded songs is full.";
                 break;
@@ -219,10 +249,11 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                 ? id
                 : database.CreatePlaylist(choice.Name).Id;
             database.SetPlaylistEntries(playlistId, songs.Select(s => local.GetValueOrDefault(s.Id)).OfType<string>());
-            database.SetServerChoiceSynced(server.Id, choice, playlistId, Now());
+            database.SetServerChoiceSynced(server.Id, choice, playlistId, Now(), songs.Select(s => s.Id));
         }
-        foreach (ServerChoice choice in choices.Where(c => c.Kind == ServerChoiceKind.Starred))
-            database.SetServerChoiceSynced(server.Id, choice, null, Now());
+        foreach ((ServerChoice choice, List<string> songs) in brought.Where(b => b.Choice.Kind != ServerChoiceKind.Playlist))
+            if (stillChosen.Any(c => c.Kind == choice.Kind && c.RemoteId == choice.RemoteId))
+                database.SetServerChoiceSynced(server.Id, choice, null, Now(), songs);
 
         return new SyncResult(wanted.Count, downloaded, already, failed, bytes, stopped, problems);
     }

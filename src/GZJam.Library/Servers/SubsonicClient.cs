@@ -366,6 +366,10 @@ public sealed class SubsonicClient
         return body.TryGetProperty("artist", out JsonElement artist) ? Albums(Items(artist, "album")) : [];
     }
 
+    /// <summary>Stars a song for this account (a ♥ in GZJam, #286), or takes its star off.</summary>
+    public async Task StarAsync(string songId, bool starred, CancellationToken cancel = default) =>
+        await GetAsync(starred ? "star" : "unstar", [("id", songId)], cancel).ConfigureAwait(false);
+
     /// <summary>One song, by its ID; null if the server no longer has it.</summary>
     public async Task<ServerSong?> GetSongAsync(string songId, CancellationToken cancel = default)
     {

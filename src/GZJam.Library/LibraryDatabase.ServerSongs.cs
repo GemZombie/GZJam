@@ -495,13 +495,16 @@ public sealed partial class LibraryDatabase
         tx.Commit();
     }
 
-    /// <summary>A choice was synced, filling <paramref name="playlistId"/> (for a playlist).</summary>
-    public void SetServerChoiceSynced(long serverId, ServerChoice choice, long? playlistId, DateTime nowUtc)
+    /// <summary>
+    /// A choice was synced, filling <paramref name="playlistId"/> (for a playlist), and bringing
+    /// <paramref name="songIds"/> (kept, for knowing offline what the lists still need, #286).
+    /// </summary>
+    public void SetServerChoiceSynced(long serverId, ServerChoice choice, long? playlistId, DateTime nowUtc, IEnumerable<string>? songIds = null)
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            UPDATE server_choices SET playlist_id = $playlist, synced_utc = $now
+            UPDATE server_choices SET playlist_id = $playlist, synced_utc = $now, song_ids = IFNULL($songs, song_ids)
             WHERE server_id = $server AND kind = $kind AND remote_id = $remote;
             """;
         cmd.Parameters.AddWithValue("$server", serverId);
@@ -509,6 +512,138 @@ public sealed partial class LibraryDatabase
         cmd.Parameters.AddWithValue("$remote", choice.RemoteId);
         cmd.Parameters.AddWithValue("$playlist", (object?)playlistId ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$now", nowUtc.Ticks);
+        cmd.Parameters.AddWithValue("$songs", songIds is null ? DBNull.Value : string.Join('\n', songIds));
+        cmd.ExecuteNonQuery();
+    }
+
+    // ───────────── Tidying downloads by itself (#286) ─────────────
+
+    /// <summary>
+    /// The server's songs that what's kept on the computer still needs: those its playlists, what's
+    /// starred, albums, artists and folders brought at their last sync, and songs downloaded on
+    /// purpose (Download to this computer). A song downloaded on the spot (for the queue, a deck)
+    /// isn't kept for that alone.
+    /// </summary>
+    public IReadOnlySet<string> GetServerSongsKeptByChoices(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            SELECT kind, remote_id, song_ids,
+                   (SELECT s.on_the_spot FROM server_songs s WHERE s.server_id = ch.server_id AND s.song_id = ch.remote_id)
+            FROM server_choices ch WHERE server_id = $server;
+            """;
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var kept = new HashSet<string>(StringComparer.Ordinal);
+        while (r.Read())
+        {
+            if (KindOf(r.GetString(0)) == ServerChoiceKind.Song)
+            {
+                if (r.IsDBNull(3) || r.GetInt64(3) == 0)
+                    kept.Add(r.GetString(1));
+            }
+            else if (!r.IsDBNull(2))
+                kept.UnionWith(r.GetString(2).Split('\n', StringSplitOptions.RemoveEmptyEntries));
+        }
+        return kept;
+    }
+
+    /// <summary>
+    /// Downloads GZJam removed by itself (Keep downloaded songs, or to make room): forgotten, and
+    /// no longer kept as songs on their own, but not held back from a sync: a list that still
+    /// wants one brings it again. (The file is the caller's to delete.)
+    /// </summary>
+    public void ForgetServerDownloads(long serverId, IEnumerable<string> songIds)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (string songId in songIds)
+        {
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = """
+                DELETE FROM server_songs WHERE server_id = $server AND song_id = $song AND own_copy = 0;
+                DELETE FROM server_choices WHERE server_id = $server AND kind = 'song' AND remote_id = $song;
+                """;
+            cmd.Parameters.AddWithValue("$server", serverId);
+            cmd.Parameters.AddWithValue("$song", songId);
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
+    // ───────────── Hearts sent to the server (#286) ─────────────
+
+    /// <summary>The server songs these library files are (downloaded, kept, or the DJ's own copy of one), by path.</summary>
+    public IReadOnlyList<(string Path, long ServerId, string SongId)> GetServerSongsAt(IEnumerable<string> paths)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT server_id, song_id FROM server_songs WHERE path = $path;";
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        var found = new List<(string, long, string)>();
+        foreach (string p in paths.Distinct(StringComparer.Ordinal))
+        {
+            path.Value = p;
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+                found.Add((p, r.GetInt64(0), r.GetString(1)));
+        }
+        return found;
+    }
+
+    /// <summary>Hearts to tell the servers: starred (♥) or not, the latest for each song.</summary>
+    public void AddServerHeartsOut(IEnumerable<(long ServerId, string SongId, bool Starred)> hearts)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (var (serverId, songId, starred) in hearts)
+        {
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = """
+                INSERT INTO server_hearts_out (server_id, song_id, starred) VALUES ($server, $song, $starred)
+                ON CONFLICT (server_id, song_id) DO UPDATE SET starred = excluded.starred;
+                """;
+            cmd.Parameters.AddWithValue("$server", serverId);
+            cmd.Parameters.AddWithValue("$song", songId);
+            cmd.Parameters.AddWithValue("$starred", starred ? 1 : 0);
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
+    public IReadOnlyList<(string SongId, bool Starred)> GetServerHeartsOut(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT song_id, starred FROM server_hearts_out WHERE server_id = $server;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var hearts = new List<(string, bool)>();
+        while (r.Read())
+            hearts.Add((r.GetString(0), r.GetInt64(1) != 0));
+        return hearts;
+    }
+
+    /// <summary>The server was told: forgotten, unless the heart changed again meanwhile.</summary>
+    public void ServerHeartSent(long serverId, string songId, bool starred)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "DELETE FROM server_hearts_out WHERE server_id = $server AND song_id = $song AND starred = $starred;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$song", songId);
+        cmd.Parameters.AddWithValue("$starred", starred ? 1 : 0);
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>The hearts for a server the DJ no longer sends them to: never sent.</summary>
+    public void ForgetServerHeartsOut(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "DELETE FROM server_hearts_out WHERE server_id = $server;";
+        cmd.Parameters.AddWithValue("$server", serverId);
         cmd.ExecuteNonQuery();
     }
 

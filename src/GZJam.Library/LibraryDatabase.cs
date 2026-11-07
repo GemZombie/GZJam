@@ -573,6 +573,20 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE server_catalog ADD COLUMN cover_art TEXT;
             """,
+
+        // 31: Tidying downloads by itself, and hearts sent to the server (#286): the songs each
+        // choice brought at its last sync (one ID per line: what's starred, an album, a folder),
+        // so what lists kept on the computer still need is known offline; and the hearts set
+        // while a server couldn't be told, sent once it answers. Only adds.
+        """
+            ALTER TABLE server_choices ADD COLUMN song_ids TEXT;
+            CREATE TABLE server_hearts_out (
+                server_id INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                song_id   TEXT NOT NULL,
+                starred   INTEGER NOT NULL,
+                PRIMARY KEY (server_id, song_id)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

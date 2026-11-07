@@ -173,8 +173,9 @@ reaches into the library and the network.
   to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
   home a bit at a time, or the whole server in the background.
   [A Downloads window](https://github.com/GemZombie/GZJam/issues/304) shows every song coming down,
-  why, and how far along. Next, stars sent back to the server, cleaning up what was downloaded,
-  and the guide, then the beta.
+  why, and how far along. A heart stars the song on the server, and downloads can go by
+  themselves after the night or after 4 weeks. Next, songs moved on the server, and the guide,
+  then the beta.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
 
