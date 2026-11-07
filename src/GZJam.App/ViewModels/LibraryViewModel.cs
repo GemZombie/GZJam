@@ -28,6 +28,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         _database = database;
         _scanner = new LibraryScanner(database);
         _watcher.RootChanged += root => Dispatcher.UIThread.Post(() => _ = ScanAsync(root));
+        Roots.CollectionChanged += OnRootsChanged;
     }
 
     public ObservableCollection<FolderNodeViewModel> Roots { get; } = [];
@@ -60,6 +61,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     partial void OnAreFoldersFoldedChanged(bool value)
     {
         var nodes = Roots.SelectMany(r => r.SelfAndDescendants()).ToList();
+        HoldRows();
         if (value)
         {
             foreach (var node in nodes)
@@ -70,6 +72,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             foreach (var root in Roots)
                 root.IsExpanded = true;   // back as it opens the first time
         }
+        ReleaseRows();
     }
 
     /// <summary>A folder in the tree was opened: with the folders folded, they unfold.</summary>
@@ -283,6 +286,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
+        OnPropertyChanged(nameof(SelectedFolderRow));
         if (!_suppressSearch)
             RunSearch();
     }
@@ -637,6 +641,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         // memory with copies of the server's thousands of folders (#286).
         var all = tree.Concat(servers).ToList();
         _suppressSearch = true;
+        HoldRows();
         if (!firstBuild && !remake && Roots.Count == all.Count && Roots.Zip(all).All(p => SameRoot(p.First.Node, p.Second)))
         {
             bool reselect = false;
@@ -660,6 +665,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 Roots.Add(NewRoot(node, expanded, firstBuild));
             SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;
         }
+        ReleaseRows();
         _suppressSearch = false;
         OnPropertyChanged(nameof(HasNoRoots));
         OnPropertyChanged(nameof(ScopeText));
@@ -702,8 +708,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     {
         if (Find(rootId, folder) is not { } node)
             return;
+        HoldRows();
         for (var p = node.Parent; p is not null; p = p.Parent)
             p.IsExpanded = true;
+        ReleaseRows();
         SelectedFolder = node;
     }
 

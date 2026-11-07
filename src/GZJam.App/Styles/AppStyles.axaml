@@ -206,21 +206,34 @@
     <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
   </Style>
 
-  <!-- Folder tree -->
-  <Style Selector="TreeViewItem.folder-row">
+  <!-- Folder tree: one list of rows (FolderList) -->
+  <Style Selector="ListBox.folders">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBoxItem.folder-row">
     <Setter Property="MinHeight" Value="26" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="FontSize" Value="13" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="ListBoxItem.folder-row:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource TreeViewItemBackgroundSelected}" />
+  </Style>
+  <Style Selector="ListBoxItem.folder-row:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource TreeViewItemBackgroundSelectedPointerOver}" />
   </Style>
   <!-- A folder's arrow takes the whole space before its name, the row's full height (the
        standard arrow is a 12 px target) -->
-  <Style Selector="TreeViewItem.folder-row /template/ Panel#PART_ExpandCollapseChevronContainer">
-    <Setter Property="Margin" Value="0" />
+  <Style Selector="Panel.folder-arrow">
     <Setter Property="Width" Value="32" />
   </Style>
-  <Style Selector="TreeViewItem.folder-row /template/ ToggleButton#PART_ExpandCollapseChevron">
-    <Setter Property="Width" Value="NaN" />
-    <Setter Property="Height" Value="NaN" />
+  <Style Selector="ToggleButton.folder-arrow">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
         <Border Background="Transparent">
@@ -232,7 +245,7 @@
       </ControlTemplate>
     </Setter>
   </Style>
-  <Style Selector="TreeViewItem.folder-row /template/ ToggleButton#PART_ExpandCollapseChevron:checked /template/ Path#ChevronPath">
+  <Style Selector="ToggleButton.folder-arrow:checked /template/ Path#ChevronPath">
     <Setter Property="Data" Value="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
   </Style>
 

@@ -13,7 +13,23 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.4.0-beta.4.
+Nothing yet since 1.4.0-beta.5.
+
+## 1.4.0-beta.5 (2026-11-07)
+
+The fifth beta of 1.4: the library's folder tree with no gaps, and never blank as you scroll. Like
+the others, GZJam's update notice doesn't offer it: you only get it from this page. It has
+everything in 1.4.0-beta.4, and nothing more changes in your library, so 1.3.0 can still open it.
+
+Fixed:
+
+- **The library's folder tree no longer leaves gaps or goes blank as you scroll**: with a folder
+  opened, a gap could follow its folders, and scrolling a long list (a server's artists) could
+  leave the whole tree blank until you scrolled back. The tree is now one list of rows, each
+  indented for its place, so it only makes rows for the folders in view and always knows where
+  each one is. It works as before: a click opens a folder, a click on the chosen one closes it,
+  and the arrow keys go through it (right opens a folder, left closes it or goes up). A folder
+  chosen inside one you close stays chosen, its songs still showing.
 
 ## 1.4.0-beta.4 (2026-11-07)
 
