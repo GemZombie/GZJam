@@ -10,14 +10,18 @@ namespace GZJam.App.ViewModels;
 public sealed partial class ServersViewModel
 {
     /// <summary>Whether there's something coming down to stop: a sync or songs being kept, or a whole server.</summary>
-    public bool CanStopInBackground => Items.Any(i => i.IsSyncing) || (_wholeRuns.Count > 0 && KeepWholeStatus is not null);
+    public bool CanStopInBackground => Items.Any(i => i.IsSyncing) || (_wholeRuns.Count > 0 && KeepWholeStatus is not null)
+        || Downloads.HasQueueRows;
 
     /// <summary>
-    /// The top bar's Stop: each sync, and songs being kept, stop after the song coming down (what
-    /// came stays, and SYNC goes on from there); keeping a whole server is paused.
+    /// The top bar's Stop, and the Downloads window's Stop all: each sync, and songs being kept,
+    /// stop after the song coming down (what came stays, and SYNC goes on from there); keeping a
+    /// whole server is paused; the queue's songs stop, and their rows say so, with Try again (a
+    /// song a deck waits for still comes).
     /// </summary>
     public void StopInBackground()
     {
+        Downloads.StopQueueRows();
         var syncing = Items.Where(i => i.IsSyncing).ToList();
         foreach (ServerItemViewModel item in syncing)
             StopSync(item);

@@ -241,15 +241,23 @@ public sealed partial class ServersViewModel
                 return;
             }
             Log.Info($"Servers: keeping all of {item.Name}: {Format.Count(plan.Moves.Count)} to move, {Format.Count(plan.Downloads.Count)} to download");
+            var batch = Downloads.StartBatch(("whole", id), $"Keeping all of {item.Name} in your library", "Pause", () => PauseKeepWhole(id));
+            var report = ReportTo(item, "Keeping the whole server", ("whole", id), _ =>
+            {
+                StartKeepWhole(item);
+                return Task.CompletedTask;
+            });
 
             for (int i = 0; i < steps.Count; i++)
             {
-                await WaitForQuietRoomAsync(stop.Token);
+                await WaitForQuietRoomAsync(batch, stop.Token);
                 await _oneSync.WaitAsync(stop.Token);
                 try
                 {
                     KeepWholeStatus = $"Keeping all of {item.Name} in your library… {Format.Count(i)} / {Format.Count(total)}";
                     KeepWholePercent = 100.0 * i / total;
+                    batch.Detail = $"{Format.Count(i)} of {Format.Count(total)} songs";
+                    batch.Percent = KeepWholePercent;
                     KeepStep step = steps[i];
                     if (_database.GetServerSong(id, step.SongId) is { OwnCopy: true } mine && File.Exists(mine.Path))
                         continue;   // kept meanwhile
@@ -258,12 +266,17 @@ public sealed partial class ServersViewModel
                     var sync = new ServerSync(_database, client, item.Server, DownloadsFolder)
                     {
                         BytesPerSecond = KeepSpeed.Value is { } mb ? (long)(mb * 1_000_000) : null,
+                        Report = report,
                     };
                     var (move, got) = await KeepOneAsync(item, step, sync, keepIn, stop.Token);
                     if (move is { } made)
                         moved.Add(made);
                     bytes += got;
                     kept++;
+                }
+                catch (OperationCanceledException) when (!stop.IsCancellationRequested)
+                {
+                    failed++;   // just this song stopped (the Downloads window): tried again next time
                 }
                 catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
                 {
@@ -303,6 +316,7 @@ public sealed partial class ServersViewModel
         {
             if (_wholeRuns.GetValueOrDefault(id) == stop)
                 _wholeRuns.Remove(id);
+            Downloads.EndBatch(("whole", id));
             stop.Dispose();
             if (_wholeRuns.Count == 0)
                 KeepWholeStatus = null;
@@ -328,7 +342,7 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>Waits while the room hears music, unless the DJ allows keeping a server then; the top bar says nothing meanwhile.</summary>
-    private async Task WaitForQuietRoomAsync(CancellationToken stop)
+    private async Task WaitForQuietRoomAsync(DownloadBatch batch, CancellationToken stop)
     {
         bool waited = false;
         while (!_settings.ServerKeepWhilePlaying && _owner.WhatTheRoomIsHearing() is not null)
@@ -337,6 +351,7 @@ public sealed partial class ServersViewModel
             {
                 waited = true;
                 KeepWholeStatus = null;
+                batch.Detail = "Waiting while the room hears music";
                 Log.Info("Servers: keeping a whole server waits while the room hears music");
             }
             await Task.Delay(RoomCheckEvery, stop);

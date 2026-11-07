@@ -129,7 +129,8 @@ public sealed partial class ServersViewModel
     /// here if there is one, else downloaded, and kept from then on like any download. Null (with
     /// a notice saying why) if it can't be.
     /// </summary>
-    public async Task<Track?> BringHereAsync(Track track)
+    /// <param name="why">What it's for, in the Downloads window: "For Deck A", "For a playlist".</param>
+    public async Task<Track?> BringHereAsync(Track track, string why = "Asked for now")
     {
         if (track.OnServer is not { } remote || ItemFor(remote.ServerId) is not { } item)
             return track.IsOnServerOnly ? null : track;
@@ -150,6 +151,7 @@ public sealed partial class ServersViewModel
         }
         string title = track.DisplayTitle;
         _owner.ShowNotice($"Downloading {title} from {item.Name}…", seconds: 60);
+        DownloadItem row = Downloads.Expect(item.Server.Id, item.Name, remote.Song, why, stop: null, retry: () => BringHereAsync(track, why));
         try
         {
             await EnsureDownloadsInLibraryAsync();
@@ -159,6 +161,7 @@ public sealed partial class ServersViewModel
             Track here = await Task.Run(() => _database.TrackForFile(WhereNow(item, remote.Song.Id, path)));
             Log.Info($"Servers: {title} from {item.Name} is here, at {path}");
             _owner.ShowNotice($"{title} is on this computer now.", seconds: 3);
+            row.Settle(null);
             AfterSync();
             RefreshKept(item);
             RefreshDownloads();
@@ -168,16 +171,19 @@ public sealed partial class ServersViewModel
         {
             MarkOffline(item);
             _owner.ShowNotice($"{item.Name} can't be reached right now: its songs on this computer play as usual.", seconds: 6);
+            row.Settle(DownloadState.Failed, $"{item.Name} can't be reached");
             return null;
         }
         catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
         {
             Log.Info($"Servers: couldn't download {title} from {item.Name}: {e.Message}");
             _owner.ShowNotice($"Couldn't download {title}: {e.Message}", seconds: 8);
+            row.Settle(DownloadState.Failed, e.Message);
             return null;
         }
         catch (OperationCanceledException)
         {
+            row.Settle(DownloadState.Stopped);
             return null;   // GZJam is closing
         }
     }

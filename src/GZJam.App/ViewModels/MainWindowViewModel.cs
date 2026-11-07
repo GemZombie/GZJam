@@ -165,11 +165,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public AlbumArtCache Art { get; }
 
     /// <summary>What's happening in the background (copying songs out, scanning, then analyzing), for the top bar.</summary>
-    public string? BackgroundStatus => ExportStatus ?? Servers.SyncStatus ?? Library.ScanStatus ?? Servers.KeepWholeStatus ?? Analysis?.Status;
+    public string? BackgroundStatus => ExportStatus ?? Servers.SyncStatus ?? Library.ScanStatus ?? Servers.KeepWholeStatus
+        ?? Servers.Downloads.Status ?? Analysis?.Status;
     public double BackgroundPercent => ExportStatus is not null ? ExportPercent
         : Servers.SyncStatus is not null ? Servers.SyncPercent
         : Library.ScanStatus is not null ? Library.ScanPercent
-        : Servers.KeepWholeStatus is not null ? Servers.KeepWholePercent : Analysis?.Percent ?? 0;
+        : Servers.KeepWholeStatus is not null ? Servers.KeepWholePercent
+        : Servers.Downloads.Status is not null ? Servers.Downloads.Percent : Analysis?.Percent ?? 0;
+
+    /// <summary>The top bar shows songs coming down from a server: a click on it opens the Downloads window (#304).</summary>
+    public bool BackgroundIsDownloads => ExportStatus is null && Servers is { } servers
+        && (servers.SyncStatus is not null || (Library.ScanStatus is null && (servers.KeepWholeStatus ?? servers.Downloads.Status) is not null));
 
     /// <summary>What the background work is and why, for the top bar status's tooltip (#139).</summary>
     public string? BackgroundTip => _export is { } export
@@ -184,18 +190,20 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ? "Reading the tags (title, artist, BPM…) of the songs in your music folders. Your files aren't changed."
         : Servers.KeepWholeStatus is not null
         ? $"Keeping all of your server in your library, in {Servers.KeepFolder}, a song at a time: your own songs from then on. Right-click the server in the library to pause or stop it."
+        : Servers.Downloads.Status is not null
+        ? "Downloading songs from your server for the queue, a deck or a playlist. Click to see them."
         : Analysis?.StatusTip;
 
     /// <summary>
     /// The top bar's Stop, beside the progress: while what it shows is songs coming down from a
     /// server (a sync, songs being kept, or a whole server), not a scan or an export.
     /// </summary>
-    public bool CanStopBackground => ExportStatus is null && Servers is { } servers && servers.CanStopInBackground
-        && (servers.SyncStatus is not null || (Library.ScanStatus is null && servers.KeepWholeStatus is not null));
+    public bool CanStopBackground => BackgroundIsDownloads && Servers.CanStopInBackground;
 
     internal void BackgroundChanged()
     {
         OnPropertyChanged(nameof(CanStopBackground));
+        OnPropertyChanged(nameof(BackgroundIsDownloads));
         OnPropertyChanged(nameof(BackgroundStatus));
         OnPropertyChanged(nameof(BackgroundPercent));
         OnPropertyChanged(nameof(BackgroundTip));
@@ -798,7 +806,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task AddFromServerAsync(IReadOnlyList<Track> songs, Action<Track> arrived)
     {
         foreach (Track song in songs)
-            if (await Servers.BringHereAsync(song) is { IsOnServerOnly: false } here)
+            if (await Servers.BringHereAsync(song, "For a playlist") is { IsOnServerOnly: false } here)
                 arrived(here);
     }
 
@@ -1412,7 +1420,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 ShowNotice($"{track.DisplayTitle} is still downloading: it goes onto Deck {deck.Label} as soon as it's here.", seconds: 6);
                 return false;
             }
-            if (await Servers.BringHereAsync(track) is not { } here)
+            if (await Servers.BringHereAsync(track, $"For Deck {deck.Label}") is not { } here)
                 return false;
             track = here;
         }
@@ -1492,7 +1500,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (track.IsOnServerOnly)
         {
-            if (await Servers.BringHereAsync(track) is not { } here)
+            if (await Servers.BringHereAsync(track, "For a deck") is not { } here)
                 return false;
             track = here;
         }

@@ -47,7 +47,7 @@ public sealed partial class ServersViewModel
         if (!_downloads.TryGetValue(key, out Download? download))
         {
             download = new Download(new CancellationTokenSource());
-            var sync = new ServerSync(_database, client, item.Server, DownloadsFolder);
+            var sync = new ServerSync(_database, client, item.Server, DownloadsFolder) { Report = ReportTo(item, "Asked for now") };
             var stop = download.Stop.Token;
             download.Done = Task.Run(() => sync.GetOneAsync(song, stop), stop);
             _downloads[key] = download;
@@ -143,6 +143,8 @@ public sealed partial class ServersViewModel
     /// <summary>A deck is waiting for this queued song: it downloads now, ahead of the queue's turns.</summary>
     public void Hurry(Track track)
     {
+        if (track.OnServer is { } remote)
+            Downloads.ForADeck(remote.ServerId, remote.Song.Id);
         foreach (var (row, hurry) in _queueHurry)
             if (row.Track.Path == track.Path)
                 hurry.TrySetResult();

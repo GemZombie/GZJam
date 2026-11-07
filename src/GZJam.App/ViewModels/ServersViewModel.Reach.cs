@@ -192,9 +192,17 @@ public sealed partial class ServersViewModel
 
         _fetching.Add(item);
         item.ShowServerState(_queueSlots.CurrentCount > 0 ? "Downloading…" : "Waiting its turn…", problem: false, canRetry: false);
+        DownloadItem row = Downloads.Expect(server.Server.Id, server.Name, remote.Song, "For the queue",
+            stop: () => _queueStops.GetValueOrDefault(item)?.Cancel(),
+            retry: () =>
+            {
+                if (_owner.Queue.Items.Contains(item))
+                    FetchForQueue(item);
+                return Task.CompletedTask;
+            });
         try
         {
-            await InQueueTurnAsync(item, async stop =>
+            bool came = await InQueueTurnAsync(item, async stop =>
             {
                 item.ShowServerState("Downloading…", problem: false, canRetry: false);
                 await EnsureDownloadsInLibraryAsync();
@@ -210,16 +218,21 @@ public sealed partial class ServersViewModel
                 RefreshKept(server);
                 RefreshDownloads();
             });
+            row.Settle(came ? null : DownloadState.Stopped);   // came without a download: it was here already
+            if (!came && !_closed && _owner.Queue.Items.Contains(item))
+                item.ShowServerState("Download stopped", problem: false, canRetry: true);   // Stop, in the top bar or the Downloads window
         }
         catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
         {
             MarkOffline(server);
             item.ShowServerState($"Waiting for {server.Name}", problem: false, canRetry: false);
+            row.Settle(DownloadState.Failed, $"{server.Name} can't be reached");
         }
         catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
         {
             Log.Info($"Servers: couldn't download {item.Title} from {server.Name} for the queue: {e.Message}");
             item.ShowServerState($"Couldn't download: {e.Message}", problem: true, canRetry: true);
+            row.Settle(DownloadState.Failed, e.Message);
         }
         catch (Exception) when (_closed)
         {
@@ -230,6 +243,7 @@ public sealed partial class ServersViewModel
             // Never the end of GZJam (this runs on its own): the row says so, and can try again.
             Log.Error($"Servers: downloading {item.Title} from {server.Name} for the queue failed", e);
             item.ShowServerState($"Couldn't download: {e.Message}", problem: true, canRetry: true);
+            row.Settle(DownloadState.Failed, e.Message);
         }
         finally
         {

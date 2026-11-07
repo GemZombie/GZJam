@@ -121,7 +121,7 @@ public sealed partial class ServersViewModel
     private sealed record KeepPlan(List<KeepStep> Moves, List<KeepStep> Downloads, int Mine, List<string> OnDeck);
 
     /// <summary>Asks (showing where they'll go), then keeps the songs in the DJ's music folder for kept songs.</summary>
-    private async Task KeepAsync(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, string what)
+    private async Task KeepAsync(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, string what, bool ask = true)
     {
         if (item.IsSyncing || _keeping)
         {
@@ -157,10 +157,10 @@ public sealed partial class ServersViewModel
             return;
         }
 
-        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
+        if (ask && (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
                 $"Keep a copy of {SongCount(count)} in your library?",
                 KeepQuestion(item, plan, downloads, keepIn, cantDownload),
-                "Keep"))
+                "Keep")))
             return;
         if (choosing && !SetKeepFolder(keepIn))
             return;
@@ -289,6 +289,8 @@ public sealed partial class ServersViewModel
         item.BeginSync(stop);
         _keeping = true;
         item.ShowSync("Waiting for another server's sync…", problem: false);
+        var batch = Downloads.StartBatch(("keep", item.Server.Id), $"Keeping songs from {item.Name} in your library", "Stop", () => StopSync(item));
+        batch.Detail = "Waiting for another server's sync…";
         await _oneSync.WaitAsync();
         var moved = new List<(string From, string To)>();
         int kept = 0, failed = 0;
@@ -305,7 +307,10 @@ public sealed partial class ServersViewModel
             if (_owner.Preview?.Track is { } heard && steps.Any(s => s.From == heard.Path))
                 _owner.Preview.Stop();
             SubsonicClient? client = steps.Any(s => s.From is null) ? SignedIn(item) : null;
-            var sync = client is null ? null : new ServerSync(_database, client, item.Server, DownloadsFolder);
+            var sync = client is null ? null : new ServerSync(_database, client, item.Server, DownloadsFolder)
+            {
+                Report = ReportTo(item, "Keep a copy in my library", ("keep", item.Server.Id), rows => KeepAgainAsync(item, rows)),
+            };
             Log.Info($"Servers: keeping {steps.Count} songs from {item.Name} in {folder}");
 
             for (int i = 0; i < steps.Count; i++)
@@ -319,6 +324,8 @@ public sealed partial class ServersViewModel
                 SyncStatus = $"Keeping songs in your library… {Format.Count(i)} / {Format.Count(steps.Count)}";
                 SyncPercent = 100.0 * i / steps.Count;
                 item.ShowSync($"Keeping in your library… {Format.Count(i)} of {Format.Count(steps.Count)} songs", problem: false);
+                batch.Detail = $"{Format.Count(i)} of {Format.Count(steps.Count)} songs";
+                batch.Percent = SyncPercent;
                 try
                 {
                     var (move, got) = await KeepOneAsync(item, step, sync, folder, stop.Token);
@@ -331,6 +338,10 @@ public sealed partial class ServersViewModel
                 {
                     stopped = "Stopped.";
                     break;
+                }
+                catch (OperationCanceledException)
+                {
+                    failed++;   // just this song stopped (the Downloads window)
                 }
                 catch (ServerException e) when (e.Outcome == ServerCheckOutcome.Unreachable)
                 {
@@ -349,6 +360,7 @@ public sealed partial class ServersViewModel
         finally
         {
             SyncStatus = null;
+            Downloads.EndBatch(("keep", item.Server.Id));
             _keeping = false;
             item.EndSync();
             _oneSync.Release();
@@ -375,6 +387,10 @@ public sealed partial class ServersViewModel
         item.ShowSync(text, problem: stopped is not null || failed > 0);
         _owner.ShowNotice(text, seconds: 8);
     }
+
+    /// <summary>The Downloads window's Retry failed, for songs being kept: kept again, without asking again.</summary>
+    private Task KeepAgainAsync(ServerItemViewModel item, IReadOnlyList<DownloadItem> rows) =>
+        KeepAsync(item, rows.Select(r => (r.Song.Id, (ServerSong?)r.Song)).ToList(), rows.Count == 1 ? rows[0].Title : "Those songs", ask: false);
 
     /// <summary>
     /// One song kept: its download moved there (one coming down already, for the queue say,

@@ -37,8 +37,20 @@ public sealed partial class ServersViewModel : ObservableObject
         _database = database;
         _settings = settings;
         Passwords = passwords;
+        Downloads = new DownloadsViewModel(this, () => _owner.BackgroundChanged());
         Refresh();
     }
+
+    /// <summary>Everything coming down from the servers, for the Downloads window (#304).</summary>
+    public DownloadsViewModel Downloads { get; }
+
+    /// <summary>
+    /// For a <see cref="ServerSync"/>: each song it downloads in the Downloads window, saying why
+    /// ("Sync: Friday"), and how a failed one is tried again.
+    /// </summary>
+    private Func<ServerSong, string?, IDownloadReport?> ReportTo(ServerItemViewModel item, string why,
+        object? retryKey = null, Func<IReadOnlyList<DownloadItem>, Task>? retry = null) =>
+        (song, choice) => Downloads.Begin(item.Server.Id, item.Name, song, choice is null ? why : $"{why}: {choice}", retryKey, retry);
 
     public PasswordStore Passwords { get; }
 
