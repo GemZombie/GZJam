@@ -119,6 +119,12 @@ public sealed class FakeNavidrome : HttpMessageHandler
             Playlists[playlist] = Playlists[playlist].Select(s => s == id ? to : s).ToArray();
     }
 
+    /// <summary>When it last read its music, as getScanStatus says (Navidrome's lastScan); null: it doesn't say.</summary>
+    public string? LastScan { get; set; }
+
+    /// <summary>How many times each call was made, by its name: "search3", "getScanStatus".</summary>
+    public Dictionary<string, int> Calls { get; } = [];
+
     /// <summary>The stars asked for, in order: "star s1", "unstar s1" (#286).</summary>
     public List<string> Stars { get; } = [];
 
@@ -179,6 +185,8 @@ public sealed class FakeNavidrome : HttpMessageHandler
             throw new HttpRequestException("No connection could be made.");
         Uri uri = request.RequestUri!;
         string id = System.Web.HttpUtility.ParseQueryString(uri.Query)["id"] ?? "";
+        lock (Calls)
+            Calls[uri.AbsolutePath[6..^5]] = Calls.GetValueOrDefault(uri.AbsolutePath[6..^5]) + 1;
         if (uri.AbsolutePath == "/rest/getCoverArt.view")
         {
             lock (ArtAsked)
@@ -218,6 +226,7 @@ public sealed class FakeNavidrome : HttpMessageHandler
                         .Select(s => Song(s.Key)).ToArray(),
                 },
             }),
+            "/rest/getScanStatus.view" => Ok(new { scanStatus = new { scanning = false, count = Songs.Count, lastScan = LastScan } }),
             "/rest/getAlbumList2.view" => Ok(new { albumList2 = new { album = Empty ? [] : Albums.Keys.Select(Album).ToArray() } }),
             "/rest/getSong.view" => Songs.ContainsKey(id) ? Ok(new { song = Song(id) })
                 : "{\"subsonic-response\":{\"status\":\"failed\",\"version\":\"1.16.1\",\"error\":{\"code\":70,\"message\":\"Song not found\"}}}",

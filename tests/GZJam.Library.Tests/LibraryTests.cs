@@ -377,6 +377,51 @@ public sealed class WatcherTests : IDisposable
         await Task.Delay(600, TestContext.Current.CancellationToken);
         Assert.Equal(1, raised);
     }
+
+    [Fact]
+    public async Task A_song_being_downloaded_is_no_change_until_it_gets_its_name()
+    {
+        LibraryRoot root = _lib.Database.AddRoot(_lib.MusicPath);
+        using var watcher = new LibraryWatcher(TimeSpan.FromMilliseconds(300), TimeSpan.Zero);
+        int raised = 0;
+        watcher.RootChanged += _ => Interlocked.Increment(ref raised);
+        watcher.Watch(root);
+        string partial = Path.Combine(_lib.MusicPath, "Song.mp3" + GZJam.Library.Servers.ServerSync.PartialExtension);
+
+        await File.WriteAllBytesAsync(partial, new byte[4096], TestContext.Current.CancellationToken);
+        await File.AppendAllTextAsync(partial, "more", TestContext.Current.CancellationToken);
+        await Task.Delay(900, TestContext.Current.CancellationToken);
+        Assert.Equal(0, raised);
+
+        File.Move(partial, Path.Combine(_lib.MusicPath, "Song.mp3"));
+        await Task.Delay(900, TestContext.Current.CancellationToken);
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
+    public async Task Songs_arriving_one_at_a_time_are_scanned_together()
+    {
+        LibraryRoot root = _lib.Database.AddRoot(_lib.MusicPath);
+        using var watcher = new LibraryWatcher(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(2));
+        var times = new List<DateTime>();
+        watcher.RootChanged += _ => { lock (times) times.Add(DateTime.UtcNow); };
+        watcher.Watch(root);
+
+        DateTime start = DateTime.UtcNow;
+        for (int i = 0; i < 6; i++)   // a song every 300 ms, past the quiet period each time
+        {
+            _lib.AddMp3($"Sync/{i}.mp3");
+            await Task.Delay(300, TestContext.Current.CancellationToken);
+        }
+        await Task.Delay(2500, TestContext.Current.CancellationToken);
+
+        lock (times)
+        {
+            Assert.Equal(2, times.Count);   // the first song, then the rest together
+            Assert.True(times[1] - times[0] >= TimeSpan.FromSeconds(1.9), $"{(times[1] - times[0]).TotalSeconds} s apart");
+            Assert.True(times[0] - start < TimeSpan.FromSeconds(1));
+        }
+    }
 }
 
 public sealed class MatchExpressionTests

@@ -112,6 +112,18 @@ public sealed class SubsonicClient
 
     // ───────────── What's on the server (#283) ─────────────
 
+    /// <summary>What the server says of its own reading of its music: see <see cref="ServerScan"/>.</summary>
+    public async Task<ServerScan> GetScanStatusAsync(CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("getScanStatus", [], cancel).ConfigureAwait(false);
+        if (!body.TryGetProperty("scanStatus", out JsonElement status))
+            return new ServerScan(false, null, null);
+        bool scanning = status.TryGetProperty("scanning", out JsonElement s) && s.ValueKind == JsonValueKind.True;
+        int? count = status.TryGetProperty("count", out JsonElement c) && c.TryGetInt32(out int n) ? n : null;
+        string? last = status.TryGetProperty("lastScan", out JsonElement l) && l.ValueKind == JsonValueKind.String ? l.GetString() : null;
+        return new ServerScan(scanning, count, last);
+    }
+
     /// <summary>The server's playlists that this account can see: its own and public ones.</summary>
     public async Task<IReadOnlyList<ServerPlaylist>> GetPlaylistsAsync(CancellationToken cancel = default)
     {

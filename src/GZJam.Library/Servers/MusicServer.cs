@@ -64,6 +64,19 @@ public sealed record ServerCheck(
         : null;
 }
 
+/// <summary>
+/// What a server says of its own reading of its music (getScanStatus): whether it's reading it
+/// now, how many songs it has, and when it last read it (Navidrome's lastScan; most others don't say).
+/// </summary>
+public sealed record ServerScan(bool Scanning, int? Count, string? LastScan)
+{
+    /// <summary>
+    /// The same while the server hasn't read its music again: its last reading and song count, as
+    /// it says them (never compared with this computer's clock). Null when it doesn't say when.
+    /// </summary>
+    public string? Mark => Scanning || LastScan is not { Length: > 0 } ? null : $"{LastScan}|{Count}";
+}
+
 /// <summary>A playlist on a server, as its list of playlists says.</summary>
 public sealed record ServerPlaylist(string Id, string Name, int SongCount, TimeSpan Length, string? Owner);
 
