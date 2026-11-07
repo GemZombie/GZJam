@@ -529,8 +529,9 @@ in GZJam's settings or a backup. Add as many servers as you like, your own and a
 
 Each server sits in the folder tree after your music folders, with its folders under it as they are
 on the server (or by artist and album, for a server that doesn't say), and its playlists under
-*Playlists*. GZJam reads its song list when it's added and at most twice a day (right-click it ›
-*Read its song list again* after adding music there), so it's searched as fast as your own folders,
+*Playlists*. GZJam reads its song list when it's added and at most twice a day, only when the
+server has read its music since (Navidrome says when; right-click it › *Read its song list again*
+after adding music there), so it's searched as fast as your own folders,
 offline too, with the same filters. **Songs not on this computer are dimmed, with a cloud** by the
 title. Preview one in the headphones as usual. A double-click, a load onto a deck, or *Add to queue*
 downloads it first: a deck takes it only once it's here, and never the deck the room hears, and in
