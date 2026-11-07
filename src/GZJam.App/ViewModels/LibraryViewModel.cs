@@ -69,7 +69,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         else if (!nodes.Any(n => n.IsExpanded))
         {
-            foreach (var root in Roots)
+            foreach (var root in Roots.Where(r => !r.IsServer))
                 root.IsExpanded = true;   // back as it opens the first time
         }
         ReleaseRows();
@@ -203,6 +203,11 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(EmptyMessage));
+        OnPropertyChanged(nameof(SelectedSource));
+        OnPropertyChanged(nameof(IsServerShowing));
+        OnPropertyChanged(nameof(SearchPlaceholder));
+        OnPropertyChanged(nameof(HasNoRoots));
+        OnPropertyChanged(nameof(HasNoResults));
     }
 
     [ObservableProperty]
@@ -219,12 +224,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial double ScanPercent { get; private set; }
 
-    public bool HasNoRoots => HasLoaded && Roots.Count == 0;
-    public bool HasNoResults => HasLoaded && Roots.Count > 0 && Results.Count == 0;
+    /// <summary>My music has no music folder yet: what to do first, in place of the song list.</summary>
+    public bool HasNoRoots => HasLoaded && SelectedPlaylist is null && Source == LibrarySource.MyMusic && !Roots.Any(r => !r.IsServer);
+    public bool HasNoResults => HasLoaded && !HasNoRoots && Results.Count == 0;
     public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
         : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this computer are marked"
-        : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders" : "Whole library";
+        : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders"
+        : Source == LibrarySource.Servers ? "Every server" : "All of My music";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
 
     public string EmptyMessage
@@ -237,6 +244,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                     : $"Nothing on {server.Name} matches \"{SearchText.Trim()}\".");
             if (SelectedPlaylist is { } playlist && string.IsNullOrWhiteSpace(SearchText))
                 return $"\"{playlist.Name}\" is empty. Drag songs onto its name, or right-click songs › Add to playlist.";
+            if (SelectedPlaylist is null && SelectedFolder is null && Source == LibrarySource.Servers)
+                return ServerProblem ?? (string.IsNullOrWhiteSpace(SearchText)
+                    ? "Nothing added to your servers lately."
+                    : $"Nothing on your servers matches \"{SearchText.Trim()}\".");
             string where = SelectedPlaylist is { } p ? $" in {p.Name}" : SelectedFolder is { } f ? $" in {f.Name}" : "";
             return string.IsNullOrWhiteSpace(SearchText) ? $"No tracks{where}." : $"Nothing matches \"{SearchText.Trim()}\"{where}.";
         }
@@ -283,10 +294,16 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             _suppressSearch = suppressed;
             OnPlaylistShown();
         }
+        // A folder of the other source (a server's, from "Also:" or Show in folder tree): its tree.
+        if (value is not null)
+            Source = value.IsServer ? LibrarySource.Servers : LibrarySource.MyMusic;
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(SelectedFolderRow));
+        OnPropertyChanged(nameof(SelectedSource));
+        OnPropertyChanged(nameof(HasNoRoots));
+        OnPropertyChanged(nameof(HasNoResults));
         if (!_suppressSearch)
             RunSearch();
     }
@@ -441,12 +458,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private static IEnumerable<string> FindBpmFilters(string text) =>
         text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(IsBpmFilter).Select(t => t.ToLowerInvariant());
 
+    /// <summary>The chip's ×: all of the source again, the search kept.</summary>
     [RelayCommand]
-    private void ClearScope()
-    {
-        SelectedPlaylist = null;
-        SelectedFolder = null;
-    }
+    private void ClearScope() => ChooseSource(Source);
 
     [RelayCommand]
     private void ClearSearch() => SearchText = "";
@@ -454,10 +468,17 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     // ───────────── Lifecycle ─────────────
 
     /// <summary>Shows what's already indexed immediately, then rescans every root in the background.</summary>
-    public async Task StartAsync(string? selectedRootPath, string? selectedFolder, long? openPlaylist = null)
+    /// <param name="source">The source shown last time (null: My music, or Servers if My music has no folder yet).</param>
+    public async Task StartAsync(string? selectedRootPath, string? selectedFolder, long? openPlaylist = null, LibrarySource? source = null)
     {
         RefreshTree();
         RefreshPlaylists();
+        _suppressSearch = true;
+        Source = source ?? (Roots.Any(r => !r.IsServer) || !Roots.Any(r => r.IsServer) ? LibrarySource.MyMusic : LibrarySource.Servers);
+        if (!Sources.Any(s => s.Kind == Source))
+            Source = LibrarySource.MyMusic;
+        _suppressSearch = false;
+        OnSourceShown();
         if (openPlaylist is not null)
         {
             _suppressSearch = true;
@@ -485,7 +506,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>What to remember: the selected folder as (root path, relative folder).</summary>
     public (string? RootPath, string? Folder) GetSelection()
     {
-        if (SelectedFolder is not { } f)
+        if (SelectedFolder is not { IsServer: false } f)
             return (null, null);
         string? rootPath = _database.GetRoots().FirstOrDefault(r => r.Id == f.Node.RootId)?.Path;
         return (rootPath, f.Node.RelativePath);
@@ -630,7 +651,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         bool firstBuild = Roots.Count == 0;
         ForgetSuggestionValues();   // the songs, so their artists and genres, may have changed
 
-        var tree = FolderTree.Build(_database.GetRoots(), _database.GetFolderCounts());
+        var roots = _database.GetRoots();
+        _serversRoots = roots.Where(IsServersRoot).Select(r => r.Id).ToHashSet();
+        var tree = FolderTree.Build(roots.Where(r => !_serversRoots.Contains(r.Id)).ToList(), _database.GetFolderCounts());
         Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");
         var servers = _serverNodes ??= ServerNodes();
 
@@ -667,7 +690,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         ReleaseRows();
         _suppressSearch = false;
+        RefreshSources();
         OnPropertyChanged(nameof(HasNoRoots));
+        OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(ScopeText));
     }
 
@@ -720,7 +745,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     {
         _suppressSearch = true;
         SearchText = "";
-        Reveal(track.RootId, track.Folder);
+        if (IsServersRootId(track.RootId) && ServerFolderOf(track) is var (serverId, folder))
+            Reveal(-serverId, folder);   // a server's song on this computer: under its server (#318)
+        else
+            Reveal(track.RootId, track.Folder);
         _suppressSearch = false;
         RunSearch();
     }
@@ -741,7 +769,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     /// <summary>What the list shows: a list read again for the same one is the same list.</summary>
     private object ResultsKey() => (SelectedPlaylist?.Id, SelectedFolder?.Node.Scope, SelectedFolder?.Node.ServerId,
-        SelectedFolder?.Node.RelativePath, SearchText, OnlyHere);
+        SelectedFolder?.Node.RelativePath, SearchText, OnlyHere, Source);
 
     private void ShowResults(IReadOnlyList<Track> results, object key)
     {
@@ -769,17 +797,24 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             _ = RunServerSearchAsync(serverId, SelectedFolder.Node.RelativePath, text, version, key, cancel.Token);
             return;
         }
+        if (SelectedPlaylist is null && SelectedFolder is null && Source == LibrarySource.Servers)
+        {
+            _ = RunServersSearchAsync(text, version, key, cancel.Token);
+            return;
+        }
         FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;
         long? playlist = SelectedPlaylist?.Id;
         double near = NearBpm;
+        // All of My music: not the servers' downloads, which are theirs (#318).
+        IReadOnlyCollection<long>? notIn = playlist is null && scope is null ? _serversRoots : null;
 
         var started = System.Diagnostics.Stopwatch.StartNew();
         (string Text, int Count)? didYouMean = null;
         Task.Run(() =>
         {
-            var found = _database.Search(text, scope, cancel.Token, near, playlist);
+            var found = _database.Search(text, scope, cancel.Token, near, playlist, notIn);
             if (found.Count == 0)
-                didYouMean = DidYouMeanFor(text, scope, cancel.Token, near, playlist);
+                didYouMean = DidYouMeanFor(text, scope, cancel.Token, near, playlist, notIn);
             return found;
         }, cancel.Token).ContinueWith(t =>
         {
@@ -873,12 +908,13 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     partial void OnOnlyHereChanged(bool value)
     {
-        if (SelectedFolder?.IsServer == true)
+        if (IsServerShowing)
             RunSearch();
     }
 
-    /// <summary>A server, or one of its folders, is showing: the "Only on this computer" switch shows.</summary>
-    public bool IsServerShowing => SelectedPlaylist is null && SelectedFolder?.IsServer == true;
+    /// <summary>The servers, a server or one of its folders, is showing: the "Only on this computer" switch shows.</summary>
+    public bool IsServerShowing => SelectedPlaylist is null
+        && (SelectedFolder?.IsServer == true || (SelectedFolder is null && Source == LibrarySource.Servers));
 
     /// <summary>A server's songs for the song list: what was added lately, or a search's.</summary>
     public Func<long, string, string, CancellationToken, Task<ServerBrowse>>? BrowseServer { get; set; }
@@ -896,7 +932,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HasFooter))]
     public partial string? ServerNote { get; private set; }
 
-    /// <summary>"Also on synology: 12 songs not on this computer", under a library search; null if none.</summary>
+    /// <summary>"Also: 12 on synology" under a search of My music, "Also: 3 in My music" under one of the servers (#318); null if none.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAlsoOn), nameof(HasFooter))]
     public partial string? AlsoOnText { get; private set; }
@@ -906,21 +942,27 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     private long? _alsoOnServer;
 
-    /// <summary>The servers were added, renamed or removed: the tree again, and the song list if a server was showing.</summary>
+    /// <summary>
+    /// The servers were added, renamed or removed: the tree again (the downloads folder in My music
+    /// or not, with a server or without), and the song list if a server was showing.
+    /// </summary>
     public void RefreshServers()
     {
         bool showingServer = SelectedFolder?.IsServer == true;
+        var wasServers = _serversRoots;
         _serverNodes = null;   // read again: a scan only reads the music folders again
         RefreshTree(remake: true);
-        if (showingServer && SelectedFolder is null)
+        if ((showingServer && SelectedFolder is null) || !wasServers.SetEquals(_serversRoots))
             RunSearch();
     }
 
-    /// <summary>The server the "Also on" line names, with the same search.</summary>
+    /// <summary>Where the "Also:" line points, with the same search: a server, or My music.</summary>
     [RelayCommand]
     private void ShowAlsoOn()
     {
-        if (_alsoOnServer is { } id && Roots.FirstOrDefault(r => r.IsServer && r.Node.ServerId == id) is { } node)
+        if (_alsoInMyMusic)
+            ChooseSource(LibrarySource.MyMusic);
+        else if (_alsoOnServer is { } id && Roots.FirstOrDefault(r => r.IsServerItself && r.Node.ServerId == id) is { } node)
             SelectedFolder = node;
     }
 
@@ -955,6 +997,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var found = await AlsoOnServers(text, cancel);
         if (version != _searchVersion || cancel.IsCancellationRequested)
             return;
+        _alsoInMyMusic = false;
         _alsoOnServer = found?.ServerId;
         AlsoOnText = found?.Text;
     }

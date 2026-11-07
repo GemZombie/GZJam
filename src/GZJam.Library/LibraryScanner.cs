@@ -75,7 +75,14 @@ public sealed class LibraryScanner(LibraryDatabase database)
         CancellationToken cancellationToken = default)
     {
         var started = System.Diagnostics.Stopwatch.StartNew();
+        // A music folder inside this one is scanned as its own (the servers' downloads folder in
+        // the DJ's Music, #318): its songs are left to it, neither found nor gone here.
+        var inner = database.GetRoots().Where(r => r.Id != root.Id && IsInside(r.Path, root.Path))
+            .Select(r => Path.TrimEndingDirectorySeparator(r.Path) + Path.DirectorySeparatorChar).ToList();
+        bool Elsewhere(string path) => inner.Any(i => path.StartsWith(i, PathComparison));
         var known = database.GetFileStamps(root.Id);
+        if (inner.Count > 0)
+            known = known.Where(k => !Elsewhere(k.Key)).ToDictionary(StringComparer.Ordinal);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var toRead = new List<FileInfo>();
         var added = new Dictionary<string, (long Size, long ModifiedTicks)>(StringComparer.Ordinal);
@@ -91,7 +98,7 @@ public sealed class LibraryScanner(LibraryDatabase database)
             foreach (string path in Directory.EnumerateFiles(root.Path, "*", options))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!IsAudioFile(path))
+                if (!IsAudioFile(path) || (inner.Count > 0 && Elsewhere(path)))
                     continue;
 
                 seen.Add(path);
@@ -151,6 +158,14 @@ public sealed class LibraryScanner(LibraryDatabase database)
             Moves = [.. moves, .. fromElsewhere, .. toElsewhere],
         };
     }
+
+    private static StringComparison PathComparison => OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+    /// <summary>Whether <paramref name="folder"/> is inside <paramref name="outer"/> (not the same folder).</summary>
+    public static bool IsInside(string folder, string outer) =>
+        (Path.TrimEndingDirectorySeparator(folder) + Path.DirectorySeparatorChar).StartsWith(
+            Path.TrimEndingDirectorySeparator(outer) + Path.DirectorySeparatorChar, PathComparison)
+        && !string.Equals(Path.TrimEndingDirectorySeparator(folder), Path.TrimEndingDirectorySeparator(outer), PathComparison);
 
     /// <summary>
     /// Pairs this folder's unmatched songs with what other folders' scans left unmatched: a song

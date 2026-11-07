@@ -245,6 +245,19 @@
             <TextBlock Classes="settings-group" Text="LIBRARY" />
             <Border Classes="settings-card">
               <StackPanel>
+                <!-- Where Add to my music copies songs, from any source (#318) -->
+                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="setting" Text="Songs you add go to" />
+                    <TextBlock x:Name="KeepFolderText" Classes="setting-help" Text="{Binding Servers.KeepFolderText}" />
+                    <TextBlock Classes="setting-help"
+                               Text="Add to my music, on a server's songs, folders or playlists, copies them here, laid out as on the server: your own songs from then on, never removed by GZJam." />
+                  </StackPanel>
+                  <Button x:Name="KeepFolderButton" Grid.Column="1" Classes="hw" Content="CHANGE…" VerticalAlignment="Center"
+                          Click="OnKeepFolderClick"
+                          ToolTip.Tip="Another of your music folders for the songs you add from here on: those added already stay where they are" />
+                </Grid>
+                <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Import from Mixxx" />
@@ -400,18 +413,6 @@
                           IsEnabled="{Binding Servers.CanChangeDownloadsFolder}" Click="OnDownloadsFolderClick"
                           ToolTip.Tip="Another folder for downloaded songs, such as one on a bigger drive: the songs downloaded already move there, with their hearts, cues and EQ" />
                 </Grid>
-                <Border Classes="settings-rule" />
-                <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
-                  <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Songs you keep go to" />
-                    <TextBlock x:Name="KeepFolderText" Classes="setting-help" Text="{Binding Servers.KeepFolderText}" />
-                    <TextBlock Classes="setting-help"
-                               Text="Keep a copy in my library, on a server's songs, folders or playlists, puts them here, laid out as on the server: your own songs from then on, never removed by GZJam." />
-                  </StackPanel>
-                  <Button x:Name="KeepFolderButton" Grid.Column="1" Classes="hw" Content="CHANGE…" VerticalAlignment="Center"
-                          Click="OnKeepFolderClick"
-                          ToolTip.Tip="Another music folder for the songs you keep from here on: those kept already stay where they are" />
-                </Grid>
                 <!-- Only once a server is being kept whole: they do nothing until then -->
                 <StackPanel x:Name="KeepWholeSettings" IsVisible="{Binding Servers.KeepsAnyWhole}">
                 <Border Classes="settings-rule" />
@@ -419,7 +420,7 @@
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Speed for copying a whole server" />
                     <TextBlock Classes="setting-help"
-                               Text="For Keep the whole server in my library (right-click a server), which copies every song on it into your music folder in the background. Slower leaves room on the home connection and the NAS for everyone else." />
+                               Text="For Add the whole server to my music (right-click a server), which copies every song on it into your music folder in the background. Slower leaves room on the home connection and the NAS for everyone else." />
                   </StackPanel>
                   <ComboBox x:Name="KeepSpeedBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.KeepSpeedChoices}"
                             SelectedItem="{Binding Servers.KeepSpeed}" />
@@ -429,7 +430,7 @@
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Allow copying a whole server while music plays" />
                     <TextBlock Classes="setting-help"
-                               Text="For Keep the whole server in my library (right-click a server). Off: it copies only while no music is playing, and picks up where it left off. On: it copies at any time." />
+                               Text="For Add the whole server to my music (right-click a server). Off: it copies only while no music is playing, and picks up where it left off. On: it copies at any time." />
                   </StackPanel>
                   <ToggleButton x:Name="KeepWhilePlayingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
                                 IsChecked="{Binding Servers.KeepWhilePlaying}" />

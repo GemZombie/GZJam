@@ -334,12 +334,25 @@ out are GZJam's stop. Linux desktops have no such place, so there's nothing ther
 
 The song list shows your music; the folder tree shows it as it is on disk.
 
+### Sources
+
+The top of the library column lists where songs come from, each kept apart from the others:
+
+- **My music:** your music folders, and every song you add to them from a server.
+- **Servers** (once you've added one): each of your music servers, with its folders and playlists
+  under it. Songs downloaded for the nights are the server's: they show under it, never in My
+  music. See *Your own music server*.
+
+Click a source to see all of it; the folder tree below shows its folders, and a search covers it
+alone. Under a search, a line says what the other source has, a click away: *Also: 4 on synology ·
+Show* under a search of My music, *Also: 12 in My music · Show* under one of the servers.
+
 ### Folders and search
 
 ![A search for songs near 180 BPM that aren't broken-hearted, in one folder](images/guide/search.png)
 
 - **Choosing a folder** narrows the list (and searches) to everything beneath it. Click it again to
-  close it; the chip above the list shows the scope, and its ✕ goes back to the whole library.
+  close it; the chip above the list shows the scope, and its ✕ goes back to all of the source.
 - **Search** as you type, across titles, artists, albums, comments, Grouping, the other tags in
   your songs, folder names and file names (`balboa` finds songs in a *Balboa* folder). The best matches come first: songs whose
   title or artist has your words, then songs that have them somewhere else, and last, songs that
@@ -421,9 +434,9 @@ order. Playing a playlist turns off *Repeat › This song*; *Repeat › The queu
 playlist goes round.
 
 **More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
-down for more folders. If you only ever play from the whole library or a playlist, click the arrow
-beside **LIBRARY** to fold the folders away: only your music folder shows (still there to click for
-the whole library), and the playlists take the rest of the column. Opening a folder, or the arrow
+down for more folders. If you only ever play from all of My music or a playlist, click the arrow
+beside **LIBRARY** to fold the folders away: only your music folder shows, and the playlists take
+the rest of the column. Opening a folder, or the arrow
 again, brings the folders back. GZJam remembers both.
 
 ### Renamed and moved songs
@@ -527,7 +540,7 @@ in GZJam's settings or a backup. Add as many servers as you like, your own and a
 
 ### Browsing
 
-Each server sits in the folder tree after your music folders, with its folders under it as they are
+Click **Servers** in the library's sources: each server is in the folder tree, with its folders under it as they are
 on the server (or by artist and album, for a server that doesn't say), and its playlists under
 *Playlists*. GZJam reads its song list when it's added and at most twice a day, only when the
 server has read its music since (Navidrome says when; right-click it › *Read its song list again*
@@ -535,8 +548,9 @@ after adding music there), so it's searched as fast as your own folders,
 offline too, with the same filters. **Songs not on this computer are dimmed, with a cloud** by the
 title. Preview one in the headphones as usual. A double-click, a load onto a deck, or *Add to queue*
 downloads it first: a deck takes it only once it's here, and never the deck the room hears, and in
-the queue it waits in its place, *Downloading…*, then becomes the song. Under a search of your own
-library, *Also on synology: 12 songs not on this computer · Show* searches the server too.
+the queue it waits in its place, *Downloading…*, then becomes the song. With nothing chosen, a
+search covers every server. Under a search of My music, *Also: 12 on synology · Show* searches the
+server too. A song that's in My music as well (added to it, or yours already) says **yours**.
 
 ### Songs on this computer before the night
 
@@ -547,21 +561,22 @@ library, *Also on synology: 12 songs not on this computer · Show* searches the 
 - **A song, an album, a folder:** right-click songs › *Download to this computer* or *Download the
   album*, or a server's folder › *Download to this computer* (kept up to date as songs are added).
 - **Where they go:** *GZJam from servers* in your Music folder (Settings › Servers › CHANGE… moves
-  them, with their hearts, cues and EQ), laid out as the server has them, as a music folder like
-  your others. A song you already have (the same title, artist, and size or length) isn't
-  downloaded again.
+  them, with their hearts, cues and EQ), laid out as the server has them. It's where GZJam keeps
+  the server's songs for playing offline, not one of your music folders: its songs show under the
+  server, not in My music. A song you already have (the same title, artist, and size or length)
+  isn't downloaded again.
 - **Sync when GZJam starts** (Settings › Servers) brings what you chose up to date in the
   background, pausing once the room hears music.
 
-### Keeping songs in your library for good
+### Adding songs to My music
 
 Downloaded songs are copies for the nights, in GZJam's downloads folder, removed only as you say
-(see *Room on a small drive*). **Keep a copy in my library** (right-click songs, a server's folder or playlist) puts them
-in a music folder of your own, which you choose once, laid out as on the server: your own songs from
-then on, never removed by GZJam, played with or without the server, and tags can be written into
+(see *Room on a small drive*). **Add to my music** (right-click songs, a server's folder or playlist) copies them
+into a music folder of your own, which you choose once (Settings › Library › *Songs you add go to*), laid out as on the server: your own songs from
+then on, in My music, never removed by GZJam, played with or without the server, and tags can be written into
 them. A downloaded song moves there with its hearts, cues, labels, playlists and plays; nothing in
 the folder is ever replaced, and GZJam shows where they'll go before anything happens.
-Right-click the server › **Keep the whole server in my library…** brings all of it, a song at a
+Right-click the server › **Add the whole server to my music…** brings all of it, a song at a
 time in the background: it pauses while a song plays to the speakers (unless Settings › Servers
 lets it go on), can be held to a speed, paused and resumed, picks up where it left off after a restart, and songs
 added to the server later come too. Good for bringing a library home a bit at a time.
@@ -569,7 +584,7 @@ added to the server later come too. Good for bringing a library home a bit at a 
 ### What's coming down
 
 The top bar shows what's downloading; click it, or right-click a server › **Downloads…**, for every
-song coming down: what it's for (a sync and its playlist, the queue, a deck, a keep), how far along
+song coming down: what it's for (a sync and its playlist, the queue, a deck, adding to My music), how far along
 ("4.2 of 9.8 MB"), and why one failed. *Stop* on a song stops just that one; **Stop all** (or *Stop*
 in the top bar) stops syncs and keeps after the song coming down, pauses a whole server, and stops
 the queue's downloads, though a song a deck waits for still comes. *Retry failed* tries again.
@@ -763,12 +778,11 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
-- **Library:** *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
+- **Library:** *Songs you add go to* (where *Add to my music* copies songs), *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
 - **Servers:** your music servers (ADD A SERVER…, TEST, EDIT…, REMOVE…, *Send my hearts*), and
-  for the songs downloaded from them: where they go, where songs you keep go, keeping a whole
-  server (its speed, and whether it goes on while music plays, shown once a server is being kept
-  whole), *Keep downloaded songs*,
+  for the songs downloaded from them: where they go, adding a whole server to My music (its
+  speed, and whether it goes on while music plays, shown once a server is being added whole), *Keep downloaded songs*,
   *Room for downloaded songs*, and *Sync when GZJam starts*. See
   [Your own music server](#your-own-music-server).
 - **About:** the version, *Tell me when a new version is out* (at startup GZJam asks GitHub, and

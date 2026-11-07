@@ -610,18 +610,60 @@ public sealed partial class LibraryDatabase
         return roots;
     }
 
-    /// <summary>Adds a root folder, or returns the existing one with the same path.</summary>
+    /// <summary>
+    /// Adds a root folder, or returns the existing one with the same path. One inside another music
+    /// folder (the servers' downloads folder inside the DJ's Music, #318) takes its songs from it,
+    /// as they are, with everything the DJ gave them: a song belongs to the innermost music folder
+    /// it's in, and the other's scans leave this one out (see <see cref="LibraryScanner"/>).
+    /// </summary>
     public LibraryRoot AddRoot(string path)
     {
         string fullPath = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(path));
         using var c = Open();
-        using var cmd = c.CreateCommand();
-        cmd.CommandText = """
-            INSERT INTO roots(path) VALUES ($path) ON CONFLICT(path) DO NOTHING;
-            SELECT id FROM roots WHERE path = $path;
-            """;
-        cmd.Parameters.AddWithValue("$path", fullPath);
-        return new LibraryRoot((long)cmd.ExecuteScalar()!, fullPath);
+        long id;
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO roots(path) VALUES ($path) ON CONFLICT(path) DO NOTHING;
+                SELECT id FROM roots WHERE path = $path;
+                """;
+            cmd.Parameters.AddWithValue("$path", fullPath);
+            id = (long)cmd.ExecuteScalar()!;
+        }
+        ClaimTracks(c, id, fullPath);
+        return new LibraryRoot(id, fullPath);
+    }
+
+    /// <summary>The songs under <paramref name="rootPath"/> that another music folder, around it, has: this one's now.</summary>
+    private static void ClaimTracks(SqliteConnection c, long rootId, string rootPath)
+    {
+        string under = rootPath + System.IO.Path.DirectorySeparatorChar;
+        var claimed = new List<(long Id, string Folder)>();
+        using (var cmd = c.CreateCommand())
+        {
+            cmd.CommandText = $"SELECT id, path FROM tracks WHERE root_id <> $root AND substr(path, 1, $length) = $under{(OperatingSystem.IsLinux() ? "" : " COLLATE NOCASE")};";
+            cmd.Parameters.AddWithValue("$root", rootId);
+            cmd.Parameters.AddWithValue("$under", under);
+            cmd.Parameters.AddWithValue("$length", under.Length);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+                claimed.Add((r.GetInt64(0), TagReader.RelativeFolder(rootPath, System.IO.Path.GetDirectoryName(r.GetString(1))!)));
+        }
+        if (claimed.Count == 0)
+            return;
+        using var tx = c.BeginTransaction();
+        using var update = c.CreateCommand();
+        update.CommandText = "UPDATE tracks SET root_id = $root, folder = $folder WHERE id = $id;";
+        update.Parameters.AddWithValue("$root", rootId);
+        var folder = update.Parameters.Add("$folder", SqliteType.Text);
+        var trackId = update.Parameters.Add("$id", SqliteType.Integer);
+        foreach (var (id, f) in claimed)
+        {
+            trackId.Value = id;
+            folder.Value = f;
+            update.ExecuteNonQuery();
+        }
+        tx.Commit();
     }
 
     /// <summary>Removes a root and forgets its tracks. Files on disk are not touched.</summary>
@@ -815,10 +857,11 @@ public sealed partial class LibraryDatabase
     /// with words, the best matches come first (title or artist, then other fields, then comments),
     /// each in folder order. A playlist keeps its own order.
     /// <paramref name="nearBpm"/> is how far <c>~bpm:</c> reaches either side (a fraction), unless
-    /// the search says (<c>~bpm:140/5</c>).
+    /// the search says (<c>~bpm:140/5</c>). <paramref name="notInRoots"/>: music folders left out
+    /// (the servers' downloads folder, searching My music, #318).
     /// </summary>
     public IReadOnlyList<Track> Search(string? text, FolderScope? scope = null, CancellationToken cancellationToken = default,
-        double nearBpm = DefaultNearBpm, long? playlist = null)
+        double nearBpm = DefaultNearBpm, long? playlist = null, IReadOnlyCollection<long>? notInRoots = null)
     {
         var query = SearchQuery.Parse(text, nearBpm: nearBpm, tagKeys: TagKeys(text));
 
@@ -835,6 +878,8 @@ public sealed partial class LibraryDatabase
             if (scope.Folder.Length > 0)
                 sql.Append(" AND (t.folder = $folder OR substr(t.folder, 1, $prefixLength) = $prefix)");
         }
+        if (notInRoots is { Count: > 0 })
+            sql.Append($" AND t.root_id NOT IN ({string.Join(", ", notInRoots)})");
         sql.Append(playlist is null
             ? $" ORDER BY {(query.Ranking is { } ranking ? ranking + ", " : "")}t.root_id, t.folder COLLATE NOCASE, t.track_number, t.file_name COLLATE NOCASE;"
             : " ORDER BY e.position;");

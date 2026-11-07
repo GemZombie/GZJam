@@ -379,6 +379,29 @@
     <Setter Property="Margin" Value="0,-6,0,0" />
     <Setter Property="ZIndex" Value="1" />
   </Style>
+  <!-- "yours" on a server's song that's in My music too (#318) -->
+  <Style Selector="Border.yours-tag">
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="Margin" Value="6,0,0,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Opacity" Value="0.85" />
+  </Style>
+  <Style Selector="Border.yours-tag TextBlock">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+  <!-- The library's sources (#318): the one whose folders the tree shows, bold -->
+  <Style Selector="TextBlock.source-name.current">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.sources-rule">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Background" Value="{StaticResource LineBrush}" />
+    <Setter Property="Margin" Value="0,2,0,0" />
+  </Style>
   <Style Selector="Border.playlists-header">
     <Setter Property="BorderThickness" Value="0,1,0,1" />
     <Setter Property="Height" Value="36" />

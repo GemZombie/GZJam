@@ -284,6 +284,12 @@ public sealed class Track : INotifyPropertyChanged
     /// <summary>A song still on a server that answers: the plain cloud.</summary>
     public bool IsOnReachableServer => OnServer is { Unreachable: false };
 
+    /// <summary>
+    /// Listed among a server's songs (#318), this one is the DJ's own: in My music as well (added
+    /// to it, or theirs already), never removed by GZJam. Its row says "yours".
+    /// </summary>
+    public bool IsYours { get; set; }
+
     /// <summary>Shown dimmed in the song list: a missing file, or a song still on a server.</summary>
     public bool IsDimmed => IsMissing || IsOnServerOnly;
 

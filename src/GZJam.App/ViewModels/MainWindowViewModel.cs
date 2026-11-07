@@ -137,6 +137,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             : $"{waiting.Count} songs are still downloading: auto-play played the next song, and they wait at the top.", seconds: 6);
         Library.BrowseServer = Servers.BrowseAsync;
         Library.AlsoOnServers = Servers.AlsoOnAsync;
+        Library.IsServersRoot = Servers.IsDownloadsRoot;   // the servers' songs, apart from My music (#318)
+        Library.ServerFolderOf = Servers.ServerFolderOf;
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -1100,7 +1102,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private async Task StartLibraryAsync()
     {
-        await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist);
+        Servers.SeparateDownloads();   // from 1.4: a downloads folder inside a music folder is the servers' (#318)
+        await Library.StartAsync(_settings.SelectedRootPath, _settings.SelectedFolder, _settings.OpenPlaylist,
+            Enum.TryParse(_settings.LibrarySource, out LibrarySource source) ? source : null);
         Analysis?.QueueLibrary();   // after the scan, so new files are included
         await KeepAutomaticBackupAsync();
         await Servers.CheckReachableAsync();
@@ -1677,6 +1681,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         (_settings.SelectedRootPath, _settings.SelectedFolder) = Library.GetSelection();
         _settings.OpenPlaylist = Library.SelectedPlaylist?.Id;
+        _settings.LibrarySource = Library.Source.ToString();
     }
 
     public void Dispose()

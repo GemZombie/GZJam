@@ -78,9 +78,9 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>
-    /// Under a library search: the first server with songs it finds that aren't on this computer,
-    /// and what to say ("Also on synology: 12 songs not on this computer"). Null if none, or no
-    /// server answers quickly.
+    /// Under a search of My music (#318): the first server with songs it finds that aren't the
+    /// DJ's own (those are in My music already), and what to say ("Also: 12 on synology"). Null
+    /// if none, or no server answers quickly.
     /// </summary>
     public async Task<(long ServerId, string Text)?> AlsoOnAsync(string text, CancellationToken cancel)
     {
@@ -93,14 +93,14 @@ public sealed partial class ServersViewModel
             {
                 // At once, from the catalog.
                 long serverId = item.Server.Id;
-                int notHere = await Task.Run(() =>
+                int notMine = await Task.Run(() =>
                 {
                     var catalog = _database.SearchServerCatalog(serverId, "", words, cancel);
-                    var local = _database.GetServerSongsHere(serverId);
-                    return catalog.Songs.Count(s => !local.ContainsKey(s.Id));
+                    var own = _database.GetServerOwnCopies(serverId);
+                    return catalog.Songs.Count(s => !own.Contains(s.Id));
                 }, cancel);
-                if (notHere > 0)
-                    return (item.Server.Id, $"Also on {item.Name}: {(notHere == 1 ? "1 song" : $"{Format.Count(notHere)} songs")} not on this computer");
+                if (notMine > 0)
+                    return (item.Server.Id, $"Also: {Format.Count(notMine)} on {item.Name}");
                 continue;
             }
             if (SignedIn(item) is not { } client)
@@ -111,10 +111,10 @@ public sealed partial class ServersViewModel
                 quick.CancelAfter(TimeSpan.FromSeconds(4));
                 var found = await Task.Run(() => client.SearchAsync(words, songs: 100, albums: 0, artists: 0, quick.Token), quick.Token);
                 long searched = item.Server.Id;
-                var here = await Task.Run(() => _database.GetServerSongsHere(searched), cancel);
-                int missing = found.Songs.Count(s => !here.ContainsKey(s.Id));
-                if (missing > 0)
-                    return (item.Server.Id, $"Also on {item.Name}: {(missing == 1 ? "1 song" : $"{Format.Count(missing)}{(found.Songs.Count >= 100 ? "+" : "")} songs")} not on this computer");
+                var own = await Task.Run(() => _database.GetServerOwnCopies(searched), cancel);
+                int notMine = found.Songs.Count(s => !own.Contains(s.Id));
+                if (notMine > 0)
+                    return (item.Server.Id, $"Also: {Format.Count(notMine)}{(found.Songs.Count >= 100 ? "+" : "")} on {item.Name}");
             }
             catch (Exception e) when (e is ServerException or OperationCanceledException)
             {

@@ -187,6 +187,7 @@ public partial class MainWindow : Window
     /// <summary>Scrolls the folder tree to a folder, its folders above it opened so it has a row.</summary>
     internal void BringFolderIntoView(FolderNodeViewModel folder)
     {
+        Vm.Library.ShowSourceOf(folder);
         foreach (FolderNodeViewModel above in folder.SelfAndAncestors().Skip(1))
             above.IsExpanded = true;
         FolderTree.ScrollIntoView(folder);

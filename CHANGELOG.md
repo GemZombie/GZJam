@@ -13,13 +13,30 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **The library's sources: My music and Servers, each apart** (#318). The top of the library
+  column lists them; click one to see all of it, and the folder tree shows its folders alone. A
+  search covers the source you're in, and a line under it says what the other has, a click away:
+  *Also: 4 on synology · Show*, or *Also: 12 in My music · Show*. With no server chosen, a search
+  of Servers covers every server. A server's song that's in My music as well says **yours**.
+
 Changed:
 
-- **Settings › Servers says what keeping a whole server's two settings are for** (thanks to
+- **Songs downloaded from a server are the server's, not My music's** (#318). The downloads
+  folder (*GZJam from servers*) is where GZJam keeps them for playing offline: they show under
+  their server, never twice, and no longer in My music's folders or its search. Set up with the
+  downloads folder as a music folder of its own, or inside your Music folder, it moves over by
+  itself, its songs keeping their hearts, cues, labels, playlists and plays. Nothing else changes
+  in your library, so 1.4 can still open it.
+- **Keep a copy in my library is now *Add to my music*** (#318), and *Keep the whole server in my
+  library* is *Add the whole server to my music*. Where they put songs, *Songs you add go to*, is
+  in Settings › Library now.
+- **Settings › Servers says what adding a whole server's two settings are for** (thanks to
   Danny for the wording): *Speed for copying a whole server* and *Allow copying a whole server
-  while music plays* now say they're for *Keep the whole server in my library* (right-click a
+  while music plays* now say they're for *Add the whole server to my music* (right-click a
   server): off, it copies only while no music is playing; on, at any time. They show only once a
-  server is being kept whole: until then they do nothing.
+  server is being added whole: until then they do nothing.
 
 ## 1.4.0-beta.5 (2026-11-07)
 

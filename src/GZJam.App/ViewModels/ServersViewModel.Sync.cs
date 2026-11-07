@@ -281,26 +281,64 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>
-    /// The downloads folder is in the library: inside one of the DJ's music folders already, or
-    /// added as one of its own (a folder in the library's tree).
+    /// The downloads folder is in the library as a folder of its own (#318): the servers' songs
+    /// on this computer, kept apart from the DJ's music (see <see cref="IsDownloadsRoot"/>). One
+    /// inside a music folder is taken out of it, its songs with everything the DJ gave them.
     /// </summary>
     private async Task EnsureDownloadsInLibraryAsync()
     {
         string folder = DownloadsFolder;
         Directory.CreateDirectory(folder);
-        if (RootOf(folder) is null)
+        LibraryRoot? root = RootOf(folder);
+        if (root is null || !SamePath(root.Path, folder))
         {
-            Log.Info($"Servers: adding {folder} to the library");
+            Log.Info(root is null ? $"Servers: adding {folder} to the library"
+                : $"Servers: {folder} is inside {root.Path}: the servers' songs on this computer, apart from it from now on");
             await _owner.Library.AddRootAsync(folder);
         }
     }
 
+    /// <summary>
+    /// At GZJam's start, with a server, before the library shows: a downloads folder inside one of
+    /// the DJ's music folders (from 1.4) becomes one of its own, its songs the servers' and not the
+    /// DJ's (#318), with everything the DJ gave them. The library's start scans it.
+    /// </summary>
+    public void SeparateDownloads()
+    {
+        if (Items.Count == 0 || RootOf(DownloadsFolder) is not { } root || SamePath(root.Path, DownloadsFolder))
+            return;
+        Log.Info($"Servers: {DownloadsFolder} is inside {root.Path}: the servers' songs on this computer, apart from it from now on");
+        _database.AddRoot(DownloadsFolder);
+    }
+
+    /// <summary>A song of the downloads folder, for Show in folder tree (#318): the server it's from, and its folder there.</summary>
+    public (long ServerId, string Folder)? ServerFolderOf(Track track)
+    {
+        foreach (var (_, serverId, songId) in _database.GetServerSongsAt([track.Path]))
+            if (_database.GetServerCatalogSong(serverId, songId) is { } song)
+                return (serverId, ServerPaths.CatalogPlace(song).Folder);
+        return null;
+    }
+
+    /// <summary>
+    /// The servers' songs on this computer (#318): the downloads folder, a music folder in the
+    /// library's index but not in My music. Only while there's a server: without one, what's
+    /// left in it is plain music again.
+    /// </summary>
+    public bool IsDownloadsRoot(LibraryRoot root) => Items.Count > 0 && SamePath(root.Path, DownloadsFolder);
+
+    private static bool SamePath(string a, string b) =>
+        string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(a)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(b)),
+            OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The music folder <paramref name="folder"/> is in: the innermost, a song belonging to the innermost (#318).</summary>
     private LibraryRoot? RootOf(string folder)
     {
         string full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)) + Path.DirectorySeparatorChar;
-        return _database.GetRoots().FirstOrDefault(r =>
+        return _database.GetRoots().Where(r =>
             full.StartsWith(Path.TrimEndingDirectorySeparator(r.Path) + Path.DirectorySeparatorChar,
-                OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+                OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            .MaxBy(r => r.Path.Length);
     }
 
     /// <summary>The new songs into the library, and the playlists they filled into the list.</summary>
@@ -433,10 +471,16 @@ public sealed partial class ServersViewModel
         return Task.Run(() =>
         {
             var here = _database.GetServerSongsHere(serverId);
+            var own = _database.GetServerOwnCopies(serverId);
             var mine = _database.FindTracks(songs.Select(s => here.GetValueOrDefault(s.Id)).OfType<string>());
-            return songs.Select(s => here.TryGetValue(s.Id, out string? path)
-                ? mine.GetValueOrDefault(path) ?? _database.TrackForFile(path)
-                : new ServerTrack(serverId, name, s) { Unreachable = offline }.ToTrack()).ToList();
+            return songs.Select(s =>
+            {
+                if (!here.TryGetValue(s.Id, out string? path))
+                    return new ServerTrack(serverId, name, s) { Unreachable = offline }.ToTrack();
+                Track track = mine.GetValueOrDefault(path) ?? _database.TrackForFile(path);
+                track.IsYours = own.Contains(s.Id);
+                return track;
+            }).ToList();
         }, cancel);
     }
 

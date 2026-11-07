@@ -86,6 +86,20 @@ public sealed partial class LibraryDatabase
         return here;
     }
 
+    /// <summary>The server's songs that are the DJ's own (#285, #318): in My music, as well as on the server.</summary>
+    public HashSet<string> GetServerOwnCopies(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT song_id FROM server_songs WHERE server_id = $server AND own_copy = 1;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        using var r = cmd.ExecuteReader();
+        var own = new HashSet<string>(StringComparer.Ordinal);
+        while (r.Read())
+            own.Add(r.GetString(0));
+        return own;
+    }
+
     /// <summary>The songs GZJam downloaded (not the DJ's own), by their file: which server's song each is.</summary>
     public Dictionary<string, (long ServerId, string SongId)> GetServerDownloadsByPath()
     {
