@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.4.0-beta.5.
+
+## 1.4.0-beta.5 (2026-11-07)
+
+The fifth beta of 1.4: the library's folder tree with no gaps, and never blank as you scroll. Like
+the others, GZJam's update notice doesn't offer it: you only get it from this page. It has
+everything in 1.4.0-beta.4, and nothing more changes in your library, so 1.3.0 can still open it.
+
 Fixed:
 
 - **The library's folder tree no longer leaves gaps or goes blank as you scroll**: with a folder
