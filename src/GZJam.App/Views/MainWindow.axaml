@@ -347,23 +347,21 @@
               </Button>
             </Grid>
           </Border>
-          <c:FolderTreeView x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6"
-                    ItemsSource="{Binding Library.Roots}"
-                    SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
+          <!-- The folder tree as one list of rows, each indented for its place: rows only for the
+               folders in view, a server having thousands in one folder (#290). See
+               LibraryViewModel.FolderRows. -->
+          <c:FolderList x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6"
+                    ItemsSource="{Binding Library.FolderRows}"
+                    SelectedItem="{Binding Library.SelectedFolderRow, Mode=TwoWay}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <c:FolderTreeView.Styles>
-              <Style Selector="TreeViewItem" x:DataType="vm:FolderNodeViewModel">
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                <!-- Rows only for the folders in view: a server can have thousands in one folder (#290) -->
-                <Setter Property="ItemsPanel">
-                  <ItemsPanelTemplate>
-                    <VirtualizingStackPanel />
-                  </ItemsPanelTemplate>
-                </Setter>
-              </Style>
-            </c:FolderTreeView.Styles>
-            <c:FolderTreeView.ItemTemplate>
-              <TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+            <c:FolderList.ItemTemplate>
+              <DataTemplate DataType="vm:FolderNodeViewModel">
+                <DockPanel>
+                  <Border DockPanel.Dock="Left" Width="{Binding Indent}" />
+                  <Panel DockPanel.Dock="Left" Classes="folder-arrow">
+                    <ToggleButton Classes="folder-arrow" IsChecked="{Binding IsExpanded, Mode=TwoWay}" IsVisible="{Binding HasChildren}"
+                                  Focusable="False" />
+                  </Panel>
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                   <Grid.ContextMenu>
                     <ContextMenu>
@@ -424,9 +422,10 @@
                   <TextBlock Grid.Column="2" Classes="dim" Text="{Binding CountText}" FontSize="11"
                              VerticalAlignment="Center" Margin="0,0,8,0" />
                 </Grid>
-              </TreeDataTemplate>
-            </c:FolderTreeView.ItemTemplate>
-          </c:FolderTreeView>
+                </DockPanel>
+              </DataTemplate>
+            </c:FolderList.ItemTemplate>
+          </c:FolderList>
           <!-- Playlists: sets planned in order, under the folders -->
           <DockPanel x:Name="PlaylistsSection" Grid.Row="2">
             <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">

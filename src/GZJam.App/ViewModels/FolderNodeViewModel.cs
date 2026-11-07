@@ -14,12 +14,22 @@ public sealed partial class FolderNodeViewModel : ObservableObject
         _owner = owner;
         Node = node;
         Parent = parent;
+        Depth = parent is null ? 0 : parent.Depth + 1;
         Children = node.Children.Select(c => new FolderNodeViewModel(owner, c, this)).ToList();
     }
 
     public FolderNode Node { get; private set; }
     public FolderNodeViewModel? Parent { get; }
     public IReadOnlyList<FolderNodeViewModel> Children { get; }
+
+    /// <summary>How far down the tree: 0 for a music folder or a server.</summary>
+    public int Depth { get; }
+
+    /// <summary>The room before its row's arrow, for its place in the tree.</summary>
+    public double Indent => Depth * 16;
+
+    /// <summary>It has folders in it: an arrow to open it.</summary>
+    public bool HasChildren => Children.Count > 0;
 
     public string Name => Node.Name;
 
@@ -116,6 +126,7 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     {
         if (value)
             _owner.FolderExpanded();
+        _owner.FolderToggled();
     }
 
     /// <summary>"Jazz &amp; Swing › Classic Swing", including the root's name.</summary>
