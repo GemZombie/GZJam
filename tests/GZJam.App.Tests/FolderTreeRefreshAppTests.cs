@@ -79,6 +79,27 @@ public sealed class FolderTreeRefreshAppTests
     }
 
     [AvaloniaFact]
+    public void A_server_saved_before_is_in_the_tree_when_GZJam_starts()
+    {
+        string work = Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
+        try
+        {
+            var library = new GZJam.Library.LibraryDatabase(Path.Combine(work, "library.db"));
+            var server = library.AddServer("synology", "http://nas:4533", "jesse");
+            library.ReplaceServerCatalog(server.Id, [new ServerSong("s1", "Song", "Artist", "Album", "Artist", 1, 1, 2000,
+                "/music/Artist/Album/01 - Song.mp3", "mp3", 4_000_000, TimeSpan.FromMinutes(3))], DateTime.UtcNow);
+
+            using var app = new AppHarness(workDirectory: work);
+
+            Assert.Equal("synology", Server(app).Name);   // beta.2 kept the tree's first look, made before the servers were hooked up: none
+        }
+        finally
+        {
+            try { Directory.Delete(work, recursive: true); } catch (IOException) { }
+        }
+    }
+
+    [AvaloniaFact]
     public void A_servers_own_change_still_makes_it_again()
     {
         using var app = WithServer();

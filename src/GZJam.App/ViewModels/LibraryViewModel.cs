@@ -805,7 +805,17 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     // ───────────── Servers in the library (#290) ─────────────
 
     /// <summary>The servers' places in the tree, after the music folders.</summary>
-    public Func<IReadOnlyList<FolderNode>> ServerNodes { get; set; } = () => [];
+    public Func<IReadOnlyList<FolderNode>> ServerNodes
+    {
+        get => _serverNodesSource;
+        set
+        {
+            _serverNodesSource = value;
+            _serverNodes = null;   // the tree can be made before the servers are hooked up: never keep their absence
+        }
+    }
+
+    private Func<IReadOnlyList<FolderNode>> _serverNodesSource = () => [];
 
     /// <summary>The servers' places as last read: from their song lists, which a scan doesn't change.</summary>
     private IReadOnlyList<FolderNode>? _serverNodes;
