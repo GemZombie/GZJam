@@ -38,7 +38,7 @@ public partial class MainWindow
 
     private void UpdateSuggestions()
     {
-        if (!SearchBox.IsFocused)
+        if (!SearchBox.IsFocused || !Vm.Library.CanFilter)   // Files filters by name: nothing to suggest (#318)
         {
             CloseSuggestions();
             return;

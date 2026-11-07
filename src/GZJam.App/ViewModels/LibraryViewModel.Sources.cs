@@ -12,6 +12,9 @@ public enum LibrarySource
 
     /// <summary>The music servers, each a node of the tree, with their songs on this computer.</summary>
     Servers,
+
+    /// <summary>The computer's files and any USB stick, as folders: never searched, a folder filtered by name.</summary>
+    Files,
 }
 
 /// <summary>A source in the library column's list: its name and how many songs it has.</summary>
@@ -21,6 +24,7 @@ public sealed partial class SourceViewModel(LibrarySource kind, string name) : O
     public string Name { get; } = name;
     public bool IsMyMusic => Kind == LibrarySource.MyMusic;
     public bool IsServers => Kind == LibrarySource.Servers;
+    public bool IsFiles => Kind == LibrarySource.Files;
 
     [ObservableProperty]
     public partial string CountText { get; set; } = "";
@@ -37,8 +41,8 @@ public sealed partial class SourceViewModel(LibrarySource kind, string name) : O
 /// </summary>
 public sealed partial class LibraryViewModel
 {
-    /// <summary>My music, and Servers once there's a server.</summary>
-    public ObservableCollection<SourceViewModel> Sources { get; } = [new(LibrarySource.MyMusic, "My music")];
+    /// <summary>My music, Servers once there's a server, and Files.</summary>
+    public ObservableCollection<SourceViewModel> Sources { get; } = [new(LibrarySource.MyMusic, "My music"), new(LibrarySource.Files, "Files")];
 
     /// <summary>The source whose folders the tree shows, and which a search covers.</summary>
     [ObservableProperty]
@@ -82,8 +86,6 @@ public sealed partial class LibraryViewModel
     partial void OnSourceChanged(LibrarySource value)
     {
         SyncFolderRows();
-        foreach (SourceViewModel source in Sources)
-            source.IsCurrent = source.Kind == value;
         OnSourceShown();
         if (!_suppressSearch && SelectedFolder is null && SelectedPlaylist is null)
             RunSearch();   // all of the source showing: the other one's now
@@ -91,40 +93,55 @@ public sealed partial class LibraryViewModel
 
     /// <summary>The tree shows the source <paramref name="folder"/> is in, so it has a row (Show in folder tree).</summary>
     internal void ShowSourceOf(FolderNodeViewModel folder) =>
-        Source = folder.IsServer ? LibrarySource.Servers : LibrarySource.MyMusic;
+        Source = SourceOf(folder);
+
+    private static LibrarySource SourceOf(FolderNodeViewModel folder) =>
+        folder.IsServer ? LibrarySource.Servers : folder.IsFiles ? LibrarySource.Files : LibrarySource.MyMusic;
 
     private void OnSourceShown()
     {
+        foreach (SourceViewModel source in Sources)
+            source.IsCurrent = source.Kind == Source;
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(HasNoRoots));
         OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(SearchPlaceholder));
+        OnPropertyChanged(nameof(CanFilter));
         OnPropertyChanged(nameof(ClearScopeTip));
         OnPropertyChanged(nameof(EmptyMessage));
     }
 
     /// <summary>Whether a root of the tree is in the source the tree shows.</summary>
-    private bool InSource(FolderNodeViewModel root) => root.IsServer == (Source == LibrarySource.Servers);
+    private bool InSource(FolderNodeViewModel root) => SourceOf(root) == Source;
 
     /// <summary>The search box's hint: what it searches.</summary>
-    public string SearchPlaceholder => Source == LibrarySource.Servers && SelectedPlaylist is null
-        ? "Search your servers"
+    public string SearchPlaceholder => SelectedPlaylist is not null ? "Search, or filter: bpm:130-150  artist:basie  rating:yes"
+        : Source == LibrarySource.Servers ? "Search your servers"
+        : Source == LibrarySource.Files ? "Filter this folder's songs by name"
         : "Search, or filter: bpm:130-150  artist:basie  rating:yes";
 
-    public string ClearScopeTip => Source == LibrarySource.Servers ? "Search every server" : "Search all of My music";
+    /// <summary>The search's filters (BPM, Label, Filter, the search help): for every source but Files, whose box filters by name only.</summary>
+    public bool CanFilter => SelectedPlaylist is not null || Source != LibrarySource.Files;
+
+    public string ClearScopeTip => Source switch
+    {
+        LibrarySource.Servers => "Search every server",
+        LibrarySource.Files => "Back to the computer and its USB sticks",
+        _ => "Search all of My music",
+    };
 
     /// <summary>The sources' counts, and Servers in the list once there's a server: after the tree is made.</summary>
     private void RefreshSources()
     {
         var servers = Roots.Where(r => r.IsServerItself).ToList();
-        int mine = Roots.Where(r => !r.IsServer).Sum(r => r.Node.TrackCount);
+        int mine = Roots.Where(r => r.IsFolder).Sum(r => r.Node.TrackCount);
         Sources[0].CountText = Format.Count(mine);
         SourceViewModel? listed = Sources.FirstOrDefault(s => s.IsServers);
         if (servers.Count > 0)
         {
             if (listed is null)
-                Sources.Add(listed = new SourceViewModel(LibrarySource.Servers, "Servers") { IsCurrent = Source == LibrarySource.Servers });
+                Sources.Insert(1, listed = new SourceViewModel(LibrarySource.Servers, "Servers") { IsCurrent = Source == LibrarySource.Servers });
             listed.CountText = servers.Sum(s => s.Node.TrackCount) is var n and > 0 ? Format.Count(n) : "";
         }
         else if (listed is not null)

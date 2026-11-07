@@ -69,7 +69,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         else if (!nodes.Any(n => n.IsExpanded))
         {
-            foreach (var root in Roots.Where(r => !r.IsServer))
+            foreach (var root in Roots.Where(r => r.IsFolder))
                 root.IsExpanded = true;   // back as it opens the first time
         }
         ReleaseRows();
@@ -206,6 +206,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(SearchPlaceholder));
+        OnPropertyChanged(nameof(CanFilter));
         OnPropertyChanged(nameof(HasNoRoots));
         OnPropertyChanged(nameof(HasNoResults));
     }
@@ -225,11 +226,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public partial double ScanPercent { get; private set; }
 
     /// <summary>My music has no music folder yet: what to do first, in place of the song list.</summary>
-    public bool HasNoRoots => HasLoaded && SelectedPlaylist is null && Source == LibrarySource.MyMusic && !Roots.Any(r => !r.IsServer);
+    public bool HasNoRoots => HasLoaded && SelectedPlaylist is null && Source == LibrarySource.MyMusic && !Roots.Any(r => r.IsFolder);
     public bool HasNoResults => HasLoaded && !HasNoRoots && Results.Count == 0;
     public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
         : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this computer are marked"
+        : SelectedFolder is { IsFiles: true } files ? $"in {files.DisplayPath}"
         : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders"
         : Source == LibrarySource.Servers ? "Every server" : "All of My music";
     public string ResultSummary => Results.Count == 1 ? "1 track" : $"{Format.Count(Results.Count)} tracks";
@@ -238,6 +240,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     {
         get
         {
+            if (FilesMessage() is { } files)
+                return files;
             if (SelectedFolder is { IsServer: true } server)
                 return ServerProblem ?? (string.IsNullOrWhiteSpace(SearchText)
                     ? $"Nothing added to {server.Name} lately."
@@ -296,7 +300,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         // A folder of the other source (a server's, from "Also:" or Show in folder tree): its tree.
         if (value is not null)
-            Source = value.IsServer ? LibrarySource.Servers : LibrarySource.MyMusic;
+            Source = SourceOf(value);
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
@@ -474,7 +478,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         RefreshTree();
         RefreshPlaylists();
         _suppressSearch = true;
-        Source = source ?? (Roots.Any(r => !r.IsServer) || !Roots.Any(r => r.IsServer) ? LibrarySource.MyMusic : LibrarySource.Servers);
+        Source = source ?? (Roots.Any(r => r.IsFolder) || !Roots.Any(r => r.IsServer) ? LibrarySource.MyMusic : LibrarySource.Servers);
         if (!Sources.Any(s => s.Kind == Source))
             Source = LibrarySource.MyMusic;
         _suppressSearch = false;
@@ -506,7 +510,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>What to remember: the selected folder as (root path, relative folder).</summary>
     public (string? RootPath, string? Folder) GetSelection()
     {
-        if (SelectedFolder is not { IsServer: false } f)
+        if (SelectedFolder is not { IsFolder: true } f)
             return (null, null);
         string? rootPath = _database.GetRoots().FirstOrDefault(r => r.Id == f.Node.RootId)?.Path;
         return (rootPath, f.Node.RelativePath);
@@ -656,13 +660,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var tree = FolderTree.Build(roots.Where(r => !_serversRoots.Contains(r.Id)).ToList(), _database.GetFolderCounts());
         Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");
         var servers = _serverNodes ??= ServerNodes();
+        var files = _fileNodes ??= FileNodes();
 
         // The same music folders and servers (a scan after a download, a file added): each keeps
         // its place in the tree and takes the new counts, and only one whose folders changed (an
         // album's first song arrived) is made again. Made again, a tree stayed in memory with the
         // rows it had shown (Avalonia keeps them), so a sync, scanning with every song, filled
         // memory with copies of the server's thousands of folders (#286).
-        var all = tree.Concat(servers).ToList();
+        var all = tree.Concat(servers).Concat(files).ToList();
         _suppressSearch = true;
         HoldRows();
         if (!firstBuild && !remake && Roots.Count == all.Count && Roots.Zip(all).All(p => SameRoot(p.First.Node, p.Second)))
@@ -697,7 +702,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     }
 
     private static bool SameRoot(FolderNode a, FolderNode b) =>
-        a.RootId == b.RootId && a.FullPath == b.FullPath && a.IsServer == b.IsServer && a.ServerId == b.ServerId;
+        a.RootId == b.RootId && a.FullPath == b.FullPath && a.IsServer == b.IsServer && a.ServerId == b.ServerId && a.Files == b.Files;
 
     /// <summary>A music folder's or a server's place in the tree, opened as it was.</summary>
     private FolderNodeViewModel NewRoot(FolderNode node, HashSet<(long RootId, string Folder)> expanded, bool firstBuild)
@@ -710,7 +715,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             (vm.IsKeepingWhole, vm.IsKeepWholePaused) = ServerKeepWhole(id);
         }
         foreach (var n in vm.SelfAndDescendants())
-            n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !n.IsServer && !AreFoldersFolded);
+            n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && n.IsFolder && !AreFoldersFolded)
+                || (n.IsComputer && !_computerShown && !AreFoldersFolded);   // open the first time it shows, as the DJ left it after
+        _computerShown |= vm.IsComputer;
         return vm;
     }
 
@@ -800,6 +807,11 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         if (SelectedPlaylist is null && SelectedFolder is null && Source == LibrarySource.Servers)
         {
             _ = RunServersSearchAsync(text, version, key, cancel.Token);
+            return;
+        }
+        if (SelectedPlaylist is null && Source == LibrarySource.Files)
+        {
+            _ = RunFilesListAsync(SelectedFolder, text, version, key, cancel.Token);
             return;
         }
         FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;

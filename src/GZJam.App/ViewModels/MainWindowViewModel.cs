@@ -139,6 +139,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Library.AlsoOnServers = Servers.AlsoOnAsync;
         Library.IsServersRoot = Servers.IsDownloadsRoot;   // the servers' songs, apart from My music (#318)
         Library.ServerFolderOf = Servers.ServerFolderOf;
+        Files = new FilesViewModel(this, database);   // the computer's files and USB sticks (#318)
+        Library.FileNodes = Files.TreeNodes;
+        Library.ListFiles = Files.ListAsync;
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -157,6 +160,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>Music servers the DJ signed in to (Settings › Servers, #282).</summary>
     public ServersViewModel Servers { get; }
+
+    /// <summary>The library's Files: the computer's places and drives, and USB sticks (#318).</summary>
+    public FilesViewModel Files { get; }
     public QueueViewModel Queue { get; }
     public HistoryViewModel History { get; }
 
@@ -545,6 +551,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Adds songs to a playlist: at the end, or before its entry number <paramref name="index"/> (from 0).</summary>
     public void AddToPlaylist(PlaylistInfo playlist, IReadOnlyList<Track> songs, int? index = null)
     {
+        if (songs.Any(Files.IsOnStick))
+        {
+            // From a USB stick (#318): read in first, so the playlist still has them once it's pulled out.
+            _ = ThenAsync(Files.ReadInAsync(songs), read => AddToPlaylist(playlist, read, index));
+            return;
+        }
         if (songs.Any(t => t.IsOnServerOnly))
         {
             _ = AddFromServerAsync(songs.Where(t => t.IsOnServerOnly).ToList(), here => AddToPlaylist(playlist, [here], index));
@@ -588,6 +600,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (tracks.Count == 0)
             return;
+        if (tracks.Any(Files.IsOnStick))
+        {
+            // From a USB stick (#318): read in first, so pulling it out never stops the room.
+            _ = ThenAsync(Files.ReadInAsync(tracks), read => AddToQueue(read, index));
+            return;
+        }
         var earlier = FirstPositions(Queue.Items.Select(i => i.Track.Path));
         var added = Queue.Add(tracks, index);
         // Songs still on a server (#290) wait in their place, downloading, and become themselves when they're here.
@@ -806,6 +824,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
     /// <summary>Songs still on a server, brought here one at a time; each goes where it was meant to as it arrives.</summary>
+    private static async Task ThenAsync(Task<IReadOnlyList<Track>> reading, Action<IReadOnlyList<Track>> then)
+    {
+        var read = await reading;
+        if (read.Count > 0)
+            then(read);
+    }
+
     private async Task AddFromServerAsync(IReadOnlyList<Track> songs, Action<Track> arrived)
     {
         foreach (Track song in songs)
@@ -1095,6 +1120,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _playbackTimer.Start();
         _nightBack = RestoreNightAsync();
         _ = StartLibraryAsync();
+        Files.Start();
     }
 
     /// <summary>The queue and decks brought back at startup: what the downloads' tidying waits for.</summary>
@@ -1435,6 +1461,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 return false;
             track = here;
         }
+        if (Files.IsOnStick(track))
+        {
+            // From a USB stick (#318): read in, so pulling it out never stops the room.
+            if (await Files.ReadInAsync([track]) is not [var read])
+                return false;
+            track = read;
+        }
         if (deck.IsOnAir)
         {
             switch (_settings.LoadOntoPlayingDeck)
@@ -1514,6 +1547,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             if (await Servers.BringHereAsync(track, "For a deck") is not { } here)
                 return false;
             track = here;
+        }
+        if (Files.IsOnStick(track))
+        {
+            if (await Files.ReadInAsync([track]) is not [var read])
+                return false;
+            track = read;
         }
         DeckViewModel? deck;
         if (AutoPlay is { IsOn: true } auto)
@@ -1689,6 +1728,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _clock.Stop();
         _playbackTimer.Stop();
         Servers.Close();
+        Files.Dispose();
         Library.Dispose();
         Art.Dispose();
         Analysis?.Dispose();   // stops decoding before BASS goes away

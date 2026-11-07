@@ -21,7 +21,7 @@ public sealed class MainWindowTests
     {
         using var app = new AppHarness();
 
-        FolderNodeViewModel root = Assert.Single(app.Library.Roots);
+        FolderNodeViewModel root = Assert.Single(app.Library.Roots, r => r.IsFolder);   // Files' places after it (#318)
         Assert.Equal(15, root.Node.TrackCount);
         Assert.Equal(["Blues", "Swing"], root.Children.Select(c => c.Name));
         Assert.Equal(15, app.Library.Results.Count);

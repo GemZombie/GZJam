@@ -20,6 +20,13 @@ New:
   search covers the source you're in, and a line under it says what the other has, a click away:
   *Also: 4 on synology · Show*, or *Also: 12 in My music · Show*. With no server chosen, a search
   of Servers covers every server. A server's song that's in My music as well says **yours**.
+- **Files: the computer's own places and drives, and any USB stick** (#318), as the library's
+  third source, so a one-off song (a request, a first dance) plays without leaving GZJam or
+  dragging it in. A stick shows as soon as it's plugged in. Open a folder to see its songs; the
+  search box filters them by name. **A song from a USB stick is read into GZJam when it's loaded
+  or queued**, so pulling the stick out never stops the room. *Add to my music* copies songs (or a
+  whole folder) into your music, under *Added* and the folder they came from, with their hearts
+  and cues.
 
 Changed:
 

@@ -332,7 +332,7 @@ public sealed partial class ServersViewModel
             OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
     /// <summary>The music folder <paramref name="folder"/> is in: the innermost, a song belonging to the innermost (#318).</summary>
-    private LibraryRoot? RootOf(string folder)
+    internal LibraryRoot? RootOf(string folder)
     {
         string full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)) + Path.DirectorySeparatorChar;
         return _database.GetRoots().Where(r =>
