@@ -151,17 +151,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 1.3.0.
+**In 1.4,** to try now in [1.4.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.1):
 
-## Planned next
-
-**1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
-when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1.4. Found something? Say so in
-[Discussions](https://github.com/GemZombie/GZJam/discussions) or
-[the Facebook group](https://www.facebook.com/groups/2178840716051629/).
-
-**Next, in 1.4:** your music from anywhere. With a beta first, since it
-reaches into the library and the network.
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
   other Subsonic servers, one or several), browsed and searched
   [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
@@ -172,9 +163,16 @@ reaches into the library and the network.
   why, and how far along. A heart stars the song on the server, and downloads can go by
   themselves after the night or after 4 weeks. Songs moved on the server follow here, and
   [the guide](docs/GUIDE.md#your-own-music-server) covers it all, from Navidrome on a Synology to
-  Tailscale and a friend's server. Next, the beta.
+  Tailscale and a friend's server.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
-  missing, and *Fill tags from file name* in the tag editor
+  missing, and *Fill tags from file name* in song info
+
+## Planned next
+
+**1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
+when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1.4. Found something? Say so in
+[Discussions](https://github.com/GemZombie/GZJam/discussions) or
+[the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.5:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

@@ -13,6 +13,18 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.4.0-beta.1.
+
+## 1.4.0-beta.1 (2026-11-06)
+
+A beta of 1.4, for trying it before everyone gets it: your music from your own server (Navidrome,
+or another that speaks the Subsonic API), on the computer before the night so the room never
+depends on the Wi-Fi, and artist and title from file names. GZJam's update notice doesn't offer
+betas: you only get one from this page. It adds a few small things to your library (your
+servers, and what came from them); 1.3.0 can still open it, so you can go back at any time.
+[The guide](docs/GUIDE.md#your-own-music-server) shows how to set up a server. Worth a try on
+your own, and a word if anything's off.
+
 New:
 
 - **Your own music server, in Settings › Servers** (the first part of
