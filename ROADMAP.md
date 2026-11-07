@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.2.0** (5 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.3.0** (6 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -66,6 +66,8 @@ release.
   you like during a night.
 - The deck the room hears has a red on-air bar that fills as the song plays.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
+- A song with a long or repetitive outro fades out where you set it (*Song ends › Start fade-out
+  here*), rather than stopping dead, with auto-play or playing by hand.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
   passages closer together: on a deck, or for any song from its right-click menu while preparing
   a set.
@@ -104,7 +106,8 @@ release.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
   nights it can fade each song out after a set time, or wait for you between songs; and it can
-  stop at a set time, so the night ends on time. Repeat sends each song back to the end of the
+  stop at a set time, so the night ends on time, or after this song, for an announcement, with
+  the next song ready for when you press play. Repeat sends each song back to the end of the
   queue, so a playlist plays over and over, or plays one song again and again. Load another song
   onto the deck waiting to play, and the one that was there goes back to the top of the queue.
 - On Windows the speakers can be GZJam's alone (a switch, for a laptop kept for gigs), so no
@@ -114,6 +117,10 @@ release.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
+- When the queue ends, beside the clock: the time the music queued runs out, counting the gaps,
+  song ends and fades, so you can see whether it reaches the end of the night.
+- The room's song from the Windows taskbar or the Mac Dock: pause, fade out (the next song, with
+  auto-play) and auto-play, without switching to GZJam.
 - GZJam asks before closing while the room is hearing music. Settings has a Quit key too, for Linux
   desktops that draw no title bar.
 - If GZJam crashes or the computer restarts mid-dance, the night comes back: the queue and the decks
@@ -144,23 +151,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.3,** to try now in [1.3.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.3.0-beta.1):
-
-- [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
-  Start fade-out here*, for a long or repetitive outro, so the song fades where you set it rather
-  than stopping dead, with auto-play or playing by hand
-- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
-  fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
-  without switching to GZJam
-- [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): the room goes quiet when
-  the song playing ends, for an announcement, with the next song ready for when you press play
-- [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
-  music queued runs out, beside the clock, counting the gaps, song ends and fades
+Nothing yet since 1.3.0.
 
 ## Planned next
 
-**1.2 is out** (5 November 2026): every tag in your songs, and song info with tag editing. Fixes
-come as 1.2.1, 1.2.2 and so on, and new features as 1.3. Found something? Say so in
+**1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
+when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1.4. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
