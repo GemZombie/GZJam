@@ -56,6 +56,7 @@ public partial class MainWindow : Window
         InitializePlaylists();
         InitializeDoubleClick();
         InitializePanes();
+        InitializeKeepPlace();
         UseTopBarAsTitleBar();
     }
 

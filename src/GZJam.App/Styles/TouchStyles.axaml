@@ -36,13 +36,13 @@
   <Style Selector="DataGrid.tracks DataGridColumnHeader">
     <Setter Property="MinHeight" Value="40" />
   </Style>
-  <Style Selector="TreeView.folders TreeViewItem">
+  <Style Selector="TreeViewItem.folder-row">
     <Setter Property="MinHeight" Value="40" />
   </Style>
   <Style Selector="ListBox.playlists ListBoxItem">
     <Setter Property="MinHeight" Value="40" />
   </Style>
-  <Style Selector="TreeView.folders TreeViewItem /template/ Panel#PART_ExpandCollapseChevronContainer">
+  <Style Selector="TreeViewItem.folder-row /template/ Panel#PART_ExpandCollapseChevronContainer">
     <Setter Property="Width" Value="40" />
   </Style>
   <Style Selector="TextBox.search">

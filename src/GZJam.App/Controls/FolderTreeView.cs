@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.VisualTree;
@@ -28,6 +29,10 @@ public class FolderTreeViewItem : TreeViewItem
 
     public FolderTreeViewItem()
     {
+        // Its styles go by its own class, not "TreeView.folders TreeViewItem": a rule that looks
+        // at the tree above it keeps the row listening to the tree, and rows thrown away with
+        // the tree stayed in memory (#286).
+        Classes.Add("folder-row");
         AddHandler(TappedEvent, OnTapped);
     }
 
@@ -48,6 +53,29 @@ public class FolderTreeViewItem : TreeViewItem
         if (ItemCount > 0)
             SetCurrentValue(IsExpandedProperty, !_wasSelected || !IsExpanded);
         e.Handled = true;
+    }
+
+    /// <summary>The tree's scroll area, which keeps the rows in view as candidates to anchor its scrolling to.</summary>
+    private IScrollAnchorProvider? _anchors;
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _anchors = this.FindAncestorOfType<ScrollContentPresenter>();
+    }
+
+    /// <summary>
+    /// A row taken out of the tree leaves the scroll area's anchor candidates. The panels that
+    /// show a folder's subfolders register their rows there, but rows thrown away with the tree
+    /// (made again after each scan: with each song a sync brings down) were never taken out, so
+    /// every old tree stayed in memory, the server's thousands of folders and their menus with it:
+    /// 2.4 GB after a few hours of syncing, and the window stuttered as .NET went through it all.
+    /// </summary>
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _anchors?.UnregisterAnchorCandidate(this);
+        _anchors = null;
     }
 
     /// <summary>The first click opened the folder; the second of a double-click shouldn't close it.</summary>

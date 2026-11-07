@@ -17,11 +17,35 @@ public sealed partial class FolderNodeViewModel : ObservableObject
         Children = node.Children.Select(c => new FolderNodeViewModel(owner, c, this)).ToList();
     }
 
-    public FolderNode Node { get; }
+    public FolderNode Node { get; private set; }
     public FolderNodeViewModel? Parent { get; }
     public IReadOnlyList<FolderNodeViewModel> Children { get; }
 
     public string Name => Node.Name;
+
+    /// <summary>The same folders, the same way down (after a scan that only changed songs): this node can take <paramref name="node"/>'s counts.</summary>
+    internal bool SameShape(FolderNode node)
+    {
+        if (Node.Name != node.Name || Node.RelativePath != node.RelativePath || Node.FullPath != node.FullPath || Node.RootId != node.RootId
+            || Node.IsServer != node.IsServer || Node.ServerId != node.ServerId || Node.ServerPlaylistId != node.ServerPlaylistId
+            || Children.Count != node.Children.Count)
+            return false;
+        for (int i = 0; i < Children.Count; i++)
+            if (!Children[i].SameShape(node.Children[i]))
+                return false;
+        return true;
+    }
+
+    /// <summary>Takes the same-shaped <paramref name="node"/>'s song counts, here and all the way down.</summary>
+    internal void Follow(FolderNode node)
+    {
+        bool counted = Node.TrackCount != node.TrackCount;
+        Node = node;
+        if (counted)
+            OnPropertyChanged(nameof(CountText));
+        for (int i = 0; i < Children.Count; i++)
+            Children[i].Follow(node.Children[i]);
+    }
     public string CountText => IsSyncing ? "↻" : IsServer && Node.TrackCount == 0 ? "" : Format.Count(Node.TrackCount);
     public bool IsRoot => Node.IsRoot;
 
@@ -96,6 +120,12 @@ public sealed partial class FolderNodeViewModel : ObservableObject
 
     /// <summary>"Jazz &amp; Swing › Classic Swing", including the root's name.</summary>
     public string DisplayPath => Parent is null ? Name : $"{Parent.DisplayPath} › {Name}";
+
+    public IEnumerable<FolderNodeViewModel> SelfAndAncestors()
+    {
+        for (FolderNodeViewModel? n = this; n is not null; n = n.Parent)
+            yield return n;
+    }
 
     public IEnumerable<FolderNodeViewModel> SelfAndDescendants() =>
         Children.SelectMany(c => c.SelfAndDescendants()).Prepend(this);
