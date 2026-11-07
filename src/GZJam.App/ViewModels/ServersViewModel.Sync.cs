@@ -201,6 +201,7 @@ public sealed partial class ServersViewModel
                         : null
                     : null,
                 Report = ReportTo(item, "Sync", ("sync", item.Server.Id), _ => SyncAsync(item)),
+                MakeRoom = MakeRoomFor(item),
             };
             Log.Info($"Servers: syncing {item.Name}{(automatic ? " (at startup)" : "")} into {sync.ServerFolder}"
                 + (limitGb is null ? "" : $", up to {limitGb} GB"));
@@ -230,6 +231,8 @@ public sealed partial class ServersViewModel
             item.ShowSync(Describe(result, automatic), problem: !result.Finished || result.Failed > 0);
             if (result.Downloaded > 0 || result.Songs > 0)
                 AfterSync();
+            if (_madeRoom.Count > 0)
+                RoomMade();
         }
         finally
         {

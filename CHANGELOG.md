@@ -75,6 +75,19 @@ New:
   and *Clear finished* do what they say. The last 100 finished stay for the session. Songs
   downloading for the queue or a deck now show in the top bar too, and its *Stop* stops the
   queue's (a song a deck is waiting for still comes).
+- **Hearts back to the server** ([#286](https://github.com/GemZombie/GZJam/issues/286)): a ♥ on a
+  song from your server (downloaded, kept, or your own copy of one) stars it there, so Navidrome's
+  own app and web page show the same favorites, and taking the ♥ off takes the star off. Stars are
+  saved under your account, so a friend's own aren't changed. A server that can't be reached is
+  told once it answers. Settings › Servers can leave a server out (*Send my hearts*).
+- **Downloaded songs that go by themselves** (#286): Settings › Servers › *Keep downloaded songs*:
+  *Until I remove them* (as before, the default), *For 4 weeks after they were last played*, or
+  *For the night only* (songs downloaded for the queue or a deck go the next time GZJam starts).
+  The songs of lists kept on this computer always stay, and so does anything on a deck, in the
+  queue or played tonight; a list that wants a song again brings it again. And with *Room for
+  downloaded songs* set, a sync that would pass it now makes room with the downloads played least
+  recently, rather than stopping. Adds one more small thing to your library; older versions can
+  still open it.
 - **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
   of its folders) › *Remove from this computer*, or right-click the server › *Free up space…*: what
   was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,

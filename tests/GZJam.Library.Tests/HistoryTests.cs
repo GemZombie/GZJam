@@ -134,6 +134,7 @@ public sealed class HistoryTests : IDisposable
                 ALTER TABLE tracks DROP COLUMN tag_text;
                 DROP TABLE tag_edits;                         -- added by upgrade 23
                 ALTER TABLE trims DROP COLUMN fade_out;       -- added by upgrade 24
+                DROP TABLE server_hearts_out;                 -- added by upgrade 31
                 DROP TABLE server_playlists;                  -- added by upgrade 29
                 DROP TABLE server_removed;                    -- added by upgrade 28
                 DROP TABLE server_catalog;                    -- added by upgrade 27

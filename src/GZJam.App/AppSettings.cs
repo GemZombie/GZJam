@@ -29,6 +29,17 @@ public enum OnAirPause
     TapTwice,
 }
 
+/// <summary>How long songs downloaded from a server stay on the computer by themselves (#286).</summary>
+public enum KeepDownloads
+{
+    /// <summary>Until the DJ removes them: nothing disappears unless asked. The default.</summary>
+    UntilRemoved,
+    /// <summary>For 4 weeks after they were last played (or came, if never played).</summary>
+    FourWeeks,
+    /// <summary>Songs downloaded on the spot go the next time GZJam starts.</summary>
+    NightOnly,
+}
+
 /// <summary>What a deck's big readout shows; tapping it cycles through these.</summary>
 public enum DeckReadout
 {
@@ -231,6 +242,15 @@ public sealed class AppSettings
 
     /// <summary>Room the songs downloaded from servers may take, in GB; null: as much as the disk has (leaving some free).</summary>
     public double? ServerDownloadsLimitGb { get; set; }
+
+    /// <summary>
+    /// Songs downloaded from servers that no list kept on the computer needs go by themselves
+    /// (#286): never, 4 weeks after they were last played, or the night after.
+    /// </summary>
+    public KeepDownloads ServerKeepDownloads { get; set; } = KeepDownloads.UntilRemoved;
+
+    /// <summary>The servers the DJ's hearts aren't sent to (#286), by ID: by default, a ♥ stars the song there.</summary>
+    public List<long> ServerHeartsNotSent { get; set; } = [];
 
     /// <summary>Sync each server when GZJam starts, if it answers (#283). Never while the room hears music.</summary>
     public bool SyncServersAtStartup { get; set; } = true;

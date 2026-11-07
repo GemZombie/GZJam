@@ -444,6 +444,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             foreach (Track track in TracksFor(path).Concat(tracks.Where(t => t.Path == path)))
                 track.Rating = rating;
         Log.Info($"Rating for {Describe(tracks, paths)}: {rating}");
+        _ = Servers.HeartsChangedAsync(paths, rating);   // a server's song: starred there too (#286)
     }
 
     /// <summary>Marks tracks' energy wherever they are on screen.</summary>
@@ -1090,9 +1091,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ConnectSavedOutputs();
         if (Mix is not null)
             _playbackTimer.Start();
+        _nightBack = RestoreNightAsync();
         _ = StartLibraryAsync();
-        _ = RestoreNightAsync();
     }
+
+    /// <summary>The queue and decks brought back at startup: what the downloads' tidying waits for.</summary>
+    private Task _nightBack = Task.CompletedTask;
 
     private async Task StartLibraryAsync()
     {
@@ -1100,6 +1104,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Analysis?.QueueLibrary();   // after the scan, so new files are included
         await KeepAutomaticBackupAsync();
         await Servers.CheckReachableAsync();
+        _ = Servers.SendHeartsAsync();   // set while a server couldn't be told (#286)
+        await _nightBack;   // what's queued and on the decks stays
+        await Servers.TidyDownloadsAsync();
         await Servers.ReadCatalogsAsync();
         if (_settings.SyncServersAtStartup)
             await Servers.SyncAtStartupAsync();

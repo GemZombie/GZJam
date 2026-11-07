@@ -82,6 +82,7 @@ public sealed partial class ServersViewModel
         foreach (QueueItem waiting in _owner.Queue.Items.Where(q => q.Track.OnServer?.ServerId == item.Server.Id).ToList())
             FetchForQueue(waiting);
         StartKeepWhole(item);
+        _ = SendHeartsAsync();
     }
 
     /// <summary>The tree's mark, the song list's rows, and "Only what's on this computer" follow a server going or coming back.</summary>

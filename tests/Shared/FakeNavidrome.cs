@@ -101,6 +101,9 @@ public sealed class FakeNavidrome : HttpMessageHandler
         content.Headers.ContentType = new("audio/mpeg");
         return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
     }
+    /// <summary>The stars asked for, in order: "star s1", "unstar s1" (#286).</summary>
+    public List<string> Stars { get; } = [];
+
     public string? Truncate { get; set; }
     public int Downloads { get; private set; }
 
@@ -166,6 +169,9 @@ public sealed class FakeNavidrome : HttpMessageHandler
             picture.Headers.ContentType = new("image/png");
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = picture });
         }
+        if (uri.AbsolutePath is "/rest/star.view" or "/rest/unstar.view")
+            lock (Stars)
+                Stars.Add($"{uri.AbsolutePath[6..^5]} {id}");
         if (uri.AbsolutePath == "/rest/download.view" && Hold is { } hold)
             return HeldAsync(request, hold, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view" && DownloadDelay > TimeSpan.Zero)
