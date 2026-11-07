@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.4.0-beta.2.
+
+## 1.4.0-beta.2 (2026-11-06)
+
+The second beta of 1.4, with fixes from trying the first on a sync over the internet. Like the
+first, GZJam's update notice doesn't offer it: you only get it from this page. It has everything
+in 1.4.0-beta.1, and nothing changes in your library, so 1.3.0 can still open it.
+
 Fixed:
 
 - **The song list stays where you scrolled it while a sync brings songs down:** each song that
