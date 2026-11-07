@@ -91,5 +91,5 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
     }
 
     private static string Describe(Track track) =>
-        string.IsNullOrWhiteSpace(track.Artist) ? track.DisplayTitle : $"{track.DisplayTitle} · {track.Artist}";
+        track.DisplayArtist.Length == 0 ? track.DisplayTitle : $"{track.DisplayTitle} · {track.DisplayArtist}";
 }

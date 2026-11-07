@@ -89,7 +89,7 @@ public sealed class ServerHeartsTidyAppTests
         WaitFor(() => fake.Stars.Count == 2, "the star taken off");
 
         Assert.Equal(["star s1", "unstar s1"], fake.Stars);
-        Assert.Empty(app.Database.GetServerHeartsOut(server.Server.Id));
+        WaitFor(() => app.Database.GetServerHeartsOut(server.Server.Id).Count == 0, "both noted as sent");
     }
 
     [AvaloniaFact]

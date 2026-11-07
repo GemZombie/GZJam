@@ -86,7 +86,7 @@ public partial class MainWindow
             MaxWidth = 280,
             TextTrimming = TextTrimming.CharacterEllipsis,
         });
-        string detail = drag.Tracks.Count == 1 ? first.Artist ?? "" : $"{first.DisplayTitle} and more";
+        string detail = drag.Tracks.Count == 1 ? first.DisplayArtist : $"{first.DisplayTitle} and more";
         if (detail.Length > 0)
             text.Children.Add(new TextBlock { Text = detail, Classes = { "muted" }, FontSize = 11.5, MaxWidth = 280, TextTrimming = TextTrimming.CharacterEllipsis });
         return new Border { Classes = { "drag-tag" }, Child = text, IsHitTestVisible = false };

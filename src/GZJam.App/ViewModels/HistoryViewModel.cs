@@ -16,7 +16,7 @@ public sealed class PlayItem(PlayRecord record, Track track, int number)
     public int Number { get; } = number;
     public string TimeText => Record.PlayedUtc.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
     public string Title => Record.DisplayTitle;
-    public string Artist => Record.Artist ?? "";
+    public string Artist => Record.DisplayArtist;
     public string BpmText => Format.Bpm(Record.Bpm is { } bpm ? bpm * (1 + Record.TempoPercent / 100) : null);
     public string DurationText => Format.Duration(Record.Duration);
 }

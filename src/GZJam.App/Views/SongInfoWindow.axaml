@@ -122,6 +122,37 @@
                        IsVisible="{Binding NewTagError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           </StackPanel>
 
+          <!-- Fill tags from file name (#273): a pattern, a preview, then each song's own -->
+          <Button x:Name="FillOpenButton" Classes="link" Content="Fill tags from file name…" HorizontalAlignment="Left" Padding="0,2"
+                  IsVisible="{Binding IsEditable}" IsEnabled="{Binding !IsFillOpen}" Click="OnFillOpenClick"
+                  ToolTip.Tip="For songs whose tags are empty but whose file names are good: 1924 Ma Rainey - Lucky Rock Blues.mp3" />
+          <Border x:Name="FillPanel" Classes="settings-card" Margin="0" IsVisible="{Binding IsFillOpen}">
+            <StackPanel Spacing="6" Margin="12,10">
+              <TextBlock Classes="label" Text="FILL TAGS FROM FILE NAME" />
+              <TextBox x:Name="FillPatternBox" Classes="tag-field" Text="{Binding FillPattern}" FontFamily="{StaticResource MonoFont}"
+                       ToolTip.Tip="{Binding FillHelp}" />
+              <TextBlock Classes="setting-help" Text="{Binding FillHelp}" TextWrapping="Wrap" />
+              <ItemsControl x:Name="FillPreviewList" ItemsSource="{Binding FillPreview}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:FillRow">
+                    <StackPanel Spacing="0" Margin="0,2">
+                      <TextBlock Classes="mono muted" FontSize="11" Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock FontSize="12" Text="{Binding Says}" TextWrapping="Wrap" Classes.muted="{Binding !Fits}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <CheckBox x:Name="FillOnlyEmptyBox" IsChecked="{Binding FillOnlyEmpty}">
+                <TextBlock Classes="setting-help" Text="Only tags that are empty (the ones with a value stay as they are)" TextWrapping="Wrap" />
+              </CheckBox>
+              <TextBlock x:Name="FillSummaryText" Classes="setting-help" FontWeight="SemiBold" Text="{Binding FillSummary}" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Classes="hw" Content="CLOSE" Click="OnFillCloseClick" />
+                <Button x:Name="FillButton" Classes="hw" Content="FILL" MinWidth="88" IsEnabled="{Binding CanFill}" Click="OnFillClick" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
           <TextBlock x:Name="ReadOnlyText" Classes="setting-help" Text="{Binding ReadOnlyReason}" TextWrapping="Wrap" Margin="0,6,0,0"
                      IsVisible="{Binding ReadOnlyReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 

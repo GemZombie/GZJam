@@ -669,7 +669,7 @@ public sealed partial class DeckViewModel : ObservableObject
     public string Title => Track?.DisplayTitle ?? "No track loaded";
 
     public string Subtitle => Track is { } t
-        ? string.Join(" · ", new[] { t.Artist, t.Album, t.Year?.ToString(CultureInfo.InvariantCulture) }.Where(s => !string.IsNullOrWhiteSpace(s)))
+        ? string.Join(" · ", new[] { t.DisplayArtist, t.Album, t.Year?.ToString(CultureInfo.InvariantCulture) }.Where(s => !string.IsNullOrWhiteSpace(s)))
         : "Drag a track here, or right-click › Load to Deck " + Label;
 
     /// <summary>0..1 through the track.</summary>

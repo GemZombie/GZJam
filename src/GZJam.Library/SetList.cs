@@ -45,8 +45,8 @@ public static class SetList
         {
             PlayRecord play = plays[i];
             var parts = new List<string> { play.DisplayTitle };
-            if (!string.IsNullOrWhiteSpace(play.Artist))
-                parts.Add(play.Artist);
+            if (play.DisplayArtist.Length > 0)
+                parts.Add(play.DisplayArtist);
             if (PlayedBpm(play) is { } bpm)
                 parts.Add($"{Math.Round(bpm).ToString(culture)} BPM");
             parts.Add(Length(play.Duration));
@@ -72,7 +72,7 @@ public static class SetList
                 local.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 local.ToString("HH:mm:ss", CultureInfo.InvariantCulture),
                 play.DisplayTitle,
-                play.Artist ?? "",
+                play.DisplayArtist,
                 play.Album ?? "",
                 PlayedBpm(play) is { } bpm ? bpm.ToString("0.#", CultureInfo.InvariantCulture) : "",
                 play.TempoPercent == 0 ? "" : play.TempoPercent.ToString("+0.0'%';-0.0'%'", CultureInfo.InvariantCulture),

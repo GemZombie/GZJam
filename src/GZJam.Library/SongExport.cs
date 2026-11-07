@@ -95,7 +95,7 @@ public sealed class SongExport
         foreach (var (song, fileName) in Files)
         {
             int seconds = song.Duration > TimeSpan.Zero ? (int)Math.Round(song.Duration.TotalSeconds) : -1;
-            string shown = string.IsNullOrWhiteSpace(song.Artist) ? song.DisplayTitle : $"{song.Artist} - {song.DisplayTitle}";
+            string shown = song.DisplayArtist.Length == 0 ? song.DisplayTitle : $"{song.DisplayArtist} - {song.DisplayTitle}";
             text.Append(CultureInfo.InvariantCulture, $"#EXTINF:{seconds},{shown}\n{fileName}\n");
         }
         return text.ToString();
@@ -105,7 +105,7 @@ public sealed class SongExport
     internal static string FileName(int number, int digits, Track song)
     {
         string extension = Path.GetExtension(song.Path).ToLowerInvariant();
-        string artist = string.IsNullOrWhiteSpace(song.Artist) ? "" : song.Artist.Trim() + " - ";
+        string artist = song.DisplayArtist.Length == 0 ? "" : song.DisplayArtist.Trim() + " - ";
         string name = SafeName($"{number.ToString(CultureInfo.InvariantCulture).PadLeft(digits, '0')} - {artist}{song.DisplayTitle}", "Song");
         if (name.Length > LongestName - extension.Length)
             name = name[..(LongestName - extension.Length)].TrimEnd(' ', '.');

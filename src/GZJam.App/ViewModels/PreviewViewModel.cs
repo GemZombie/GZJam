@@ -14,7 +14,7 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
 
     public bool IsActive => Track is not null;
     public string Title => Track?.DisplayTitle ?? "";
-    public string Artist => Track?.Artist ?? "";
+    public string Artist => Track?.DisplayArtist ?? "";
     public double Progress => player.Length > TimeSpan.Zero ? player.Position / player.Length : 0;
     public string TimeText => $"{Format.Duration(player.Position)} / {Format.Duration(player.Length)}";
 
