@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GZJam.App.ViewModels"
+        x:Class="GZJam.App.Views.DownloadsWindow"
+        x:DataType="vm:DownloadsViewModel"
+        Width="760" Height="540" MinWidth="560" MinHeight="340"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PanelBrush}"
+        Title="Downloads · GZJam">
+  <!--
+    Everything coming down from the servers (#304): a line for each sync or keep running, with its
+    Stop, then each song, saying why it's coming, how far along it is, and what failed and why.
+  -->
+  <DockPanel Margin="20" LastChildFill="True">
+    <TextBlock DockPanel.Dock="Top" Classes="label" Text="DOWNLOADS" Margin="0,0,0,10" />
+
+    <!-- The syncs and keeps running -->
+    <ItemsControl x:Name="BatchList" DockPanel.Dock="Top" ItemsSource="{Binding Batches}" Margin="0,0,0,8">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:DownloadBatch">
+          <Border Classes="settings-card" Margin="0,0,0,6">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="12,8">
+              <StackPanel Spacing="3">
+                <TextBlock Classes="setting" Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="setting-help" Text="{Binding Detail}" TextTrimming="CharacterEllipsis" />
+                <ProgressBar Height="4" Minimum="0" Maximum="100" Value="{Binding Percent}" Foreground="{StaticResource AccentBrush}" />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="link" Content="{Binding StopText}" Command="{Binding StopCommand}" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- The buttons -->
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8" Margin="0,12,0,0">
+      <Button x:Name="StopAllButton" Content="STOP ALL" Command="{Binding StopAllCommand}" IsEnabled="{Binding CanStopAll}" MinHeight="34"
+              ToolTip.Tip="Syncs and songs being kept stop after the song coming down, a whole server pauses, and the queue's songs stop (a song a deck waits for still comes)" />
+      <Button Grid.Column="1" x:Name="RetryButton" Content="RETRY FAILED" Command="{Binding RetryFailedCommand}" IsEnabled="{Binding CanRetryFailed}" MinHeight="34"
+              ToolTip.Tip="Try the songs that couldn't be downloaded again" />
+      <Button Grid.Column="2" x:Name="ClearButton" Content="CLEAR FINISHED" Command="{Binding ClearFinishedCommand}" IsEnabled="{Binding CanClearFinished}" MinHeight="34"
+              ToolTip.Tip="Take the songs that are done, stopped or failed off the list" />
+      <Button Grid.Column="4" x:Name="CloseButton" Content="CLOSE" IsCancel="True" MinWidth="96" MinHeight="34"
+              HorizontalContentAlignment="Center" />
+    </Grid>
+
+    <!-- The songs -->
+    <Border Classes="settings-card" Margin="0">
+      <Panel>
+        <TextBlock Classes="muted" Text="Nothing is coming down from your servers." HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding IsEmpty}" />
+        <ListBox x:Name="SongList" ItemsSource="{Binding Items}" Background="Transparent" SelectionMode="Single">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <VirtualizingStackPanel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:DownloadItem">
+              <Grid ColumnDefinitions="*,Auto,150,52" ColumnSpacing="12" Margin="2,3">
+                <StackPanel Spacing="1" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                  <TextBlock Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding Artist}" /><Run Text="  ·  " /><Run Text="{Binding WhyText}" />
+                  </TextBlock>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Classes="muted" FontSize="11" Text="{Binding SizeText}" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
+                  <TextBlock FontSize="11" Text="{Binding StateText}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding StateText}"
+                             Classes.muted="{Binding !IsProblem}" Classes.problem="{Binding IsProblem}" />
+                  <ProgressBar Height="3" MinWidth="0" Minimum="0" Maximum="100" Value="{Binding Percent}"
+                               Foreground="{StaticResource AccentBrush}" IsVisible="{Binding IsDownloading}" />
+                </StackPanel>
+                <Button Grid.Column="3" Classes="link" Content="Stop" Command="{Binding StopCommand}" IsVisible="{Binding CanStop}"
+                        VerticalAlignment="Center" ToolTip.Tip="Stop this song: what else is coming goes on" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Panel>
+    </Border>
+  </DockPanel>
+  <Window.Styles>
+    <Style Selector="TextBlock.problem">
+      <Setter Property="Foreground" Value="{StaticResource OnAirBrush}" />
+    </Style>
+  </Window.Styles>
+</Window>

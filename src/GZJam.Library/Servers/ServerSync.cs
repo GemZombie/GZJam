@@ -1,7 +1,8 @@
 namespace GZJam.Library.Servers;
 
 /// <summary>How a sync is going: songs looked at so far of all chosen, and what's been downloaded.</summary>
-public sealed record SyncProgress(int Songs, int Done, int Downloaded, int Failed, long Bytes, string? Current);
+/// <param name="Left">Songs still to come that aren't on the computer (as far as GZJam knows before looking at each).</param>
+public sealed record SyncProgress(int Songs, int Done, int Downloaded, int Failed, long Bytes, string? Current, int Left = 0);
 
 /// <summary>What a sync did.</summary>
 /// <param name="AlreadyHere">Songs already on the computer: downloaded before, or the DJ's own copy.</param>
@@ -50,6 +51,12 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     /// <summary>The fastest songs may come, in bytes a second (keeping a whole server, #285); null: as fast as they come.</summary>
     public long? BytesPerSecond { get; init; }
 
+    /// <summary>
+    /// Told of each song as it starts coming down (the Downloads window, #304), with the choice
+    /// it's for in a sync (a playlist's name, say); returns what's told how it goes, or null.
+    /// </summary>
+    public Func<ServerSong, string?, IDownloadReport?>? Report { get; init; }
+
     public string ServerFolder => ServerPaths.ServerFolder(downloadsFolder, server.Name);
 
     public async Task<SyncResult> RunAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancel = default)
@@ -60,11 +67,11 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         // What's wanted: each choice's songs, in order, and every song once.
         var playlists = new List<(ServerChoice Choice, IReadOnlyList<ServerSong> Songs)>();
         var wanted = new List<ServerSong>();
-        var seen = new HashSet<string>();
-        void Want(IEnumerable<ServerSong> songs)
+        var why = new Dictionary<string, string>();   // song ID → the choice it's for (the first, of several)
+        void Want(IEnumerable<ServerSong> songs, string reason)
         {
             foreach (ServerSong song in songs)
-                if (seen.Add(song.Id))
+                if (why.TryAdd(song.Id, reason))
                     wanted.Add(song);
         }
         foreach (ServerChoice choice in choices)
@@ -76,28 +83,28 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                     case ServerChoiceKind.Playlist:
                         var songs = await client.GetPlaylistSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false);
                         playlists.Add((choice, songs));
-                        Want(songs);
+                        Want(songs, choice.Name);
                         break;
                     case ServerChoiceKind.Starred:
-                        Want(await StarredSongsAsync(cancel).ConfigureAwait(false));
+                        Want(await StarredSongsAsync(cancel).ConfigureAwait(false), "what's starred");
                         break;
                     case ServerChoiceKind.Album:
-                        Want(await client.GetAlbumSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false));
+                        Want(await client.GetAlbumSongsAsync(choice.RemoteId, cancel).ConfigureAwait(false), choice.Name);
                         break;
                     case ServerChoiceKind.Artist:
                         foreach (string albumId in await client.GetArtistAlbumsAsync(choice.RemoteId, cancel).ConfigureAwait(false))
-                            Want(await client.GetAlbumSongsAsync(albumId, cancel).ConfigureAwait(false));
+                            Want(await client.GetAlbumSongsAsync(albumId, cancel).ConfigureAwait(false), choice.Name);
                         break;
                     case ServerChoiceKind.Folder:
                         // From the catalog (the server has no call for a folder's songs): songs added there come once it's read again.
                         var inFolder = database.SearchServerCatalog(server.Id, choice.RemoteId, null, cancel).Songs;
                         if (inFolder.Count == 0)
                             problems.Add($"{choice.Name}: no songs in it in the server's song list.");
-                        Want(inFolder);
+                        Want(inFolder, choice.Name);
                         break;
                     case ServerChoiceKind.Song:
                         if (await client.GetSongAsync(choice.RemoteId, cancel).ConfigureAwait(false) is { } one)
-                            Want([one]);
+                            Want([one], "songs you chose");
                         else
                             problems.Add($"{choice.Name}: no longer on the server.");
                         break;
@@ -115,6 +122,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         var removed = database.GetRemovedServerSongs(server.Id);
         wanted.RemoveAll(s => removed.Contains(s.Id));
         var known = database.GetServerSongs(server.Id).ToDictionary(s => s.SongId);
+        var left = wanted.Where(s => !known.ContainsKey(s.Id)).Select(s => s.Id).ToHashSet();   // to come, as far as is known now
         var local = new Dictionary<string, string>();   // song ID → the file here
         (_, long used) = database.GetDownloadedTotals();
         int downloaded = 0, already = 0, failed = 0, unreachable = 0;
@@ -125,7 +133,8 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         for (int i = 0; i < wanted.Count; i++)
         {
             ServerSong song = wanted[i];
-            progress?.Report(new SyncProgress(wanted.Count, i, downloaded, failed, bytes, song.Title));
+            left.Remove(song.Id);
+            progress?.Report(new SyncProgress(wanted.Count, i, downloaded, failed, bytes, song.Title, left.Count));
             if (cancel.IsCancellationRequested)
             {
                 stopped = "Stopped.";
@@ -169,7 +178,7 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
                 p => File.Exists(p) || database.IsServerSongPath(p));
             try
             {
-                long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
+                long got = await DownloadAsync(song, path, cancel, why.GetValueOrDefault(song.Id)).ConfigureAwait(false);
                 database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: false), Now());
                 await AddFolderArtAsync(song, path, cancel).ConfigureAwait(false);
                 local[song.Id] = path;
@@ -182,6 +191,10 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             {
                 stopped = "Stopped.";
                 break;
+            }
+            catch (OperationCanceledException)
+            {
+                // Just this song stopped (the Downloads window): the next sync tries it again.
             }
             catch (Exception e) when (e is ServerException or IOException or UnauthorizedAccessException)
             {
@@ -310,9 +323,16 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
         return songs;
     }
 
-    /// <summary>Downloads one song to <paramref name="path"/> by way of a .partial file; returns its size.</summary>
-    private async Task<long> DownloadAsync(ServerSong song, string path, CancellationToken cancel)
+    /// <summary>
+    /// Downloads one song to <paramref name="path"/> by way of a .partial file; returns its size.
+    /// Told to <see cref="Report"/> as it goes; stopped there, just this song throws <see cref="OperationCanceledException"/>.
+    /// </summary>
+    private async Task<long> DownloadAsync(ServerSong song, string path, CancellationToken cancel, string? why = null)
     {
+        IDownloadReport? report = Report?.Invoke(song, why);
+        using var stop = report is null ? null : CancellationTokenSource.CreateLinkedTokenSource(cancel, report.Skip);
+        CancellationToken token = stop?.Token ?? cancel;
+        report?.Started(song.Size);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         string partial = path + PartialExtension;
         try
@@ -321,19 +341,27 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
             await using (var file = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
             {
                 Stream to = BytesPerSecond is { } limit and > 0 ? new ThrottledStream(file, limit) : file;
-                await client.DownloadAsync(song.Id, to, cancel: cancel).ConfigureAwait(false);
+                await client.DownloadAsync(song.Id, to, report is null ? null : new Bytes(report), cancel: token).ConfigureAwait(false);
                 length = file.Length;
             }
             if (song.Size is { } expected and > 0 && length != expected)
                 throw new ServerException($"It arrived incomplete ({length:N0} of {expected:N0} bytes).");
             File.Move(partial, path, overwrite: false);
+            report?.Ended(DownloadEnd.Arrived);
             return length;
         }
-        catch
+        catch (Exception e)
         {
             TryDelete(partial);
+            report?.Ended(e is OperationCanceledException ? DownloadEnd.Stopped : DownloadEnd.Failed, e.Message);
             throw;
         }
+    }
+
+    /// <summary>The bytes so far, straight to the report (not by way of a Progress, which would post each one).</summary>
+    private sealed class Bytes(IDownloadReport report) : IProgress<long>
+    {
+        public void Report(long value) => report.Received(value);
     }
 
     private long? FreeSpace(string? folder = null)

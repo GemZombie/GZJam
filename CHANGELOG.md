@@ -66,6 +66,15 @@ New:
   a whole server. A server's playlist kept by mistake? Right-click it under the server › *Stop
   keeping on this computer…*: it stops coming (a sync running stops), your copy of it stays as
   yours, and the songs downloaded only for it can be removed too.
+- **Downloads window** ([#304](https://github.com/GemZombie/GZJam/issues/304), after Danny's own):
+  click the downloads' progress in the top bar, or right-click a server › *Downloads…*, to see
+  every song coming down from your servers. Each one says what it's for (a sync and its playlist,
+  the queue, a deck, *Keep a copy*, or keeping the whole server) and how far along it is ("4.2 of
+  9.8 MB"), and a failed one says why. Each sync or keep running gets a line of its own. *Stop* on
+  a song stops just that one, *Stop all* does what the top bar's *Stop* does, and *Retry failed*
+  and *Clear finished* do what they say. The last 100 finished stay for the session. Songs
+  downloading for the queue or a deck now show in the top bar too, and its *Stop* stops the
+  queue's (a song a deck is waiting for still comes).
 - **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
   of its folders) › *Remove from this computer*, or right-click the server › *Free up space…*: what
   was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,

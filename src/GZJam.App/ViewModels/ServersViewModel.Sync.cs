@@ -172,6 +172,8 @@ public sealed partial class ServersViewModel
         var stop = new CancellationTokenSource();
         item.BeginSync(stop);
         item.ShowSync("Waiting for another server's sync…", problem: false);
+        var batch = Downloads.StartBatch(("sync", item.Server.Id), $"Syncing {item.Name}", "Stop", () => StopSync(item));
+        batch.Detail = "Waiting for another server's sync…";
         await _oneSync.WaitAsync();
         try
         {
@@ -198,10 +200,12 @@ public sealed partial class ServersViewModel
                         ? "Paused: the room is hearing music. Press SYNC to finish."
                         : null
                     : null,
+                Report = ReportTo(item, "Sync", ("sync", item.Server.Id), _ => SyncAsync(item)),
             };
             Log.Info($"Servers: syncing {item.Name}{(automatic ? " (at startup)" : "")} into {sync.ServerFolder}"
                 + (limitGb is null ? "" : $", up to {limitGb} GB"));
             item.ShowSync("Finding the songs…", problem: false);
+            batch.Detail = "Finding the songs…";
             SyncStatus = $"Syncing {item.Name}…";
             SyncPercent = 0;
             var progress = new Progress<SyncProgress>(p =>
@@ -212,6 +216,9 @@ public sealed partial class ServersViewModel
                     + (p.Downloaded > 0 ? $" ({Format.Count(p.Downloaded)} new, {Format.Size(p.Bytes)})" : ""), problem: false);
                 SyncStatus = $"Downloading from {item.Name}… {Format.Count(p.Done)} / {Format.Count(p.Songs)}";
                 SyncPercent = 100.0 * p.Done / p.Songs;
+                batch.Detail = $"{Format.Count(p.Done)} of {Format.Count(p.Songs)} songs looked at"
+                    + (p.Left > 0 ? $" · {Format.Count(p.Left)} to come" : "");
+                batch.Percent = SyncPercent;
             });
 
             SyncResult result = await Task.Run(() => sync.RunAsync(progress, stop.Token));
@@ -227,6 +234,7 @@ public sealed partial class ServersViewModel
         finally
         {
             SyncStatus = null;
+            Downloads.EndBatch(("sync", item.Server.Id));
             item.EndSync();
             RefreshKept(item);
             RefreshDownloads();

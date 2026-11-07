@@ -66,6 +66,10 @@ public static class Converters
     /// <summary>Played tonight: dimmed, so it isn't played again by mistake.</summary>
     public static readonly IValueConverter Dimmed = new FuncValueConverter<bool, double>(played => played ? 0.4 : 1);
 
+    /// <summary>True: the hand, for something that opens when clicked (the top bar's downloads, #304).</summary>
+    public static readonly IValueConverter HandCursor = new FuncValueConverter<bool, Avalonia.Input.Cursor?>(hand =>
+        hand ? new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) : null);
+
     /// <summary>A deck's color by its label ("1": Deck1Brush), for what stands in for a deck (#177).</summary>
     public static readonly IValueConverter DeckAccent = new FuncValueConverter<string?, Avalonia.Media.IBrush?>(label =>
         label is not null && Avalonia.Application.Current is { } app
