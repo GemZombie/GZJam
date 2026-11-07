@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.4.0-beta.4.
+
+## 1.4.0-beta.4 (2026-11-07)
+
+The fourth beta of 1.4: fewer reads of your server's song list, and fewer library scans while
+a sync downloads. Like the others, GZJam's update notice doesn't offer it: you only get it from
+this page. It has everything in 1.4.0-beta.3. Your library gets one small addition, which 1.3.0
+and the earlier betas can still open.
+
 Fixed:
 
 - **GZJam no longer reads your server's whole song list again when nothing changed there**: at
