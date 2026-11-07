@@ -412,12 +412,14 @@
                           Click="OnKeepFolderClick"
                           ToolTip.Tip="Another music folder for the songs you keep from here on: those kept already stay where they are" />
                 </Grid>
+                <!-- Only once a server is being kept whole: they do nothing until then -->
+                <StackPanel x:Name="KeepWholeSettings" IsVisible="{Binding Servers.KeepsAnyWhole}">
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Keeping a whole server: speed" />
+                    <TextBlock Classes="setting" Text="Speed for copying a whole server" />
                     <TextBlock Classes="setting-help"
-                               Text="Right-click a server › Keep the whole server in my library brings every song of it, in the background. Slower leaves room on the home connection and the NAS for everyone else." />
+                               Text="For Keep the whole server in my library (right-click a server), which copies every song on it into your music folder in the background. Slower leaves room on the home connection and the NAS for everyone else." />
                   </StackPanel>
                   <ComboBox x:Name="KeepSpeedBox" Grid.Column="1" Width="200" ItemsSource="{Binding Servers.KeepSpeedChoices}"
                             SelectedItem="{Binding Servers.KeepSpeed}" />
@@ -425,13 +427,14 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Keep a whole server while the room hears music" />
+                    <TextBlock Classes="setting" Text="Allow copying a whole server while music plays" />
                     <TextBlock Classes="setting-help"
-                               Text="Off: it waits for a quiet moment, so the night never shares the computer with it. On: it goes on while you play." />
+                               Text="For Keep the whole server in my library (right-click a server). Off: it copies only while no music is playing, and picks up where it left off. On: it copies at any time." />
                   </StackPanel>
                   <ToggleButton x:Name="KeepWhilePlayingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center"
                                 IsChecked="{Binding Servers.KeepWhilePlaying}" />
                 </Grid>
+                </StackPanel>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">

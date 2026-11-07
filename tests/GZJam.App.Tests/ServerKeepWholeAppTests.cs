@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using GZJam.App.ViewModels;
 using GZJam.Library;
@@ -80,6 +81,7 @@ public sealed class ServerKeepWholeAppTests
         Finish(servers.KeepWholeServerAsync(server.Server.Id));
 
         Assert.Contains("4 songs into", asked);
+        Assert.Contains("pausing while a song plays to the speakers", asked);
         Assert.Contains("3 songs downloaded already move there first", asked);
         WaitFor(() => KeptCount(app, server) == 4, "every song kept");
         WaitFor(() => !servers.IsKeepWholeRunning(server.Server.Id), "the pass over");
@@ -163,11 +165,15 @@ public sealed class ServerKeepWholeAppTests
         var (app, _, server) = await WithServer();
         using var _ = app;
         var servers = app.ViewModel.Servers;
+        var settings = app.Window.FindControl<GZJam.App.Views.SettingsPanel>("SettingsPanel")!.FindControl<Control>("KeepWholeSettings")!;
+        Assert.False(settings.IsVisible);   // its speed, and whether it goes on while music plays: nothing to say yet
         Finish(servers.KeepWholeServerAsync(server.Server.Id));
         WaitFor(() => KeptCount(app, server) == 4, "every song kept");
+        Assert.True(settings.IsVisible);
 
         Finish(servers.StopKeepWholeAsync(server.Server.Id));
 
+        Assert.False(settings.IsVisible);
         Assert.False(servers.IsKeepingWhole(server.Server.Id));
         Assert.Empty(app.Settings.ServerKeepWhole);
         Assert.Equal(4, KeptCount(app, server));

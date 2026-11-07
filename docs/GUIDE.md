@@ -562,8 +562,8 @@ then on, never removed by GZJam, played with or without the server, and tags can
 them. A downloaded song moves there with its hearts, cues, labels, playlists and plays; nothing in
 the folder is ever replaced, and GZJam shows where they'll go before anything happens.
 Right-click the server › **Keep the whole server in my library…** brings all of it, a song at a
-time in the background: it waits while the room hears music (unless Settings › Servers allows it),
-can be held to a speed, paused and resumed, picks up where it left off after a restart, and songs
+time in the background: it pauses while a song plays to the speakers (unless Settings › Servers
+lets it go on), can be held to a speed, paused and resumed, picks up where it left off after a restart, and songs
 added to the server later come too. Good for bringing a library home a bit at a time.
 
 ### What's coming down
@@ -767,7 +767,8 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
 - **Servers:** your music servers (ADD A SERVER…, TEST, EDIT…, REMOVE…, *Send my hearts*), and
   for the songs downloaded from them: where they go, where songs you keep go, keeping a whole
-  server (its speed, and whether it goes on while the room hears music), *Keep downloaded songs*,
+  server (its speed, and whether it goes on while music plays, shown once a server is being kept
+  whole), *Keep downloaded songs*,
   *Room for downloaded songs*, and *Sync when GZJam starts*. See
   [Your own music server](#your-own-music-server).
 - **About:** the version, *Tell me when a new version is out* (at startup GZJam asks GitHub, and
