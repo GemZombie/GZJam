@@ -13,7 +13,26 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.4.0-beta.1.
+Nothing yet since 1.4.0-beta.2.
+
+## 1.4.0-beta.2 (2026-11-06)
+
+The second beta of 1.4, with fixes from trying the first on a sync over the internet. Like the
+first, GZJam's update notice doesn't offer it: you only get it from this page. It has everything
+in 1.4.0-beta.1, and nothing changes in your library, so 1.3.0 can still open it.
+
+Fixed:
+
+- **The song list stays where you scrolled it while a sync brings songs down:** each song that
+  arrived made GZJam read the list again, which sent it back to the top every few seconds, so a
+  song far down a server's long folder couldn't be reached. Now a list read again by itself (after
+  a scan, or a download) keeps the songs in view and the songs selected; a new folder, playlist or
+  search still starts at the top.
+- **No more stutters during a long sync:** each song a sync brought down made GZJam build the
+  folder tree again, your server's thousands of folders with it, and the old ones stayed in memory
+  (2.4 GB after an evening of syncing), so the window hitched every so often, even while a song
+  played (the sound itself was never affected). Now the tree only takes the new song counts, and
+  a new folder makes only its own music folder again.
 
 ## 1.4.0-beta.1 (2026-11-06)
 

@@ -618,7 +618,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     // ───────────── Tree ─────────────
 
     /// <summary>Rebuilds the tree from the database, keeping expansion and selection.</summary>
-    private void RefreshTree()
+    /// <param name="remake">Made again even if only the counts changed: a server's own changes (its playlists kept, say) show on its nodes.</param>
+    private void RefreshTree(bool remake = false)
     {
         var expanded = Roots.SelectMany(r => r.SelfAndDescendants()).Where(n => n.IsExpanded).Select(n => n.Key).ToHashSet();
         var selected = SelectedFolder?.Key;
@@ -627,32 +628,59 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
         var tree = FolderTree.Build(_database.GetRoots(), _database.GetFolderCounts());
         Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");
+        var servers = _serverNodes ??= ServerNodes();
+
+        // The same music folders and servers (a scan after a download, a file added): each keeps
+        // its place in the tree and takes the new counts, and only one whose folders changed (an
+        // album's first song arrived) is made again. Made again, a tree stayed in memory with the
+        // rows it had shown (Avalonia keeps them), so a sync, scanning with every song, filled
+        // memory with copies of the server's thousands of folders (#286).
+        var all = tree.Concat(servers).ToList();
         _suppressSearch = true;
-        Roots.Clear();
-        foreach (FolderNode node in tree)
+        if (!firstBuild && !remake && Roots.Count == all.Count && Roots.Zip(all).All(p => SameRoot(p.First.Node, p.Second)))
         {
-            var vm = new FolderNodeViewModel(this, node, null);
-            foreach (var n in vm.SelfAndDescendants())
-                n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !AreFoldersFolded);
-            Roots.Add(vm);
-        }
-        foreach (FolderNode server in ServerNodes())
-        {
-            var vm = new FolderNodeViewModel(this, server, null)
+            bool reselect = false;
+            for (int i = 0; i < all.Count; i++)
             {
-                IsOffline = server.ServerId is { } id && ServerOffline(id),
-                IsSyncing = server.ServerId is { } syncing && ServerSyncing(syncing),
-                IsKeepingWhole = server.ServerId is { } whole && ServerKeepWhole(whole).Keeping,
-                IsKeepWholePaused = server.ServerId is { } paused && ServerKeepWhole(paused).Paused,
-            };
-            foreach (var n in vm.SelfAndDescendants())
-                n.IsExpanded = expanded.Contains(n.Key);
-            Roots.Add(vm);
+                if (Roots[i].SameShape(all[i]))
+                {
+                    Roots[i].Follow(all[i]);
+                    continue;
+                }
+                reselect |= SelectedFolder is { } chosen && chosen.SelfAndAncestors().Contains(Roots[i]);
+                Roots[i] = NewRoot(all[i], expanded, firstBuild);
+            }
+            if (reselect)
+                SelectedFolder = selected is { } again ? Find(again.RootId, again.Folder) : null;
         }
-        SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;
+        else
+        {
+            Roots.Clear();
+            foreach (FolderNode node in all)
+                Roots.Add(NewRoot(node, expanded, firstBuild));
+            SelectedFolder = selected is { } key ? Find(key.RootId, key.Folder) : null;
+        }
         _suppressSearch = false;
         OnPropertyChanged(nameof(HasNoRoots));
         OnPropertyChanged(nameof(ScopeText));
+    }
+
+    private static bool SameRoot(FolderNode a, FolderNode b) =>
+        a.RootId == b.RootId && a.FullPath == b.FullPath && a.IsServer == b.IsServer && a.ServerId == b.ServerId;
+
+    /// <summary>A music folder's or a server's place in the tree, opened as it was.</summary>
+    private FolderNodeViewModel NewRoot(FolderNode node, HashSet<(long RootId, string Folder)> expanded, bool firstBuild)
+    {
+        var vm = new FolderNodeViewModel(this, node, null);
+        if (node.ServerId is { } id)
+        {
+            vm.IsOffline = ServerOffline(id);
+            vm.IsSyncing = ServerSyncing(id);
+            (vm.IsKeepingWhole, vm.IsKeepWholePaused) = ServerKeepWhole(id);
+        }
+        foreach (var n in vm.SelfAndDescendants())
+            n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && !n.IsServer && !AreFoldersFolded);
+        return vm;
     }
 
     private FolderNodeViewModel? Find(long rootId, string folder) =>
@@ -694,6 +722,26 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>Searches again, e.g. after History changed what's been played.</summary>
     public void RefreshResults() => RunSearch();
 
+    /// <summary>
+    /// Just before the song list's results are replaced: true when it's the same list again (the
+    /// same folder or playlist and search, read again after a scan or a song downloaded), whose
+    /// place and selection the window keeps; false for a new one, which starts at the top.
+    /// </summary>
+    public event Action<bool>? ResultsReplacing;
+
+    private object? _shownKey;
+
+    /// <summary>What the list shows: a list read again for the same one is the same list.</summary>
+    private object ResultsKey() => (SelectedPlaylist?.Id, SelectedFolder?.Node.Scope, SelectedFolder?.Node.ServerId,
+        SelectedFolder?.Node.RelativePath, SearchText, OnlyHere);
+
+    private void ShowResults(IReadOnlyList<Track> results, object key)
+    {
+        ResultsReplacing?.Invoke(Equals(key, _shownKey));
+        _shownKey = key;
+        Results = results;
+    }
+
     /// <summary>A search is waiting out the typing delay or running: <see cref="Results"/> is about to change.</summary>
     internal bool IsSearching { get; private set; }
 
@@ -705,11 +753,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var cancel = _searchCancel = new CancellationTokenSource();
         int version = ++_searchVersion;
         string text = SearchText;
+        object key = ResultsKey();
         AlsoOnText = null;
         ServerNote = null;
         if (SelectedPlaylist is null && SelectedFolder is { IsServer: true, Node.ServerId: long serverId })
         {
-            _ = RunServerSearchAsync(serverId, SelectedFolder.Node.RelativePath, text, version, cancel.Token);
+            _ = RunServerSearchAsync(serverId, SelectedFolder.Node.RelativePath, text, version, key, cancel.Token);
             return;
         }
         FolderScope? scope = SelectedPlaylist is null ? SelectedFolder?.Node.Scope : null;
@@ -744,7 +793,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                         DidYouMeanText = didYouMean is var (better, count)
                             ? $"Did you mean {better}?  {(count == 1 ? "1 song" : $"{Format.Count(count)} songs")}"
                             : null;
-                        Results = t.Result;
+                        ShowResults(t.Result, key);
                         if (playlist is null && text.Trim().Length > 1)
                             _ = FindAlsoOnAsync(text, version, cancel.Token);
                     }
@@ -757,6 +806,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     /// <summary>The servers' places in the tree, after the music folders.</summary>
     public Func<IReadOnlyList<FolderNode>> ServerNodes { get; set; } = () => [];
+
+    /// <summary>The servers' places as last read: from their song lists, which a scan doesn't change.</summary>
+    private IReadOnlyList<FolderNode>? _serverNodes;
 
     /// <summary>Whether a server can't be reached right now, for its mark in the tree.</summary>
     public Func<long, bool> ServerOffline { get; set; } = _ => false;
@@ -840,7 +892,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     public void RefreshServers()
     {
         bool showingServer = SelectedFolder?.IsServer == true;
-        RefreshTree();
+        _serverNodes = null;   // read again: a scan only reads the music folders again
+        RefreshTree(remake: true);
         if (showingServer && SelectedFolder is null)
             RunSearch();
     }
@@ -853,7 +906,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             SelectedFolder = node;
     }
 
-    private async Task RunServerSearchAsync(long serverId, string folder, string text, int version, CancellationToken cancel)
+    private async Task RunServerSearchAsync(long serverId, string folder, string text, int version, object key, CancellationToken cancel)
     {
         if (BrowseServer is null)
             return;
@@ -872,7 +925,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         DidYouMeanText = null;
         ServerProblem = found.Problem;
         ServerNote = found.Note;
-        Results = OnlyHere ? found.Tracks.Where(t => !t.IsOnServerOnly).ToList() : found.Tracks;
+        ShowResults(OnlyHere ? found.Tracks.Where(t => !t.IsOnServerOnly).ToList() : found.Tracks, key);
         IsSearching = false;
         OnPropertyChanged(nameof(EmptyMessage));
     }
