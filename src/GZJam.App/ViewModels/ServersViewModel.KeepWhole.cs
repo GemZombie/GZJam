@@ -62,7 +62,14 @@ public sealed partial class ServersViewModel
         }
     }
 
-    /// <summary>Keeping a whole server goes on while the room hears music (Settings › Servers); off: it waits.</summary>
+    /// <summary>
+    /// A server is being kept whole: Settings › Servers shows how fast, and whether it goes on
+    /// while a song plays. Until then those two rows are left out: they do nothing, and in among
+    /// the others they made no sense on their own.
+    /// </summary>
+    public bool KeepsAnyWhole => Items.Any(i => IsKeepingWhole(i.Server.Id));
+
+    /// <summary>Keeping a whole server goes on while a song plays to the speakers (Settings › Servers); off: it pauses.</summary>
     public bool KeepWhilePlaying
     {
         get => _settings.ServerKeepWhilePlaying;
@@ -116,8 +123,8 @@ public sealed partial class ServersViewModel
                 : $"There's {Format.Size(free)} free on that drive.");
         lines.Add("");
         lines.Add($"It goes on in the background, a song at a time{(KeepSpeed.Value is { } mb ? $", at most {mb:0.#} MB a second" : "")}, "
-            + (KeepWhilePlaying ? "even while the room hears music" : "waiting while the room hears music")
-            + $" (Settings › Servers changes both). It picks up where it left off when GZJam starts again, and songs added to {item.Name} later come too. Right-click the server to pause or stop it.");
+            + (KeepWhilePlaying ? "even while a song plays to the speakers" : "pausing while a song plays to the speakers")
+            + $" (Settings › Servers changes both, once it's started). It picks up where it left off when GZJam starts again, and songs added to {item.Name} later come too. Right-click the server to pause or stop it.");
         if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Keep all of {item.Name} in your library?",
                 string.Join(Environment.NewLine, lines), "Keep all"))
             return;
@@ -178,8 +185,11 @@ public sealed partial class ServersViewModel
         TreeKeepWhole(serverId);
     }
 
-    private void TreeKeepWhole(long serverId) =>
+    private void TreeKeepWhole(long serverId)
+    {
         _owner.Library?.SetServerKeepWhole(serverId, IsKeepingWhole(serverId), IsKeepWholePaused(serverId));
+        OnPropertyChanged(nameof(KeepsAnyWhole));
+    }
 
     /// <summary>
     /// Each server being kept whole goes on, if it isn't paused and answers: when GZJam starts,

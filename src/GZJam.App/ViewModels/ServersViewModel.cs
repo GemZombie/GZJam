@@ -86,6 +86,7 @@ public sealed partial class ServersViewModel : ObservableObject
             Items.Add(item);
         }
         HasServers = Items.Count > 0;
+        OnPropertyChanged(nameof(KeepsAnyWhole));
         RefreshArtServers();
         ServersChanged();
     }

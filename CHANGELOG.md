@@ -13,7 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.4.0-beta.5.
+Changed:
+
+- **Settings › Servers says what keeping a whole server's two settings are for** (thanks to
+  Danny for the wording): *Speed for copying a whole server* and *Allow copying a whole server
+  while music plays* now say they're for *Keep the whole server in my library* (right-click a
+  server): off, it copies only while no music is playing; on, at any time. They show only once a
+  server is being kept whole: until then they do nothing.
 
 ## 1.4.0-beta.5 (2026-11-07)
 
