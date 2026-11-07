@@ -393,6 +393,16 @@
     <Setter Property="FontSize" Value="10" />
     <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
   </Style>
+  <!-- Where a song is from, in the lists that mix sources (#318): the queue, History, a playlist -->
+  <Style Selector="c|SourceIcon.row-source">
+    <Setter Property="Margin" Value="0,0,6,0" />
+  </Style>
+  <Style Selector="DataGrid.tracks Panel.playlist-source c|SourceIcon">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="DataGrid.tracks.playlist Panel.playlist-source c|SourceIcon">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
   <!-- The library's sources (#318): the one whose folders the tree shows, bold -->
   <Style Selector="TextBlock.source-name.current">
     <Setter Property="FontWeight" Value="SemiBold" />

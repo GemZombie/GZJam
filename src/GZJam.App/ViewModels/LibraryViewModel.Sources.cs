@@ -51,6 +51,9 @@ public sealed partial class LibraryViewModel
     /// <summary>The servers' downloads folder (#318): in the index, so its songs keep what the DJ gives them, but not My music.</summary>
     public Func<LibraryRoot, bool> IsServersRoot { get; set; } = _ => false;
 
+    /// <summary>My music's folders, by path (not the servers' downloads): as of the tree's last making.</summary>
+    public IReadOnlyList<string> MusicFolders { get; private set; } = [];
+
     /// <summary>The music folders that are the servers' downloads, left out of My music: as of the tree's last making.</summary>
     private HashSet<long> _serversRoots = [];
 

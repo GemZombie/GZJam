@@ -142,6 +142,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Files = new FilesViewModel(this, database);   // the computer's files and USB sticks (#318)
         Library.FileNodes = Files.TreeNodes;
         Library.ListFiles = Files.ListAsync;
+        Controls.SourceIcon.Resolve = SourceOf;   // each row of the queue, History and playlists says where it's from
         Settings = new SettingsViewModel(this, settings);
         Room = new RoomControls(this);
         Settings.PropertyChanged += (_, e) =>
@@ -163,6 +164,25 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>The library's Files: the computer's places and drives, and USB sticks (#318).</summary>
     public FilesViewModel Files { get; }
+
+    /// <summary>
+    /// Where a song is from (#318), by where its file is: a server's (still there, or downloaded),
+    /// a USB stick's (read in), My music's, or else the computer's files. From the path alone, so a
+    /// song in History, rebuilt from its play, says it too.
+    /// </summary>
+    public (Controls.SongSource Source, string Tip) SourceOf(Track track)
+    {
+        if (track.OnServer is { } remote)
+            return (Controls.SongSource.Server, $"On {remote.ServerName}");
+        if (Servers.HasServers && FileSources.IsIn(track.Path, Servers.DownloadsFolder))
+            return (Controls.SongSource.Server, Servers.Items.Count == 1
+                ? $"From {Servers.Items[0].Name}, on this computer" : "From one of your servers, on this computer");
+        if (FileSources.IsIn(track.Path, Files.ReadInFolder))
+            return (Controls.SongSource.Stick, "From a USB stick, read into GZJam");
+        if (Library.MusicFolders.Any(folder => FileSources.IsIn(track.Path, folder)))
+            return (Controls.SongSource.MyMusic, "From My music");
+        return (Controls.SongSource.Files, $"From the computer's files: {Path.GetDirectoryName(track.Path)}");
+    }
     public QueueViewModel Queue { get; }
     public HistoryViewModel History { get; }
 

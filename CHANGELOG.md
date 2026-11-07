@@ -27,6 +27,8 @@ New:
   or queued**, so pulling the stick out never stops the room. *Add to my music* copies songs (or a
   whole folder) into your music, under *Added* and the folder they came from, with their hearts
   and cues.
+- **Each song in the queue, History and a playlist says where it's from** (#318): a small icon
+  by its title for My music, a server, the computer's files or a USB stick.
 
 Changed:
 

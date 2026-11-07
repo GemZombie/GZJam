@@ -640,7 +640,7 @@
             </Grid>
           </Border>
 
-          <DataGrid x:Name="TrackGrid" Grid.Row="2" Classes="tracks"
+          <DataGrid x:Name="TrackGrid" Grid.Row="2" Classes="tracks" Classes.playlist="{Binding Library.IsPlaylistOpen}"
                     ItemsSource="{Binding Library.Results}"
                     IsReadOnly="True" SelectionMode="Extended"
                     CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False">
@@ -696,6 +696,10 @@
                                  IsVisible="{Binding PlaylistNumber, Converter={x:Static ObjectConverters.IsNotNull}}" />
                       <!-- A check: played tonight. A ring with "!": the file is missing (the row is grayed out). -->
                       <DockPanel Grid.Column="1">
+                        <!-- In a playlist, which mixes sources (#318): where it's from -->
+                        <Panel DockPanel.Dock="Left" Classes="playlist-source" IsVisible="{Binding !IsOnServerOnly}">
+                          <c:SourceIcon Classes="row-source" Track="{Binding}" />
+                        </Panel>
                         <Path DockPanel.Dock="Left" Classes="missing-mark" IsVisible="{Binding IsMissing}"
                               ToolTip.Tip="{Binding Path, StringFormat='Not found: {0}'}" />
                         <Path DockPanel.Dock="Left" Classes="server-mark" IsVisible="{Binding IsOnReachableServer}"
@@ -1035,7 +1039,10 @@
                   <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" Margin="10,0,2,0" Background="Transparent">
                     <TextBlock Classes="dim mono" Text="{Binding TimeText}" FontSize="11" VerticalAlignment="Center" MinWidth="58" />
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,7">
-                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                      <DockPanel>
+                        <c:SourceIcon x:Name="HistorySource" DockPanel.Dock="Left" Classes="row-source" Track="{Binding Track}" />
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                      </DockPanel>
                       <TextBlock Classes="muted" Text="{Binding Artist}" FontSize="11" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
@@ -1193,6 +1200,8 @@
                                   SongPath="{Binding Track.Path}" />
                       <StackPanel c:FitRow.Key="Title" c:FitRow.Fills="True" Classes="q-title" VerticalAlignment="Center" Margin="0,7">
                         <DockPanel>
+                          <!-- Where it's from (#318): the queue mixes sources -->
+                          <c:SourceIcon x:Name="QueueSource" DockPanel.Dock="Left" Classes="row-source" Track="{Binding Track}" />
                           <Path DockPanel.Dock="Left" Classes="played-check" IsVisible="{Binding Track.IsPlayedTonight}" ToolTip.Tip="Played tonight" />
                           <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
                         </DockPanel>

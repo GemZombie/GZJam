@@ -657,6 +657,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
         var roots = _database.GetRoots();
         _serversRoots = roots.Where(IsServersRoot).Select(r => r.Id).ToHashSet();
+        MusicFolders = roots.Where(r => !_serversRoots.Contains(r.Id)).Select(r => r.Path).ToList();
         var tree = FolderTree.Build(roots.Where(r => !_serversRoots.Contains(r.Id)).ToList(), _database.GetFolderCounts());
         Log.Info($"Library tree: {string.Join("; ", tree.Select(r => $"{r.FullPath}, {Format.Count(r.TrackCount)} songs in {r.Children.Count} folders"))}");
         var servers = _serverNodes ??= ServerNodes();

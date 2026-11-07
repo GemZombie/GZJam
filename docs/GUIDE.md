@@ -346,7 +346,9 @@ The top of the library column lists where songs come from, each kept apart from 
   as soon as it's plugged in, as plain folders. See *Files and USB sticks*.
 
 Click a source to see all of it; the folder tree below shows its folders, and a search covers it
-alone. Under a search, a line says what the other source has, a click away: *Also: 4 on synology ·
+alone. The queue, History and playlists mix sources (a set is a set), so each of their songs has
+its source's small icon by its title: a record for My music, a cloud for a server, a folder for the
+computer's files, a stick for a USB stick. Point at it to see which. Under a search, a line says what the other source has, a click away: *Also: 4 on synology ·
 Show* under a search of My music, *Also: 12 in My music · Show* under one of the servers.
 
 ### Files and USB sticks
