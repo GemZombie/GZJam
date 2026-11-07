@@ -45,6 +45,23 @@ public sealed class FolderNode
 
     public static string ServerPlaylistPath(string playlistId) => $"{ServerPlaylistsPath}/{playlistId}";
 
+    /// <summary>A place in Files (#318), or a folder in one; <see cref="FilesKind.None"/> for anything else.</summary>
+    public FilesKind Files { get; internal init; }
+
+    public bool IsFiles => Files != FilesKind.None;
+
+    /// <summary>
+    /// A place in Files, or a folder in one (#318): its folders are read when it's opened, not
+    /// now. <see cref="RelativePath"/> is its full path, so each has a place of its own.
+    /// </summary>
+    public static FolderNode ForFiles(FilePlace place, IEnumerable<FilePlace>? within = null)
+    {
+        var node = new FolderNode(0, place.Name, place.Kind == FilesKind.Computer ? "\u0001computer" : place.Path, place.Path) { Files = place.Kind };
+        foreach (FilePlace inner in within ?? [])
+            node.AddChild(ForFiles(inner));
+        return node;
+    }
+
     /// <summary>A server's place in the tree: no folders under it, its songs are the server's.</summary>
     public static FolderNode ForServer(long serverId, string name) =>
         new(-serverId, name, "", Servers.ServerTrack.PathPrefix + serverId) { ServerId = serverId };

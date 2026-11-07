@@ -172,7 +172,7 @@ public sealed partial class ServersViewModel
     /// whether it was asked for (it's saved once the DJ says yes). Null, with a notice, if there's
     /// none to use.
     /// </summary>
-    private async Task<(string Folder, bool Choosing)?> KeepFolderToUseAsync()
+    internal async Task<(string Folder, bool Choosing)?> KeepFolderToUseAsync()
     {
         if (KeepFolder is { } folder)
         {

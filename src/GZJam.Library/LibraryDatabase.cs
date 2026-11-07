@@ -923,6 +923,41 @@ public sealed partial class LibraryDatabase
         return results;
     }
 
+    /// <summary>
+    /// The songs in these files, as Files shows them (#318): the library's own for those in it, the
+    /// rest read from their tags with what the DJ gave them (hearts, cues, BPMs, labels, plays),
+    /// kept by path as for any song. In the order given.
+    /// </summary>
+    public IReadOnlyList<Track> TracksForFiles(IReadOnlyList<string> paths, CancellationToken cancellationToken = default)
+    {
+        var mine = FindTracks(paths);
+        var tracks = new List<Track>(paths.Count);
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText =
+            "SELECT e.path AS entry_path, " +
+            "a.bpm AS detected_bpm, a.length_ms AS analyzed_ms, a.file_size AS analyzed_size, a.modified_utc AS analyzed_modified, " +
+            "r.min AS range_min, r.max AS range_max, mb.bpm AS manual_bpm, m.rating AS rating, m.energy AS energy, " +
+            "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels " +
+            "FROM (SELECT $path AS path) e " +
+            "LEFT JOIN analysis a ON a.path = e.path " + TrackJoins[(TrackJoins.IndexOf(" LEFT JOIN bpm_ranges", StringComparison.Ordinal) + 1)..].Replace("t.path", "e.path") + ";";
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        foreach (string one in paths)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (mine.TryGetValue(one, out Track? known))
+            {
+                tracks.Add(known);
+                continue;
+            }
+            path.Value = one;
+            using var r = cmd.ExecuteReader();
+            if (r.Read())
+                tracks.Add(OutsideTrack(r, one));
+        }
+        return tracks;
+    }
+
     /// <summary>Tags of songs outside the library, read once per version of the file (#237).</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Track> _outsideTags = new();
 
@@ -948,6 +983,15 @@ public sealed partial class LibraryDatabase
         {
             cancellationToken.ThrowIfCancellationRequested();
             string path = r.GetString(r.GetOrdinal("entry_path"));
+            entries.Add(OutsideTrack(r, path).InPlaylist(r.GetInt64(r.GetOrdinal("entry_id")), r.GetInt32(r.GetOrdinal("entry_position")) + 1));
+        }
+        return entries;
+    }
+
+    /// <summary>A song outside the library, from its tags (or its name, missing), with what the DJ gave it, from a row of the outside songs' columns.</summary>
+    private Track OutsideTrack(SqliteDataReader r, string path)
+    {
+        {
             var file = new FileInfo(path);
             Track track = (file.Exists ? OutsideTags(file) : Missing(path)).CopyOfTags();
             if (file.Exists && !r.IsDBNull(r.GetOrdinal("analyzed_size")) && r.GetInt64(r.GetOrdinal("analyzed_size")) == file.Length
@@ -964,9 +1008,8 @@ public sealed partial class LibraryDatabase
             track.LastPlayedUtc = r.IsDBNull(r.GetOrdinal("last_played")) ? null : new DateTime(r.GetInt64(r.GetOrdinal("last_played")), DateTimeKind.Utc);
             track.PlayCount = GetInt(r, "play_count") ?? 0;
             track.Labels = ReadLabels(GetString(r, "labels"));
-            entries.Add(track.InPlaylist(r.GetInt64(r.GetOrdinal("entry_id")), r.GetInt32(r.GetOrdinal("entry_position")) + 1));
+            return track;
         }
-        return entries;
     }
 
     private Track OutsideTags(FileInfo file)

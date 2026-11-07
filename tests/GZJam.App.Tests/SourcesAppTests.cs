@@ -68,11 +68,13 @@ public sealed class SourcesAppTests
     }
 
     [AvaloniaFact]
-    public void Without_a_server_there_is_only_My_music()
+    public void Without_a_server_there_is_My_music_and_Files()
     {
         using var app = new AppHarness();
-        var source = Assert.Single(app.Library.Sources);
-        Assert.Equal(("My music", LibrarySource.MyMusic), (source.Name, source.Kind));
+        Assert.Equal([LibrarySource.MyMusic, LibrarySource.Files], app.Library.Sources.Select(s => s.Kind));
+        var source = app.Library.Sources[0];
+        Assert.Equal("My music", source.Name);
+        Assert.True(source.IsCurrent);
         Assert.Same(source, app.Library.SelectedSource);
         Assert.Equal(app.Library.Roots[0].CountText, source.CountText);
     }
@@ -84,10 +86,10 @@ public sealed class SourcesAppTests
         using var _ = app;
         var library = app.Library;
 
-        Assert.Equal(["My music", "Servers"], library.Sources.Select(s => s.Name));
+        Assert.Equal(["My music", "Servers", "Files"], library.Sources.Select(s => s.Name));
         Assert.Equal("4", library.Sources[1].CountText);
         Assert.Equal(LibrarySource.MyMusic, library.Source);
-        Assert.All(library.FolderRows, r => Assert.False(r.IsServer));
+        Assert.All(library.FolderRows, r => Assert.True(r.IsFolder));
         Assert.Contains(library.FolderRows, r => r.Name == "Music");
 
         library.SelectedSource = library.Sources[1];

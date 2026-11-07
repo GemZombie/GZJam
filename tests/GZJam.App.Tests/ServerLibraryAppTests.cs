@@ -64,7 +64,7 @@ public sealed class ServerLibraryAppTests
     {
         var (app, _, card) = await WithServer();
         using var _ = app;
-        var roots = app.ViewModel.Library.Roots;
+        var roots = app.ViewModel.Library.Roots.Where(r => !r.IsFiles).ToList();   // Files' places after (#318)
 
         Assert.True(roots[^1].IsServer);
         Assert.Equal("synology", roots[^1].Name);

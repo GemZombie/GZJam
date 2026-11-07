@@ -361,6 +361,7 @@
                           Width="13" Height="13" VerticalAlignment="Center" IsVisible="{Binding IsMyMusic}" />
                     <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
                           Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServers}" />
+                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFiles}" />
                   </Panel>
                   <TextBlock Grid.Column="1" Classes="source-name" Classes.current="{Binding IsCurrent}" Text="{Binding Name}"
                              TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -391,7 +392,9 @@
                     <ContextMenu>
                       <MenuItem Header="Rescan" Command="{Binding RescanCommand}" IsVisible="{Binding IsFolder}" />
                       <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" IsVisible="{Binding IsFolder}" />
-                      <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" IsVisible="{Binding IsFolder}" />
+                      <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" IsVisible="{Binding CanOpenFolder}" />
+                      <MenuItem Header="Add to my music…" IsVisible="{Binding CanAddFilesFolder}" Click="OnAddFilesFolderClick"
+                                ToolTip.Tip="Copy every song in this folder, and the folders in it, into My music, under Added: yours from then on. The originals stay where they are" />
                       <Separator IsVisible="{Binding IsRemovableRoot}" />
                       <MenuItem Header="Remove from library" Command="{Binding RemoveFromLibraryCommand}"
                                 IsVisible="{Binding IsRemovableRoot}"
@@ -433,6 +436,10 @@
                   </Grid.ContextMenu>
                   <Panel>
                     <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding HasFolderIcon}" />
+                    <Path Data="{StaticResource IconComputer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" StrokeLineCap="Round"
+                          Stretch="Uniform" Width="14" Height="12" VerticalAlignment="Center" IsVisible="{Binding IsComputer}" />
+                    <Path x:Name="StickMark" Data="{StaticResource IconStick}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                          Stretch="Uniform" Width="10" Height="14" VerticalAlignment="Center" IsVisible="{Binding IsStick}" />
                     <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round" Stretch="Uniform"
                           Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServerPlaylist}" />
                     <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
@@ -531,8 +538,13 @@
                 </Button>
                 <!-- While the box is empty, where the ✕ goes: the cheat sheet of filters (#241) -->
                 <Button x:Name="SearchHelpButton" Classes="search-help" HorizontalAlignment="Right" Margin="0,0,7,0"
-                        ToolTip.Tip="How to search" Click="OnSearchHelpClick"
-                        IsVisible="{Binding Library.SearchText, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                        ToolTip.Tip="How to search" Click="OnSearchHelpClick">
+                  <Button.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="Library.SearchText" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                      <Binding Path="Library.CanFilter" />
+                    </MultiBinding>
+                  </Button.IsVisible>
                   <TextBlock Text="?" FontSize="11" FontWeight="Bold" />
                 </Button>
                 <!-- Suggestions as you type: filter names, then what's in the library (#241) -->
@@ -549,7 +561,7 @@
                 </Popup>
               </Panel>
               <!-- BPM filter by tap: near a deck's tempo, or a range. Writes bpm: into the search text. -->
-              <Button x:Name="BpmFilterButton" Grid.Column="1" Classes="bpm-filter" Classes.on="{Binding Library.HasBpmFilter}"
+              <Button x:Name="BpmFilterButton" IsVisible="{Binding Library.CanFilter}" Grid.Column="1" Classes="bpm-filter" Classes.on="{Binding Library.HasBpmFilter}"
                       VerticalAlignment="Center" ToolTip.Tip="Show tracks near a deck's tempo, or in a tempo range">
                 <TextBlock Classes="mono" Text="{Binding Library.BpmFilterLabel}" FontSize="12" />
                 <Button.Flyout>
@@ -557,7 +569,7 @@
                 </Button.Flyout>
               </Button>
               <!-- Label filter by tap: writes label: into the search text -->
-              <Button x:Name="LabelFilterButton" Grid.Column="2" Classes="bpm-filter" Classes.on="{Binding Library.HasLabelFilter}"
+              <Button x:Name="LabelFilterButton" IsVisible="{Binding Library.CanFilter}" Grid.Column="2" Classes="bpm-filter" Classes.on="{Binding Library.HasLabelFilter}"
                       VerticalAlignment="Center" ToolTip.Tip="Show songs with a label (Slow, Requests, …)">
                 <TextBlock Text="{Binding Library.LabelFilterLabel}" FontSize="12" MaxWidth="120" TextTrimming="CharacterEllipsis" />
                 <Button.Flyout>
@@ -565,7 +577,7 @@
                 </Button.Flyout>
               </Button>
               <!-- Filter by tap: energy, hearts, played, year, or one field (#241). Writes into the search text. -->
-              <Button x:Name="FilterButton" Grid.Column="3" Classes="bpm-filter" Classes.on="{Binding Library.HasMoreFilters}"
+              <Button x:Name="FilterButton" IsVisible="{Binding Library.CanFilter}" Grid.Column="3" Classes="bpm-filter" Classes.on="{Binding Library.HasMoreFilters}"
                       VerticalAlignment="Center" ToolTip.Tip="Filter by energy, hearts, when the room heard it, the year, or one field">
                 <TextBlock Text="Filter ▾" FontSize="12" />
                 <Button.Flyout>

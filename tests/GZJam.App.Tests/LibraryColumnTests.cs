@@ -80,12 +80,12 @@ public sealed class LibraryColumnTests
         double before = Playlists(app).Bounds.Height;
 
         var from = at();
-        app.MouseDrag(from, from + new Point(0, -80));
-        Assert.Equal(before + 80, Playlists(app).Bounds.Height, 1);
-        Assert.Equal(before + 80, app.Settings.PlaylistsHeight!.Value, 1);   // remembered
+        app.MouseDrag(from, from + new Point(0, -50));
+        Assert.Equal(before + 50, Playlists(app).Bounds.Height, 1);
+        Assert.Equal(before + 50, app.Settings.PlaylistsHeight!.Value, 1);   // remembered
 
         from = at();
-        app.MouseDrag(from, from + new Point(0, 60));
+        app.MouseDrag(from, from + new Point(0, 30));
         Assert.Equal(before + 20, Playlists(app).Bounds.Height, 1);
 
         // All the way up: the folders keep a couple of rows.
@@ -102,8 +102,8 @@ public sealed class LibraryColumnTests
     [AvaloniaFact]
     public void A_dragged_height_comes_back_next_time()
     {
-        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, PlaylistsHeight = 300 });
+        using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, PlaylistsHeight = 260 });
         MakePlaylists(app, 25);
-        Assert.Equal(300, Playlists(app).Bounds.Height, 1);
+        Assert.Equal(260, Playlists(app).Bounds.Height, 1);
     }
 }

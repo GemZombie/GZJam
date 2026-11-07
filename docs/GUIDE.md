@@ -342,10 +342,31 @@ The top of the library column lists where songs come from, each kept apart from 
 - **Servers** (once you've added one): each of your music servers, with its folders and playlists
   under it. Songs downloaded for the nights are the server's: they show under it, never in My
   music. See *Your own music server*.
+- **Files:** the computer's own places (Desktop, Downloads, Music) and drives, and any USB stick
+  as soon as it's plugged in, as plain folders. See *Files and USB sticks*.
 
 Click a source to see all of it; the folder tree below shows its folders, and a search covers it
 alone. Under a search, a line says what the other source has, a click away: *Also: 4 on synology ·
 Show* under a search of My music, *Also: 12 in My music · Show* under one of the servers.
+
+### Files and USB sticks
+
+For a one-off song (a request, a first dance, a dancer's edit on a stick) without leaving GZJam or
+dragging it in. Click **Files**: *This computer* has your Desktop, Downloads and Music folders (and,
+on Windows, your drives), and a USB stick shows under it as soon as it's plugged in, gone when it's
+pulled out. Open a folder to see its songs (only music files show); the search box filters them by
+name, as Files is never searched as a whole (a computer is too big to read at the moment you need a
+song).
+
+A song there plays as one of your own: preview it, load it, queue it, or give it a heart. Its BPM
+and waveform come from analyzing it when it's loaded. **A song from a USB stick is read into GZJam
+when it's loaded or queued** (or added to a playlist), so pulling the stick out never stops the
+room; it's the song you see in Files from then on, with what you gave it.
+
+**Add to my music** (right-click songs, or a folder or stick in the tree) copies them into your
+music, under *Added* and the folder they came from (*Music › Added › Gig Nov 14*), so a stick's
+requests stay together. The originals stay where they are; the copies are yours, with their hearts
+and cues, and show in My music. A stick is never added as a music folder: it comes and goes.
 
 ### Folders and search
 
@@ -778,7 +799,7 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
-- **Library:** *Songs you add go to* (where *Add to my music* copies songs), *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
+- **Library:** *Songs you add go to* (where *Add to my music* copies songs, from a server or Files), *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
 - **Servers:** your music servers (ADD A SERVER…, TEST, EDIT…, REMOVE…, *Send my hearts*), and
   for the songs downloaded from them: where they go, adding a whole server to My music (its

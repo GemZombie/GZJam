@@ -265,7 +265,7 @@ public partial class MainWindow
             item.IsVisible = !remote;
         TrackDownloadItem.IsVisible = remote;
         TrackRemoveFromLaptopItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.DownloadsFor(tracks).Count > 0;
-        TrackKeepItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.CanKeepCopy(tracks);
+        TrackKeepItem.IsVisible = FilesShowing(tracks) || (Vm.Servers.HasServers && Vm.Servers.CanKeepCopy(tracks));
         TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
@@ -378,8 +378,25 @@ public partial class MainWindow
             await Vm.Servers.StopKeepWholeAsync(server.Server.Id);
     }
 
-    private async void OnKeepTracksClick(object? sender, RoutedEventArgs e) =>
-        await Vm.Servers.KeepTracksAsync(SelectedTracks());
+    /// <summary>Songs of a folder in Files (#318), not yet in the library: Add to my music copies them in.</summary>
+    private bool FilesShowing(IReadOnlyList<Track> tracks) =>
+        Vm.Library is { Source: LibrarySource.Files, IsPlaylistOpen: false } && tracks.Any(t => t.IsOutsideLibrary);
+
+    private async void OnKeepTracksClick(object? sender, RoutedEventArgs e)
+    {
+        var tracks = SelectedTracks();
+        if (FilesShowing(tracks))
+            await Vm.Files.AddTracksToMyMusicAsync(tracks, Vm.Library.SelectedFolder);
+        else
+            await Vm.Servers.KeepTracksAsync(tracks);
+    }
+
+    /// <summary>Add to my music, on a folder in Files or a USB stick (#318): every song in it, laid out as there.</summary>
+    private async void OnAddFilesFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel { CanAddFilesFolder: true } folder)
+            await Vm.Files.AddFolderToMyMusicAsync(folder);
+    }
 
     /// <summary>Keep a copy in my library, on a server's folder or playlist in the tree (#285).</summary>
     private async void OnKeepCopyClick(object? sender, RoutedEventArgs e)
