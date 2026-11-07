@@ -151,7 +151,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.4,** to try now in [1.4.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.2):
+**In 1.4,** to try now in [1.4.0-beta.3](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.3):
 
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
   other Subsonic servers, one or several), browsed and searched

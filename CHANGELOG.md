@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.4.0-beta.3.
+
+## 1.4.0-beta.3 (2026-11-07)
+
+The third beta of 1.4: your server back in the library, which 1.4.0-beta.2 lost. Like the others,
+GZJam's update notice doesn't offer it: you only get it from this page. It has everything in
+1.4.0-beta.2, and nothing changes in your library, so 1.3.0 can still open it.
+
 Fixed:
 
 - **Your server is back in the library's folder tree** (it went missing in 1.4.0-beta.2): the
