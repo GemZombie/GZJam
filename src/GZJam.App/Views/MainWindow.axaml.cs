@@ -184,28 +184,12 @@ public partial class MainWindow : Window
         }, DispatcherPriority.Background);
     }
 
-    /// <summary>
-    /// Scrolls the folder tree to a folder. The tree makes rows only for the folders in view (a
-    /// server can have thousands in one folder), so each folder on the way is scrolled to in turn,
-    /// which makes its row, and so the rows of the folders in it.
-    /// </summary>
+    /// <summary>Scrolls the folder tree to a folder, its folders above it opened so it has a row.</summary>
     internal void BringFolderIntoView(FolderNodeViewModel folder)
     {
-        var path = new List<FolderNodeViewModel>();
-        for (FolderNodeViewModel? f = folder; f is not null; f = f.Parent)
-            path.Insert(0, f);
-        ItemsControl parent = FolderTree;
-        Control? row = null;
-        foreach (FolderNodeViewModel step in path)
-        {
-            parent.ScrollIntoView(step);
-            parent.UpdateLayout();
-            if (parent.ContainerFromItem(step) is not TreeViewItem item)
-                return;
-            row = item;
-            parent = item;
-        }
-        row?.BringIntoView();
+        foreach (FolderNodeViewModel above in folder.SelfAndAncestors().Skip(1))
+            above.IsExpanded = true;
+        FolderTree.ScrollIntoView(folder);
     }
 
     private void OnRevealFileClick(object? sender, RoutedEventArgs e)
