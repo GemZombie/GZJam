@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.1.0** (4 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.3.0** (6 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -14,7 +14,8 @@ release.
 
 **Library**
 - Your music folders are the library: a folder tree, with search covering everything under the
-  folder you pick. Nothing to import, and your music files are never changed.
+  folder you pick. Nothing to import, and your music files are never changed, unless you choose
+  to write your tag edits into them.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:`, `played:` (`-played:7` leaves out the songs the room heard last week)
   and `file:`. Words in quotes are a phrase, and `OR` finds either of two (`label:balboa OR label:charleston`).
@@ -25,6 +26,11 @@ release.
   other players keep them in the song files), and what the queue shows of each song. The queue's
   columns can be dragged into another order and width, and a narrow queue (or a thin song list
   column) gives way a part at a time rather than overlapping.
+- Every tag in your song files, not only the usual ones (the composer, a mood, the dance in a tag
+  of your own): shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`).
+- Song info (right-click a song, or Ctrl+I): everything about it in one window, and its tags
+  edited there, for one song or many at once (an artist's spelling across every song a search
+  finds), with Undo: kept in GZJam's library, or written into the files too if you turn that on.
 - Mark songs with a heart or broken heart, an energy level (low, medium, high), and your own labels,
   which show on the decks and queue too, and can be renamed.
 - A queue, and a preview player on every song, to listen in the headphones without loading a deck,
@@ -60,6 +66,8 @@ release.
   you like during a night.
 - The deck the room hears has a red on-air bar that fills as the song plays.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
+- A song with a long or repetitive outro fades out where you set it (*Song ends › Start fade-out
+  here*), rather than stopping dead, with auto-play or playing by hand.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
   passages closer together: on a deck, or for any song from its right-click menu while preparing
   a set.
@@ -98,7 +106,8 @@ release.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
   nights it can fade each song out after a set time, or wait for you between songs; and it can
-  stop at a set time, so the night ends on time. Repeat sends each song back to the end of the
+  stop at a set time, so the night ends on time, or after this song, for an announcement, with
+  the next song ready for when you press play. Repeat sends each song back to the end of the
   queue, so a playlist plays over and over, or plays one song again and again. Load another song
   onto the deck waiting to play, and the one that was there goes back to the top of the queue.
 - On Windows the speakers can be GZJam's alone (a switch, for a laptop kept for gigs), so no
@@ -108,9 +117,13 @@ release.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
+- When the queue ends, beside the clock: the time the music queued runs out, counting the gaps,
+  song ends and fades, so you can see whether it reaches the end of the night.
+- The room's song from the Windows taskbar or the Mac Dock: pause, fade out (the next song, with
+  auto-play) and auto-play, without switching to GZJam.
 - GZJam asks before closing while the room is hearing music. Settings has a Quit key too, for Linux
   desktops that draw no title bar.
-- If GZJam crashes or the laptop restarts mid-dance, the night comes back: the queue and the decks
+- If GZJam crashes or the computer restarts mid-dance, the night comes back: the queue and the decks
   as they were, paused. After a normal close they come back too, each deck at the start of its song.
 - With two taps to pause or fade out the deck the room hears, a stray tap (even while the screen is frozen)
   never stops the music.
@@ -138,43 +151,41 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.2,** to try now in [1.2.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.2.0-beta.1):
-
-- [Every tag in your songs](https://github.com/GemZombie/GZJam/issues/119), not only the usual
-  ones: shown as columns you choose, and searched (`composer:ellington`, `dance:waltz`)
-- [Song info and tag editing](https://github.com/GemZombie/GZJam/issues/129): everything about a
-  song in one window, from its right-click menu or Ctrl+I, and its tags edited there, for one song
-  or many at once (an artist's spelling across every song a search finds), with Undo: kept in
-  GZJam's library, or written into the files too if you turn that on
-
-**In 1.3,** to try now in [1.3.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.3.0-beta.1):
-
-- [Fade a song out at its end](https://github.com/GemZombie/GZJam/issues/267): *Song ends ›
-  Start fade-out here*, for a long or repetitive outro, so the song fades where you set it rather
-  than stopping dead, with auto-play or playing by hand
-- [Taskbar buttons and a Dock menu](https://github.com/GemZombie/GZJam/issues/262): pause,
-  fade out (the next song, with auto-play) and auto-play from the Windows taskbar or the Mac Dock,
-  without switching to GZJam
-- [Stop after this song](https://github.com/GemZombie/GZJam/issues/270): the room goes quiet when
-  the song playing ends, for an announcement, with the next song ready for when you press play
-- [When the queue ends](https://github.com/GemZombie/GZJam/issues/279), at a glance: the time the
-  music queued runs out, beside the clock, counting the gaps, song ends and fades
+Nothing yet since 1.3.0.
 
 ## Planned next
 
-**1.1 is out** (4 November 2026): a playlist played in one step, shuffle, and Repeat. Fixes come
-as 1.1.1, 1.1.2 and so on, and new features as 1.2. Found something? Say so in
+**1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
+when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1.4. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**Next, in 1.4:** your own keys, and your library: versions of a song, and tags from file names.
-- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
-  action, chosen in Settings, with clashes shown and a way back to the defaults
-- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9)
+**Next, in 1.4:** your music from anywhere. With a beta first, since it
+reaches into the library and the network.
+- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
+  other Subsonic servers, one or several), browsed and searched
+  [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
+  copied to the computer ahead of the night, so the room never depends on the Wi-Fi, a song dragged
+  to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
+  home a bit at a time, or the whole server in the background.
+  [A Downloads window](https://github.com/GemZombie/GZJam/issues/304) shows every song coming down,
+  why, and how far along. A heart stars the song on the server, and downloads can go by
+  themselves after the night or after 4 weeks. Songs moved on the server follow here, and
+  [the guide](docs/GUIDE.md#your-own-music-server) covers it all, from Navidrome on a Synology to
+  Tailscale and a friend's server. Next, the beta.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
 
+**1.5:**
+- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
+  action, chosen in Settings, with clashes shown and a way back to the defaults
+- [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
+  the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
+  posting the setlist the next day
+
 **After that:**
+- [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
+  choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
   sync: its playlists, ratings, play counts and Grouping, next to your music folders
 - [A microphone or line input, with talkover](https://github.com/GemZombie/GZJam/issues/121), for a
@@ -215,9 +226,6 @@ to one you'd use.
   taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 
 **Elsewhere**
-- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
-  other Subsonic servers), copied to the laptop ahead of the night, for a laptop too small for the
-  whole library
 - [A visiting or remote DJ](https://github.com/GemZombie/GZJam/issues/204): sign in to your own
   library on a borrowed laptop and leave nothing behind, or play a dance from somewhere else, the
   songs sent ahead to a laptop in the room

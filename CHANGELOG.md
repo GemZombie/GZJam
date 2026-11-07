@@ -13,16 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.3.0-beta.1.
+Nothing yet since 1.3.0.
 
-## 1.3.0-beta.1 (2026-11-05)
+## 1.3.0 (2026-11-06)
 
-A beta of 1.3, for trying it before everyone gets it: running the night, from fading a song out
-where you choose to the time the queue ends. GZJam's update notice doesn't offer betas: you only
-get one from this page. It has everything in 1.2.0-beta.1 too. It adds one small thing to your
-library (where a song starts to fade); 1.2.0-beta.1 and 1.1.0 can still open it, so you can go back
-at any time. New on Windows: buttons under GZJam's taskbar button; on a Mac, a menu on its Dock
-icon. Worth a try, and a word if anything's off.
+Running the night: a song faded out where you choose, the room's song from the taskbar or the
+Dock, stopping after this song for an announcement, and when the queue ends, at a glance. It adds
+one small thing to your library (where a song starts to fade); 1.2.0 can still open it, so you can
+go back at any time. New on Windows: buttons under GZJam's taskbar button; on a Mac, a menu on its
+Dock icon.
 
 New:
 
@@ -48,12 +47,13 @@ New:
   stops (its tip says which). So you can see at a glance whether the queue reaches the end of the
   night, or how much to add.
 
-## 1.2.0-beta.1 (2026-11-04)
+## 1.2.0 (2026-11-05)
 
-A beta of 1.2, for trying it before everyone gets it. GZJam's update notice doesn't offer betas:
-you only get one from this page. The first time it opens your library, it adds what 1.2 needs and
-reads every song again, once; 1.1.0 can still open the library after that, so you can go back to
-it at any time. Writing tag edits into your song files is off unless you turn it on.
+Your songs' tags: every tag in your song files, shown and searched, and a song's info in one
+window, where its tags can be edited, for one song or many at once. The first time it opens your
+library, GZJam adds what 1.2 needs and reads every song again, once; 1.1.0 can still open the
+library after that, so you can go back to it at any time. Writing tag edits into your song files
+is off unless you turn it on.
 
 New:
 
