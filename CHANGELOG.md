@@ -13,7 +13,25 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.4.0-beta.3.
+Nothing yet since 1.4.0-beta.4.
+
+## 1.4.0-beta.4 (2026-11-07)
+
+The fourth beta of 1.4: fewer reads of your server's song list, and fewer library scans while
+a sync downloads. Like the others, GZJam's update notice doesn't offer it: you only get it from
+this page. It has everything in 1.4.0-beta.3. Your library gets one small addition, which 1.3.0
+and the earlier betas can still open.
+
+Fixed:
+
+- **GZJam no longer reads your server's whole song list again when nothing changed there**: at
+  its start, once the list is more than 12 hours old, it asks the server whether it has read its
+  music since, and keeps the list it has if not (Navidrome says; a server that doesn't is read as
+  before). Read again unchanged, 18,000 songs took 90 seconds over the internet. And while it
+  reads, the song list no longer shows a note that came back with each song a sync brought down.
+- **Fewer library scans while a sync downloads**: a song being downloaded no longer sets off a
+  scan of its own, and songs arriving one after another are scanned together, at most every 15
+  seconds, rather than a scan, a folder tree refresh and a song list reload for each song.
 
 ## 1.4.0-beta.3 (2026-11-07)
 

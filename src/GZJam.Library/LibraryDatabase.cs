@@ -587,6 +587,13 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (server_id, song_id)
             );
             """,
+
+        // 32: What the server said of its last reading of its music (Navidrome's lastScan, and
+        // its song count) when its catalog was read, so GZJam's start reads the catalog again
+        // only once the server has read its music since. Only adds.
+        """
+            ALTER TABLE servers ADD COLUMN catalog_scan TEXT;
+            """,
     ];
 
     // ───────────── Roots ─────────────

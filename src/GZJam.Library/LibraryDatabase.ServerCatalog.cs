@@ -16,8 +16,12 @@ public sealed partial class LibraryDatabase
 {
     // ───────────── A server's catalog (#290) ─────────────
 
-    /// <summary>Puts <paramref name="songs"/> in place of the server's catalog, all at once.</summary>
-    public void ReplaceServerCatalog(long serverId, IEnumerable<ServerSong> songs, DateTime nowUtc)
+    /// <summary>
+    /// Puts <paramref name="songs"/> in place of the server's catalog, all at once.
+    /// <paramref name="scanMark"/>: what the server said of its last reading of its music just
+    /// before (see <see cref="ServerScan.Mark"/>), null if it doesn't say.
+    /// </summary>
+    public void ReplaceServerCatalog(long serverId, IEnumerable<ServerSong> songs, DateTime nowUtc, string? scanMark = null)
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
@@ -53,8 +57,9 @@ public sealed partial class LibraryDatabase
         }
         using (var stamp = c.CreateCommand())
         {
-            stamp.CommandText = "UPDATE servers SET catalog_utc = $now WHERE id = $server;";
+            stamp.CommandText = "UPDATE servers SET catalog_utc = $now, catalog_scan = $scan WHERE id = $server;";
             stamp.Parameters.AddWithValue("$now", nowUtc.Ticks);
+            stamp.Parameters.AddWithValue("$scan", (object?)scanMark ?? DBNull.Value);
             stamp.Parameters.AddWithValue("$server", serverId);
             stamp.ExecuteNonQuery();
         }
@@ -188,6 +193,16 @@ public sealed partial class LibraryDatabase
         cmd.CommandText = "SELECT catalog_utc FROM servers WHERE id = $server;";
         cmd.Parameters.AddWithValue("$server", serverId);
         return cmd.ExecuteScalar() is long ticks ? new DateTime(ticks, DateTimeKind.Utc) : null;
+    }
+
+    /// <summary>What the server said of its last reading of its music when its catalog was read; null if it didn't say.</summary>
+    public string? GetServerCatalogScan(long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT catalog_scan FROM servers WHERE id = $server;";
+        cmd.Parameters.AddWithValue("$server", serverId);
+        return cmd.ExecuteScalar() as string;
     }
 
     public int GetServerCatalogCount(long serverId)

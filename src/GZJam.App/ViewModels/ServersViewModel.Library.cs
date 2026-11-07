@@ -48,7 +48,7 @@ public sealed partial class ServersViewModel
             var rows = await RowsForAsync(item, found.Songs, cancel);
             string? leftOut = found.LeftOut.Count == 0 ? null
                 : $"{string.Join(" and ", found.LeftOut)} {(found.LeftOut.Count == 1 ? "is" : "are")} for the songs on this computer: left out here.";
-            return new(rows, Note: leftOut ?? (IsReadingCatalog(item) ? $"Reading {item.Name}'s song list again…" : null));
+            return new(rows, Note: leftOut);   // reading it again shows in the top bar, not with every reload
         }
         if (IsReadingCatalog(item))
             return new([], $"Reading {item.Name}'s song list… its songs show here in a moment.");
@@ -287,14 +287,50 @@ public sealed partial class ServersViewModel
 
     private bool IsReadingCatalog(ServerItemViewModel item) => _readingCatalog.Contains(item.Server.Id);
 
-    /// <summary>At GZJam's start: each server's catalog, if it's never been read or is older than <see cref="CatalogAge"/>.</summary>
+    /// <summary>Whether a server's song list is being read now (for tests).</summary>
+    internal bool IsReadingAnyCatalog => _readingCatalog.Count > 0;
+
+    /// <summary>
+    /// At GZJam's start: each server's catalog, if it's never been read, or it's older than
+    /// <see cref="CatalogAge"/> and the server has read its music since (see <see cref="ServerScan.Mark"/>).
+    /// Read again unchanged, 18,000 songs took 90 seconds over the internet, for nothing new.
+    /// </summary>
     public async Task ReadCatalogsAsync()
     {
         foreach (ServerItemViewModel item in Items.Where(i => !i.IsOffline).ToList())
-            if (_database.GetServerCatalogTime(item.Server.Id) is not { } read || DateTime.UtcNow - read > CatalogAge
-                || !_database.ServerCatalogHasArt(item.Server.Id))   // read before its pictures were kept
-                await ReadCatalogAsync(item.Server.Id, quiet: true);
+        {
+            long id = item.Server.Id;
+            if (_database.GetServerCatalogTime(id) is { } read && _database.ServerCatalogHasArt(id))   // else read before its pictures were kept
+            {
+                if (DateTime.UtcNow - read <= CatalogAge)
+                    continue;
+                if (await ScanMarkAsync(item) is { } mark && mark == _database.GetServerCatalogScan(id))
+                {
+                    Log.Info($"Servers: {item.Name} hasn't read its music since its song list was read: kept as it is");
+                    if (SignedIn(item) is { } client)
+                        await ReadPlaylistsAsync(item, client);   // those change without it reading its music
+                    continue;
+                }
+            }
+            await ReadCatalogAsync(id, quiet: true);
+        }
         await LinkOwnCopiesAsync();   // songs added to the library since
+    }
+
+    /// <summary>What the server says of its last reading of its music now; null if it doesn't say, or can't be asked.</summary>
+    private async Task<string?> ScanMarkAsync(ServerItemViewModel item)
+    {
+        if (SignedIn(item) is not { } client)
+            return null;
+        try
+        {
+            return (await Task.Run(() => client.GetScanStatusAsync())).Mark;
+        }
+        catch (ServerException e)
+        {
+            Log.Info($"Servers: couldn't ask {item.Name} when it last read its music: {e.Message}");
+            return null;
+        }
     }
 
     /// <summary>
@@ -307,7 +343,8 @@ public sealed partial class ServersViewModel
         if (ItemFor(serverId) is not { } item || IsReadingCatalog(item) || SignedIn(item) is not { } client)
             return;
         _readingCatalog.Add(serverId);
-        _owner.Library.RefreshResults();   // says it's reading, if the server is showing
+        if (_database.GetServerCatalogCount(serverId) == 0)
+            _owner.Library.RefreshResults();   // says it's reading, if the server is showing
         try
         {
             SyncStatus ??= $"Reading {item.Name}'s song list…";
@@ -317,6 +354,7 @@ public sealed partial class ServersViewModel
                     SyncStatus = $"Reading {item.Name}'s song list… {Format.Count(n)}";
             });
             var started = System.Diagnostics.Stopwatch.StartNew();
+            string? mark = await ScanMarkAsync(item);   // before: a reading of its music during this one reads it again next time
             List<ServerSong> songs = await Task.Run(() => ServerCatalogReader.ReadAsync(client, progress));
             if (songs.Count == 0 && _database.GetServerCatalogCount(serverId) > 0)
             {
@@ -327,7 +365,7 @@ public sealed partial class ServersViewModel
                     _owner.ShowNotice($"{item.Name} listed no songs just now (is it still reading its music?): its song list is kept as it was.", seconds: 8);
                 return;
             }
-            await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
+            await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow, mark));
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
             await FollowServerMovesAsync(item);   // songs moved or renamed there (#286)
             await ReadPlaylistsAsync(item, client);
