@@ -14,12 +14,13 @@ guide covers everything GZJam does, from your first song to what to do if the so
 4. [Decks](#decks)
 5. [The mixer](#the-mixer)
 6. [The library](#the-library)
-7. [The queue and auto-play](#the-queue-and-auto-play)
-8. [History and set lists](#history-and-set-lists)
-9. [Settings](#settings)
-10. [At a gig](#at-a-gig)
-11. [Problems](#problems)
-12. [Keys and gestures](#keys-and-gestures)
+7. [Your own music server](#your-own-music-server)
+8. [The queue and auto-play](#the-queue-and-auto-play)
+9. [History and set lists](#history-and-set-lists)
+10. [Settings](#settings)
+11. [At a gig](#at-a-gig)
+12. [Problems](#problems)
+13. [Keys and gestures](#keys-and-gestures)
 
 ---
 
@@ -497,6 +498,154 @@ Unless you turn on writing tag edits, the files are only read, never changed.
 
 ---
 
+## Your own music server
+
+Keep your music on a NAS or home server and play it anywhere: GZJam signs in to
+[Navidrome](https://www.navidrome.org/), or another server that speaks the Subsonic API, and shows
+its songs in the library beside your own. One rule makes it safe for a night: **the room only ever
+plays songs on this computer.** Songs come down before the night, or the moment you ask for one;
+streaming is for the headphones only, so a Wi-Fi drop never stops the music.
+
+### Adding a server
+
+Settings › Servers › **ADD A SERVER…**: a name for it (*synology*), its address (`synology:4533`,
+or the address Tailscale gives it), your user name and password. GZJam signs in before saving and
+says what it found: the server, how many songs it has, and whether your account may download them.
+An account that can't download is **preview only**: its songs can be heard in the headphones, never
+played to the room, and GZJam says so now rather than at the moment you try. The password is kept in
+the computer's keychain (Windows Credential Manager, the Mac's Keychain, the Linux desktop's), never
+in GZJam's settings or a backup. Add as many servers as you like, your own and a friend's.
+
+### Browsing
+
+Each server sits in the folder tree after your music folders, with its folders under it as they are
+on the server (or by artist and album, for a server that doesn't say), and its playlists under
+*Playlists*. GZJam reads its song list when it's added and at most twice a day (right-click it ›
+*Read its song list again* after adding music there), so it's searched as fast as your own folders,
+offline too, with the same filters. **Songs not on this computer are dimmed, with a cloud** by the
+title. Preview one in the headphones as usual. A double-click, a load onto a deck, or *Add to queue*
+downloads it first: a deck takes it only once it's here, and never the deck the room hears, and in
+the queue it waits in its place, *Downloading…*, then becomes the song. Under a search of your own
+library, *Also on synology: 12 songs not on this computer · Show* searches the server too.
+
+### Songs on this computer before the night
+
+- **Keep on this computer:** right-click the server › *Keep on this computer…* and choose its
+  playlists and what's starred there (songs, albums and artists you starred in Navidrome). Then
+  *Sync now*. Each playlist becomes one of your playlists and follows the server's on every sync;
+  a cloud marks it (right-click › *Stop following the server* makes it yours).
+- **A song, an album, a folder:** right-click songs › *Download to this computer* or *Download the
+  album*, or a server's folder › *Download to this computer* (kept up to date as songs are added).
+- **Where they go:** *GZJam from servers* in your Music folder (Settings › Servers › CHANGE… moves
+  them, with their hearts, cues and EQ), laid out as the server has them, as a music folder like
+  your others. A song you already have (the same title, artist, and size or length) isn't
+  downloaded again.
+- **Sync when GZJam starts** (Settings › Servers) brings what you chose up to date in the
+  background, pausing once the room hears music.
+
+### Keeping songs in your library for good
+
+Downloaded songs are copies for the nights, in GZJam's downloads folder, removed only as you say
+(see *Room on a small drive*). **Keep a copy in my library** (right-click songs, a server's folder or playlist) puts them
+in a music folder of your own, which you choose once, laid out as on the server: your own songs from
+then on, never removed by GZJam, played with or without the server, and tags can be written into
+them. A downloaded song moves there with its hearts, cues, labels, playlists and plays; nothing in
+the folder is ever replaced, and GZJam shows where they'll go before anything happens.
+Right-click the server › **Keep the whole server in my library…** brings all of it, a song at a
+time in the background: it waits while the room hears music (unless Settings › Servers allows it),
+can be held to a speed, paused and resumed, picks up where it left off after a restart, and songs
+added to the server later come too. Good for bringing a library home a bit at a time.
+
+### What's coming down
+
+The top bar shows what's downloading; click it, or right-click a server › **Downloads…**, for every
+song coming down: what it's for (a sync and its playlist, the queue, a deck, a keep), how far along
+("4.2 of 9.8 MB"), and why one failed. *Stop* on a song stops just that one; **Stop all** (or *Stop*
+in the top bar) stops syncs and keeps after the song coming down, pauses a whole server, and stops
+the queue's downloads, though a song a deck waits for still comes. *Retry failed* tries again.
+A playlist kept by mistake? Right-click it under the server › *Stop keeping on this computer…*.
+
+### Hearts
+
+A ♥ on a server's song stars it on the server too, so Navidrome's own app and web page show the same
+favorites; taking it off takes the star off. Stars are saved under your account, so a friend's own
+aren't changed, and a server that can't be reached is told once it answers. Untick *Send my hearts*
+on a server's card in Settings › Servers to leave one out. Tag edits stay in GZJam: no server takes
+them.
+
+### Room on a small drive
+
+- **Remove from this computer:** right-click downloaded songs, or a server's folder; or right-click
+  the server › *Free up space…*: what was downloaded for the last night, what hasn't been played in
+  4 weeks, or everything, with what each frees. They stay on the server, and a sync doesn't bring
+  them back until you ask for one.
+- **Keep downloaded songs** (Settings › Servers): *Until I remove them* (the default), *For 4
+  weeks after they were last played*, or *For the night only* (songs downloaded for the queue or a
+  deck go the next time GZJam starts).
+- **Room for downloaded songs:** a limit. A sync that would pass it makes room with the downloads
+  played least recently.
+
+Neither ever removes a kept list's songs, songs you downloaded on purpose, your own songs, or
+anything on a deck, in the queue or played tonight. Songs moved or renamed on the server move here
+too, rather than downloading again.
+
+### When the server can't be reached
+
+No Wi-Fi, venue Wi-Fi without your Tailscale, the NAS asleep: the server gets a crossed-out cloud
+in the folder tree, its songs still show (GZJam keeps its song list), and *Only on this computer*
+turns on by itself to show what can be played tonight. Everything already here plays as usual.
+GZJam asks again every couple of minutes and when the network changes; queued songs waiting for it
+come once it answers.
+
+### Setting up Navidrome on a Synology
+
+1. In **Container Manager**, make a project (say *navidrome*) in a folder like
+   `/volume1/docker/navidrome`, with this, changing the music folder to yours:
+
+   ```yaml
+   services:
+     navidrome:
+       image: navidrome/navidrome:latest
+       user: 1026:100   # your Synology account: it must own the data folder and read the music
+       ports:
+         - "4533:4533"
+       restart: unless-stopped
+       environment:
+         ND_SUBSONIC_DEFAULTREPORTREALPATH: "true"   # so GZJam lays songs out as your folders are
+       volumes:
+         - /volume1/docker/navidrome/data:/data
+         - /volume1/Music:/music:ro
+   ```
+
+   Your account's numbers come from `id` in an SSH session (often `1026:100` for the first account).
+   Without the real paths setting, Navidrome hides its folders, and GZJam lays songs out by artist
+   and album instead.
+2. Open `http://<your NAS>:4533` in a browser and make the first account: it's the admin. Navidrome
+   reads your music; downloads are allowed unless `ND_ENABLEDOWNLOADS` is set to `false`.
+3. In GZJam, Settings › Servers › ADD A SERVER… with that address and account.
+
+Other ways to run Navidrome (a Raspberry Pi, Docker anywhere, Windows, a Mac) are in
+[its own guide](https://www.navidrome.org/docs/installation/).
+
+### From anywhere: Tailscale
+
+[Tailscale](https://tailscale.com/) puts the NAS and your laptop on a private network of their own,
+wherever they are, with nothing opened on the router. Install it on the Synology (Package Center)
+and on the laptop, signed in to the same account, and use the NAS's Tailscale name as the server's
+address: `http://synology:4533`. At a venue, the laptop reaches home over whatever Wi-Fi there is;
+without one, the songs already on the laptop are what you play.
+
+### A friend's server
+
+Two things from your friend: **an account of your own** on their Navidrome (they make it in its web
+page; it's theirs to remove whenever they like, and you never use their login), and, if it's away
+from your network, **their machine shared with you** in Tailscale (*Share* on the machine, to your
+email). Downloads must be allowed for the songs to play to the room; otherwise the server is preview
+only. Your hearts are saved under your account there. Whether to keep copies of a friend's music is
+between the two of you.
+
+---
+
 ## The queue and auto-play
 
 The queue is tonight's list of songs to come.
@@ -606,6 +755,11 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   either way.
 - **Library:** *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
+- **Servers:** your music servers (ADD A SERVER…, TEST, EDIT…, REMOVE…, *Send my hearts*), and
+  for the songs downloaded from them: where they go, where songs you keep go, keeping a whole
+  server (its speed, and whether it goes on while the room hears music), *Keep downloaded songs*,
+  *Room for downloaded songs*, and *Sync when GZJam starts*. See
+  [Your own music server](#your-own-music-server).
 - **About:** the version, *Tell me when a new version is out* (at startup GZJam asks GitHub, and
   says so quietly in the top bar before the music starts; nothing about you or your music is sent),
   *Check now*, and the software GZJam is built with.

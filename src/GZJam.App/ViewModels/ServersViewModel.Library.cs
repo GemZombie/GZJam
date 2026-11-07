@@ -329,6 +329,7 @@ public sealed partial class ServersViewModel
             }
             await Task.Run(() => _database.ReplaceServerCatalog(serverId, songs, DateTime.UtcNow));
             Log.Info($"Servers: read {item.Name}'s song list, {Format.Count(songs.Count)} songs, in {started.Elapsed.TotalSeconds:0.0} s");
+            await FollowServerMovesAsync(item);   // songs moved or renamed there (#286)
             await ReadPlaylistsAsync(item, client);
             _ = LinkOwnCopiesAsync();   // which of them are in the library already
             StartKeepWhole(item);   // songs added there, if it's kept whole
