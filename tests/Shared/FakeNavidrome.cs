@@ -11,7 +11,7 @@ namespace GZJam.Testing;
 /// </summary>
 public sealed class FakeNavidrome : HttpMessageHandler
 {
-    private static readonly Dictionary<string, (string Title, string Artist, string Album, string AlbumId, int Track, string Path, string Suffix)> Songs = new()
+    private readonly Dictionary<string, (string Title, string Artist, string Album, string AlbumId, int Track, string Path, string Suffix)> Songs = new()
     {
         ["s1"] = ("Basie Boogie", "Count Basie", "Cute", "al-cute", 3, "/music/Jazz & Swing/Count Basie/Cute/03 - Basie Boogie.mp3", "mp3"),
         ["s2"] = ("Air Mail Special", "Ella Fitzgerald", "Ella Swings", "al-ella", 7, "/music/Jazz & Swing/Ella Fitzgerald/Ella Swings/07 - Air Mail Special.flac", "flac"),
@@ -101,6 +101,24 @@ public sealed class FakeNavidrome : HttpMessageHandler
         content.Headers.ContentType = new("audio/mpeg");
         return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
     }
+    /// <summary>
+    /// A song moved or renamed on the server (#286): a new path, and, as Navidrome does (its IDs
+    /// come from the path), a new ID if given; its playlists follow.
+    /// </summary>
+    public void Move(string id, string path, string? newId = null)
+    {
+        string to = newId ?? id;
+        var song = Songs[id];
+        Songs.Remove(id);
+        Songs[to] = song with { Path = path };
+        if (Files.Remove(id, out byte[]? file))
+            Files[to] = file;
+        if (Sizes.Remove(id, out long size))
+            Sizes[to] = size;
+        foreach (string playlist in Playlists.Keys.ToList())
+            Playlists[playlist] = Playlists[playlist].Select(s => s == id ? to : s).ToArray();
+    }
+
     /// <summary>The stars asked for, in order: "star s1", "unstar s1" (#286).</summary>
     public List<string> Stars { get; } = [];
 

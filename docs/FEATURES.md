@@ -1776,3 +1776,53 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - `MainWindowViewModel.DecksInQueue` (hidden, Queue tab, queue panel open; the window reports the
   panel through `QueuePanelOpen`) and `ShowAirLine` (hidden, otherwise): the room's play key is on
   screen exactly once.
+
+### Status: your own music server (#184, 1.4)
+
+- The rule, from #184's design: **the room only plays files on this computer.** Streaming is for the
+  headphones (`PreviewAsync`, into a temporary folder emptied each session); a server song goes on a
+  deck or into the queue only once it's downloaded.
+- **Servers** (#282): `servers` table (address, user, what the last check found); the password in
+  `PasswordStore` (Windows Credential Manager, the Mac's Keychain, the Secret Service; a file only
+  the user can read on a Linux desktop without one). `SubsonicClient`: token auth (salt + MD5),
+  falling back to the password for servers that refuse tokens (error 41); `download` (the original
+  file, never `stream`), with a stall watchdog. A server without `downloadRole` is preview only.
+- **The catalog** (#290): every song read a page at a time (`ServerCatalogReader`, search3 with an
+  empty query, else album by album) into `server_catalog`, with its place in the server's folders
+  (`ServerPaths.CatalogPlace`: the real path when Navidrome reports it,
+  `Subsonic.DefaultReportRealPath`, else album artist / album), so the server's folders, search and
+  filters work offline. Read when added and at most twice a day; an empty answer from a server that
+  had songs is ignored. Its playlists in `server_playlists`, cover art IDs kept for the rows.
+- **Downloads** (#283, #284, #290): `ServerSync` brings what's chosen (`server_choices`: playlists,
+  starred, albums, artists, folders, songs) into the downloads folder, laid out as on the server
+  (`ServerPaths.Place`, made safe and short), by way of `.partial` files; `server_songs` maps each
+  server song to its file here. On the spot (a deck, the queue, a playlist): `GetOneAsync`, one
+  download per song shared by everyone waiting, the queue's two at a time, a deck's first.
+  `own_copy`: a song the DJ already has (title and artist, then the same size or a length within 1.5
+  s, `LinkOwnCopies`), used rather than downloaded.
+- **Keeping** (#285): *Keep a copy in my library* moves a download (with everything kept by path,
+  `MoveSongFiles`) or downloads straight into a music folder the DJ chooses, marked `own_copy`:
+  never removed. Keeping a whole server: a pass a song at a time in the background
+  (`KeepWholePassAsync`), waiting while the room hears music, at a speed (`ThrottledStream`), paused
+  and resumed, picked up after a restart.
+- **Unreachable** (#290): marked offline on a failed request or a quick check at startup and on
+  network changes, asked again every 2 minutes; *Only on this computer* turns on by itself.
+- **The Downloads window** (#304): `ServerSync.Report` (`IDownloadReport`) feeds
+  `DownloadsViewModel` from every source; a line per sync or keep, a row per song; four updates a
+  second at most.
+- **Hearts** (#286): a ♥ stars the server song (`star`/`unstar`) for each path that's one
+  (`GetServerSongsAt`, own copies too); `server_hearts_out` holds them until the server answers. Per
+  server, `ServerHeartsNotSent`. No `setRating`: GZJam has hearts only.
+- **Room** (#286): *Keep downloaded songs* (`KeepDownloads`: until removed, 4 weeks after last
+  played, the night only) at startup, after the night is restored; a sync past the limit asks
+  `MakeRoom` for the least recently played. Never what a kept list needs (`server_choices.song_ids`,
+  what each choice brought at its last sync, so this works offline), songs downloaded on purpose, or
+  anything on a deck, in the queue or played tonight. Removed this way, a song isn't held back
+  (`ForgetServerDownloads`), unlike *Remove from this computer* (`server_removed`).
+- **Moved on the server** (#286): after the catalog is read, `FindServerMoves`: the same ID with a
+  new path, or a gone ID with exactly one new song of the same size and the same file name (or title
+  and artist), as Navidrome's IDs come from the path. A download moves to its new place with its
+  data; a kept or own copy is re-linked where it is; one on a deck waits for next time.
+- Danny (who built his own take on servers in a fork) reviewed and tested this against his
+  Navidrome; the Downloads window, two-at-a-time downloads and kept playlists' marks came from his
+  version, and the freezes he found on a big server were fixed (#302).

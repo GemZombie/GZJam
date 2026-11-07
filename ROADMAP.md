@@ -174,8 +174,9 @@ reaches into the library and the network.
   home a bit at a time, or the whole server in the background.
   [A Downloads window](https://github.com/GemZombie/GZJam/issues/304) shows every song coming down,
   why, and how far along. A heart stars the song on the server, and downloads can go by
-  themselves after the night or after 4 weeks. Next, songs moved on the server, and the guide,
-  then the beta.
+  themselves after the night or after 4 weeks. Songs moved on the server follow here, and
+  [the guide](docs/GUIDE.md#your-own-music-server) covers it all, from Navidrome on a Synology to
+  Tailscale and a friend's server. Next, the beta.
 - [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
   missing, and *Fill tags from file name* in the tag editor
 

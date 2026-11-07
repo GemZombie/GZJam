@@ -88,6 +88,14 @@ New:
   downloaded songs* set, a sync that would pass it now makes room with the downloads played least
   recently, rather than stopping. Adds one more small thing to your library; older versions can
   still open it.
+- **Songs moved or renamed on the server** (#286): when GZJam reads the server's song list, a song
+  on this computer whose song moved there follows it, rather than being downloaded again: a
+  downloaded one moves to its new place, with its hearts, cues, labels, playlists and plays; one
+  kept in your music stays where it is. (Navidrome gives a moved song a new ID; GZJam finds it by
+  its size and its file name, or title and artist.)
+- **The guide's [Your own music server](docs/GUIDE.md#your-own-music-server)**: adding a server,
+  browsing it, songs on the computer before the night, keeping songs for good, hearts, room on a
+  small drive, and setting up Navidrome on a Synology, with Tailscale, and a friend's server.
 - **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
   of its folders) › *Remove from this computer*, or right-click the server › *Free up space…*: what
   was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,
