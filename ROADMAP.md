@@ -191,8 +191,8 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
 
 **1.6:**
 - [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: a window of its
-  own, beside the decks, to copy songs in from a server or a USB stick and move them around your
-  music, with their hearts, cues and playlists, and new and renamed folders
+  own, beside the decks, with two panes to copy and move songs between your music, the computer's
+  folders and USB sticks, or copy them from a server, and new and renamed folders
 - [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324)
 
 **After that:**
