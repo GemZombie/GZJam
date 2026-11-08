@@ -842,6 +842,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Asks for a short text (heading, message, OK button, starting text); the window supplies the dialog.</summary>
     public Func<string, string, string, string, Task<string?>>? PromptAsync { get; set; }
 
+    /// <summary>Asks which folder of My music songs go to (#324): set by the window. Without it, it's yes or no to the usual place.</summary>
+    public Func<AddPlaceViewModel, Task<AddPlace?>>? ChooseAddPlaceAsync { get; set; }
+
     /// <summary>Puts text on the clipboard: set by the window.</summary>
     public Func<string, Task>? CopyTextAsync { get; set; }
 

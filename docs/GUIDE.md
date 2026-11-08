@@ -366,11 +366,19 @@ when it's loaded or queued** (or added to a playlist), so pulling the stick out 
 room; it's the song you see in Files from then on, with what you gave it.
 
 **Add to my music** (right-click songs, or a folder or stick in the tree) copies them into your
-music, under *Added* and the folder they came from (*Music › Added › Gig Nov 14*), so a stick's
-requests stay together. The originals stay where they are; the copies are yours, with their hearts
-and cues, and show in My music. A stick is never added as a music folder: it comes and goes.
+music. Usually that's under *Added* and the folder they came from (*Music › Added › Gig Nov 14*), so
+a stick's requests stay together, but you choose: see *Choosing the folder*, below. The originals
+stay where they are; the copies are yours, with their hearts and cues, and show in My music. A stick is never added as a music folder: it comes and goes.
 Songs that are in My music already (a folder of your music, seen in Files) say *Already in My
 music* there instead.
+
+### Choosing the folder
+
+*Add to my music…* asks where the songs go, from a server, Files or a USB stick, showing My music's
+folders. It opens on the last folder you chose, or on the usual place if you haven't chosen one, so
+*Add* on its own puts them where they usually go (*Back to the usual place* returns to it). Pick a
+folder and the songs go straight into it; tick *Keep their folders inside it* to bring the folders
+they're in as well. *+ New folder* makes one inside the folder selected.
 
 ### Folders and search
 

@@ -49,6 +49,7 @@ public partial class MainWindow
                 return dialog.ShowDialog<bool>(this);
             };
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
+            vm.ChooseAddPlaceAsync = model => new AddToMyMusicDialog(model).ShowDialog<AddPlace?>(this);
             vm.CopyTextAsync = async text =>
             {
                 if (Clipboard is { } clipboard)

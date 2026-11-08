@@ -287,13 +287,14 @@ public sealed class ServerSync(LibraryDatabase database, SubsonicClient client, 
     /// with the album's picture if its folder has none, and the DJ's own from then on (never
     /// removed by GZJam). Returns its size.
     /// </summary>
-    public async Task<long> KeepAsync(ServerSong song, string path, string keepFolder, CancellationToken cancel = default)
+    public async Task<long> KeepAsync(ServerSong song, string path, string keepFolder, CancellationToken cancel = default, bool art = true)
     {
         if (FreeSpace(keepFolder) is { } free && free - (song.Size ?? 0) < KeepFree)
             throw new IOException(DiskNearlyFull);
         long got = await DownloadAsync(song, path, cancel).ConfigureAwait(false);
         database.SaveServerSong(new ServerSongCopy(server.Id, song.Id, path, got, song.Path, OwnCopy: true), Now());
-        await AddFolderArtAsync(song, path, cancel, under: keepFolder).ConfigureAwait(false);
+        if (art)
+            await AddFolderArtAsync(song, path, cancel, under: keepFolder).ConfigureAwait(false);
         return got;
     }
 

@@ -61,6 +61,7 @@ public sealed class AppHarness : IDisposable
         ViewModel = new MainWindowViewModel(Database, Settings, Audio, Mix);
         Window = new MainWindow { DataContext = ViewModel, Width = 1440, Height = 900 };
         Window.Show();
+        ViewModel.ChooseAddPlaceAsync = null;   // yes or no to the usual place, unless a test answers the dialog itself (#324)
         _current = this;
         if (start)
             Start();
