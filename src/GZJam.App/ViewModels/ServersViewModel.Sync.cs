@@ -478,7 +478,7 @@ public sealed partial class ServersViewModel
                 if (!here.TryGetValue(s.Id, out string? path))
                     return new ServerTrack(serverId, name, s) { Unreachable = offline }.ToTrack();
                 Track track = mine.GetValueOrDefault(path) ?? _database.TrackForFile(path);
-                track.IsYours = own.Contains(s.Id);
+                track.IsInMyMusic = own.Contains(s.Id);
                 return track;
             }).ToList();
         }, cancel);

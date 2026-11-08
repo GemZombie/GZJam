@@ -86,6 +86,7 @@ public sealed class FilesAppTests
         Assert.Equal(["This computer", "Desktop"], library.FolderRows.Select(r => r.Name));   // the computer opened, the Desktop not yet
         Assert.Empty(library.Results);
         Assert.StartsWith("Files is this computer", library.EmptyMessage);
+        s.App.Screenshot("files-empty");   // the message wraps, never cut off
         Assert.Equal("Filter this folder's songs by name", library.SearchPlaceholder);
 
         Open(s, "Desktop");
