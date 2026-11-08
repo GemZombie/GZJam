@@ -183,8 +183,6 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.5**, with sources (above):
-- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
-  action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
   the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
   posting the setlist the next day
@@ -196,6 +194,8 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
 - [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324)
 
 **After that:**
+- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
+  action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
   choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
