@@ -265,7 +265,7 @@ public partial class MainWindow
             item.IsVisible = !remote;
         TrackDownloadItem.IsVisible = remote;
         TrackRemoveFromLaptopItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.DownloadsFor(tracks).Count > 0;
-        TrackKeepItem.IsVisible = FilesShowing(tracks) || (Vm.Servers.HasServers && Vm.Servers.CanKeepCopy(tracks));
+        ShowKeepItem(tracks);
         TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
@@ -381,6 +381,40 @@ public partial class MainWindow
     /// <summary>Songs of a folder in Files (#318), not yet in the library: Add to my music copies them in.</summary>
     private bool FilesShowing(IReadOnlyList<Track> tracks) =>
         Vm.Library is { Source: LibrarySource.Files, IsPlaylistOpen: false } && tracks.Any(t => t.IsOutsideLibrary);
+
+    private object? _serverKeepTip;
+
+    /// <summary>
+    /// Add to my music, on songs: a server's (copied in, laid out as there), or Files' (#318), always
+    /// there in Files, grayed out for songs in the library already, so it says why there's nothing to add.
+    /// </summary>
+    private void ShowKeepItem(IReadOnlyList<Track> tracks)
+    {
+        _serverKeepTip ??= ToolTip.GetTip(TrackKeepItem);
+        if (Vm.Library is { Source: LibrarySource.Files, IsPlaylistOpen: false } && tracks.Count > 0)
+        {
+            bool any = FilesShowing(tracks);
+            TrackKeepItem.IsVisible = true;
+            TrackKeepItem.IsEnabled = any;
+            TrackKeepItem.Header = any ? "Add to my music…"
+                : tracks.All(t => Vm.SourceOf(t).Source == Controls.SongSource.MyMusic) ? "Already in My music" : "Already in your library";
+            ToolTip.SetTip(TrackKeepItem, any
+                ? "Copy these songs into My music, under Added and their folder's name: yours from then on, never removed by GZJam. The originals stay where they are"
+                : null);
+            return;
+        }
+        TrackKeepItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.CanKeepCopy(tracks);
+        TrackKeepItem.IsEnabled = true;
+        TrackKeepItem.Header = "Add to my music…";
+        ToolTip.SetTip(TrackKeepItem, _serverKeepTip);
+    }
+
+    /// <summary>A right-click menu in a list's rows (the folder tree, the playlists): the right size, however the row's last one was.</summary>
+    private void OnRowMenuOpened(object? sender, RoutedEventArgs e)
+    {
+        if (sender is ContextMenu menu)
+            FlyoutMenus.RefitIfWrongSize(menu);
+    }
 
     private async void OnKeepTracksClick(object? sender, RoutedEventArgs e)
     {

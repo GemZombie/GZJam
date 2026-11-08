@@ -47,6 +47,12 @@ Changed:
   server): off, it copies only while no music is playing; on, at any time. They show only once a
   server is being added whole: until then they do nothing.
 
+Fixed:
+
+- **A folder's right-click menu is its own size:** on Windows, a folder's or playlist's menu
+  opened after a bigger one could keep that size, with empty space under its choices. Now it
+  opens again straight away, the right size.
+
 ## 1.4.0-beta.5 (2026-11-07)
 
 The fifth beta of 1.4: the library's folder tree with no gaps, and never blank as you scroll. Like

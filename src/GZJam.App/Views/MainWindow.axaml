@@ -389,7 +389,7 @@
                   </Panel>
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                   <Grid.ContextMenu>
-                    <ContextMenu>
+                    <ContextMenu Opened="OnRowMenuOpened">
                       <MenuItem Header="Rescan" Command="{Binding RescanCommand}" IsVisible="{Binding IsFolder}" />
                       <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" IsVisible="{Binding IsFolder}" />
                       <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" IsVisible="{Binding CanOpenFolder}" />
@@ -472,7 +472,7 @@
                 <DataTemplate DataType="lib:PlaylistInfo">
                   <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                     <Grid.ContextMenu>
-                      <ContextMenu>
+                      <ContextMenu Opened="OnRowMenuOpened">
                         <MenuItem Header="Play" Click="OnPlaylistItemPlayClick"
                                   ToolTip.Tip="Play this playlist: it takes the queue's place and auto-play plays it. A song playing finishes first" />
                         <MenuItem Header="Play shuffled" Click="OnPlaylistItemPlayShuffledClick"

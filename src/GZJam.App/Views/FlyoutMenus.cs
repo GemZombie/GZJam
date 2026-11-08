@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -66,7 +67,7 @@ internal static class FlyoutMenus
             }
             Dispatcher.UIThread.Post(() =>
             {
-                if (!TooSmall(menu))
+                if (!WrongSize(menu))
                     return;
                 reopening = true;
                 menu.Close();
@@ -75,6 +76,39 @@ internal static class FlyoutMenus
         };
         menu.Closed += (_, _) => filled = false;
     }
+
+    private static readonly ConditionalWeakTable<ContextMenu, object> Refitting = new();
+
+    /// <summary>
+    /// For a menu not filled in code, whose rows show or hide by what it's on (a folder tree row's,
+    /// recycled from one folder to another): call as it opens. Opened the wrong size, it's opened
+    /// again at once, the once.
+    /// </summary>
+    public static void RefitIfWrongSize(ContextMenu menu)
+    {
+        if (Refitting.TryGetValue(menu, out _))
+        {
+            Refitting.Remove(menu);
+            return;
+        }
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!WrongSize(menu))
+                return;
+            Refitting.AddOrUpdate(menu, menu);
+            menu.Close();
+            menu.Open();
+        }, DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Too small (<see cref="TooSmall"/>), or too big: on Windows a menu's window could keep the
+    /// size of what the menu last showed, so a folder's menu opened after a bigger one's had empty
+    /// rows' worth of space under its own. (Height only: its width is the widest row's either way.)
+    /// </summary>
+    internal static bool WrongSize(ContextMenu menu) =>
+        TooSmall(menu) || (menu.IsOpen && TopLevel.GetTopLevel(menu) is { } window and not Window
+            && window.ClientSize.Height > menu.DesiredSize.Height + 1);
 
     /// <summary>
     /// Whether an open menu's window is smaller than its rows. On Windows, opened by a real
