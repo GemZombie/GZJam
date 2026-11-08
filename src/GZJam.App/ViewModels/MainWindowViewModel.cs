@@ -842,6 +842,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Asks for a short text (heading, message, OK button, starting text); the window supplies the dialog.</summary>
     public Func<string, string, string, string, Task<string?>>? PromptAsync { get; set; }
 
+    /// <summary>Puts text on the clipboard: set by the window.</summary>
+    public Func<string, Task>? CopyTextAsync { get; set; }
+
     /// <summary>A tap on a track's heart: unrated → ♥ → broken heart → unrated.</summary>
     /// <summary>Songs still on a server, brought here one at a time; each goes where it was meant to as it arrives.</summary>
     private static async Task ThenAsync(Task<IReadOnlyList<Track>> reading, Action<IReadOnlyList<Track>> then)

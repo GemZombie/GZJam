@@ -47,6 +47,41 @@ public sealed class FakeNavidrome : HttpMessageHandler
     public string[] StarredAlbums { get; set; } = [];
     public string[] StarredArtists { get; set; } = [];
     public bool RealPaths { get; set; } = true;
+
+    /// <summary>The links made (createShare): the playlist's ID and what it says.</summary>
+    public List<(string Id, string? Description)> Shares { get; } = [];
+
+    /// <summary>Sharing turned off, as Navidrome has it by default: createShare is "not implemented".</summary>
+    public bool SharingOff { get; set; }
+
+    private int _madePlaylists;
+
+    private string CreatePlaylist(Uri uri)
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string id = query["playlistId"] ?? $"sent{++_madePlaylists}";
+        Playlists[id] = query.GetValues("songId") ?? [];
+        if (query["name"] is { } name)
+            PlaylistNames[id] = name;
+        return Ok(new { playlist = new { id, name = PlaylistNames.GetValueOrDefault(id, id) } });
+    }
+
+    private string UpdatePlaylist(Uri uri)
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string id = query["playlistId"]!;
+        Playlists[id] = [.. Playlists[id], .. query.GetValues("songIdToAdd") ?? []];
+        if (query["name"] is { } name)
+            PlaylistNames[id] = name;
+        return Ok(new { });
+    }
+
+    private string CreateShare(Uri uri)
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        Shares.Add((query["id"]!, query["description"]));
+        return Ok(new { shares = new { share = new[] { new { id = $"share{Shares.Count}", url = "http://synology:4533/share/abc" } } } });
+    }
     public bool Down { get; set; }
 
     /// <summary>A tiny real PNG: each album's picture.</summary>
@@ -212,8 +247,13 @@ public sealed class FakeNavidrome : HttpMessageHandler
             content.Headers.ContentType = new("audio/mpeg");
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = content });
         }
+        if (uri.AbsolutePath == "/rest/createShare.view" && SharingOff)
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotImplemented) { Content = new StringContent("This endpoint is not implemented") });
         string json = uri.AbsolutePath switch
         {
+            "/rest/createPlaylist.view" => CreatePlaylist(uri),
+            "/rest/updatePlaylist.view" => UpdatePlaylist(uri),
+            "/rest/createShare.view" => CreateShare(uri),
             "/rest/search3.view" => Ok(new
             {
                 searchResult3 = new

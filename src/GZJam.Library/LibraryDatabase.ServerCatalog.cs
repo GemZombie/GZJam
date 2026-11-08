@@ -143,6 +143,31 @@ public sealed partial class LibraryDatabase
     }
 
     /// <summary>The server's playlists as last read, by name.</summary>
+    /// <summary>The playlist GZJam made on this server for one of the DJ's (#303); null if it hasn't.</summary>
+    public string? GetSentPlaylist(long playlistId, long serverId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT remote_id FROM server_sent_playlists WHERE playlist_id = $playlist AND server_id = $server;";
+        cmd.Parameters.AddWithValue("$playlist", playlistId);
+        cmd.Parameters.AddWithValue("$server", serverId);
+        return cmd.ExecuteScalar() as string;
+    }
+
+    public void SaveSentPlaylist(long playlistId, long serverId, string remoteId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO server_sent_playlists (playlist_id, server_id, remote_id) VALUES ($playlist, $server, $remote)
+            ON CONFLICT (playlist_id, server_id) DO UPDATE SET remote_id = excluded.remote_id;
+            """;
+        cmd.Parameters.AddWithValue("$playlist", playlistId);
+        cmd.Parameters.AddWithValue("$server", serverId);
+        cmd.Parameters.AddWithValue("$remote", remoteId);
+        cmd.ExecuteNonQuery();
+    }
+
     public IReadOnlyList<ServerPlaylistCopy> GetServerPlaylists(long serverId)
     {
         using var c = Open();

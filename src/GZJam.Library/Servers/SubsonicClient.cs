@@ -382,6 +382,40 @@ public sealed class SubsonicClient
     public async Task StarAsync(string songId, bool starred, CancellationToken cancel = default) =>
         await GetAsync(starred ? "star" : "unstar", [("id", songId)], cancel).ConfigureAwait(false);
 
+    /// <summary>How many songs go in one call: they go in the address, which a proxy may refuse if it's long.</summary>
+    private const int SongsPerCall = 100;
+
+    /// <summary>
+    /// Makes a playlist of these songs, in this order (#303), or replaces the songs of the one with
+    /// <paramref name="playlistId"/>, and gives its name. Its ID on the server.
+    /// </summary>
+    public async Task<string> SendPlaylistAsync(string? playlistId, string name, IReadOnlyList<string> songIds, CancellationToken cancel = default)
+    {
+        (string, string) target = playlistId is null ? ("name", name) : ("playlistId", playlistId);
+        JsonElement body = await GetAsync("createPlaylist",
+            [target, .. songIds.Take(SongsPerCall).Select(id => ("songId", id))], cancel).ConfigureAwait(false);
+        string? made = playlistId ?? (body.TryGetProperty("playlist", out JsonElement playlist) ? Text(playlist, "id") : null);
+        // Before Subsonic 1.14 the answer doesn't say: it's the newest of that name.
+        made ??= (await GetPlaylistsAsync(cancel).ConfigureAwait(false)).LastOrDefault(p => p.Name == name)?.Id
+            ?? throw new ServerException("The server didn't say what it made.", outcome: ServerCheckOutcome.Failed);
+        if (playlistId is not null)
+            await GetAsync("updatePlaylist", [("playlistId", made), ("name", name)], cancel).ConfigureAwait(false);
+        foreach (string[] part in songIds.Skip(SongsPerCall).Chunk(SongsPerCall))
+            await GetAsync("updatePlaylist", [("playlistId", made), .. part.Select(id => ("songIdToAdd", id))], cancel).ConfigureAwait(false);
+        return made;
+    }
+
+    /// <summary>A link anyone can open to listen to a playlist (OpenSubsonic's createShare, #303).</summary>
+    public async Task<string> CreateShareAsync(string playlistId, string? description, CancellationToken cancel = default)
+    {
+        JsonElement body = await GetAsync("createShare",
+            string.IsNullOrWhiteSpace(description) ? [("id", playlistId)] : [("id", playlistId), ("description", description.Trim())], cancel).ConfigureAwait(false);
+        string? link = body.TryGetProperty("shares", out JsonElement shares)
+            ? Items(shares, "share").Select(s => Text(s, "url")).FirstOrDefault(u => !string.IsNullOrEmpty(u))
+            : null;
+        return link ?? throw new ServerException("The server didn't give a link.", outcome: ServerCheckOutcome.Failed);
+    }
+
     /// <summary>One song, by its ID; null if the server no longer has it.</summary>
     public async Task<ServerSong?> GetSongAsync(string songId, CancellationToken cancel = default)
     {

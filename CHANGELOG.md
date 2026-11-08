@@ -13,7 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.5.0-beta.1.
+New:
+
+- **Send a playlist of yours to your server, and share it** (#303, thanks to Danny for asking).
+  Right-click a playlist › *Send to synology* makes it on the server in its order, for your
+  setlist the next day; sending it again updates the same one. Songs the server doesn't have are
+  named first and left out. *Share a link…* makes a link anyone can open and listen to, and copies
+  it, ready to paste into a post (Navidrome needs sharing turned on: *EnableSharing*). Adds one
+  more small thing to your library; older versions can still open it.
 
 ## 1.5.0-beta.1 (2026-11-08)
 
