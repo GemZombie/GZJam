@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using GZJam.App.ViewModels;
 using GZJam.Library;
@@ -197,6 +198,36 @@ public sealed class FilesAppTests
         s.Library.ChooseSource(LibrarySource.MyMusic);
         s.Library.SearchText = "sing sing";
         AppHarness.WaitFor(() => s.Library.Results.Any(t => t.Path == copy));
+    }
+
+    [AvaloniaFact]
+    public void A_songs_menu_in_Files_offers_Add_to_my_music_and_says_when_its_there_already()
+    {
+        using var s = WithFiles();
+        var files = s.App.ViewModel.Files;
+        string album = Path.GetDirectoryName(s.Library.Results[0].Path)!;   // a folder of My music's
+        files.Places = () => [new FilePlace("Desktop", s.Desktop, FilesKind.Place), new FilePlace("An album", album, FilesKind.Place)];
+        s.Library.RefreshFiles();
+        s.Library.ChooseSource(LibrarySource.Files);
+        var grid = s.App.Window.FindControl<DataGrid>("TrackGrid")!;
+        var menu = s.App.Window.FindControl<ContextMenu>("TrackMenu")!;
+        var item = s.App.Window.FindControl<MenuItem>("TrackKeepItem")!;
+        (bool, bool, object?) Menu()
+        {
+            grid.SelectedIndex = 0;
+            menu.Open(grid);
+            AppHarness.Settle(100);
+            var shown = (item.IsVisible, item.IsEnabled, item.Header);
+            menu.Close();
+            return shown;
+        }
+
+        Open(s, "Desktop");
+        Assert.Equal((true, true, "Add to my music…"), Menu());
+
+        Open(s, "An album");   // My music's own folder, seen in Files: nothing to add
+        Assert.NotEmpty(s.Library.Results);
+        Assert.Equal((true, false, "Already in My music"), Menu());
     }
 
     [AvaloniaFact]

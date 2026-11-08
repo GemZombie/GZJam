@@ -369,6 +369,8 @@ room; it's the song you see in Files from then on, with what you gave it.
 music, under *Added* and the folder they came from (*Music › Added › Gig Nov 14*), so a stick's
 requests stay together. The originals stay where they are; the copies are yours, with their hearts
 and cues, and show in My music. A stick is never added as a music folder: it comes and goes.
+Songs that are in My music already (a folder of your music, seen in Files) say *Already in My
+music* there instead.
 
 ### Folders and search
 
