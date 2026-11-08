@@ -416,6 +416,33 @@ public partial class MainWindow
         ToolTip.SetTip(TrackKeepItem, _serverKeepTip);
     }
 
+    private OrganizeWindow? _organize;
+
+    /// <summary>Organize music (#325): one window, beside the decks; opened on a folder if one was right-clicked.</summary>
+    internal OrganizeWindow ShowOrganize(string? folder = null)
+    {
+        if (_organize is { } open)
+        {
+            open.Activate();
+            return open;
+        }
+        var model = Vm.CreateOrganize();
+        _ = model.StartAsync(folder);
+        var window = new OrganizeWindow(model);
+        _organize = window;
+        window.Closed += (_, _) => _organize = null;
+        window.Show(this);
+        return window;
+    }
+
+    private void OnOrganizeClick(object? sender, RoutedEventArgs e) => ShowOrganize();
+
+    private void OnOrganizeFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel folder)
+            ShowOrganize(folder.Node.FullPath);
+    }
+
     /// <summary>A right-click menu in a list's rows (the folder tree, the playlists): the right size, however the row's last one was.</summary>
     private void OnRowMenuOpened(object? sender, RoutedEventArgs e)
     {

@@ -231,6 +231,18 @@ public sealed class AppSettings
     /// </summary>
     public string? ServerKeepFolder { get; set; }
 
+    /// <summary>Whether the DJ's been told, the first time they moved files in Organize, that other apps lose track of them (#325).</summary>
+    public bool OrganizeMoveWarned { get; set; }
+
+    /// <summary>Where each side of Organize was, for the next time it opens: its source and folder.</summary>
+    public string? OrganizeLeftSource { get; set; }
+
+    public string? OrganizeLeftFolder { get; set; }
+
+    public string? OrganizeRightSource { get; set; }
+
+    public string? OrganizeRightFolder { get; set; }
+
     /// <summary>The folder last chosen in Add to my music (#324); null: the usual place.</summary>
     public string? AddToMyMusicLastFolder { get; set; }
 

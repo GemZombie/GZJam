@@ -372,6 +372,34 @@ stay where they are; the copies are yours, with their hearts and cues, and show 
 Songs that are in My music already (a folder of your music, seen in Files) say *Already in My
 music* there instead.
 
+### Organize music
+
+For copying and moving songs around, without leaving GZJam: **Organize** at the top of the library
+column, or right-click a folder › *Organize music…*. It's a window of its own, so the decks stay in
+view, and each side opens where it was last time.
+
+Each side shows My music or Files (the computer's places and drives, and USB sticks), as one list
+with the folders on top. Double-click a folder to go in, and click the path above the list to go back
+(or Backspace); *Find in this folder* narrows a long one. Select songs as you do in the song list,
+and **drag them across**: they go to the folder the other side is in, or onto any folder you drop
+them on. A plain drag moves, and holding Ctrl copies. Or use **Move** and **Copy** between the sides,
+whose arrows show the way the songs will go and whose small print says what happens to them. Press
+Space or the headphones to hear a song first. Songs that just arrived are lit.
+
+GZJam does what your file manager would, and the library shows where the files ended up:
+
+- Into My music, the songs join it. Out of it, moved, they leave it. Between two folders outside My
+  music, the library isn't affected.
+- **A move never loses what you gave a song.** Hearts, cues, labels, BPM, EQ and plays go with it,
+  its playlists and its place in the queue follow it, and **Undo** puts it back. Moved out of My
+  music, they also stay at the old place, so a file put back in your file manager finds them.
+- A copy has what the original has. A song never replaces another: it gets a number instead.
+- A song on a deck can be copied, and moved once it's off the deck. The servers' downloads can be
+  copied from, but they're GZJam's to look after, so they can't be moved or sent to.
+
+This is the one place GZJam moves your files. Other apps that know them (MediaMonkey, iTunes,
+foobar2000) lose track of files moved here, as they do with any move, and GZJam says so the first time.
+
 ### Choosing the folder
 
 *Add to my music…* asks where the songs go, from a server, Files or a USB stick, showing My music's

@@ -811,6 +811,74 @@ public sealed partial class LibraryDatabase
     /// </summary>
     private static readonly string[] SongListTables = ["playlist_entries", "plays", "server_songs"];
 
+    /// <summary>A song copied (#325): the copy has what the original has; the original keeps it.</summary>
+    public void CopySongFiles(IReadOnlyList<(string From, string To)> copies)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (var (from, to) in copies)
+            CopySongData(c, from, to);
+        tx.Commit();
+    }
+
+    /// <summary>
+    /// Songs moved out of the music folders (#325): gone from the library. What the DJ gave them goes
+    /// with them and stays at the old place too, so a file put back by hand finds it there; their
+    /// playlist entries and plays point to the new place.
+    /// </summary>
+    public void MoveSongFilesOut(IReadOnlyList<(string From, string To)> moves)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        foreach (var (from, to) in moves)
+        {
+            using (var remove = c.CreateCommand())
+            {
+                remove.CommandText = "DELETE FROM tracks WHERE path = $path;";
+                remove.Parameters.AddWithValue("$path", from);
+                remove.ExecuteNonQuery();
+            }
+            CopySongData(c, from, to);
+            using var cmd = c.CreateCommand();
+            cmd.Parameters.AddWithValue("$from", from);
+            cmd.Parameters.AddWithValue("$to", to);
+            foreach (string table in SongListTables)
+            {
+                cmd.CommandText = $"UPDATE {table} SET path = $to WHERE path = $from;";
+                cmd.ExecuteNonQuery();
+            }
+        }
+        tx.Commit();
+        ForgetTagNames();
+    }
+
+    private static void CopySongData(SqliteConnection c, string from, string to)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.Parameters.AddWithValue("$from", from);
+        cmd.Parameters.AddWithValue("$to", to);
+        foreach (string table in SongDataTables)
+        {
+            string columns = string.Join(", ", DataColumns(c, table));
+            cmd.CommandText = $"DELETE FROM {table} WHERE path = $to; INSERT INTO {table} (path{(columns.Length > 0 ? ", " + columns : "")}) SELECT $to{(columns.Length > 0 ? ", " + columns : "")} FROM {table} WHERE path = $from;";
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>A table's columns other than the path and a number SQLite gives each row.</summary>
+    private static List<string> DataColumns(SqliteConnection c, string table)
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = $"PRAGMA table_info({table});";
+        var all = new List<(string Name, string Type, int Key)>();
+        using (var r = cmd.ExecuteReader())
+            while (r.Read())
+                all.Add((r.GetString(1), r.GetString(2), r.GetInt32(5)));
+        bool oneKey = all.Count(x => x.Key > 0) == 1;
+        return all.Where(x => x.Name != "path" && !(oneKey && x.Key > 0 && x.Type.Equals("INTEGER", StringComparison.OrdinalIgnoreCase)))
+            .Select(x => x.Name).ToList();
+    }
+
     /// <summary>
     /// A song renamed or moved: its marks, labels, EQ, trims, cues, jumps, BPMs and analysis go
     /// with it, replacing anything left at the new path by a file that was there before; and its

@@ -1367,6 +1367,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The library, for backing it up.</summary>
     internal LibraryDatabase Database => _database;
 
+    /// <summary>What the Organize music window works with (#325).</summary>
+    internal OrganizeViewModel CreateOrganize() => new(this, _database, _settings);
+
     /// <summary>The settings as they stand, for a backup.</summary>
     internal string SettingsJson()
     {

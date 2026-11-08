@@ -15,6 +15,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **Organize music: a window for copying and moving songs** (#325, the first part): two sides, each
+  My music or Files, with every combination between them. Drag songs across, or use the *Move* and
+  *Copy* buttons between the sides, which say what will happen: into My music the songs join it,
+  out of it they leave it. A move keeps a song's hearts, cues and playlists, and can be undone.
+  Songs on a deck stay put, and a song never replaces another. Open it with **Organize** at the top
+  of the library column, or right-click a folder.
 - ***Add to my music…* lets you choose the folder** (#324): from a server, Files or a USB stick,
   with My music's folders to pick from and *New folder* to make one. Songs go straight into the
   folder you pick, or bring their own folders if you tick that. It opens on the last folder you

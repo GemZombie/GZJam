@@ -339,8 +339,12 @@
                   <TextBlock Classes="label" Text="LIBRARY" />
                 </StackPanel>
               </Button>
-              <Button Grid.Column="1" Classes="link" Content="+ Folder" Click="OnAddFolderClick"
-                      ToolTip.Tip="Add a music folder to the library" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                <Button x:Name="OrganizeButton" Classes="link" Content="Organize" Click="OnOrganizeClick"
+                        ToolTip.Tip="A window for copying and moving songs between your music, the computer's folders and USB sticks" />
+                <Button Classes="link" Content="+ Folder" Click="OnAddFolderClick"
+                        ToolTip.Tip="Add a music folder to the library" />
+              </StackPanel>
               <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
               <Button x:Name="FoldLibraryButton" Grid.Column="2" Classes="link panel-fold" Click="OnFoldLibraryClick"
                       ToolTip.Tip="Fold the library panel away">
@@ -393,6 +397,8 @@
                       <MenuItem Header="Rescan" Command="{Binding RescanCommand}" IsVisible="{Binding IsFolder}" />
                       <MenuItem Header="Read all tags again" Command="{Binding ReadAllTagsAgainCommand}" IsVisible="{Binding IsFolder}" />
                       <MenuItem Header="Open folder" Command="{Binding OpenInFileManagerCommand}" IsVisible="{Binding CanOpenFolder}" />
+                      <MenuItem Header="Organize music…" IsVisible="{Binding CanOpenFolder}" Click="OnOrganizeFolderClick"
+                                ToolTip.Tip="Open this folder in a window for copying and moving songs" />
                       <MenuItem Header="Add to my music…" IsVisible="{Binding CanAddFilesFolder}" Click="OnAddFilesFolderClick"
                                 ToolTip.Tip="Copy every song in this folder, and the folders in it, into My music, under Added: yours from then on. The originals stay where they are" />
                       <Separator IsVisible="{Binding IsRemovableRoot}" />

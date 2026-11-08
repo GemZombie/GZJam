@@ -1,0 +1,162 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             xmlns:app="using:GZJam.App"
+             x:Class="GZJam.App.Views.OrganizePaneView"
+             x:DataType="vm:OrganizePane">
+  <!-- One side of Organize music (#325): a source, and one list of the folder you're in, like the song list -->
+  <UserControl.Styles>
+    <Style Selector="Border.side">
+      <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Border.side.sending">
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.side.drop">
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+    </Style>
+    <Style Selector="Border.sending-edge">
+      <Setter Property="Height" Value="2" />
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="TabStrip.sources">
+      <Setter Property="Margin" Value="6,6,6,0" />
+    </Style>
+    <Style Selector="TabStrip.sources TabStripItem">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="Margin" Value="0,0,2,0" />
+      <Setter Property="CornerRadius" Value="4,4,0,0" />
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    </Style>
+    <Style Selector="TabStrip.sources TabStripItem:selected">
+      <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="TabStrip.sources TabStripItem:selected /template/ Border#PART_SelectedPipe">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="Button.crumb">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="2,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.crumb.here">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.crumb:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Height" Value="26" />
+    </Style>
+    <Style Selector="ListBox.rows ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    </Style>
+    <Style Selector="Grid.row.fresh">
+      <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+    </Style>
+    <Style Selector="Grid.row.drop">
+      <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.fresh-edge">
+      <Setter Property="Width" Value="3" />
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.cell.folder">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.cell">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="side" Classes.sending="{Binding IsSending}" Classes.drop="{Binding IsDropTarget}">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+      <Border Classes="sending-edge" IsVisible="{Binding IsSending}" />
+      <TabStrip x:Name="SourceTabs" Grid.Row="1" Classes="sources" ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=TwoWay}" />
+
+      <Border Grid.Row="2" Background="{StaticResource Panel2Brush}" Padding="8,6">
+        <ItemsControl x:Name="CrumbList" ItemsSource="{Binding Crumbs}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:OrganizeCrumb">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Classes="dim" Text="›" Margin="3,0" FontSize="12" VerticalAlignment="Center" IsVisible="{Binding HasArrow}" />
+                <Button Classes="crumb" Classes.here="{Binding IsLast}" Content="{Binding Name}" Click="OnCrumbClick" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <Grid Grid.Row="3" ColumnDefinitions="30,*,120,44,48" Height="24">
+        <TextBlock Grid.Column="1" Classes="head" Text="TITLE" />
+        <TextBlock Grid.Column="2" Classes="head" Text="ARTIST" Margin="6,0,0,0" />
+        <TextBlock Grid.Column="3" Classes="head" Text="BPM" HorizontalAlignment="Right" />
+        <TextBlock Grid.Column="4" Classes="head" Text="TIME" HorizontalAlignment="Right" Margin="0,0,8,0" />
+      </Grid>
+
+      <Panel Grid.Row="4">
+        <ListBox x:Name="SongList" x:FieldModifier="internal" Classes="rows" Background="Transparent" BorderThickness="0"
+                 ItemsSource="{Binding Items}" Selection="{Binding Selection}" SelectionMode="Multiple">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:OrganizeItem">
+              <Grid Classes="row" Classes.fresh="{Binding IsFresh}" Classes.drop="{Binding IsDropTarget}" ColumnDefinitions="30,*,120,44,48" Background="Transparent">
+                <Border Classes="fresh-edge" IsVisible="{Binding IsFresh}" />
+                <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFolder}" />
+                <Button Classes="row-icon" Click="OnPreviewClick" ToolTip.Tip="Preview in headphones" IsVisible="{Binding IsSong}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Padding="4">
+                  <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="2.2" Stretch="Uniform" Width="13" Height="12" />
+                </Button>
+                <DockPanel Grid.Column="1">
+                  <Border DockPanel.Dock="Right" Classes="in-my-music-tag" IsVisible="{Binding IsLocked}" ToolTip.Tip="It can be copied, and moved once it's off the deck">
+                    <TextBlock Text="on a deck" />
+                  </Border>
+                  <TextBlock Classes="cell" Classes.folder="{Binding IsFolder}" Text="{Binding Title}" />
+                </DockPanel>
+                <TextBlock Grid.Column="2" Classes="cell muted" Text="{Binding Artist}" Margin="6,0,0,0" />
+                <TextBlock Grid.Column="3" Classes="cell muted mono" FontSize="11.5" HorizontalAlignment="Right" Text="{Binding Track.Bpm, Mode=OneWay, Converter={x:Static app:Converters.Bpm}, FallbackValue=''}" />
+                <TextBlock Grid.Column="4" Classes="cell muted mono" FontSize="11.5" HorizontalAlignment="Right" Margin="0,0,8,0" Text="{Binding Track.Duration, Mode=OneWay, Converter={x:Static app:Converters.Duration}, FallbackValue=''}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Classes="muted" Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Panel>
+
+      <TextBox x:Name="FilterBox" Grid.Row="5" Text="{Binding Filter, Mode=TwoWay}" PlaceholderText="Find in this folder…" Margin="6" MinHeight="28" FontSize="12" Padding="8,4" />
+    </Grid>
+  </Border>
+</UserControl>
