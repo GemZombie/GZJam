@@ -151,6 +151,14 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
+**In 1.5,** to try now in [1.5.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.1):
+
+- [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318):
+  your music, your servers (their songs downloaded for the nights kept as part of them) and the
+  computer's files and USB sticks, each browsed and searched on its own, with *Add to my music*
+  from any of them. A request on a stick plays without leaving GZJam, pulling the stick never
+  stops the room, and each song in the queue, History and a playlist says where it's from
+
 **In 1.4,** to try now in [1.4.0-beta.5](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.5):
 
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
@@ -174,12 +182,7 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**1.5:**
-- [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318),
-  the headline: your music, your servers (their songs kept for offline as part of them) and the
-  computer's files and USB sticks, each browsed and searched on its own, with *Add to my music*
-  from any of them. A request on a stick plays without leaving GZJam, and pulling the stick never
-  stops the room
+**1.5**, with sources (above):
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):

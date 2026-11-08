@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.5.0-beta.1.
+
+## 1.5.0-beta.1 (2026-11-08)
+
+The first beta of 1.5: the library's sources, My music, Servers and Files, each apart, and USB
+sticks played without leaving GZJam. Like the 1.4 betas, GZJam's update notice doesn't offer it:
+you only get it from this page. It has everything in 1.4.0-beta.5 too. Nothing changes in your
+library's format, so 1.4.0-beta.5 can still open it.
+
 New:
 
 - **The library's sources: My music and Servers, each apart** (#318). The top of the library
