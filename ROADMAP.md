@@ -151,16 +151,13 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.5,** to try now in [1.5.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.1):
+**In 1.5,** to try now in [1.5.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.2):
 
 - [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318):
   your music, your servers (their songs downloaded for the nights kept as part of them) and the
   computer's files and USB sticks, each browsed and searched on its own, with *Add to my music*
   from any of them. A request on a stick plays without leaving GZJam, pulling the stick never
   stops the room, and each song in the queue, History and a playlist says where it's from
-
-Also finished for 1.5, for the next beta:
-
 - [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
   the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
   posting the setlist the next day

@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.5.0-beta.2.
+
+## 1.5.0-beta.2 (2026-11-08)
+
+The second beta of 1.5: send a playlist of yours to your server, and share a link to it. Like the
+others, GZJam's update notice doesn't offer it: you only get it from this page. It has everything
+in 1.5.0-beta.1.
+
 New:
 
 - **Send a playlist of yours to your server, and share it** (#303, thanks to Danny for asking).
