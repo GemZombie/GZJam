@@ -285,10 +285,10 @@ public sealed class Track : INotifyPropertyChanged
     public bool IsOnReachableServer => OnServer is { Unreachable: false };
 
     /// <summary>
-    /// Listed among a server's songs (#318), this one is the DJ's own: in My music as well (added
-    /// to it, or theirs already), never removed by GZJam. Its row says "yours".
+    /// Listed among a server's songs (#318), this one is in My music as well (added to it, or the
+    /// DJ's already): it plays their own copy, never removed by GZJam. Its row says "in My music".
     /// </summary>
-    public bool IsYours { get; set; }
+    public bool IsInMyMusic { get; set; }
 
     /// <summary>Shown dimmed in the song list: a missing file, or a song still on a server.</summary>
     public bool IsDimmed => IsMissing || IsOnServerOnly;

@@ -47,7 +47,7 @@ public sealed partial class LibraryViewModel
         if (SelectedPlaylist is not null || Source != LibrarySource.Files)
             return null;
         if (SelectedFolder is not { } folder || folder.IsComputer)
-            return "Files is this computer and any USB stick, as folders. Open one on the left: it isn't searched, and the box above filters its songs by name.";
+            return "Files is this computer and any USB stick. Open a folder on the left to see its songs; the box above filters them by name.";
         return string.IsNullOrWhiteSpace(SearchText)
             ? $"No songs in {folder.Name} itself: open a folder in it on the left."
             : $"No song in {folder.Name} has \"{SearchText.Trim()}\" in its name.";

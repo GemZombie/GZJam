@@ -129,7 +129,7 @@ public sealed class SourcesAppTests
         library.ChooseSource(LibrarySource.Servers);
         library.SearchText = "basie";
         WaitFor(() => library.Results.Count == 2 && library.Results.All(t => !t.IsOnServerOnly), "the server's songs, here");
-        Assert.All(library.Results, t => Assert.False(t.IsYours));   // downloads, not the DJ's own
+        Assert.All(library.Results, t => Assert.False(t.IsInMyMusic));   // downloads, not the DJ's own
     }
 
     [AvaloniaFact]
@@ -188,10 +188,10 @@ public sealed class SourcesAppTests
         var library = app.Library;
         library.ChooseSource(LibrarySource.Servers);
         library.SearchText = "basie";
-        WaitFor(() => library.Results.Any(t => t.IsYours), "yours");
-        Track boogie = Assert.Single(library.Results, t => t.IsYours);
+        WaitFor(() => library.Results.Any(t => t.IsInMyMusic), "in My music");
+        Track boogie = Assert.Single(library.Results, t => t.IsInMyMusic);
         Assert.Equal(mine, boogie.Path);
-        app.Screenshot("sources-yours");
+        app.Screenshot("sources-in-my-music");
     }
 
     [AvaloniaFact]

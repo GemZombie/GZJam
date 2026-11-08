@@ -379,8 +379,8 @@
     <Setter Property="Margin" Value="0,-6,0,0" />
     <Setter Property="ZIndex" Value="1" />
   </Style>
-  <!-- "yours" on a server's song that's in My music too (#318) -->
-  <Style Selector="Border.yours-tag">
+  <!-- "in My music" on a server's song that's in My music too (#318) -->
+  <Style Selector="Border.in-my-music-tag">
     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="3" />
@@ -389,7 +389,7 @@
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Opacity" Value="0.85" />
   </Style>
-  <Style Selector="Border.yours-tag TextBlock">
+  <Style Selector="Border.in-my-music-tag TextBlock">
     <Setter Property="FontSize" Value="10" />
     <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
   </Style>

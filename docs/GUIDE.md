@@ -573,7 +573,8 @@ title. Preview one in the headphones as usual. A double-click, a load onto a dec
 downloads it first: a deck takes it only once it's here, and never the deck the room hears, and in
 the queue it waits in its place, *Downloading…*, then becomes the song. With nothing chosen, a
 search covers every server. Under a search of My music, *Also: 12 on synology · Show* searches the
-server too. A song that's in My music as well (added to it, or yours already) says **yours**.
+server too. A song that's in My music as well (added to it, or yours already) says **in My music**:
+it plays your own copy, so there's no need to add it.
 
 ### Songs on this computer before the night
 
