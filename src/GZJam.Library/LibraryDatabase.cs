@@ -594,6 +594,17 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE servers ADD COLUMN catalog_scan TEXT;
             """,
+
+        // 33: The playlist GZJam made on a server for one of the DJ's (#303), so sending it again
+        // updates that one rather than making another. Only adds.
+        """
+            CREATE TABLE server_sent_playlists (
+                playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+                server_id   INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+                remote_id   TEXT NOT NULL,
+                PRIMARY KEY (playlist_id, server_id)
+            );
+            """,
     ];
 
     // ───────────── Roots ─────────────

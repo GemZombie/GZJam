@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using CommunityToolkit.Mvvm.Input;
 using GZJam.App.ViewModels;
 using GZJam.Library;
 
@@ -144,6 +145,41 @@ public partial class MainWindow
     }
 
     private static PlaylistInfo? PlaylistOf(object? sender) => (sender as Control)?.DataContext as PlaylistInfo;
+
+    /// <summary>
+    /// A playlist's menu, about to open: Send to, and Share a link, for the servers there are (#303).
+    /// One the server made follows it, so it isn't sent back.
+    /// </summary>
+    private void OnPlaylistRowMenuRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { ContextMenu: { } menu, DataContext: PlaylistInfo playlist })
+            return;
+        var servers = playlist.IsFromServer ? [] : Vm.Servers.Items.ToList();
+        foreach (MenuItem item in menu.Items.OfType<MenuItem>())
+        {
+            if (item.Tag is "send")
+                FillServerItem(item, servers, s => $"Send to {s.Name}", "Send to", s => Vm.Servers.SendPlaylistAsync(s, playlist));
+            else if (item.Tag is "share")
+                FillServerItem(item, servers, _ => "Share a link…", "Share a link on", s => Vm.Servers.SharePlaylistAsync(s, playlist));
+        }
+    }
+
+    /// <summary>The one server's action, or a submenu with an item for each.</summary>
+    private static void FillServerItem(MenuItem item, List<ServerItemViewModel> servers, Func<ServerItemViewModel, string> single, string several, Func<ServerItemViewModel, Task> act)
+    {
+        item.Items.Clear();
+        item.Command = null;
+        item.IsVisible = servers.Count > 0;
+        if (servers.Count == 1)
+        {
+            item.Header = single(servers[0]);
+            item.Command = new RelayCommand(() => _ = act(servers[0]));
+            return;
+        }
+        item.Header = several;
+        foreach (ServerItemViewModel server in servers)
+            item.Items.Add(new MenuItem { Header = server.Name, Command = new RelayCommand(() => _ = act(server)) });
+    }
 
     private void OnPlaylistItemToQueueClick(object? sender, RoutedEventArgs e)
     {

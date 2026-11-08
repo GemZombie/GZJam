@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -48,6 +49,11 @@ public partial class MainWindow
                 return dialog.ShowDialog<bool>(this);
             };
             vm.PromptAsync = (heading, message, ok, initial) => new PromptDialog(heading, message, ok, initial).ShowDialog<string?>(this);
+            vm.CopyTextAsync = async text =>
+            {
+                if (Clipboard is { } clipboard)
+                    await clipboard.SetTextAsync(text);
+            };
             vm.AskAsync = (heading, message, yes, no) =>
             {
                 var dialog = new ConfirmDialog(heading, message, yes, cancelText: no);

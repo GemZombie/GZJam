@@ -159,6 +159,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   from any of them. A request on a stick plays without leaving GZJam, pulling the stick never
   stops the room, and each song in the queue, History and a playlist says where it's from
 
+Also finished for 1.5, for the next beta:
+
+- [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
+  the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
+  posting the setlist the next day
+
 **In 1.4,** to try now in [1.4.0-beta.5](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.5):
 
 - [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
@@ -178,14 +184,11 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 ## Planned next
 
 **1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
-when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1.4. Found something? Say so in
+when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on. **1.4 and 1.5 stay betas**, for anyone who
+wants to try them from the links above: the library's new look arrives for everyone together with
+Organize music, so **the next release for everyone is 1.6**. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
-
-**1.5**, with sources (above):
-- [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
-  the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
-  posting the setlist the next day
 
 **1.6:**
 - [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: a window of its

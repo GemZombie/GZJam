@@ -470,7 +470,7 @@
                      ItemsSource="{Binding Library.Playlists}" SelectedItem="{Binding Library.SelectedPlaylist, Mode=TwoWay}">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="lib:PlaylistInfo">
-                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent" ContextRequested="OnPlaylistRowMenuRequested">
                     <Grid.ContextMenu>
                       <ContextMenu Opened="OnRowMenuOpened">
                         <MenuItem Header="Play" Click="OnPlaylistItemPlayClick"
@@ -483,6 +483,9 @@
                                   ToolTip.Tip="Add every song in this playlist to the end of the queue, in a random order" />
                         <MenuItem Header="Export as files…" Click="OnExportPlaylistClick"
                                   ToolTip.Tip="Copy its songs, in order, into a new folder (a USB stick, say) with a playlist beside them" />
+                        <!-- To a server, and a link to it (#303): filled as the menu opens, by the servers there are -->
+                        <MenuItem Tag="send" ToolTip.Tip="Make this playlist on the server, in its order, or bring the one made before up to date. Songs the server doesn't have are left out" />
+                        <MenuItem Tag="share" ToolTip.Tip="Make a link anyone can open and listen to, and copy it, ready to paste into a post" />
                         <Separator />
                         <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
                         <MenuItem Header="Stop following the server" Click="OnStopFollowingServerClick" IsVisible="{Binding IsFromServer}"

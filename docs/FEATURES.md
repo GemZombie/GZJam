@@ -1114,6 +1114,10 @@ live list, which a playlist feeds and which can be saved as one.
   beyond songs played tonight being checked; History is the record. Missing songs stay behind.
 - **Saving:** the queue's menu › *Save queue as playlist…*, and History's ⋯ › *Save as playlist…*
   (the night in the order it was played).
+- **To a server (#303):** a playlist's menu › *Send to* (`createPlaylist`, then `updatePlaylist` 100
+  songs at a time, each call's song IDs being in its address) and *Share a link…* (`createShare`).
+  A file's song on the server comes from `server_songs`; `server_sent_playlists` (upgrade 33)
+  remembers the playlist made there, so sending again updates it.
 - **Data:** `playlists` and `playlist_entries` (upgrade 18), entries by path, numbered from 0,
   renumbered on every change. Names are unique ignoring case; a taken name gets a number
   ("Saturday 2"), so playlists are never merged.

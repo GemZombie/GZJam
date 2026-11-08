@@ -578,6 +578,18 @@ search covers every server. Under a search of My music, *Also: 12 on synology ·
 server too. A song that's in My music as well (added to it, or yours already) says **in My music**:
 it plays your own copy, so there's no need to add it.
 
+### Sending a playlist to your server
+
+For posting a setlist the next day: History's ⋯ › *Save as playlist…*, then right-click the playlist
+› **Send to synology** (with several servers, *Send to* lists them). It's made on the server in its
+order, under its name, with the songs the server has; any it doesn't have are named first and left
+out. Sending it again updates the same playlist. A playlist kept from the server doesn't offer this,
+as a sync already makes it the server's again.
+
+**Share a link…** sends the playlist if it isn't there yet, makes a link anyone can open and listen
+to, and copies it, ready to paste into your post. Navidrome only makes links with sharing turned on
+(`ND_ENABLESHARING=true`, *EnableSharing* in its settings).
+
 ### Songs on this computer before the night
 
 - **Keep on this computer:** right-click the server › *Keep on this computer…* and choose its
