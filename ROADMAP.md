@@ -189,6 +189,12 @@ when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on, and new features as 1
   the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
   posting the setlist the next day
 
+**1.6:**
+- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: a window of its
+  own, beside the decks, to copy songs in from a server or a USB stick and move them around your
+  music, with their hearts, cues and playlists, and new and renamed folders
+- [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324)
+
 **After that:**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
   choose between them when it's time to play one
