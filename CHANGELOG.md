@@ -13,7 +13,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.5.0-beta.2.
+New:
+
+- ***Add to my music…* lets you choose the folder** (#324): from a server, Files or a USB stick,
+  with My music's folders to pick from and *New folder* to make one. Songs go straight into the
+  folder you pick, or bring their own folders if you tick that. It opens on the last folder you
+  chose, or on the usual place, so *Add* alone puts them where they've always gone.
 
 ## 1.5.0-beta.2 (2026-11-08)
 

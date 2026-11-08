@@ -100,7 +100,7 @@ public sealed partial class ServersViewModel
 
         var songs = await Task.Run(() => _database.SearchServerCatalog(serverId, "", null).Songs.Select(s => (s.Id, (ServerSong?)s)).ToList());
         var onDecks = _owner.Decks.Select(d => d.Track?.Path).OfType<string>().ToHashSet(StringComparer.Ordinal);
-        KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, folder, onDecks));
+        KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, new AddPlace(folder, KeepFolders: true, IsUsual: true), onDecks));
         int count = plan.Moves.Count + plan.Downloads.Count + plan.OnDeck.Count;
         if (count == 0)
         {
@@ -242,7 +242,7 @@ public sealed partial class ServersViewModel
             var songs = await Task.Run(() => _database.SearchServerCatalog(id, "", null).Songs.Select(s => (s.Id, (ServerSong?)s)).ToList(), stop.Token);
             var onDecks = _owner.Decks.Select(d => d.Track?.Path).OfType<string>().ToHashSet(StringComparer.Ordinal);
             string keepIn = folder;
-            KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, keepIn, onDecks), stop.Token);
+            KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, new AddPlace(keepIn, KeepFolders: true, IsUsual: true), onDecks), stop.Token);
             var steps = plan.Moves.Concat(plan.Downloads).ToList();
             total = steps.Count;
             if (total == 0)

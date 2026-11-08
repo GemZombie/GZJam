@@ -231,6 +231,12 @@ public sealed class AppSettings
     /// </summary>
     public string? ServerKeepFolder { get; set; }
 
+    /// <summary>The folder last chosen in Add to my music (#324); null: the usual place.</summary>
+    public string? AddToMyMusicLastFolder { get; set; }
+
+    /// <summary>Whether songs last brought their folders into the folder chosen.</summary>
+    public bool AddToMyMusicKeepFolders { get; set; }
+
     /// <summary>The servers being kept whole in the DJ's library, in the background (#285), by their ID.</summary>
     public List<long> ServerKeepWhole { get; set; } = [];
 

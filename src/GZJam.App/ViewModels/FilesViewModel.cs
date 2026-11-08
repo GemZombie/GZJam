@@ -184,12 +184,13 @@ public sealed class FilesViewModel : IDisposable
         var servers = _owner.Servers;
         if (await servers.KeepFolderToUseAsync() is not var (folder, choosing))
             return;
-        string into = Path.Combine(folder, "Added", FileSources.SafeName(from));
+        string usual = Path.Combine(folder, "Added", FileSources.SafeName(from));
         string count = songs.Count == 1 ? "1 song" : $"{Format.Count(songs.Count)} songs";
-        if (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync($"Add {count} to My music?",
-                $"Copied into {into}, the originals left where they are: yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.",
-                "Add"))
+        string what = $"The originals are left where they are. The copies are yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.";
+        if (await servers.AskAddPlaceAsync($"Add {count} to My music?", what, usual, canKeepFolders: songs.Any(s => s.Folder.Length > 0),
+                $"Copied into {usual}, the originals left where they are: yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.") is not { } place)
             return;
+        string into = place.Folder;
         if (choosing && !servers.SetKeepFolder(folder))
             return;
 
@@ -197,7 +198,8 @@ public sealed class FilesViewModel : IDisposable
         string? failed = null;
         foreach (var (track, under) in songs)
         {
-            string to = FreePath(Path.Combine(into, under.Replace('/', Path.DirectorySeparatorChar), track.FileName), track.Path);
+            string inside = place.KeepFolders ? under.Replace('/', Path.DirectorySeparatorChar) : "";
+            string to = FreePath(Path.Combine(into, inside, track.FileName), track.Path);
             try
             {
                 if (!File.Exists(to))
@@ -213,10 +215,10 @@ public sealed class FilesViewModel : IDisposable
         if (moves.Count > 0)
         {
             await Task.Run(() => _database.MoveSongFiles(moves));
-            if (servers.RootOf(folder) is null)
-                await _owner.Library.AddRootAsync(folder);
-            else if (servers.RootOf(folder) is { } root)
+            if (servers.RootOf(into) is { } root)
                 await _owner.Library.ScanRootAsync(root.Id);
+            else
+                await _owner.Library.AddRootAsync(folder);
             Log.Info($"Files: added {moves.Count} songs to My music, in {into}");
         }
         _owner.Library.RefreshResults();

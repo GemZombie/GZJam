@@ -113,7 +113,7 @@ public sealed partial class ServersViewModel
     // ───────────── Keeping ─────────────
 
     /// <summary>One song to keep: from its download (<see cref="From"/>), or from the server.</summary>
-    private sealed record KeepStep(string SongId, ServerSong? Song, string? From, string Target)
+    private sealed record KeepStep(string SongId, ServerSong? Song, string? From, string Target, bool Art = true)
     {
         public string Title => Song?.Title ?? Path.GetFileNameWithoutExtension(Target);
     }
@@ -121,7 +121,7 @@ public sealed partial class ServersViewModel
     private sealed record KeepPlan(List<KeepStep> Moves, List<KeepStep> Downloads, int Mine, List<string> OnDeck);
 
     /// <summary>Asks (showing where they'll go), then keeps the songs in the DJ's music folder for kept songs.</summary>
-    private async Task KeepAsync(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, string what, bool ask = true)
+    private async Task KeepAsync(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, string what, bool ask = true, AddPlace? again = null)
     {
         if (item.IsSyncing || _keeping)
         {
@@ -138,8 +138,9 @@ public sealed partial class ServersViewModel
             return;
 
         var onDecks = _owner.Decks.Select(d => d.Track?.Path).OfType<string>().ToHashSet(StringComparer.Ordinal);
+        AddPlace place = again ?? new AddPlace(folder, KeepFolders: true, IsUsual: true);
         string keepIn = folder;
-        KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, keepIn, onDecks));
+        KeepPlan plan = await Task.Run(() => PlanKeep(item, songs, place, onDecks));
         bool canDownload = !item.IsPreviewOnly && !item.IsOffline && SignedIn(item) is not null;
         string? cantDownload = plan.Downloads.Count == 0 || canDownload ? null
             : item.IsPreviewOnly ? $"{item.Name} doesn't let this account download songs"
@@ -157,14 +158,41 @@ public sealed partial class ServersViewModel
             return;
         }
 
-        if (ask && (_owner.ConfirmAsync is null || !await _owner.ConfirmAsync(
-                $"Add {SongCount(count)} to My music?",
-                KeepQuestion(item, plan, downloads, keepIn, cantDownload),
-                "Add")))
-            return;
+        if (ask)
+        {
+            if (await AskAddPlaceAsync($"Add {SongCount(count)} to My music?", KeepWhat(item, plan, downloads, cantDownload), keepIn, canKeepFolders: true,
+                    KeepQuestion(item, plan, downloads, keepIn, cantDownload)) is not { } chosen)
+                return;
+            if (chosen != place)
+            {
+                place = chosen;
+                plan = await Task.Run(() => PlanKeep(item, songs, place, onDecks));
+                downloads = cantDownload is null ? plan.Downloads : [];
+            }
+        }
         if (choosing && !SetKeepFolder(keepIn))
             return;
-        await RunKeepAsync(item, plan.Moves.Concat(downloads).ToList(), keepIn);
+        await RunKeepAsync(item, plan.Moves.Concat(downloads).ToList(), place);
+    }
+
+    /// <summary>
+    /// Asks which folder of My music songs go to (#324), opening on the last one chosen or the
+    /// usual place, and remembers the answer. Null if the DJ said no.
+    /// </summary>
+    /// <param name="what">What will happen to the songs, wherever they go.</param>
+    /// <param name="usual">Where they go unless the DJ says otherwise.</param>
+    /// <param name="yesOrNo">The whole question, where there's no dialog to choose in.</param>
+    internal async Task<AddPlace?> AskAddPlaceAsync(string heading, string what, string usual, bool canKeepFolders, string yesOrNo)
+    {
+        if (_owner.ChooseAddPlaceAsync is not { } choose)
+            return _owner.ConfirmAsync is { } confirm && await confirm(heading, yesOrNo, "Add") ? new AddPlace(usual, KeepFolders: true, IsUsual: true) : null;
+        if (await choose(new AddPlaceViewModel(heading, what, usual, _owner.Library.MusicFolders,
+                _settings.AddToMyMusicLastFolder, _settings.AddToMyMusicKeepFolders, canKeepFolders, DownloadsFolder)) is not { } place)
+            return null;
+        _settings.AddToMyMusicLastFolder = place.IsUsual ? null : place.Folder;
+        if (!place.IsUsual && canKeepFolders)
+            _settings.AddToMyMusicKeepFolders = place.KeepFolders;
+        return place;
     }
 
     /// <summary>
@@ -204,6 +232,14 @@ public sealed partial class ServersViewModel
         if (all.Count > PathsShown)
             lines.Add($"    …and {Format.Count(all.Count - PathsShown)} more");
         lines.Add("");
+        lines.Add(KeepWhat(item, plan, downloads, cantDownload));
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>What's to happen to the songs, wherever they go.</summary>
+    private static string KeepWhat(ServerItemViewModel item, KeepPlan plan, List<KeepStep> downloads, string? cantDownload)
+    {
+        var lines = new List<string>();
         if (plan.Moves.Count > 0)
             lines.Add($"{SongCount(plan.Moves.Count)} downloaded already {(plan.Moves.Count == 1 ? "moves" : "move")} there, with {(plan.Moves.Count == 1 ? "its" : "their")} hearts, cues, labels, playlists and plays.");
         if (downloads.Count > 0)
@@ -227,8 +263,10 @@ public sealed partial class ServersViewModel
     /// Where each song goes, and which are the DJ's already: those linked to their own copy, or
     /// found in the library now. A downloaded song keeps its place under its server's folder.
     /// </summary>
-    private KeepPlan PlanKeep(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, string folder, HashSet<string> onDecks)
+    private KeepPlan PlanKeep(ServerItemViewModel item, IReadOnlyList<(string SongId, ServerSong? Song)> songs, AddPlace place, HashSet<string> onDecks)
     {
+        string folder = place.Folder;
+        IReadOnlyList<string> Laid(IReadOnlyList<string> parts) => place.KeepFolders ? parts : [parts[^1]];   // straight into the folder chosen
         long serverId = item.Server.Id;
         bool catalogued = _database.GetServerCatalogCount(serverId) > 0;
         if (catalogued)
@@ -258,9 +296,9 @@ public sealed partial class ServersViewModel
                 IReadOnlyList<string> parts = IsUnder(copy.Path, serverFolder)
                     ? Path.GetRelativePath(serverFolder, copy.Path).Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                     : song is not null ? ServerPaths.RelativeParts(song) : [Path.GetFileName(copy.Path)];
-                string target = ServerPaths.Place(folder, parts, Taken);
+                string target = ServerPaths.Place(folder, Laid(parts), Taken);
                 planned.Add(target);
-                moves.Add(new KeepStep(songId, song, copy.Path, target));
+                moves.Add(new KeepStep(songId, song, copy.Path, target, place.KeepFolders));
                 continue;
             }
             if (song is null)
@@ -271,9 +309,9 @@ public sealed partial class ServersViewModel
                 mine++;
                 continue;
             }
-            string place = ServerPaths.Place(folder, ServerPaths.RelativeParts(song), Taken);
-            planned.Add(place);
-            downloads.Add(new KeepStep(songId, song, null, place));
+            string spot = ServerPaths.Place(folder, Laid(ServerPaths.RelativeParts(song)), Taken);
+            planned.Add(spot);
+            downloads.Add(new KeepStep(songId, song, null, spot, place.KeepFolders));
         }
         return new KeepPlan(moves, downloads, mine, onDeck);
     }
@@ -283,8 +321,9 @@ public sealed partial class ServersViewModel
     /// path), one not here downloaded straight into its place. Stopping (Stop syncing on the
     /// server) leaves each song kept so far kept.
     /// </summary>
-    private async Task RunKeepAsync(ServerItemViewModel item, List<KeepStep> steps, string folder)
+    private async Task RunKeepAsync(ServerItemViewModel item, List<KeepStep> steps, AddPlace place)
     {
+        string folder = place.Folder;
         var stop = new CancellationTokenSource();
         item.BeginSync(stop);
         _keeping = true;
@@ -309,7 +348,7 @@ public sealed partial class ServersViewModel
             SubsonicClient? client = steps.Any(s => s.From is null) ? SignedIn(item) : null;
             var sync = client is null ? null : new ServerSync(_database, client, item.Server, DownloadsFolder)
             {
-                Report = ReportTo(item, "Add to my music", ("keep", item.Server.Id), rows => KeepAgainAsync(item, rows)),
+                Report = ReportTo(item, "Add to my music", ("keep", item.Server.Id), rows => KeepAgainAsync(item, rows, place)),
             };
             Log.Info($"Servers: keeping {steps.Count} songs from {item.Name} in {folder}");
 
@@ -389,8 +428,8 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>The Downloads window's Retry failed, for songs being kept: kept again, without asking again.</summary>
-    private Task KeepAgainAsync(ServerItemViewModel item, IReadOnlyList<DownloadItem> rows) =>
-        KeepAsync(item, rows.Select(r => (r.Song.Id, (ServerSong?)r.Song)).ToList(), rows.Count == 1 ? rows[0].Title : "Those songs", ask: false);
+    private Task KeepAgainAsync(ServerItemViewModel item, IReadOnlyList<DownloadItem> rows, AddPlace place) =>
+        KeepAsync(item, rows.Select(r => (r.Song.Id, (ServerSong?)r.Song)).ToList(), rows.Count == 1 ? rows[0].Title : "Those songs", ask: false, again: place);
 
     /// <summary>
     /// One song kept: its download moved there (one coming down already, for the queue say,
@@ -420,7 +459,7 @@ public sealed partial class ServersViewModel
         }
         if (sync is null || step.Song is null)
             throw new ServerException("It isn't on this computer, and can't be downloaded now.");
-        return (null, await Task.Run(() => sync.KeepAsync(step.Song, step.Target, folder, stop), stop));
+        return (null, await Task.Run(() => sync.KeepAsync(step.Song, step.Target, folder, stop, step.Art), stop));
     }
 
     /// <summary>A downloaded song into the DJ's music: its file moved, and everything kept by its path with it.</summary>
@@ -433,7 +472,8 @@ public sealed partial class ServersViewModel
         File.SetLastWriteTimeUtc(to, modified);   // a copy to another drive is a new file
         _database.MoveSongFiles([(from, to)]);
         _database.SetServerSongKept(item.Server.Id, step.SongId, to);
-        CopyArtAlong(Path.GetDirectoryName(from)!, Path.GetDirectoryName(to)!);
+        if (step.Art)   // a folder the songs were dropped into isn't their album
+            CopyArtAlong(Path.GetDirectoryName(from)!, Path.GetDirectoryName(to)!);
         RemoveEmptyFolders(Path.GetDirectoryName(from));
         return true;
     }
