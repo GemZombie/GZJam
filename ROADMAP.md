@@ -241,6 +241,8 @@ to one you'd use.
   a sequence of dances, or so many of each
 - [The night ahead in the queue](https://github.com/GemZombie/GZJam/issues/269): a tempo curve,
   and gentle marks for the same artist twice or a big tempo jump
+- [Double-click a song in the file manager](https://github.com/GemZombie/GZJam/issues/336): GZJam
+  as your default player, the song on a deck, or in the headphones if the room is hearing something
 
 **Sound**
 - [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
