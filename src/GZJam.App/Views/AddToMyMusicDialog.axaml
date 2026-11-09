@@ -21,7 +21,7 @@
                  ToolTip.Tip="{Binding Folder}" VerticalAlignment="Center" />
       <Panel Grid.Column="2">
         <TextBlock Classes="muted" Text="{Binding IntoNote}" VerticalAlignment="Center" IsVisible="{Binding IsUsual}" />
-        <Button x:Name="UsualButton" Classes="link" Content="Back to the usual place" IsVisible="{Binding !IsUsual}" />
+        <Button x:Name="UsualButton" Classes="link" Content="Back to the usual place" IsVisible="{Binding CanGoBackToUsual}" />
       </Panel>
     </Grid>
     <Border Grid.Row="3" BorderBrush="#2A3140" BorderThickness="1" CornerRadius="4">
@@ -44,7 +44,7 @@
     <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,6,0,0">
       <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" MinWidth="96" MinHeight="38"
               HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-      <Button x:Name="AddButton" Content="Add" IsDefault="True" MinWidth="96" MinHeight="38"
+      <Button x:Name="AddButton" Content="{Binding Action}" IsDefault="True" MinWidth="96" MinHeight="38"
               HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
               Background="{StaticResource OnAirBrush}" Foreground="White" />
     </StackPanel>

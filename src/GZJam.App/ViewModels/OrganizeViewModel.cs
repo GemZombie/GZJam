@@ -216,7 +216,7 @@ public sealed partial class OrganizePane : ObservableObject
 /// <summary>
 /// Organize music (#325): two sides, each any source, and songs sent between them. GZJam does what
 /// the file system would, and the library shows where the files ended up. In the main screen a
-/// drag never moves a file: files move only here. A move never loses what the DJ gave a song.
+/// drag never moves a file without the DJ saying so (#335). A move never loses what the DJ gave a song.
 /// </summary>
 public sealed partial class OrganizeViewModel : ObservableObject
 {
@@ -448,15 +448,40 @@ public sealed partial class OrganizeViewModel : ObservableObject
 
     private async Task ConfirmedMoveAsync(OrganizePane from, string to)
     {
-        if (!_settings.OrganizeMoveWarned)
+        if (await WarnOfFirstMoveAsync())
+            await SendAsync(from, to, move: true);
+    }
+
+    /// <summary>The first move ever says other apps lose track of moved files, once. False if the DJ said no.</summary>
+    internal async Task<bool> WarnOfFirstMoveAsync()
+    {
+        if (_settings.OrganizeMoveWarned)
+            return true;
+        if (_owner.ConfirmAsync is not { } confirm || !await confirm("Move these files?",
+                "Other apps that know these files, such as MediaMonkey, iTunes or foobar2000, will lose track of them: their ratings and playlists there still point at the old place. GZJam's own hearts, cues and playlists come along. GZJam won't ask again.",
+                "Move"))
+            return false;
+        _settings.OrganizeMoveWarned = true;
+        return true;
+    }
+
+    /// <summary>
+    /// Songs from the queue moved to a folder (#335): the same move as between the sides, so
+    /// whole in one place or the other however it ends, with a notice and Undo.
+    /// </summary>
+    internal async Task MoveSongsAsync(IReadOnlyList<string> songs, string folder)
+    {
+        var done = await RunAsync(songs.Select(s => (s, Path.Combine(folder, Path.GetFileName(s)))).ToList(), move: true, numbered: true);
+        TellWhenDone = false;
+        Report($"Moved {SongCount(done.Finished.Count)} to {Path.GetFileName(Path.TrimEndingDirectorySeparator(folder))}.", done);
+        _lastMoves = done.Finished;
+        CanUndo = _lastMoves.Count > 0;
+        await AfterAsync(done.Finished, move: true);
+        _owner.ShowNotice(Status!, 8, undo: CanUndo ? () =>
         {
-            if (_owner.ConfirmAsync is not { } confirm || !await confirm("Move these files?",
-                    "Other apps that know these files, such as MediaMonkey, iTunes or foobar2000, will lose track of them: their ratings and playlists there still point at the old place. GZJam's own hearts, cues and playlists come along. GZJam won't ask again.",
-                    "Move"))
-                return;
-            _settings.OrganizeMoveWarned = true;
-        }
-        await SendAsync(from, to, move: true);
+            TellWhenDone = true;   // Organize may not be open to say it
+            _ = UndoAsync();
+        } : null);
     }
 
     private async Task SendAsync(OrganizePane from, string folder, bool move)

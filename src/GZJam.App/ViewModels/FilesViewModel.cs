@@ -190,18 +190,27 @@ public sealed class FilesViewModel : IDisposable
         if (await servers.AskAddPlaceAsync($"Add {count} to My music?", what, usual, canKeepFolders: songs.Any(s => s.Folder.Length > 0),
                 $"Copied into {usual}, the originals left where they are: yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.") is not { } place)
             return;
-        string into = place.Folder;
         if (choosing && !servers.SetKeepFolder(folder))
             return;
+        await CopyIntoMyMusicAsync(songs, place.Folder, place.KeepFolders, folder);
+    }
 
+    /// <summary>
+    /// Songs copied into a folder of My music, with what the DJ gave them, the originals left where
+    /// they are. Says how it went, and returns each song and where its copy went.
+    /// </summary>
+    /// <param name="rootIfNone">The music folder to add to the library if <paramref name="into"/> isn't in one yet.</param>
+    internal async Task<List<(string From, string To)>> CopyIntoMyMusicAsync(IReadOnlyList<(Track Track, string Folder)> songs, string into, bool keepFolders, string rootIfNone)
+    {
+        var servers = _owner.Servers;
         var moves = new List<(string From, string To)>();
         string? failed = null;
         foreach (var (track, under) in songs)
         {
-            string inside = place.KeepFolders ? under.Replace('/', Path.DirectorySeparatorChar) : "";
-            string to = FreePath(Path.Combine(into, inside, track.FileName), track.Path);
+            string inside = keepFolders ? under.Replace('/', Path.DirectorySeparatorChar) : "";
             try
             {
+                string to = FreePath(Path.Combine(into, inside, track.FileName), track.Path);
                 if (!File.Exists(to))
                     await Task.Run(() => CopyIn(track.Path, to));
                 moves.Add((track.Path, to));
@@ -218,12 +227,13 @@ public sealed class FilesViewModel : IDisposable
             if (servers.RootOf(into) is { } root)
                 await _owner.Library.ScanRootAsync(root.Id);
             else
-                await _owner.Library.AddRootAsync(folder);
+                await _owner.Library.AddRootAsync(rootIfNone);
             Log.Info($"Files: added {moves.Count} songs to My music, in {into}");
         }
         _owner.Library.RefreshResults();
         string done = $"Added {(moves.Count == 1 ? "1 song" : $"{Format.Count(moves.Count)} songs")} to My music, in {into}.";
         _owner.ShowNotice(failed is null ? done : $"{done} {failed}", seconds: 8);
+        return moves;
     }
 
     /// <summary>A folder in Files, or a stick: every song in it and in its folders, laid out as there.</summary>

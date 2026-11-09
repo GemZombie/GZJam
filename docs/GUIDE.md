@@ -33,8 +33,9 @@ guide covers everything GZJam does, from your first song to what to do if the so
 2. **Add your music.** Click **+ Folder** above the folder tree and pick your music folder. GZJam
    lists its songs in a few seconds (13,000 songs take about 3), then keeps watching it: songs you
    add, rename or delete later show up by themselves. You can add more than one folder.
-   **GZJam never changes your music files.** Hearts, labels, cues and everything else you give your
-   songs live in GZJam's own library.
+   **GZJam never changes your music files unless you ask it to,** by moving songs in Organize music,
+   or by dragging one from the queue to a folder and saying yes. Hearts, labels, cues and everything
+   else you give your songs live in GZJam's own library.
 3. **Choose your outputs.** Click **MAIN** in the top bar (or the gear, then *Sound*). Pick the
    **Speakers** (what the room hears) and the **Headphones** (only you hear them). Choose them by
    name rather than *Default*. Only one output? See [one output for both](#one-output-for-both-a-splitter-cable).
@@ -398,8 +399,21 @@ GZJam does what your file manager would, and the library shows where the files e
 - A song on a deck can be copied, and moved once it's off the deck. The servers' downloads can be
   copied from, but they're GZJam's to look after, so they can't be moved or sent to.
 
-This is the one place GZJam moves your files. Other apps that know them (MediaMonkey, iTunes,
-foobar2000) lose track of files moved here, as they do with any move, and GZJam says so the first time.
+Other apps that know your files (MediaMonkey, iTunes, foobar2000) lose track of files moved here,
+as they do with any move, and GZJam says so the first time.
+
+### From the queue to a folder
+
+Drag songs from the queue onto a folder in the tree, or onto *My music* at the top of the library
+column (handy when a server or Files is showing). Or right-click them › *Move to a folder in My
+music…* (*Add to my music…* for a server's song or one from a USB stick). Nothing moves yet: a window
+says what will happen and lets you change the folder, and one more press does it.
+
+- A song in My music moves there, and one elsewhere on the computer moves there and joins My music.
+- A song from a USB stick is copied, and the stick keeps its song. A server's song is copied too,
+  downloaded first if it isn't here yet, and the server's song isn't touched.
+- Its hearts, cues, labels and playlists go with it, and its place in the queue follows. A move has
+  an **Undo**. A song on a deck stays where it is until it's off the deck.
 
 ### Choosing the folder
 

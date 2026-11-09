@@ -300,6 +300,8 @@ public partial class MainWindow
         LabelsMenu.Fill(QueueLabelsMenu, Vm, tracks);
         BpmMenu.Fill(QueueBpmMenu, Vm, tracks);
         PlaylistsMenu.Fill(QueuePlaylistsMenu, Vm, tracks);
+        QueueToFolderItem.Header = Vm.ToFolderMenuText(tracks);
+        QueueToFolderItem.IsEnabled = Vm.CanSendToFolder(tracks);
         FillQueueColumnsMenu();
     }
 

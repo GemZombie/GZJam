@@ -82,9 +82,14 @@ public sealed partial class AddPlaceViewModel : ObservableObject
     /// <param name="keepFolders">Whether their folders came along last time.</param>
     /// <param name="canKeepFolders">Whether they have folders of their own to bring.</param>
     /// <param name="notThis">A folder that can't be chosen: the servers' downloads, whose songs GZJam can remove.</param>
-    public AddPlaceViewModel(string heading, string details, string usual, IReadOnlyList<string> musicFolders, string? last, bool keepFolders, bool canKeepFolders, string? notThis = null)
+    /// <param name="action">What the button says.</param>
+    /// <param name="hasUsualPlace">False when the DJ has said where already (a drop on a folder, #335): there's no usual place to go back to.</param>
+    public AddPlaceViewModel(string heading, string details, string usual, IReadOnlyList<string> musicFolders, string? last, bool keepFolders, bool canKeepFolders, string? notThis = null,
+        string action = "Add", bool hasUsualPlace = true)
     {
         Heading = heading;
+        Action = action;
+        HasUsualPlace = hasUsualPlace;
         Details = details;
         _usual = usual;
         _musicFolders = musicFolders;
@@ -103,6 +108,10 @@ public sealed partial class AddPlaceViewModel : ObservableObject
 
     public string Details { get; }
 
+    public string Action { get; }
+
+    public bool HasUsualPlace { get; }
+
     public ObservableCollection<AddFolderRow> Roots { get; } = [];
 
     public bool CanKeepFolders { get; }
@@ -118,6 +127,7 @@ public sealed partial class AddPlaceViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanChooseKeepFolders))]
     [NotifyPropertyChangedFor(nameof(IntoNote))]
+    [NotifyPropertyChangedFor(nameof(CanGoBackToUsual))]
     public partial bool IsUsual { get; private set; }
 
     [ObservableProperty]
@@ -132,7 +142,9 @@ public sealed partial class AddPlaceViewModel : ObservableObject
 
     public string IntoText => Display(Folder);
 
-    public string IntoNote => IsUsual ? "The usual place" : "";
+    public string IntoNote => IsUsual && HasUsualPlace ? "The usual place" : "";
+
+    public bool CanGoBackToUsual => HasUsualPlace && !IsUsual;
 
     public bool CanMakeFolder => SelectedRow is not null;
 

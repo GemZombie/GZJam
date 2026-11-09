@@ -431,6 +431,11 @@
     <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
   </Style>
   <!-- A playlist that would take the songs being dragged over it -->
+  <Style Selector="ListBox.folders ListBoxItem.drop-target /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
   <Style Selector="ListBox.playlists ListBoxItem.drop-target /template/ ContentPresenter">
     <Setter Property="Background" Value="{StaticResource AccentFaintBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />

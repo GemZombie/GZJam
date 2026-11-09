@@ -4,7 +4,7 @@
              xmlns:views="using:GZJam.App.Views"
              x:Class="GZJam.App.Views.OrganizeView"
              x:DataType="vm:OrganizeViewModel">
-  <!-- Organize music (#325): in place of the library, songs and queue, under the decks, and the only place GZJam moves files.
+  <!-- Organize music (#325): in place of the library, songs and queue, under the decks, for moving and copying files.
        In Settings' lighter, bluer gray, so it can't be mistaken for the library. -->
   <UserControl.Styles>
     <Style Selector="Button.send">
