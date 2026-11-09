@@ -247,8 +247,8 @@ to one you'd use.
 **Sound**
 - [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
   as they're analyzed, and EVEN suggested or set, never lifting a break
-- [A Room setting on the speakers](https://github.com/GemZombie/GZJam/issues/272): less boom for a
-  big hall, more warmth for a packed room, for the whole night
+- [Room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): less boom for a big hall,
+  more warmth for a packed room, saved by venue and loaded when you arrive
 - [Restore old recordings](https://github.com/GemZombie/GZJam/issues/275): clicks, crackle and hiss
   taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 
