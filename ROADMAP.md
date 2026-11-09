@@ -14,8 +14,9 @@ release.
 
 **Library**
 - Your music folders are the library: a folder tree, with search covering everything under the
-  folder you pick. Nothing to import, and your music files are never changed, unless you choose
-  to write your tag edits into them.
+  folder you pick. Nothing to import, and GZJam never changes your music files unless you ask it
+  to: by moving songs in Organize music, dragging one from the queue to a folder and saying yes, or
+  writing your tag edits into them.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:`, `played:` (`-played:7` leaves out the songs the room heard last week)
   and `file:`. Words in quotes are a phrase, and `OR` finds either of two (`label:balboa OR label:charleston`).
@@ -159,6 +160,11 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324), from
   a server, the computer's files or a USB stick
 
+Finished since that beta, and in the next one:
+
+- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335):
+  moved there from the computer, copied from a USB stick or a server, once you've said yes
+
 **In 1.5,** to try now in [1.5.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.2):
 
 - [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318):
@@ -201,8 +207,6 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   folders and USB sticks, or copy them from a server, and new and renamed folders
 - [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
   empty are cleaned up, when you move a whole album
-- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335):
-  moved there from the computer, copied from a USB stick or a server, once you've said yes
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

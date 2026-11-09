@@ -25,7 +25,7 @@ is out of scope until it earns a place.
 ### Design decisions
 
 - **The file system is the source of truth for organization.** The app never moves or renames
-  files. Its database is an index over the folders plus data the app owns (BPM overrides,
+  files unless the DJ asks it to (Organize music, or a song dragged from the queue to a folder and confirmed). Its database is an index over the folders plus data the app owns (BPM overrides,
   trim points, notes, play history).
 - **MP3 tags are the source of truth for track data.** Columns (title, artist, album, genre,
   year, BPM, comment) come from tags. Folders drive the tree view and also feed search.

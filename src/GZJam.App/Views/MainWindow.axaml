@@ -839,7 +839,7 @@
             <TextBlock Text="Add your music folder to get started" FontSize="17" FontWeight="SemiBold"
                        HorizontalAlignment="Center" />
             <TextBlock Classes="muted" TextAlignment="Center" MaxWidth="380" TextWrapping="Wrap"
-                       Text="GZJam shows your folders exactly as they are on disk, and never moves or renames your files." />
+                       Text="GZJam shows your folders exactly as they are on disk, and never moves or renames your files unless you ask it to." />
             <Button Content="Add folder…" HorizontalAlignment="Center" Padding="16,8" Click="OnAddFolderClick"
                     Background="{StaticResource AccentBrush}" Foreground="White" />
           </StackPanel>
@@ -1278,6 +1278,8 @@
                   <MenuItem x:Name="QueueEnergyMenu" Header="Energy" />
                   <MenuItem x:Name="QueueBpmMenu" Header="BPM" />
                   <MenuItem x:Name="QueuePlaylistsMenu" Header="Add to playlist" />
+                  <MenuItem x:Name="QueueToFolderItem" Header="Move to a folder in My music…" Click="OnQueueToFolderClick"
+                            ToolTip.Tip="Choose a folder in My music for these songs. Nothing moves until you say so" />
                   <Separator />
                   <MenuItem x:Name="QueueColumnsMenu" Header="Show" />
                   <MenuItem Header="Save queue as playlist…" Click="OnQueueToPlaylistClick" />

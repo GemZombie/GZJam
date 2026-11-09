@@ -62,7 +62,8 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>Keep a copy in my library, from the song list: the server's songs among them, and those downloaded from it.</summary>
-    public async Task KeepTracksAsync(IReadOnlyList<Track> tracks)
+    /// <param name="place">Where they go, if the DJ has chosen already (#335): nothing more is asked.</param>
+    public async Task KeepTracksAsync(IReadOnlyList<Track> tracks, AddPlace? place = null)
     {
         var wanted = new List<(long ServerId, string SongId, ServerSong? Song)>();
         var downloads = await Task.Run(_database.GetServerDownloadsByPath);
@@ -83,7 +84,8 @@ public sealed partial class ServersViewModel
             var catalog = _database.GetServerCatalogSongs(server.Key, server.Where(w => w.Song is null).Select(w => w.SongId))
                 .ToDictionary(s => s.Id);
             var songs = server.Select(w => (w.SongId, w.Song ?? catalog.GetValueOrDefault(w.SongId))).ToList();
-            await KeepAsync(item, songs, songs.Count == 1 ? tracks.FirstOrDefault(t => t.OnServer?.Song.Id == songs[0].SongId)?.DisplayTitle ?? "That song" : "Those songs");
+            await KeepAsync(item, songs, songs.Count == 1 ? tracks.FirstOrDefault(t => t.OnServer?.Song.Id == songs[0].SongId)?.DisplayTitle ?? "That song" : "Those songs",
+                ask: place is null, again: place);
         }
     }
 
@@ -134,7 +136,8 @@ public sealed partial class ServersViewModel
             return;
         }
 
-        if (await KeepFolderToUseAsync() is not var (folder, choosing))
+        // A place chosen already needs no folder asked for.
+        if ((again is { } given ? (given.Folder, false) : await KeepFolderToUseAsync()) is not var (folder, choosing))
             return;
 
         var onDecks = _owner.Decks.Select(d => d.Track?.Path).OfType<string>().ToHashSet(StringComparer.Ordinal);

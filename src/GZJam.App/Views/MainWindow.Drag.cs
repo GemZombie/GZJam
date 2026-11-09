@@ -31,6 +31,7 @@ public partial class MainWindow
     private IPointer? _dragPointer;
     private PointerType _dragPointerType;
     private Border? _dragTag;
+    private TextBlock? _dragHint;
     private int _queueScrollDirection;
     private readonly DispatcherTimer _queueScroll = new() { Interval = TimeSpan.FromMilliseconds(40) };
     private Point _dragAt;
@@ -70,6 +71,8 @@ public partial class MainWindow
         _dragMenu = menuIfStill;
         pointer?.Capture(this);
         _dragTag = MakeDragTag(drag);
+        _dragHint = new TextBlock { Classes = { "muted" }, FontSize = 11.5, FontWeight = FontWeight.SemiBold, MaxWidth = 280, TextTrimming = TextTrimming.CharacterEllipsis, IsVisible = false };
+        ((StackPanel)_dragTag.Child!).Children.Add(_dragHint);
         DragLayer.Children.Add(_dragTag);
         UpdateDrag(at);
     }
@@ -124,6 +127,12 @@ public partial class MainWindow
             Log.Info($"Dragged {what} by {pointerType.ToString().ToLowerInvariant()} to {playlistDrop}");
             return;
         }
+        if (target is null && drag.FromQueue is not null && MusicFolderAt(at) is { } folder)
+        {
+            Log.Info($"Dragged {what} by {pointerType.ToString().ToLowerInvariant()} to {folder.Name} in My music");
+            await Vm.SendToFolderAsync(drag.Tracks, folder.Path);
+            return;
+        }
         string where = target switch
         {
             DeckView { DataContext: DeckViewModel d } => $"Deck {d.Label}",
@@ -167,8 +176,10 @@ public partial class MainWindow
         if (_dragTag is not null)
             DragLayer.Children.Remove(_dragTag);
         _dragTag = null;
+        _dragHint = null;
         HideDropTarget();
         EndPlaylistDrop();
+        LightFolderRow(null);
     }
 
     /// <summary>Lights nothing: no deck outlined, no line in the queue.</summary>
@@ -187,6 +198,7 @@ public partial class MainWindow
         if (_drag is not { } drag || _dragTag is not { } tag)
             return;
         _dragAt = at;
+        bool folderRefuses = UpdateFolderDrop(at, drag);
 
         // The tag sits above a finger (so the finger doesn't hide it), beside a mouse pointer.
         tag.Measure(Size.Infinity);
@@ -198,7 +210,7 @@ public partial class MainWindow
         Canvas.SetTop(tag, Math.Clamp(top, 0, Math.Max(0, Bounds.Height - size.Height)));
 
         ShowDropTarget(at, drag.Tracks.Count, out bool blocked);
-        tag.Classes.Set("blocked", blocked);
+        tag.Classes.Set("blocked", blocked || folderRefuses);
         UpdatePlaylistDrop(at);
     }
 

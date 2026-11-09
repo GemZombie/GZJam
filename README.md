@@ -31,7 +31,7 @@ and on Facebook in [GZJam Support and Development](https://www.facebook.com/grou
 | Arch, Manjaro (x64) | `GZJam-<version>-linux-x64.pkg.tar.zst` | `sudo pacman -U GZJam-<version>-linux-x64.pkg.tar.zst` |
 | Any other Linux (x64) | `GZJam-<version>-linux-x64.tar.gz` | Unpack it and run `./install.sh` in the folder. |
 
-Everything GZJam needs comes with it, .NET included. Your music is only ever read, never changed.
+Everything GZJam needs comes with it, .NET included. GZJam never changes your music files unless you ask it to.
 On Linux, a newer package installs over the older one. If you installed GZJam with `./install.sh`
 before, run `./install.sh --uninstall` from that folder first, so the menu has one GZJam.
 
@@ -76,7 +76,7 @@ reporting problems and sharing ideas help just as much.
 
 - .NET 10 + [Avalonia](https://avaloniaui.net/) (Windows, Linux and macOS)
 - [BASS](https://www.un4seen.com/) via ManagedBass — playback, multi-output headphone cue, BASS_FX tempo/key-lock and BPM detection, BASSFLAC/BASSOPUS/BASSALAC for FLAC, Opus and Apple Lossless
-- TagLib# — tag reading (GZJam never writes to music files)
+- TagLib# — reading tags, and writing your tag edits into the files if you turn that on
 - SQLite — library, play history, notes
 
 ## License
@@ -95,7 +95,7 @@ dotnet run --project src/GZJam.App
 ```
 
 Click **+ Folder** and pick your music folder. GZJam indexes it (about 3 seconds for 13,000 MP3s),
-then watches it for changes. Your files are only ever read, never modified.
+then watches it for changes. GZJam never changes your music files unless you ask it to.
 
 Set `GZJAM_DATA_DIR` to keep the library database and settings somewhere other than the
 default (`%LOCALAPPDATA%\GZJam` and `%APPDATA%\GZJam` on Windows).

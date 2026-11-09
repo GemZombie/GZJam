@@ -13,6 +13,19 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **Drag a song from the queue to a folder in My music, and it ends up there** (#335). Drop it on a
+  folder in the tree, or on *My music* at the top of the library column, or right-click it in the
+  queue. Nothing moves until you say so: a window says what will happen and lets you change the
+  folder. A song on the computer moves there, with Undo; one from a USB stick or a server is copied.
+  Its hearts, cues, labels and playlists go with it, and its place in the queue follows.
+
+Changed:
+
+- GZJam's promise about your files now reads: **GZJam never changes your music files unless you ask
+  it to.**
+
 ## 1.6.0-beta.1 (2026-11-08)
 
 The first beta of 1.6: Organize music, for copying and moving songs without leaving GZJam, and
