@@ -196,6 +196,8 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 - [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: a window of its
   own, beside the decks, with two panes to copy and move songs between your music, the computer's
   folders and USB sticks, or copy them from a server, and new and renamed folders
+- [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
+  empty are cleaned up, when you move a whole album
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
@@ -218,6 +220,8 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
+- [File songs by their tags](https://github.com/GemZombie/GZJam/issues/332): choose a pattern like
+  Artist / Album / Title, see every new path first, and undo it if you don't like it
 - [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
   hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
