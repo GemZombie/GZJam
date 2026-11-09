@@ -223,6 +223,8 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
+- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335),
+  moved there if it's yours or on the computer, copied there from a server
 - [File songs by their tags](https://github.com/GemZombie/GZJam/issues/332): choose a pattern like
   Artist / Album / Title, see every new path first, and undo it if you don't like it
 - [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
