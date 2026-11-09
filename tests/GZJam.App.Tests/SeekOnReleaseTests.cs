@@ -53,7 +53,7 @@ public sealed class SeekOnReleaseTests
         preview.Toggle(app.ToneTrack("Previewed", 60));
         app.Play(0.5);
         AppHarness.Settle(100);
-        var bar = app.Window.FindControl<SeekBar>("PreviewSeek")!;
+        var bar = app.Window.FindControl<PreviewBar>("LibraryPreview")!.Seek;
         double before = preview.Progress;
         Assert.True(before < 0.05);
 

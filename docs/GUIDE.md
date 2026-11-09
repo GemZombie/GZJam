@@ -386,7 +386,8 @@ with the folders on top. Double-click a folder to go in, and click the path abov
 and **drag them across**: they go to the folder the other side is in, or onto any folder you drop
 them on. A plain drag moves, and holding Ctrl copies. Or use **Move** and **Copy** between the sides,
 whose arrows show the way the songs will go and whose small print says what happens to them. Press
-Space or the headphones to hear a song first. Songs that just arrived are lit.
+Space or the headphones to hear a song first, with the same player as under the song list. Songs
+that just arrived are lit.
 
 GZJam does what your file manager would, and the library shows where the files ended up:
 

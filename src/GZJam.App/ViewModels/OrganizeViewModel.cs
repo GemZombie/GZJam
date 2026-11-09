@@ -241,6 +241,9 @@ public sealed partial class OrganizeViewModel : ObservableObject
 
     public OrganizePane Right { get; }
 
+    /// <summary>The headphones, for the player under the two sides.</summary>
+    public PreviewViewModel? Player => _owner.Preview;
+
     /// <summary>The DJ went back to the library with songs still on their way: a notice says how it ended.</summary>
     internal bool TellWhenDone { get; set; }
 

@@ -16,7 +16,6 @@ public partial class MainWindow
 {
     private void InitializeDecks()
     {
-        PreviewSeek.SeekRequested += (_, fraction) => Vm.Preview?.SeekTo(fraction);
         FlyoutMenus.FillAsItOpens(TrackMenu, _ => OnTrackMenuOpening());
         FlyoutMenus.FillAsItOpens(QueueMenu, _ => OnQueueMenuOpening());
         SettingsPanel.CloseRequested += (_, _) => CloseSettings();

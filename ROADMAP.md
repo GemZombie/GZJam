@@ -164,6 +164,8 @@ Finished since that beta, and in the next one:
 
 - [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335):
   moved there from the computer, copied from a USB stick or a server, once you've said yes
+- [Organize music](https://github.com/GemZombie/GZJam/issues/325): Space previews the song
+  selected, and the headphone player is under the two sides
 
 **In 1.5,** to try now in [1.5.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.2):
 

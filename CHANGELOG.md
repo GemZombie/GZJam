@@ -26,6 +26,13 @@ Changed:
 - GZJam's promise about your files now reads: **GZJam never changes your music files unless you ask
   it to.**
 
+Fixed:
+
+- **Organize music: Space previews the song selected,** as it does in the song list. It did nothing,
+  and only the headphones worked.
+- **Organize music has the headphone player** that's under the song list, to see how far along a
+  preview is, skip through it and stop it.
+
 ## 1.6.0-beta.1 (2026-11-08)
 
 The first beta of 1.6: Organize music, for copying and moving songs without leaving GZJam, and

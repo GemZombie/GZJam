@@ -674,6 +674,72 @@ public sealed class OrganizeAppTests
         Assert.Contains("Copied 1 song", s.App.ViewModel.Notice);
     }
 
+    private static void Click(Setup s, Point at)
+    {
+        s.App.Window.MouseMove(at);
+        s.App.Window.MouseDown(at, MouseButton.Left, RawInputModifiers.None);
+        s.App.Window.MouseUp(at, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(80);
+    }
+
+    [AvaloniaFact]
+    public void Space_previews_the_clicked_song_and_again_stops_it()
+    {
+        using var s = WithPanes();
+        Track song = Mine(s);
+        Go(s.Vm.Left, Path.GetDirectoryName(song.Path)!);
+        var view = Open(s);
+        PreviewViewModel preview = s.App.ViewModel.Preview!;
+
+        Click(s, RowAt(s, view, "LeftPane", song.DisplayTitle));
+        Press(s, Key.Space, RawInputModifiers.None, PhysicalKey.Space);
+        AppHarness.WaitFor(() => preview.IsActive);
+        Assert.Equal(song.Path, preview.Track!.Path);
+        AppHarness.Settle(100);
+        var bar = view.FindControl<PreviewBar>("Player")!;
+        Assert.True(bar.Bounds.Height > 0);   // the same player as under the song list, which is hidden now
+        Assert.True(bar.Seek.IsEffectivelyVisible);
+        Shot(s, "organize-preview.png");
+
+        Press(s, Key.Space, RawInputModifiers.None, PhysicalKey.Space);
+        AppHarness.WaitFor(() => !preview.IsActive);
+        AppHarness.Settle(100);
+        Assert.False(bar.Seek.IsEffectivelyVisible);
+    }
+
+    [AvaloniaFact]
+    public void The_player_under_organize_seeks_and_stops_the_preview()
+    {
+        using var s = WithPanes();
+        var view = Open(s);
+        PreviewViewModel preview = s.App.ViewModel.Preview!;
+        preview.Toggle(s.App.ToneTrack("Previewed", 60));
+        s.App.Play(0.5);
+        AppHarness.Settle(100);
+        var bar = view.FindControl<PreviewBar>("Player")!;
+        double before = preview.Progress;
+
+        Click(s, bar.Seek.TranslatePoint(new Point(bar.Seek.Bounds.Width * 0.5, bar.Seek.Bounds.Height / 2), s.App.Window)!.Value);
+        s.App.Play(0.2);
+
+        Assert.True(preview.Progress > before + 0.3, $"at {preview.Progress}");
+        preview.StopCommand.Execute(null);
+        Assert.False(preview.IsActive);
+    }
+
+    [AvaloniaFact]
+    public void Space_on_a_folder_previews_nothing()
+    {
+        using var s = WithPanes();
+        Go(s.Vm.Right, s.Desktop);
+        var view = Open(s);
+
+        Click(s, RowAt(s, view, "RightPane", "Edits"));
+        Press(s, Key.Space, RawInputModifiers.None, PhysicalKey.Space);
+
+        Assert.False(s.App.ViewModel.Preview!.IsActive);
+    }
+
     [AvaloniaFact]
     public void Ctrl_F_finds_in_the_folder_not_in_the_hidden_library()
     {
