@@ -100,6 +100,58 @@ public sealed class NextSongTests
     }
 
     [AvaloniaFact]
+    public void On_the_crossfaders_side_a_replaced_song_goes_back_with_the_other_deck_in_the_headphones()
+    {
+        var (app, _, tracks) = Playing(queued: 3);
+        using var _app = app;
+        var d2 = app.ViewModel.Deck2!;
+        app.ViewModel.Mixer!.Crossfader = 1;   // Deck 1 goes on, out of the room
+        app.Play(0.1);
+        Assert.True(app.ViewModel.Deck1!.IsPlaying);
+        Assert.True(d2.IsReady);
+
+        Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(d2, app.ToneTrack("Other"))));
+
+        Assert.Equal([tracks[1].Path, tracks[2].Path], Queued(app));
+        Assert.Equal("\"Song 2\" went back to the top of the queue", app.ViewModel.Notice);
+        Undo(app);
+        Assert.Equal([tracks[2].Path], Queued(app));
+    }
+
+    [AvaloniaFact]
+    public void On_the_crossfaders_side_a_replaced_song_goes_back_with_nothing_playing()
+    {
+        var (app, _, tracks) = Playing(queued: 3);
+        using var _app = app;
+        var d1 = app.ViewModel.Deck1!;
+        var d2 = app.ViewModel.Deck2!;
+        app.ViewModel.Mixer!.Crossfader = 1;
+        d1.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+        Assert.False(d1.IsPlaying);
+        Assert.True(d2.IsReady);
+
+        Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(d2, app.ToneTrack("Other"))));
+
+        Assert.Equal([tracks[1].Path, tracks[2].Path], Queued(app));
+    }
+
+    [AvaloniaFact]
+    public void A_song_paused_partway_and_replaced_goes_back_to_the_top_of_the_queue()
+    {
+        var (app, _, tracks) = Playing(queued: 3);
+        using var _app = app;
+        var d1 = app.ViewModel.Deck1!;
+        d1.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+        Assert.True(d1.IsReady);
+
+        Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(d1, app.ToneTrack("Other"))));
+
+        Assert.Equal([tracks[0].Path, tracks[2].Path], Queued(app));
+    }
+
+    [AvaloniaFact]
     public void With_auto_play_off_a_song_loaded_over_another_just_replaces_it()
     {
         using var app = new AppHarness();

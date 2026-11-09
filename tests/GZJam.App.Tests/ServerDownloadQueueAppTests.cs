@@ -31,6 +31,7 @@ public sealed class ServerDownloadQueueAppTests
         Assert.True((await servers.SaveAsync(null, new ServerEdit("synology", "synology:4533", "gzjam", "sesame"))).Saved);
         var item = Assert.Single(servers.Items);
         WaitFor(() => app.Database.GetServerCatalogCount(item.Server.Id) == 4, "the catalog");
+        WaitFor(() => !servers.IsReadingAnyCatalog, "the first reading to finish");   // the songs are in before it's done, and a second reading waits for nothing
         app.ViewModel.ConfirmAsync = (_, _, _) => Task.FromResult(true);
         return (app, fake, item);
     }

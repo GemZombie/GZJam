@@ -1522,8 +1522,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
 
-        // With auto-play on, the deck waiting to play is the front of the queue (#261).
-        Track? bumped = AutoPlay?.IsWaiting(deck) == true ? deck.Track : null;
+        // With auto-play on, a song replaced before it's played isn't lost (#261, #337).
+        Track? bumped = AutoPlay?.ReplacedSongGoesBack(deck) == true ? deck.Track : null;
         try
         {
             deck.Load(track);
@@ -1540,8 +1540,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// A song replaced on the waiting deck goes back to the top of the queue (#261), so changing the
-    /// very next song doesn't lose the one that was ready. With Repeat the queue it's at the end
+    /// A song replaced on a deck that isn't playing goes back to the top of the queue (#261, #337), so
+    /// changing the very next song doesn't lose the one that was ready. With Repeat the queue it's at the end
     /// already (it went there as it was loaded): it moves up rather than being queued twice.
     /// </summary>
     private void BackToTopOfQueue(Track track)

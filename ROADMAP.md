@@ -166,6 +166,8 @@ Finished since that beta, and in the next one:
   moved there from the computer, copied from a USB stick or a server, once you've said yes
 - [Organize music](https://github.com/GemZombie/GZJam/issues/325): Space previews the song
   selected, and the headphone player is under the two sides
+- [Auto-play keeps a song replaced on a stopped deck](https://github.com/GemZombie/GZJam/issues/337):
+  it goes back to the top of the queue, wherever the crossfader is
 
 **In 1.5,** to try now in [1.5.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.2):
 

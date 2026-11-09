@@ -777,8 +777,8 @@ The queue is tonight's list of songs to come.
   stops); **Delete** takes it out and selects the next, so you can keep going.
 - **Loading from it:** drag a queued song onto a deck, or double-click it; it leaves the queue
   (with *Repeat: The queue*, it goes to the end).
-- **Changing the very next song:** with auto-play on, the deck waiting to play is the front of the
-  queue. Load another song onto it and the song that was there goes back to the top of the queue,
+- **Changing the very next song:** with auto-play on, load another song onto a deck that isn't
+  playing, wherever the crossfader is, and the song that was there goes back to the top of the queue,
   so it plays right after your new pick (the top bar says so, with **Undo** to take it out).
 - **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
   and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
