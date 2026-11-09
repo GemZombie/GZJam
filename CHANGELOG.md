@@ -13,6 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+## 1.6.0-beta.1 (2026-11-08)
+
+The first beta of 1.6: Organize music, for copying and moving songs without leaving GZJam, and
+choosing the folder when you add songs to My music. Organize is the first part of it, and the first
+time GZJam moves your files, so try it on a few songs first. Like the others, GZJam's update notice
+doesn't offer it: you only get it from this page. It has everything in 1.5.0-beta.2.
+
 New:
 
 - **Organize music: copying and moving songs without leaving GZJam** (#325, the first part): two sides, each

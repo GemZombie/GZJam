@@ -151,8 +151,11 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.6,** finished so far:
+**In 1.6,** to try now in [1.6.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.1):
 
+- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the first part: two sides under
+  the decks, to copy and move songs between your music, the computer's folders and USB sticks,
+  with hearts, cues and playlists going along and an Undo
 - [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324), from
   a server, the computer's files or a USB stick
 
@@ -193,8 +196,8 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.6:**
-- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: a window of its
-  own, beside the decks, with two panes to copy and move songs between your music, the computer's
+- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: under the
+  decks, with two panes to copy and move songs between your music, the computer's
   folders and USB sticks, or copy them from a server, and new and renamed folders
 - [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
   empty are cleaned up, when you move a whole album
