@@ -201,6 +201,8 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   folders and USB sticks, or copy them from a server, and new and renamed folders
 - [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
   empty are cleaned up, when you move a whole album
+- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335):
+  moved there from the computer, copied from a USB stick or a server, once you've said yes
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
@@ -223,8 +225,6 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
-- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335),
-  moved there if it's yours or on the computer, copied there from a server
 - [File songs by their tags](https://github.com/GemZombie/GZJam/issues/332): choose a pattern like
   Artist / Album / Title, see every new path first, and undo it if you don't like it
 - [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
