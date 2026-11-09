@@ -13,6 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+## 1.6.0-beta.2 (2026-11-09)
+
+The second beta of 1.6: drag a song from the queue to a folder in My music, and fixes to Organize
+music and auto-play. Dragging a song from the computer moves its file, so try it on a few songs
+first. Like the others, GZJam's update notice doesn't offer it: you only get it from this page. It
+has everything in 1.6.0-beta.1.
+
 New:
 
 - **Drag a song from the queue to a folder in My music, and it ends up there** (#335). Drop it on the
