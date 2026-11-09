@@ -250,7 +250,7 @@ to one you'd use.
 - [Room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): less boom for a big hall,
   more warmth for a packed room, saved by venue and loaded when you arrive
 - [Plug in your speakers after starting GZJam](https://github.com/GemZombie/GZJam/issues/338): MAIN
-  goes back to the output you chose by itself, as soon as it's connected
+  goes back to the output you chose by itself, once it's connected and the room is quiet
 - [Restore old recordings](https://github.com/GemZombie/GZJam/issues/275): clicks, crackle and hiss
   taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 
