@@ -258,6 +258,12 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        if (e.Key == Key.Escape && Vm.IsOrganizeOpen)
+        {
+            CloseOrganize();
+            e.Handled = true;
+            return;
+        }
         // Ctrl+D: compact decks (or back from hidden); with Shift, hide them (#164).
         if (e.Key == Key.D && (e.KeyModifiers & ~KeyModifiers.Shift) == CommandModifier)
         {
@@ -269,7 +275,7 @@ public partial class MainWindow : Window
             return;
         }
         // Ctrl+L: the queue takes the room in the middle, or the song list does (#178).
-        if (e.Key == Key.L && e.KeyModifiers == CommandModifier)
+        if (e.Key == Key.L && e.KeyModifiers == CommandModifier && !Vm.IsOrganizeOpen)
         {
             ToggleQueueWide();
             e.Handled = true;
@@ -286,8 +292,14 @@ public partial class MainWindow : Window
             return;
         }
         // Ctrl+I (Cmd+I, like the Mac's Get Info): the selected song's info (#129).
-        if (e.Key == Key.I && e.KeyModifiers == CommandModifier && ShowSelectedSongInfo())
+        if (e.Key == Key.I && e.KeyModifiers == CommandModifier && !Vm.IsOrganizeOpen && ShowSelectedSongInfo())
         {
+            e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier) && Vm.IsOrganizeOpen)
+        {
+            _organize?.FocusFind();
             e.Handled = true;
             return;
         }

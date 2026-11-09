@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             xmlns:views="using:GZJam.App.Views"
+             x:Class="GZJam.App.Views.OrganizeView"
+             x:DataType="vm:OrganizeViewModel">
+  <!-- Organize music (#325): in place of the library, songs and queue, under the decks, and the only place GZJam moves files.
+       In Settings' lighter, bluer gray, so it can't be mistaken for the library. -->
+  <UserControl.Styles>
+    <Style Selector="Button.send">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Padding" Value="4,7" />
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+    <Style Selector="Button.send.main:not(:disabled) /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.send-label">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.send-note">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border#DragTag">
+      <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="8,4" />
+    </Style>
+    <Style Selector="Border#DragTag.refused">
+      <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <Border Background="{StaticResource SettingsBrush}" BorderBrush="{StaticResource SettingsEdgeBrush}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+      <Grid RowDefinitions="Auto,*">
+        <Border Background="{StaticResource SettingsHeadBrush}" BorderBrush="{StaticResource SettingsLineBrush}" BorderThickness="0,0,0,1" Padding="14,5,6,5">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+            <TextBlock Classes="label" Text="ORGANIZE MUSIC" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+              <TextBlock x:Name="StatusText" Classes="muted" Text="{Binding Status}" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+              <Button x:Name="UndoButton" Classes="link" Content="Undo" IsVisible="{Binding CanUndo}" />
+            </StackPanel>
+            <TextBlock x:Name="HintText" Grid.Column="2" Classes="muted" Text="{Binding Hint}" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="340" />
+            <Button x:Name="DoneButton" Grid.Column="3" Classes="hw" Content="DONE" MinWidth="76" ToolTip.Tip="Back to the library and the queue (Esc)" />
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="8" ColumnDefinitions="*,118,*" ColumnSpacing="8">
+          <views:OrganizePaneView x:Name="LeftPane" DataContext="{Binding Left}" />
+
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+            <StackPanel IsVisible="{Binding HasSelected}" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+              <TextBlock x:Name="CountText" Text="{Binding SelectedCount}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <TextBlock Classes="muted" Text="{Binding CountWord}" FontSize="11.5" VerticalAlignment="Center" />
+            </StackPanel>
+            <Button x:Name="MoveButton" Classes="send main" IsEnabled="{Binding CanMove}"
+                    ToolTip.Tip="Move the songs selected to the folder open on the other side, with their hearts, cues and playlists">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="send-label" Text="{Binding MoveLabel}" />
+                <TextBlock x:Name="MoveNote" Classes="send-note" Text="{Binding MoveNote}" IsVisible="{Binding HasSelected}" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="CopyButton" Classes="send" IsEnabled="{Binding CanCopy}"
+                    ToolTip.Tip="Copy the songs selected to the folder open on the other side">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="send-label" Text="{Binding CopyLabel}" />
+                <TextBlock x:Name="CopyNote" Classes="send-note" Text="{Binding CopyNote}" IsVisible="{Binding HasSelected}" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="StopButton" Content="Stop" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" IsVisible="{Binding CanStop}" />
+          </StackPanel>
+
+          <views:OrganizePaneView x:Name="RightPane" Grid.Column="2" DataContext="{Binding Right}" />
+        </Grid>
+      </Grid>
+    </Border>
+
+    <!-- A tag follows the pointer while songs are dragged, as it does in the rest of the main window -->
+    <Canvas IsHitTestVisible="False">
+      <Border x:Name="DragTag" IsVisible="False" IsHitTestVisible="False">
+        <TextBlock x:Name="DragTagText" FontSize="12" />
+      </Border>
+    </Canvas>
+  </Panel>
+</UserControl>

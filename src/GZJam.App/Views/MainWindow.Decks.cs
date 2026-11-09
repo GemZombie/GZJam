@@ -416,6 +416,50 @@ public partial class MainWindow
         ToolTip.SetTip(TrackKeepItem, _serverKeepTip);
     }
 
+    private OrganizeView? _organize;
+
+    /// <summary>
+    /// Organize music (#325): in place of the library, songs and queue, under the decks; opened on a
+    /// folder if one was right-clicked. One for the whole run, so a move can still be undone after
+    /// going back to the library for a moment.
+    /// </summary>
+    internal OrganizeView ShowOrganize(string? folder = null)
+    {
+        if (_organize is null)
+        {
+            _organize = new OrganizeView(Vm.Organize);
+            _organize.Done += CloseOrganize;
+            OrganizeHost.Content = _organize;
+        }
+        _ = Vm.Organize.StartAsync(folder);
+        Vm.Organize.TellWhenDone = false;
+        Vm.IsOrganizeOpen = true;
+        _organize.FocusList();
+        return _organize;
+    }
+
+    /// <summary>Back to the library and the queue. Songs still on their way carry on, and a notice says when they've arrived.</summary>
+    internal void CloseOrganize()
+    {
+        if (!Vm.IsOrganizeOpen)
+            return;
+        Vm.IsOrganizeOpen = false;
+        if (Vm.Organize.IsBusy)
+        {
+            Vm.Organize.TellWhenDone = true;
+            Vm.ShowNotice("Your songs are still on their way. Organize shows how far along, and can stop them.", 6);
+        }
+        TrackGrid.Focus();
+    }
+
+    private void OnOrganizeClick(object? sender, RoutedEventArgs e) => ShowOrganize();
+
+    private void OnOrganizeFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is FolderNodeViewModel folder)
+            ShowOrganize(folder.Node.FullPath);
+    }
+
     /// <summary>A right-click menu in a list's rows (the folder tree, the playlists): the right size, however the row's last one was.</summary>
     private void OnRowMenuOpened(object? sender, RoutedEventArgs e)
     {
