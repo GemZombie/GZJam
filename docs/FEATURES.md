@@ -298,8 +298,8 @@ is out of scope until it earns a place.
   order again, with two or more songs), with **Undo** in the top bar for 6 s. Undo puts the songs
   back in the order they were; any added since stay after them, any taken out stay out.
 - **The waiting deck is the front of the queue** (#261, 1.1, a DJ's pain point): with auto-play on,
-  a song loaded over the one ready on the deck auto-play starts next (counting down the gap,
-  waiting for play, or after the live deck: `AutoPlayViewModel.IsWaiting`) sends that one back to
+  a song loaded over one ready on any deck that isn't playing, wherever the crossfader is (#337:
+  `AutoPlayViewModel.ReplacedSongGoesBack`), sends that one back to
   the top of the queue, in `LoadToDeckAsync`, so dragging, *Load to Deck N*, the load keys and
   double-click all do it. With *Repeat › The queue* it's at the end already: it moves up rather
   than being queued twice. Notice with Undo. Not with auto-play off (the decks aren't tied to the

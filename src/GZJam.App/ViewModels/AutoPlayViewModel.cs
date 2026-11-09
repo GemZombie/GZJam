@@ -326,11 +326,11 @@ public sealed partial class AutoPlayViewModel : ObservableObject
     private DeckViewModel? WaitingDeck => _pending?.Deck ?? _waiting ?? NextDeck;
 
     /// <summary>
-    /// With auto-play on, the deck waiting to play, with its song ready, is the front of the queue
-    /// (#261): a song replaced on it goes back to the top of the queue. Not with Repeat this song,
-    /// where it holds a copy of the song playing.
+    /// With auto-play on, a song replaced on a deck that isn't playing goes back to the top of the
+    /// queue (#261), wherever the crossfader is (#337). Not with Repeat this song, where the deck
+    /// holds a copy of the song playing, and not a song that played to its end.
     /// </summary>
-    internal bool IsWaiting(DeckViewModel deck) => IsOn && Repeat != RepeatMode.Song && deck.IsReady && deck == WaitingDeck;
+    internal bool ReplacedSongGoesBack(DeckViewModel deck) => IsOn && Repeat != RepeatMode.Song && deck.IsReady;
 
     /// <summary>
     /// The deck a song double-clicked in the library loads onto (#260): with a song playing to the

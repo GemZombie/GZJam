@@ -32,6 +32,9 @@ Fixed:
   and only the headphones worked.
 - **Organize music has the headphone player** that's under the song list, to see how far along a
   preview is, skip through it and stop it.
+- **Auto-play: a song replaced on a deck that isn't playing goes back to the top of the queue,**
+  wherever the crossfader is (#337). On the crossfader's side it was replaced and lost, with no
+  notice.
 
 ## 1.6.0-beta.1 (2026-11-08)
 
