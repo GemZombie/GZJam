@@ -775,6 +775,11 @@
   </Style>
 
   <!-- The song being dragged, following the pointer; red edged over a deck that won't take it -->
+  <!-- The song list, showing the folder that songs dragged from the queue would go to -->
+  <Style Selector="Border.panel.drop-target">
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+  </Style>
+
   <Style Selector="Border.drag-tag">
     <Setter Property="Background" Value="{StaticResource Panel2Brush}" />
     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />

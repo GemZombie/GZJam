@@ -405,7 +405,8 @@ as they do with any move, and GZJam says so the first time.
 
 ### From the queue to a folder
 
-Drag songs from the queue onto a folder in the tree, or onto *My music* at the top of the library
+Open the folder in My music, and drag songs from the queue onto the song list: they go to the folder
+it's showing. Or drag them onto a folder in the tree, or onto *My music* at the top of the library
 column (handy when a server or Files is showing). Or right-click them › *Move to a folder in My
 music…* (*Add to my music…* for a server's song or one from a USB stick). Nothing moves yet: a window
 says what will happen and lets you change the folder, and one more press does it.

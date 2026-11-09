@@ -48,6 +48,23 @@ public sealed partial class LibraryViewModel
     [ObservableProperty]
     public partial LibrarySource Source { get; private set; }
 
+    /// <summary>
+    /// The place in My music the song list is showing, for songs dropped on it (#335): the folder
+    /// chosen, or all of My music (Path null). Null when it's showing anything else: a playlist, a
+    /// server, the computer's files, or the servers' downloads.
+    /// </summary>
+    public (string? Path, string Name)? ShownMusicFolder(string downloads)
+    {
+        if (Source != LibrarySource.MyMusic || SelectedPlaylist is not null)
+            return null;
+        return SelectedFolder switch
+        {
+            null => (null, "My music"),
+            { IsFolder: true } folder when !FileSources.IsIn(folder.Node.FullPath, downloads) => (folder.Node.FullPath, folder.Name),
+            _ => null,
+        };
+    }
+
     /// <summary>The servers' downloads folder (#318): in the index, so its songs keep what the DJ gives them, but not My music.</summary>
     public Func<LibraryRoot, bool> IsServersRoot { get; set; } = _ => false;
 
