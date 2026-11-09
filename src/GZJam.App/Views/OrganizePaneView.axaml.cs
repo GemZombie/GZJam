@@ -18,7 +18,8 @@ public partial class OrganizePaneView : UserControl
             else if ((e.Source as Control)?.DataContext is OrganizeItem song)
                 Organize?.Preview(song);
         };
-        SongList.KeyDown += (_, e) =>
+        // Before the list's own handling of the keys, as in the song list: it takes Space for itself.
+        SongList.AddHandler(KeyDownEvent, (_, e) =>
         {
             if (e.Key == Key.Back)
                 _ = Pane?.UpAsync();
@@ -29,7 +30,7 @@ public partial class OrganizePaneView : UserControl
             else
                 return;
             e.Handled = true;
-        };
+        }, RoutingStrategies.Tunnel);
         FilterBox.KeyDown += (_, e) =>
         {
             if (e.Key != Key.Escape || string.IsNullOrEmpty(FilterBox.Text))

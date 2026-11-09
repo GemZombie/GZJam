@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             xmlns:c="using:GZJam.App.Controls"
+             x:Class="GZJam.App.Views.PreviewBar"
+             x:DataType="vm:PreviewViewModel">
+  <!-- The headphone preview's player: under the song list, and under Organize music's two sides -->
+  <Border Classes="preview-bar" IsVisible="{Binding IsActive, FallbackValue=False}">
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="12">
+      <Border Classes="preview-edge" Grid.RowSpan="1" />
+      <Path Data="{StaticResource IconHeadphones}" Stroke="{StaticResource Deck2Brush}" StrokeThickness="2.2"
+            Stretch="Uniform" Width="16" Height="15" VerticalAlignment="Center" Margin="2,0,0,0" />
+      <StackPanel Grid.Column="1" VerticalAlignment="Center" MaxWidth="260">
+        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+        <TextBlock Classes="muted" FontSize="11" Text="Previewing in headphones" />
+      </StackPanel>
+      <c:SeekBar x:Name="Seek" x:FieldModifier="internal" Grid.Column="2" Height="28" Progress="{Binding Progress}"
+                 Fill="{StaticResource Deck2Brush}" CornerRadius="3" />
+      <TextBlock Grid.Column="3" Classes="muted mono" FontSize="12" Text="{Binding TimeText}" VerticalAlignment="Center" />
+      <Button Grid.Column="4" Classes="hw small" Content="STOP" Command="{Binding StopCommand}" />
+    </Grid>
+  </Border>
+</UserControl>

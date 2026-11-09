@@ -43,7 +43,7 @@
 
   <Panel>
     <Border Background="{StaticResource SettingsBrush}" BorderBrush="{StaticResource SettingsEdgeBrush}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
-      <Grid RowDefinitions="Auto,*">
+      <Grid RowDefinitions="Auto,*,Auto">
         <Border Background="{StaticResource SettingsHeadBrush}" BorderBrush="{StaticResource SettingsLineBrush}" BorderThickness="0,0,0,1" Padding="14,5,6,5">
           <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
             <TextBlock Classes="label" Text="ORGANIZE MUSIC" VerticalAlignment="Center" />
@@ -83,6 +83,8 @@
 
           <views:OrganizePaneView x:Name="RightPane" Grid.Column="2" DataContext="{Binding Right}" />
         </Grid>
+
+        <views:PreviewBar x:Name="Player" Grid.Row="2" DataContext="{Binding Player}" />
       </Grid>
     </Border>
 
