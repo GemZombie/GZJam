@@ -21,7 +21,7 @@ public sealed class OrganizeAppTests
     }
 
     /// <summary>A Desktop with a song and an empty Edits folder, and an empty Lindy folder in My music; My music left, Files right.</summary>
-    private static Setup WithPanes()
+    private static Setup WithPanes(bool start = true)
     {
         var app = new AppHarness();
         string desktop = Path.Combine(app.WorkDirectory, "Desktop");
@@ -35,8 +35,9 @@ public sealed class OrganizeAppTests
         files.Drives = () => [];
         files.Sticks = () => [];
         app.Settings.OrganizeMoveWarned = true;
-        var vm = new OrganizeViewModel(app.ViewModel, app.Database, app.Settings);
-        Finish(vm.StartAsync());
+        OrganizeViewModel vm = app.ViewModel.Organize;
+        if (start)
+            Finish(vm.StartAsync());
         return new Setup(app, vm, desktop, edits, lindy);
     }
 
@@ -398,23 +399,29 @@ public sealed class OrganizeAppTests
         Assert.Equal(s.Desktop, later.Right.Folder);
     }
 
-    private static OrganizeWindow Open(Setup s)
+    private static OrganizeView Open(Setup s, string? folder = null)
     {
-        var window = new OrganizeWindow(s.Vm) { Width = 1120, Height = 720 };
-        window.Show();
+        OrganizeView view = s.App.Window.ShowOrganize(folder);
+        AppHarness.WaitFor(() => !s.Vm.Left.IsListing && !s.Vm.Right.IsListing);
         AppHarness.Settle(250);
-        window.UpdateLayout();
-        return window;
+        s.App.Window.UpdateLayout();
+        return view;
     }
 
-    private static Point RowAt(OrganizeWindow window, string pane, string name)
+    private static Point RowAt(Setup s, OrganizeView view, string pane, string name)
     {
-        var view = window.FindControl<OrganizePaneView>(pane)!;
-        var row = view.GetVisualDescendants().OfType<ListBoxItem>().First(i => i.DataContext is OrganizeItem item && item.Name == name);
-        return row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value;
+        var side = view.FindControl<OrganizePaneView>(pane)!;
+        var row = side.GetVisualDescendants().OfType<ListBoxItem>().First(i => i.DataContext is OrganizeItem item && item.Name == name);
+        return row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), s.App.Window)!.Value;
     }
 
-    private static void Drag(OrganizeWindow window, Point from, Point to, RawInputModifiers keys = RawInputModifiers.None)
+    private static Point MiddleOf(Setup s, OrganizeView view, string pane)
+    {
+        var side = view.FindControl<OrganizePaneView>(pane)!;
+        return side.TranslatePoint(new Point(side.Bounds.Width / 2, side.Bounds.Height * 0.75), s.App.Window)!.Value;
+    }
+
+    private static void Drag(Window window, Point from, Point to, RawInputModifiers keys = RawInputModifiers.None)
     {
         window.MouseMove(from);
         window.MouseDown(from, MouseButton.Left, keys);
@@ -432,14 +439,12 @@ public sealed class OrganizeAppTests
         using var s = WithPanes();
         Go(s.Vm.Left, s.Lindy);
         Go(s.Vm.Right, s.Desktop);
-        var window = Open(s);
+        var view = Open(s);
 
-        Point left = window.FindControl<OrganizePaneView>("LeftPane")!.TranslatePoint(new Point(200, 300), window)!.Value;
-        Drag(window, RowAt(window, "RightPane", "Voice memo"), left);
+        Drag(s.App.Window, RowAt(s, view, "RightPane", "Voice memo"), MiddleOf(s, view, "LeftPane"));
 
         AppHarness.WaitFor(() => File.Exists(Path.Combine(s.Lindy, "Voice memo.mp3")));
         Assert.False(File.Exists(Path.Combine(s.Desktop, "Voice memo.mp3")));
-        window.Close();
     }
 
     [AvaloniaFact]
@@ -448,14 +453,12 @@ public sealed class OrganizeAppTests
         using var s = WithPanes();
         Go(s.Vm.Left, s.Lindy);
         Go(s.Vm.Right, s.Desktop);
-        var window = Open(s);
+        var view = Open(s);
 
-        Point left = window.FindControl<OrganizePaneView>("LeftPane")!.TranslatePoint(new Point(200, 300), window)!.Value;
-        Drag(window, RowAt(window, "RightPane", "Voice memo"), left, RawInputModifiers.Control);
+        Drag(s.App.Window, RowAt(s, view, "RightPane", "Voice memo"), MiddleOf(s, view, "LeftPane"), RawInputModifiers.Control);
 
         AppHarness.WaitFor(() => File.Exists(Path.Combine(s.Lindy, "Voice memo.mp3")));
         Assert.True(File.Exists(Path.Combine(s.Desktop, "Voice memo.mp3")));
-        window.Close();
     }
 
     [AvaloniaFact]
@@ -463,32 +466,223 @@ public sealed class OrganizeAppTests
     {
         using var s = WithPanes();
         Go(s.Vm.Right, s.Desktop);
-        var window = Open(s);
+        var view = Open(s);
 
-        Drag(window, RowAt(window, "RightPane", "Voice memo"), RowAt(window, "RightPane", "Edits"));
+        Drag(s.App.Window, RowAt(s, view, "RightPane", "Voice memo"), RowAt(s, view, "RightPane", "Edits"));
 
         AppHarness.WaitFor(() => File.Exists(Path.Combine(s.Edits, "Voice memo.mp3")));
         Assert.False(File.Exists(Path.Combine(s.Desktop, "Voice memo.mp3")));
-        window.Close();
     }
 
     [AvaloniaFact]
-    public void The_window_shows_both_sides_and_the_way_the_songs_go()
+    public void It_shows_both_sides_and_the_way_the_songs_go()
     {
         using var s = WithPanes();
         Track song = Mine(s);
         Go(s.Vm.Left, Path.GetDirectoryName(song.Path)!);
         Go(s.Vm.Right, s.Desktop);
+        var view = Open(s);
         Pick(s.Vm.Left, song.DisplayTitle);
-        var window = Open(s);
+        AppHarness.Settle(100);
 
-        Assert.True(window.FindControl<Button>("CopyButton")!.IsEnabled);
-        Assert.True(window.FindControl<Button>("MoveButton")!.IsEnabled);
-        Assert.Equal("leave My music", window.FindControl<TextBlock>("MoveNote")!.Text);
-        var rows = window.FindControl<OrganizePaneView>("LeftPane")!.GetVisualDescendants().OfType<ListBoxItem>().ToList();
+        Assert.True(view.FindControl<Button>("CopyButton")!.IsEnabled);
+        Assert.True(view.FindControl<Button>("MoveButton")!.IsEnabled);
+        Assert.Equal("leave My music", view.FindControl<TextBlock>("MoveNote")!.Text);
+        var rows = view.FindControl<OrganizePaneView>("LeftPane")!.GetVisualDescendants().OfType<ListBoxItem>().ToList();
         Assert.True(rows[0].Bounds.Height <= 28, $"a row is {rows[0].Bounds.Height} tall");   // as close as the song list
+        Shot(s, "organize.png");
+        s.App.Window.Width = 1024;
+        s.App.Window.Height = 680;
+        AppHarness.Settle(200);
+        s.App.Window.UpdateLayout();
+        Shot(s, "organize-smallest.png");
+    }
+
+    private static void Shot(Setup s, string name)
+    {
         Directory.CreateDirectory(AppHarness.ScreenshotDirectory);
-        window.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "organize.png"), new PngBitmapEncoderOptions());
-        window.Close();
+        s.App.Window.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, name), new PngBitmapEncoderOptions());
+    }
+
+    private static Control Named(Setup s, string name) => s.App.Window.FindControl<Control>(name)!;
+
+    private static void Press(Setup s, Key key, RawInputModifiers keys, PhysicalKey physical)
+    {
+        s.App.Window.KeyPress(key, keys, physical, null);
+        AppHarness.Settle(50);
+    }
+
+    [AvaloniaFact]
+    public void It_takes_the_place_of_the_library_and_queue_and_the_decks_stay()
+    {
+        using var s = WithPanes();
+        Assert.True(Named(s, "PanesGrid").IsEffectivelyVisible);
+
+        var view = Open(s);
+
+        Assert.True(view.IsEffectivelyVisible);
+        Assert.True(Named(s, "DecksRow").IsEffectivelyVisible);
+        Assert.False(Named(s, "PanesGrid").IsEffectivelyVisible);
+
+        view.FindControl<Button>("DoneButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        AppHarness.Settle(50);
+
+        Assert.False(view.IsEffectivelyVisible);
+        Assert.True(Named(s, "PanesGrid").IsEffectivelyVisible);
+    }
+
+    [AvaloniaFact]
+    public void Escape_goes_back_to_the_library()
+    {
+        using var s = WithPanes();
+        Open(s);
+
+        Press(s, Key.Escape, RawInputModifiers.None, PhysicalKey.Escape);
+
+        Assert.False(s.App.ViewModel.IsOrganizeOpen);
+    }
+
+    [AvaloniaFact]
+    public void Escape_during_a_drag_only_stops_the_drag()
+    {
+        using var s = WithPanes();
+        Go(s.Vm.Right, s.Desktop);
+        var view = Open(s);
+        Window window = s.App.Window;
+        Point from = RowAt(s, view, "RightPane", "Voice memo"), to = MiddleOf(s, view, "LeftPane");
+        window.MouseMove(from);
+        window.MouseDown(from, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(30);
+        window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+        AppHarness.Settle(30);
+
+        view.FindControl<OrganizePaneView>("RightPane")!.SongList.Focus();
+        Press(s, Key.Escape, RawInputModifiers.None, PhysicalKey.Escape);
+        window.MouseUp(to, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(200);
+
+        Assert.True(s.App.ViewModel.IsOrganizeOpen);
+        Assert.True(File.Exists(Path.Combine(s.Desktop, "Voice memo.mp3")));
+    }
+
+    [AvaloniaFact]
+    public void With_the_decks_hidden_the_air_line_stands_in_while_organizing()
+    {
+        using var s = WithPanes();
+        s.App.ViewModel.DecksHidden = true;
+        Assert.True(s.App.ViewModel.DecksInQueue);   // on top of the queue, which is about to go
+
+        Open(s);
+
+        Assert.False(s.App.ViewModel.DecksInQueue);
+        Assert.True(s.App.ViewModel.ShowAirLine);
+        Assert.True(Named(s, "AirLine").IsEffectivelyVisible);
+
+        s.App.Window.CloseOrganize();
+        AppHarness.Settle(50);
+        Assert.True(s.App.ViewModel.DecksInQueue);
+        Assert.False(s.App.ViewModel.ShowAirLine);
+    }
+
+    [AvaloniaFact]
+    public void The_first_time_it_opens_each_side_is_where_it_was_left()
+    {
+        using var s = WithPanes(start: false);   // as the app does: the view is built before the sides have opened
+        s.App.Settings.OrganizeLeftSource = OrganizePane.Files;
+        s.App.Settings.OrganizeLeftFolder = s.Edits;
+        s.App.Settings.OrganizeRightSource = OrganizePane.MyMusic;
+        s.App.Settings.OrganizeRightFolder = s.Lindy;
+
+        Open(s);
+
+        Assert.Equal((OrganizePane.Files, s.Edits), (s.Vm.Left.SelectedSource, s.Vm.Left.Folder));
+        Assert.Equal((OrganizePane.MyMusic, s.Lindy), (s.Vm.Right.SelectedSource, s.Vm.Right.Folder));
+    }
+
+    [AvaloniaFact]
+    public void Clicking_a_source_tab_opens_that_source()
+    {
+        using var s = WithPanes();
+        var view = Open(s);
+        var side = view.FindControl<OrganizePaneView>("RightPane")!;
+        Assert.Equal(OrganizePane.Files, s.Vm.Right.SelectedSource);
+
+        side.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.TabStrip>().Single().SelectedItem = OrganizePane.MyMusic;
+        AppHarness.WaitFor(() => !s.Vm.Right.IsListing);
+        AppHarness.Settle(50);
+
+        Assert.Equal(OrganizePane.MyMusic, s.Vm.Right.SelectedSource);
+        Assert.Equal(s.App.MusicPath, s.Vm.Right.Folder);
+    }
+
+    [AvaloniaFact]
+    public void A_right_clicked_folder_opens_on_the_left()
+    {
+        using var s = WithPanes();
+
+        Open(s, s.Lindy);
+
+        Assert.Equal(s.Lindy, s.Vm.Left.Folder);
+    }
+
+    [AvaloniaFact]
+    public void A_move_can_still_be_undone_after_going_back_to_the_library()
+    {
+        using var s = WithPanes();
+        string from = Path.Combine(s.Desktop, "Voice memo.mp3");
+        Source(s.Vm.Left, OrganizePane.Files);
+        Go(s.Vm.Left, s.Desktop);
+        Go(s.Vm.Right, s.Edits);
+        Open(s);
+        Pick(s.Vm.Left, "Voice memo");
+        Finish(s.Vm.MoveAsync());
+        Assert.False(File.Exists(from));
+
+        s.App.Window.CloseOrganize();
+        Open(s);
+
+        Assert.True(s.Vm.CanUndo);
+        Finish(s.Vm.UndoAsync());
+        Assert.True(File.Exists(from));
+    }
+
+    [AvaloniaFact]
+    public void Going_back_to_the_library_mid_copy_carries_on_and_says_when_its_done()
+    {
+        using var s = WithPanes();
+        using var release = new ManualResetEventSlim();
+        s.Vm.SameDrive = (_, _) => false;
+        s.Vm.CopyFile = (from, partial) =>
+        {
+            release.Wait(TimeSpan.FromSeconds(20));
+            File.Copy(from, partial, overwrite: true);
+        };
+        Source(s.Vm.Left, OrganizePane.Files);
+        Go(s.Vm.Left, s.Desktop);
+        Go(s.Vm.Right, s.Edits);
+        Open(s);
+        Pick(s.Vm.Left, "Voice memo");
+        Task copying = s.Vm.CopyAsync();
+        AppHarness.WaitFor(() => s.Vm.IsBusy);
+
+        s.App.Window.CloseOrganize();
+        Assert.Contains("still on their way", s.App.ViewModel.Notice);
+
+        release.Set();
+        Finish(copying);
+        Assert.True(File.Exists(Path.Combine(s.Edits, "Voice memo.mp3")));
+        Assert.Contains("Copied 1 song", s.App.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public void Ctrl_F_finds_in_the_folder_not_in_the_hidden_library()
+    {
+        using var s = WithPanes();
+        var view = Open(s);
+        RawInputModifiers command = OperatingSystem.IsMacOS() ? RawInputModifiers.Meta : RawInputModifiers.Control;
+
+        Press(s, Key.F, command, PhysicalKey.F);
+
+        Assert.True(view.FindControl<OrganizePaneView>("LeftPane")!.FilterBox.IsFocused);
     }
 }

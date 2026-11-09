@@ -995,7 +995,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// queue is in view; otherwise the line under the top bar stands in for them. Either way the
     /// room's play key is on screen, once.
     /// </summary>
-    public bool DecksInQueue => DecksHidden && ShowQueue && QueuePanelOpen;
+    public bool DecksInQueue => DecksHidden && ShowQueue && QueuePanelOpen && !IsOrganizeOpen;
 
     public bool ShowAirLine => DecksHidden && !DecksInQueue;
 
@@ -1367,8 +1367,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The library, for backing it up.</summary>
     internal LibraryDatabase Database => _database;
 
-    /// <summary>What the Organize music window works with (#325).</summary>
-    internal OrganizeViewModel CreateOrganize() => new(this, _database, _settings);
+    /// <summary>What Organize music works with (#325).</summary>
+    internal OrganizeViewModel Organize => _organize ??= new(this, _database, _settings);
+
+    private OrganizeViewModel? _organize;
+
+    /// <summary>Organize music is showing, in place of the library, songs and queue, so hidden decks need the air line.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DecksInQueue), nameof(ShowAirLine))]
+    public partial bool IsOrganizeOpen { get; set; }
 
     /// <summary>The settings as they stand, for a backup.</summary>
     internal string SettingsJson()

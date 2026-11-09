@@ -241,8 +241,8 @@ public sealed partial class OrganizeViewModel : ObservableObject
 
     public OrganizePane Right { get; }
 
-    /// <summary>Asks yes or no from over this window: set by it. Without it, the main window asks.</summary>
-    public Func<string, string, string, Task<bool>>? ConfirmAsync { get; set; }
+    /// <summary>The DJ went back to the library with songs still on their way: a notice says how it ended.</summary>
+    internal bool TellWhenDone { get; set; }
 
     /// <summary>How a file is copied. Tests make it fail partway.</summary>
     internal Action<string, string> CopyFile { get; set; } = (from, to) => File.Copy(from, to, overwrite: true);
@@ -296,7 +296,7 @@ public sealed partial class OrganizeViewModel : ObservableObject
     /// <summary>What Copy will do to the library, under its button.</summary>
     public string CopyNote => From is { Folder: { } from } && To is { Folder: { } to } ? NoteFor(from, to, move: false, From.Selected) : "";
 
-    public string Hint => From is null ? "Select songs on either side, then drag them across or use the buttons."
+    public string Hint => From is null ? "Select songs, then drag them across or use the buttons."
         : To?.Folder is null ? "Open a folder on the other side for them to go to."
         : $"To {To.FolderText}";
 
@@ -450,7 +450,7 @@ public sealed partial class OrganizeViewModel : ObservableObject
     {
         if (!_settings.OrganizeMoveWarned)
         {
-            if ((ConfirmAsync ?? _owner.ConfirmAsync) is not { } confirm || !await confirm("Move these files?",
+            if (_owner.ConfirmAsync is not { } confirm || !await confirm("Move these files?",
                     "Other apps that know these files, such as MediaMonkey, iTunes or foobar2000, will lose track of them: their ratings and playlists there still point at the old place. GZJam's own hearts, cues and playlists come along. GZJam won't ask again.",
                     "Move"))
                 return;
@@ -487,8 +487,13 @@ public sealed partial class OrganizeViewModel : ObservableObject
 
     private sealed record Outcome(List<(string From, string To)> Finished, string? Failed, bool Stopped);
 
-    private void Report(string text, Outcome done) =>
+    private void Report(string text, Outcome done)
+    {
         Status = done.Failed is { } failed ? $"{text} {failed}" : done.Stopped ? $"Stopped. {text}" : text;
+        if (TellWhenDone)
+            _owner.ShowNotice(Status, 8);
+        TellWhenDone = false;
+    }
 
     private static string SongCount(int n) => n == 1 ? "1 song" : $"{Format.Count(n)} songs";
 

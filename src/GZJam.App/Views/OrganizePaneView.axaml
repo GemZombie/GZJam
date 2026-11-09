@@ -99,11 +99,15 @@
   </UserControl.Styles>
 
   <Border Classes="side" Classes.sending="{Binding IsSending}" Classes.drop="{Binding IsDropTarget}">
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
       <Border Classes="sending-edge" IsVisible="{Binding IsSending}" />
-      <TabStrip x:Name="SourceTabs" Grid.Row="1" Classes="sources" ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=TwoWay}" />
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+        <TabStrip x:Name="SourceTabs" Classes="sources" ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource, Mode=OneWay}" SelectionChanged="OnSourceTabChanged" />
+        <TextBox x:Name="FilterBox" x:FieldModifier="internal" Grid.Column="1" Text="{Binding Filter, Mode=TwoWay}" PlaceholderText="Find in this folder…"
+                 HorizontalAlignment="Right" Width="170" Margin="10,4,6,3" MinHeight="26" FontSize="12" Padding="8,3" />
+      </Grid>
 
-      <Border Grid.Row="2" Background="{StaticResource Panel2Brush}" Padding="8,6">
+      <Border Grid.Row="2" Background="{StaticResource Panel2Brush}" Padding="8,4">
         <ItemsControl x:Name="CrumbList" ItemsSource="{Binding Crumbs}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -155,8 +159,6 @@
         </ListBox>
         <TextBlock Classes="muted" Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" />
       </Panel>
-
-      <TextBox x:Name="FilterBox" Grid.Row="5" Text="{Binding Filter, Mode=TwoWay}" PlaceholderText="Find in this folder…" Margin="6" MinHeight="28" FontSize="12" Padding="8,4" />
     </Grid>
   </Border>
 </UserControl>

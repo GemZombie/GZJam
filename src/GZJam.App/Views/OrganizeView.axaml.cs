@@ -8,11 +8,11 @@ using GZJam.App.ViewModels;
 namespace GZJam.App.Views;
 
 /// <summary>
-/// Organize music (#325): beside the decks, the one place GZJam moves files. Songs are dragged
-/// across as they are in the main window, by a tag GZJam moves itself; the buttons do the same with
-/// no drag and no key held.
+/// Organize music (#325): under the decks, in place of the library, songs and queue, and the one
+/// place GZJam moves files. Songs are dragged across as they are in the rest of the main window, by
+/// a tag GZJam moves itself; the buttons do the same with no drag and no key held.
 /// </summary>
-public partial class OrganizeWindow : Window
+public partial class OrganizeView : UserControl
 {
     /// <summary>How far (px) a press moves before it's a drag.</summary>
     private const double DragStart = 6;
@@ -27,11 +27,11 @@ public partial class OrganizeWindow : Window
     private OrganizePane? _overPane;
     private string? _target;
 
-    public OrganizeWindow() : this(null)
+    public OrganizeView() : this(null)
     {
     }
 
-    public OrganizeWindow(OrganizeViewModel? model)
+    public OrganizeView(OrganizeViewModel? model)
     {
         InitializeComponent();
         _model = model;
@@ -40,20 +40,36 @@ public partial class OrganizeWindow : Window
         DataContext = model;
         LeftPane.Organize = model;
         RightPane.Organize = model;
-        model.ConfirmAsync = (heading, message, yes) => new ConfirmDialog(heading, message, yes).ShowDialog<bool>(this);
         CopyButton.Click += async (_, _) => await model.CopyAsync();
         MoveButton.Click += async (_, _) => await model.MoveAsync();
         UndoButton.Click += async (_, _) => await model.UndoAsync();
         StopButton.Click += (_, _) => model.Stop();
+        DoneButton.Click += (_, _) => Done?.Invoke();
         foreach (OrganizePaneView view in (OrganizePaneView[])[LeftPane, RightPane])
             view.SongList.AddHandler(PointerPressedEvent, (_, e) => OnRowPressed(view, e), RoutingStrategies.Tunnel);
         AddHandler(PointerMovedEvent, OnMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerReleasedEvent, OnReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += (_, e) =>
         {
-            if (e.Key == Key.Escape && _dragging is not null)
-                EndDrag();
+            if (e.Key != Key.Escape || _dragging is null)
+                return;
+            EndDrag();
+            e.Handled = true;   // or the main window takes it as going back to the library
         };
+    }
+
+    /// <summary>DONE was pressed: back to the library and the queue.</summary>
+    public event Action? Done;
+
+    /// <summary>Ready for the keyboard, on the left side's list.</summary>
+    internal void FocusList() => LeftPane.SongList.Focus();
+
+    /// <summary>The find box of the side in use.</summary>
+    internal void FocusFind()
+    {
+        TextBox box = (RightPane.IsKeyboardFocusWithin ? RightPane : LeftPane).FilterBox;
+        box.Focus();
+        box.SelectAll();
     }
 
     private void OnRowPressed(OrganizePaneView view, PointerPressedEventArgs e)

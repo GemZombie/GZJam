@@ -375,8 +375,9 @@ music* there instead.
 ### Organize music
 
 For copying and moving songs around, without leaving GZJam: **Organize** at the top of the library
-column, or right-click a folder › *Organize music…*. It's a window of its own, so the decks stay in
-view, and each side opens where it was last time.
+column, or right-click a folder › *Organize music…*. It takes the place of the library, song list
+and queue, with the decks still above it and playing, and **Done** (or Esc) brings them back. Each
+side opens where it was last time.
 
 Each side shows My music or Files (the computer's places and drives, and USB sticks), as one list
 with the folders on top. Double-click a folder to go in, and click the path above the list to go back

@@ -30,12 +30,26 @@ public partial class OrganizePaneView : UserControl
                 return;
             e.Handled = true;
         };
+        FilterBox.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Escape || string.IsNullOrEmpty(FilterBox.Text))
+                return;
+            FilterBox.Text = "";   // what's found first; Esc again goes back to the library
+            e.Handled = true;
+        };
     }
 
     private OrganizePane? Pane => DataContext as OrganizePane;
 
     /// <summary>The window's view model: set by the window.</summary>
     internal OrganizeViewModel? Organize { get; set; }
+
+    /// <summary>The tabs choose their first as they're built: only a choice made once they're showing counts.</summary>
+    private void OnSourceTabChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (SourceTabs.IsLoaded && SourceTabs.SelectedItem is string source && Pane is { } pane)
+            pane.SelectedSource = source;
+    }
 
     private void OnCrumbClick(object? sender, RoutedEventArgs e)
     {

@@ -295,10 +295,13 @@
       <Border Classes="deck-grip-bar" />
     </Border>
 
+    <!-- Organize music (#325) stands in for the library, songs and queue; the decks stay above it -->
+    <ContentControl x:Name="OrganizeHost" Grid.Row="2" IsVisible="{Binding IsOrganizeOpen}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+
     <!-- ───────────── Library ───────────── -->
     <!-- The side panels can be dragged wider or narrower, or folded into a strip that a tap opens
          again (MainWindow.Panes) -->
-    <Grid x:Name="PanesGrid" Grid.Row="2" ColumnDefinitions="260,12,*,12,320">
+    <Grid x:Name="PanesGrid" Grid.Row="2" ColumnDefinitions="260,12,*,12,320" IsVisible="{Binding !IsOrganizeOpen}">
       <Button x:Name="LibraryStrip" Classes="fold-strip" IsVisible="False" Click="OnLibraryStripClick"
               ToolTip.Tip="Show the library">
         <StackPanel Spacing="12" HorizontalAlignment="Center">
@@ -341,7 +344,7 @@
               </Button>
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
                 <Button x:Name="OrganizeButton" Classes="link" Content="Organize" Click="OnOrganizeClick"
-                        ToolTip.Tip="A window for copying and moving songs between your music, the computer's folders and USB sticks" />
+                        ToolTip.Tip="Copy and move songs between your music, the computer's folders and USB sticks, with the decks still in view" />
                 <Button Classes="link" Content="+ Folder" Click="OnAddFolderClick"
                         ToolTip.Tip="Add a music folder to the library" />
               </StackPanel>
