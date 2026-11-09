@@ -14,16 +14,17 @@ namespace GZJam.App.Views;
 /// </summary>
 public partial class MainWindow
 {
-    private ListBoxItem? _folderDropRow;
+    private Control? _folderDropRow;
 
     /// <summary>What the drag's tag says over a folder now, for tests.</summary>
     internal string? DragHint => _dragHint is { IsVisible: true } hint ? hint.Text : null;
 
     /// <summary>
     /// The place in My music under <paramref name="at"/> (window coordinates), if any: a folder of
-    /// the tree, or My music's own name (Path null), which is there whichever source is showing.
+    /// the tree, My music's own name (Path null), which is there whichever source is showing, or
+    /// the song list, which means wherever in My music it's showing.
     /// </summary>
-    private (ListBoxItem Row, string? Path, string Name)? MusicFolderAt(Point at)
+    private (Control Row, string? Path, string Name)? MusicFolderAt(Point at)
     {
         if (IsOver(FolderTree, at)
             && FolderTree.GetVisualDescendants().OfType<FolderRow>().FirstOrDefault(r => IsOver(r, at)) is { DataContext: FolderNodeViewModel { IsFolder: true } node } row
@@ -32,6 +33,8 @@ public partial class MainWindow
         if (IsOver(SourceList, at)
             && SourceList.GetVisualDescendants().OfType<ListBoxItem>().FirstOrDefault(i => IsOver(i, at)) is { DataContext: SourceViewModel { IsMyMusic: true } source } item)
             return (item, null, source.Name);
+        if (IsOver(SongPanel, at) && Vm.Library.ShownMusicFolder(Vm.Servers.DownloadsFolder) is { } shown)
+            return (SongPanel, shown.Path, shown.Name);
         return null;
     }
 
@@ -50,7 +53,7 @@ public partial class MainWindow
         return refused;
     }
 
-    private void LightFolderRow(ListBoxItem? row)
+    private void LightFolderRow(Control? row)
     {
         if (row == _folderDropRow)
             return;

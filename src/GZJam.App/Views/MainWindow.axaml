@@ -532,7 +532,7 @@
                     ToolTip.Tip="Drag to make the panels either side wider or narrower" />
 
       <!-- Search + results -->
-      <Border Grid.Column="2" Classes="panel">
+      <Border x:Name="SongPanel" Grid.Column="2" Classes="panel">
         <Grid RowDefinitions="Auto,Auto,*,Auto">
           <Border Classes="panel-header" Height="56" Padding="12,0">
             <Grid x:Name="SearchHeader" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10">

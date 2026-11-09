@@ -15,9 +15,9 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
-- **Drag a song from the queue to a folder in My music, and it ends up there** (#335). Drop it on a
-  folder in the tree, or on *My music* at the top of the library column, or right-click it in the
-  queue. Nothing moves until you say so: a window says what will happen and lets you change the
+- **Drag a song from the queue to a folder in My music, and it ends up there** (#335). Drop it on the
+  song list while it shows that folder, or on a folder in the tree, or on *My music* at the top of
+  the library column, or right-click it in the queue. Nothing moves until you say so: a window says what will happen and lets you change the
   folder. A song on the computer moves there, with Undo; one from a USB stick or a server is copied.
   Its hearts, cues, labels and playlists go with it, and its place in the queue follows.
 

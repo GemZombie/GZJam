@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using GZJam.App.Controls;
 using GZJam.App.ViewModels;
@@ -329,6 +331,115 @@ public sealed class QueueToFolderAppTests
         AppHarness.WaitFor(() => asked() is not null);
         Assert.True(asked()!.IsUsual);
         Assert.Equal(Path.Combine(s.App.MusicPath, "Added"), asked()!.Folder);
+    }
+
+    /// <summary>A real drag: pressing the queue's row, moving to <paramref name="to"/> and, unless told not to, letting go.</summary>
+    private static void DragQueueRow(Setup s, Point to, bool release = true)
+    {
+        var row = s.App.Window.GetVisualDescendants().OfType<ListBoxItem>().First(i => i.DataContext is QueueItem);
+        Point from = Center(s, row);
+        s.App.Window.MouseMove(from);
+        s.App.Window.MouseDown(from, MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(30);
+        s.App.Window.MouseMove(from + new Point(-30, 0), RawInputModifiers.LeftMouseButton);
+        AppHarness.Settle(30);
+        Assert.True(s.App.Window.IsDragging);
+        s.App.Window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+        AppHarness.Settle(30);
+        if (release)
+        {
+            s.App.Window.MouseUp(to, MouseButton.Left, RawInputModifiers.None);
+            AppHarness.Settle(150);
+        }
+    }
+
+    private static Border SongPanel(Setup s) => s.App.Window.FindControl<Border>("SongPanel")!;
+
+    private static Point OverSongs(Setup s) => Center(s, s.App.Window.FindControl<Control>("TrackGrid")!);
+
+    [AvaloniaFact]
+    public void Dropped_on_the_song_list_it_goes_to_the_folder_showing()
+    {
+        using var s = Make();
+        Queued(s, s.App.Library.Results[0]);
+        var asked = Answer(s, _ => null);
+        FolderNodeViewModel root = s.App.Library.Roots.First(r => r.IsFolder);
+        s.App.Library.SelectedFolder = root;
+        AppHarness.Settle(150);
+
+        DragQueueRow(s, OverSongs(s), release: false);
+        Assert.Equal($"Move to {root.Name}…", s.App.Window.DragHint);
+        Assert.Contains("drop-target", SongPanel(s).Classes);
+        s.App.Window.MouseUp(OverSongs(s), MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(150);
+
+        Assert.DoesNotContain("drop-target", SongPanel(s).Classes);
+        AppHarness.WaitFor(() => asked() is not null);
+        Assert.Equal(root.Node.FullPath, asked()!.Folder);
+        Assert.False(asked()!.CanGoBackToUsual);
+    }
+
+    [AvaloniaFact]
+    public void Dropped_on_the_song_list_showing_all_of_my_music_it_opens_on_the_usual_place()
+    {
+        using var s = Make();
+        Queued(s, s.App.Library.Results[0]);
+        var asked = Answer(s, _ => null);
+        s.App.Library.SelectedFolder = null;
+        AppHarness.Settle(150);
+
+        DragQueueRow(s, OverSongs(s));
+
+        AppHarness.WaitFor(() => asked() is not null);
+        Assert.True(asked()!.IsUsual);
+        Assert.Equal(Path.Combine(s.App.MusicPath, "Added"), asked()!.Folder);
+    }
+
+    [AvaloniaFact]
+    public void Dropped_on_the_song_list_showing_files_nothing_happens()
+    {
+        using var s = Make();
+        Queued(s, s.App.Library.Results[0]);
+        var asked = Answer(s);
+        s.App.Library.SelectedSource = s.App.Library.Sources.First(x => x.IsFiles);
+        AppHarness.Settle(300);
+
+        DragQueueRow(s, OverSongs(s), release: false);
+        Assert.Null(s.App.Window.DragHint);
+        s.App.Window.MouseUp(OverSongs(s), MouseButton.Left, RawInputModifiers.None);
+        AppHarness.Settle(150);
+
+        Assert.Null(asked());
+    }
+
+    [AvaloniaFact]
+    public void Dropped_on_the_song_list_showing_a_playlist_nothing_happens()
+    {
+        using var s = Make();
+        Track song = s.App.Library.Results[0];
+        PlaylistInfo playlist = s.Vm.CreatePlaylist("Saturday", [song])!;
+        Queued(s, song);
+        var asked = Answer(s);
+        s.App.Library.SelectedPlaylist = playlist;
+        AppHarness.Settle(200);
+
+        DragQueueRow(s, OverSongs(s));
+
+        Assert.Null(asked());
+        Assert.True(File.Exists(song.Path));
+    }
+
+    [AvaloniaFact]
+    public void A_song_lists_own_drag_dropped_on_it_does_nothing()
+    {
+        using var s = Make();
+        Track song = s.App.Library.Results[0];
+        var asked = Answer(s);
+
+        s.App.DragTracks(new MainWindow.TrackDrag([song], null), OverSongs(s));
+
+        Assert.Null(asked());
+        Assert.True(File.Exists(song.Path));
     }
 
     [AvaloniaFact]
