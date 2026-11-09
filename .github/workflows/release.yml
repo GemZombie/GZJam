@@ -101,8 +101,13 @@ jobs:
           echo "PUBLISH_ARGS=-c Release --self-contained -p:VersionPrefix=$prefix -p:VersionSuffix=$suffix" >> "$GITHUB_ENV"
           echo "Packaging GZJam $version"
 
+      - name: Build
+        run: dotnet build GZJam.slnx -c Release -p:TreatWarningsAsErrors=true
+
       - name: Test
-        run: dotnet test GZJam.slnx -c Release -p:TreatWarningsAsErrors=true
+        # As in CI: the app's UI tests in a few processes at once (tools/test.cs), about half the
+        # time of `dotnet test`, which runs them one after another.
+        run: dotnet run tools/test.cs
 
       - name: Package for Windows
         if: matrix.name == 'windows'
