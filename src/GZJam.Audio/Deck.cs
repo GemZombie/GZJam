@@ -25,17 +25,23 @@ public sealed unsafe class Deck : IDisposable
     private double _gain = 1;   // loudness matching and the DJ's own gain, as a factor
     private double _mainGain;
     private bool _cue;
-    private long _fadeStarted;
-    private TimeSpan? _fadeLength;
+    private TimeSpan? _fadeLength;   // a fade-out under way: asked for, or started by the song reaching a point
     private TimeSpan _start;
     private TimeSpan? _end;
-    private TimeSpan _lastPosition;   // at the last update, to see the playhead pass the auto fade
     private readonly SongSound _sound;           // EQ and evening out, on the tempo stream
     private readonly List<Jump> _jumps = [];
     // The audio thread's (native, #344): one per jump by place in the list, and the meter.
     // Freed with the deck, once BASS can't call with them.
     private readonly List<IntPtr> _jumpStates = [];
     private readonly NativeDsp.Meter* _meter;
+    // The fade-out on the deck's own sound (#359), and the points in the song that start one: the
+    // end of the music and auto-play's limit. The audio thread's too; freed with the deck.
+    private readonly NativeDsp.Fade* _fade;
+    private readonly NativeDsp.FadeAt* _endAt;
+    private readonly NativeDsp.FadeAt* _autoAt;
+    private int _endSync, _autoSync;
+    private int _rate = MixEngine.SampleRate;   // the song's frames a second, for fade lengths
+    private (double Gain, long Until)? _glide;  // where the crossfader is taking this deck, and when it's there
     private bool _jumped;   // a jump happened, for Update to report
     private bool _disposed;
 
@@ -45,6 +51,9 @@ public sealed unsafe class Deck : IDisposable
         Index = index;
         _sound = new SongSound($"Deck {Name}");
         _meter = NativeDsp.NewMeter();
+        _fade = NativeDsp.NewFade();
+        _endAt = NativeDsp.NewFadeAt(_fade);
+        _autoAt = NativeDsp.NewFadeAt(_fade);
     }
 
     public int Index { get; }
@@ -111,6 +120,13 @@ public sealed unsafe class Deck : IDisposable
         _end = null;
         (_tempo, _memory) = song.Take();
         string path = song.Path;
+        // The old song's stream is gone, so nothing else is using the fade: it starts at full.
+        ChannelInfo info = Bass.ChannelGetInfo(_tempo);
+        _rate = info.Frequency > 0 ? info.Frequency : MixEngine.SampleRate;
+        *_fade = default;
+        _fade->Gain = _fade->ShownGain = 1;
+        _fade->Channels = Math.Max(1, info.Channels);
+        NativeDsp.SetFadeDsp(_tempo, _fade);
         _sound.Attach(_tempo);
         SetJumpSyncs();
         _splitMain = CreateSplit();
@@ -121,8 +137,8 @@ public sealed unsafe class Deck : IDisposable
         _playing = false;
         _ended = false;
         _endFading = false;
-        _lastPosition = TimeSpan.Zero;
-        AutoFade = null;
+        _autoFade = null;
+        SetFadeSyncs();
         Attach();
         ApplyTempo();
         ApplyVolumes();
@@ -134,6 +150,7 @@ public sealed unsafe class Deck : IDisposable
         TakeJumps();
         foreach (Jump jump in _jumps)
             jump.Forget();   // the sync is freed with the stream
+        _endSync = _autoSync = 0;   // so are these
         if (_tempo != 0)
         {
             Detach();
@@ -169,14 +186,34 @@ public sealed unsafe class Deck : IDisposable
         SetPaused(true);
     }
 
-    /// <summary>Fades the deck out over <paramref name="length"/>, then pauses it and raises <see cref="Finished"/>.</summary>
+    /// <summary>
+    /// Fades the deck out over <paramref name="length"/>, then pauses it and raises <see cref="Finished"/>.
+    /// The fade is the sound's own (#359): it carries on, and ends, however busy the app is.
+    /// </summary>
     public void FadeOut(TimeSpan length)
     {
         if (!_playing)
             return;
-        _fadeStarted = _mix.Time.GetTimestamp();
-        _fadeLength = length > TimeSpan.Zero ? length : TimeSpan.FromMilliseconds(1);
+        StartFade(length, Asked);
     }
+
+    // Why a fade started, as the native fade has it: the strongest since it began wins.
+    private const int Asked = 1;       // FADE OUT, or auto-play's limit
+    private const int PlayedOut = 2;   // the end of the music: when it's silent, the song has ended
+
+    /// <summary>A stop at the end of the music, rather than a fade: just long enough not to click.</summary>
+    private static readonly TimeSpan EndStop = TimeSpan.FromMilliseconds(5);
+
+    private void StartFade(TimeSpan length, int reason)
+    {
+        if (_fadeLength is not { } now || length < now)
+            _fadeLength = length > TimeSpan.Zero ? length : EndStop;
+        _fade->Frames = Frames(length);
+        _fade->Reason = reason;
+        Interlocked.Exchange(ref _fade->Command, NativeDsp.FadeStart);   // after the frames and reason
+    }
+
+    private uint Frames(TimeSpan length) => (uint)Math.Clamp(length.TotalSeconds * _rate, 0, uint.MaxValue);
 
     public void Seek(TimeSpan position)
     {
@@ -191,6 +228,7 @@ public sealed unsafe class Deck : IDisposable
             var (start, end) = (_start, _end);
             Load(path);
             (_start, _end) = (start, end);
+            SetFadeSyncs();
             _playing = wasPlaying;
         }
 
@@ -223,6 +261,7 @@ public sealed unsafe class Deck : IDisposable
     {
         _start = start < TimeSpan.Zero ? TimeSpan.Zero : start;
         _end = end > _start ? end : null;
+        SetFadeSyncs();
     }
 
     /// <summary>
@@ -242,7 +281,7 @@ public sealed unsafe class Deck : IDisposable
             }
             double speed = 1 + _tempoPercent / 100;
             if (_endFading && _fadeLength is { } fading)
-                return Max(TimeSpan.Zero, fading - _mix.Time.GetElapsedTime(_fadeStarted));
+                return FadeLeft(fading);
             TimeSpan toEnd = Max(TimeSpan.Zero, left / speed) + (EndFade ?? TimeSpan.Zero);
             return FadesAt is { } at ? Min(toEnd, (at - position) / speed + AutoFade!.Value.Length) : toEnd;
         }
@@ -253,14 +292,76 @@ public sealed unsafe class Deck : IDisposable
     /// <c>Length</c>: auto-play's limit on each song, for practice nights and classes (#98). Only
     /// when it's passed while playing: a song already beyond it, or moved past it, plays on.
     /// </summary>
-    public (TimeSpan At, TimeSpan Length)? AutoFade { get; set; }
+    public (TimeSpan At, TimeSpan Length)? AutoFade
+    {
+        get => _autoFade;
+        set
+        {
+            if (value == _autoFade)
+                return;   // auto-play says so on every tick
+            _autoFade = value;
+            SetFadeSyncs();
+        }
+    }
+
+    private (TimeSpan At, TimeSpan Length)? _autoFade;
 
     /// <summary>
     /// The song fades out over this long from <see cref="End"/>, rather than stopping there: the
     /// DJ's *Start fade-out here*, for a long or repetitive outro (#267). The music goes on past
     /// <see cref="End"/> while it fades; the song has ended when the fade is over. Null: it stops.
     /// </summary>
-    public TimeSpan? EndFade { get; set; }
+    public TimeSpan? EndFade
+    {
+        get => _endFade;
+        set
+        {
+            if (value == _endFade)
+                return;
+            _endFade = value;
+            SetFadeSyncs();
+        }
+    }
+
+    private TimeSpan? _endFade;
+
+    /// <summary>How long the fade under way has left, as the sound has it (<paramref name="asked"/> until it's begun).</summary>
+    private TimeSpan FadeLeft(TimeSpan asked)
+    {
+        int state = Volatile.Read(ref _fade->State);
+        float step = Volatile.Read(ref _fade->Step), gain = Volatile.Read(ref _fade->ShownGain);
+        return state == 2 ? TimeSpan.Zero
+            : state == 1 && step > 0 ? TimeSpan.FromSeconds(gain / step / _rate)
+            : asked;
+    }
+
+    /// <summary>
+    /// Sets the points where the song starts its own fade (#359), as it's decoded: the end of its
+    /// music (fading over <see cref="EndFade"/>, or stopping), and <see cref="AutoFade"/>'s point.
+    /// Called whenever either moves.
+    /// </summary>
+    private void SetFadeSyncs()
+    {
+        if (!IsLoaded)
+            return;
+        if (_endSync != 0)
+            Bass.ChannelRemoveSync(_tempo, _endSync);
+        if (_autoSync != 0)
+            Bass.ChannelRemoveSync(_tempo, _autoSync);
+        _endSync = _autoSync = 0;
+        if (_end is not null)
+        {
+            _endAt->Frames = Frames(EndFade ?? EndStop);
+            _endAt->Reason = PlayedOut;
+            _endSync = NativeDsp.SetFadeSync(_tempo, Bass.ChannelSeconds2Bytes(_tempo, End.TotalSeconds), _endAt);
+        }
+        if (AutoFade is { } fade && fade.At < End)
+        {
+            _autoAt->Frames = Frames(fade.Length);
+            _autoAt->Reason = Asked;
+            _autoSync = NativeDsp.SetFadeSync(_tempo, Bass.ChannelSeconds2Bytes(_tempo, fade.At.TotalSeconds), _autoAt);
+        }
+    }
 
     /// <summary>Where the song's own <see cref="EndFade"/> will start, if that's still ahead.</summary>
     public TimeSpan? EndFadesAt => EndFade is not null && IsLoaded && !_ended && !_endFading && _end is not null
@@ -270,11 +371,8 @@ public sealed unsafe class Deck : IDisposable
     private bool _endFading;
 
     /// <summary>Where <see cref="AutoFade"/> will fade the song, if that's still ahead and before the music ends.</summary>
-    public TimeSpan? FadesAt => AutoFade is { } fade && IsLoaded && !_ended && _fadeLength is null
+    public TimeSpan? FadesAt => AutoFade is { } fade && IsLoaded && !_ended && !IsFading
         && fade.At > Position && fade.At < End ? fade.At : null;
-
-    /// <summary>The playhead passes further than this in one update only when moved, not by playing.</summary>
-    private static readonly TimeSpan PlayedStep = TimeSpan.FromSeconds(1);
 
     // ───────────── Jumps ─────────────
 
@@ -483,9 +581,11 @@ public sealed unsafe class Deck : IDisposable
         }
     }
 
-    internal void SetMainGain(double mainGain)
+    /// <param name="toward">Where the crossfader is taking this deck, and how long it takes to get there.</param>
+    internal void SetMainGain(double mainGain, (double Gain, TimeSpan Left)? toward = null)
     {
         _mainGain = mainGain;
+        _glide = toward is { } t && t.Left > TimeSpan.Zero ? (t.Gain, Environment.TickCount64 + (long)t.Left.TotalMilliseconds) : null;
         ApplyVolumes();
     }
 
@@ -508,34 +608,30 @@ public sealed unsafe class Deck : IDisposable
             Jumped?.Invoke(this, EventArgs.Empty);
         }
 
-        if (_fadeLength is { } length)
+        // A fade-out, the sound's own (#359): one the song started itself, at the end of its music or
+        // auto-play's limit, is seen here; once it's silent, the deck pauses. Not while a fade
+        // that's over is still being undone (that's taken when the deck plays on).
+        int state = Volatile.Read(ref _fade->State);
+        if (_playing && state != 0 && Volatile.Read(ref _fade->Command) != NativeDsp.FadeReset)
         {
-            if (_mix.Time.GetElapsedTime(_fadeStarted) >= length)
+            _fadeLength ??= TimeSpan.FromSeconds(Volatile.Read(ref _fade->Frames) / (double)_rate);
+            _endFading = Volatile.Read(ref _fade->Why) == PlayedOut;
+            if (state == 2)
             {
                 bool playedOut = _endFading;
-                Pause();   // also ends the fade and restores volume for the next play
+                Pause();   // also ends the fade, for the next play
                 if (playedOut)
                     _ended = true;   // as at the end of the music: played again, it starts from the top
                 Finished?.Invoke(this, EventArgs.Empty);
                 return;
             }
-            ApplyVolumes();
         }
 
-        // Auto-play's limit on each song: passed while playing, not jumped or moved over.
-        TimeSpan position = Position, last = _lastPosition;
-        _lastPosition = position;
-        if (AutoFade is { } fade && _playing && !_ended && _fadeLength is null
-            && last < fade.At && position >= fade.At && position - last < PlayedStep && fade.At < End)
-        {
-            FadeOut(fade.Length);
-            return;
-        }
-
-        // The song's own fade at its end, rather than stopping there.
+        // The song's own fade at its end, if the sound hasn't begun it (the playhead moved past the end).
+        TimeSpan position = Position;
         if (EndFade is { } endFade && _playing && !_ended && _fadeLength is null && _end is not null && position >= End)
         {
-            FadeOut(endFade);
+            StartFade(endFade, PlayedOut);
             _endFading = true;
             return;
         }
@@ -618,30 +714,39 @@ public sealed unsafe class Deck : IDisposable
         }
     }
 
+    /// <summary>Ends a fade, or one that's over, so the next play is at full volume.</summary>
     private void CancelFade()
     {
-        if (_fadeLength is null)
-            return;
         _fadeLength = null;
         _endFading = false;
-        ApplyVolumes();
+        if (!_disposed && (Volatile.Read(ref _fade->State) != 0 || Volatile.Read(ref _fade->Command) != 0))
+            Interlocked.Exchange(ref _fade->Command, NativeDsp.FadeReset);   // taken as the music plays on
     }
-
-    private double FadeFactor => _fadeLength is { } length
-        ? Math.Max(0, 1 - _mix.Time.GetElapsedTime(_fadeStarted) / length)
-        : 1;
 
     internal void ApplyVolumes()
     {
         if (!IsLoaded)
             return;
-        double level = _volume * _gain * FadeFactor;
-        Bass.ChannelSetAttribute(_splitMain, ChannelAttribute.Volume, _mainGain * level);
-        Bass.ChannelSetAttribute(_splitBooth, ChannelAttribute.Volume, _mainGain * level);   // the booth hears what the room hears
+        double level = _volume * _gain;
+        // The crossfader on its way (#359): BASS slides the volumes on to where it's going by
+        // itself, so the room isn't left between two decks while the app is busy.
+        int left = _glide is { } g ? (int)Math.Max(0, g.Until - Environment.TickCount64) : 0;
+        double? there = left > 0 ? _glide!.Value.Gain : null;
+        SetVolume(_splitMain, _mainGain * level, there * level, left);
+        SetVolume(_splitBooth, _mainGain * level, there * level, left);   // the booth hears what the room hears
         // The headphones: this deck if it's cued, and as much as the room hears of it, by the
         // phones mix. Cued and in the room, it's the louder of the two, not both added up.
-        double phones = Math.Max(_cue ? _mix.PhonesCueLevel : 0, _mainGain * _mix.PhonesRoomLevel);
-        Bass.ChannelSetAttribute(_splitCue, ChannelAttribute.Volume, phones * level);
+        SetVolume(_splitCue, Phones(_mainGain) * level, there is { } gain ? Phones(gain) * level : null, left);
+    }
+
+    private double Phones(double mainGain) => Math.Max(_cue ? _mix.PhonesCueLevel : 0, mainGain * _mix.PhonesRoomLevel);
+
+    /// <summary>A feed's volume now, sliding on to <paramref name="there"/> over <paramref name="ms"/> if given.</summary>
+    private static void SetVolume(int split, double now, double? there, int ms)
+    {
+        Bass.ChannelSetAttribute(split, ChannelAttribute.Volume, now);   // stops a slide under way
+        if (there is { } target && ms > 0)
+            Bass.ChannelSlideAttribute(split, ChannelAttribute.Volume, (float)target, ms);
     }
 
     private void ApplyTempo()
@@ -664,6 +769,9 @@ public sealed unsafe class Deck : IDisposable
             NativeDsp.Free((void*)state);
         _jumpStates.Clear();
         NativeDsp.Free(_meter);
+        NativeDsp.Free(_endAt);
+        NativeDsp.Free(_autoAt);
+        NativeDsp.Free(_fade);
     }
 }
 
