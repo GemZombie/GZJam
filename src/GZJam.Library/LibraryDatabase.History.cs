@@ -144,7 +144,7 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = $"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE t.path = $path;";
+        cmd.CommandText = $"SELECT {OneTrackColumns} FROM tracks t {OneTrackJoins} WHERE t.path = $path;";
         cmd.Parameters.AddWithValue("$path", path);
         using var r = cmd.ExecuteReader();
         return r.Read() ? ReadTrack(r) : null;
@@ -156,7 +156,7 @@ public sealed partial class LibraryDatabase
         var found = new Dictionary<string, Track>(StringComparer.Ordinal);
         using var c = Open();
         using var cmd = c.CreateCommand();
-        cmd.CommandText = $"SELECT {TrackColumns} FROM tracks t {TrackJoins} WHERE t.path = $path;";
+        cmd.CommandText = $"SELECT {OneTrackColumns} FROM tracks t {OneTrackJoins} WHERE t.path = $path;";
         var path = cmd.Parameters.Add("$path", SqliteType.Text);
         foreach (string one in paths)
         {

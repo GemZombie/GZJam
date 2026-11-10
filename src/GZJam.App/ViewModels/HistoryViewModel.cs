@@ -119,12 +119,38 @@ public sealed partial class HistoryViewModel : ObservableObject
     public void Record(Track track, DateTime playedUtc, string deck, double tempoPercent, TimeSpan duration)
     {
         bool wasShowingCurrent = ShowingCurrent;
+        long? showing = wasShowingCurrent ? _current?.Id : null;
         _current ??= _database.StartOrContinueSession(playedUtc, ContinueWithin);
         PlayRecord record = _database.AddPlay(_current.Id, track, playedUtc, deck, tempoPercent, duration);
         Log.Info($"History: \"{record.DisplayTitle}\" ({track.Path})");
 
+        // Tonight's list on screen, and the song is its latest: it's added as a row, rather than the
+        // night read again (#360). Otherwise (the first song, or one that went on air before the last
+        // one recorded), the list is read again.
+        if (showing == _current.Id && (Plays.Count == 0 || Plays[^1].Record.PlayedUtc <= record.PlayedUtc))
+        {
+            _keepPlays = true;
+            try
+            {
+                Reload(keepCurrentSelected: true);
+            }
+            finally
+            {
+                _keepPlays = false;
+            }
+            Plays.Add(new PlayItem(record, _database.FindTrack(record.Path) ?? record.ToTrack(), Plays.Count + 1));
+            OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(Summary));
+            return;
+        }
         Reload(keepCurrentSelected: wasShowingCurrent);
     }
+
+    /// <summary>The list on screen stays as it is while the sessions are read again (a song is being added to it).</summary>
+    private bool _keepPlays;
+
+    /// <summary>How many times the plays have been read, so a reload doesn't read them twice.</summary>
+    private int _playsLoaded;
 
     /// <summary>Re-reads the session list; keeps the selection, or picks "This session".</summary>
     public void Reload(bool keepCurrentSelected = true)
@@ -144,10 +170,12 @@ public sealed partial class HistoryViewModel : ObservableObject
         foreach (PlaySession session in sessions.Where(s => s.PlayCount > 0))
             Sessions.Add(new SessionChoice(session, Label(session)));
 
+        int loaded = _playsLoaded;
         SelectedSession = selectCurrent
             ? Sessions.FirstOrDefault(s => s.Session is null || s.Session.Id == _current?.Id) ?? Sessions.FirstOrDefault()
             : Sessions.FirstOrDefault(s => s.Session?.Id == selectedId) ?? Sessions.FirstOrDefault();
-        LoadPlays();
+        if (_playsLoaded == loaded)
+            LoadPlays();   // not read already, by the selection changing
     }
 
     private string Label(PlaySession session)
@@ -169,12 +197,17 @@ public sealed partial class HistoryViewModel : ObservableObject
 
     private void LoadPlays()
     {
+        if (_keepPlays)
+            return;
+        _playsLoaded++;
         Plays.Clear();
         if (SelectedSession?.Session is { } session)
         {
+            var records = _database.GetPlays(session.Id);
+            var tracks = _database.FindTracks(records.Select(r => r.Path));   // one query for the night's songs
             int n = 0;
-            foreach (PlayRecord record in _database.GetPlays(session.Id))
-                Plays.Add(new PlayItem(record, _database.FindTrack(record.Path) ?? record.ToTrack(), ++n));
+            foreach (PlayRecord record in records)
+                Plays.Add(new PlayItem(record, tracks.GetValueOrDefault(record.Path) ?? record.ToTrack(), ++n));
         }
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(Summary));

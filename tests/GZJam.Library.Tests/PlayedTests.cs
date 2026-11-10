@@ -69,4 +69,33 @@ public sealed class PlayedTests : IDisposable
         db.RenameSession(id, "");
         Assert.Null(db.GetSessions()[0].Name);
     }
+
+    [Fact]
+    public void A_song_looked_up_alone_knows_its_plays_and_labels_as_the_song_list_does()
+    {
+        // #360: looked up by path, a song's plays and labels come from its own rows, not from all of
+        // History grouped for each look-up. The answers must be the same as the list's.
+        string a = _lib.AddMp3("Swing/a.mp3", new GZJam.Testing.TestMp3.Tags(Title: "Jumpin' at the Woodside"));
+        string b = _lib.AddMp3("Swing/b.mp3", new GZJam.Testing.TestMp3.Tags(Title: "Splanky"));
+        _lib.AddRootAndScan();
+        var db = _lib.Database;
+        DateTime last = DateTime.UtcNow.AddDays(-2);
+        Play(a, DateTime.UtcNow.AddDays(-30));
+        Play(a, last);
+        db.AddLabel([a], "Lindy");
+        db.AddLabel([a], "Openers");
+
+        foreach (Track alone in new[] { db.FindTrack(a)!, db.FindTracks([a, b])[a], db.TracksForFiles([a, b])[0] })
+        {
+            Assert.Equal(last, alone.LastPlayedUtc);
+            Assert.Equal(2, alone.PlayCount);
+            Assert.Equal(["Lindy", "Openers"], alone.Labels.Order());
+        }
+        Track never = db.FindTrack(b)!;
+        Assert.Null(never.LastPlayedUtc);
+        Assert.Equal(0, never.PlayCount);
+        Assert.Empty(never.Labels);
+        Track listed = Find(a);
+        Assert.Equal((listed.LastPlayedUtc, listed.PlayCount), (db.FindTrack(a)!.LastPlayedUtc, db.FindTrack(a)!.PlayCount));
+    }
 }

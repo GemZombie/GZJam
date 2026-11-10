@@ -23,6 +23,11 @@ Fixed:
   of its bars, but only so many: a few songs in, it made new ones for every bar it drew, many
   times a second, and GZJam kept stopping for a moment to clear them away. The screen could
   stutter, more so later in a night. Now every waveform shares one set of colors, made once.
+- **A song counting as played no longer freezes the screen** (#360). Thirty seconds into each
+  song, History read the whole night again, twice, and each song looked through all of History
+  for its play count: with a few years of nights, or History brought over from Mixxx, the screen
+  froze for seconds in the middle of every song. Now the new song is added to the list, and a
+  song's plays are looked up directly: a 60-song night takes 3 ms rather than 5 seconds.
 
 ## 1.7.0-beta.1 (2026-11-10)
 
