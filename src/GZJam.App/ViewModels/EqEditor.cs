@@ -142,9 +142,30 @@ public sealed partial class EqEditor(Func<string> heading, Func<string> title, F
         return best;
     }
 
+    private bool _adjusting;
+    private bool _unsaved;   // changed while a fader was held: saved when it's let go
+
+    /// <summary>
+    /// A fader is held (#362): what it changes is heard at once, as always, and saved once, when
+    /// it's let go (<see cref="EndAdjusting"/>), not at every half-dB step on the way.
+    /// </summary>
+    public void BeginAdjusting() => _adjusting = true;
+
+    /// <summary>The fader is let go: saves what it changed, if anything.</summary>
+    public void EndAdjusting()
+    {
+        _adjusting = false;
+        if (!_unsaved)
+            return;
+        _unsaved = false;
+        store(_eq);
+    }
+
     /// <summary>Applies EQ (in half-dB steps, within range) and, if <paramref name="save"/>, saves it for the song.</summary>
     public void Set(TrackEq eq, bool save = true)
     {
+        if (!save)
+            _unsaved = false;   // another song's EQ: what was held for the last one isn't this one's
         static double Step(double db, double min, double max) => Math.Round(Math.Clamp(db, min, max) * 2) / 2;
         eq = new TrackEq(Step(eq.Low, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Mid, TrackEq.MinDb, TrackEq.MaxDb),
             Step(eq.High, TrackEq.MinDb, TrackEq.MaxDb), Step(eq.Gain, TrackEq.MinDb, TrackEq.MaxDb),
@@ -154,7 +175,9 @@ public sealed partial class EqEditor(Func<string> heading, Func<string> title, F
         apply(eq);
         if (!changed)
             return;
-        if (save)
+        if (save && _adjusting)
+            _unsaved = true;
+        else if (save)
             store(eq);
         foreach (string name in new[] { nameof(Low), nameof(Mid), nameof(High), nameof(Gain), nameof(Even), nameof(LowText),
                      nameof(MidText), nameof(HighText), nameof(GainText), nameof(EvenText), nameof(MidHzText), nameof(IsMidMoved),

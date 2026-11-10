@@ -37,6 +37,14 @@ public sealed class NewerLibraryTests : IDisposable
     }
 
     [Fact]
+    public void Writes_dont_wait_for_the_disk_and_the_journal_keeps_the_library_whole()
+    {
+        // #362: WAL with synchronous NORMAL (1), not FULL (2): a write no longer waits for a flush.
+        Assert.Equal("wal", _lib.Database.Pragma("journal_mode"));
+        Assert.Equal(1L, _lib.Database.Pragma("synchronous"));
+    }
+
+    [Fact]
     public void One_whose_newer_upgrades_only_added_things_opens_as_it_is()
     {
         string path = NewerLibrary(version: 40, oldestReader: 19);

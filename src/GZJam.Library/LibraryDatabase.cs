@@ -35,11 +35,21 @@ public sealed partial class LibraryDatabase
         connection.Open();
         // For very large libraries: a bigger page cache, sorts in memory rather than a temp file, and
         // the file read through memory mapping. Limits, not allocations: a small library uses little.
-        Execute(connection, "PRAGMA cache_size = -32768; PRAGMA temp_store = MEMORY; PRAGMA mmap_size = 268435456;");
+        // synchronous NORMAL (#362): a write no longer waits for the disk to flush, which took up to
+        // 50 ms each on the window's thread (an EQ step, a rating). In WAL mode the library can't be
+        // damaged this way; a power cut may lose the last moment's writes, never the database.
+        Execute(connection, "PRAGMA cache_size = -32768; PRAGMA temp_store = MEMORY; PRAGMA mmap_size = 268435456; PRAGMA synchronous = NORMAL;");
         // A search filter on one of a song's other tags (dance:waltz, #119): see SongTags.Matches.
         connection.CreateFunction<string?, string, string, long, bool>("gz_tag_matches",
             (tags, key, typed, phrase) => SongTags.Matches(tags, key, typed, phrase != 0), isDeterministic: true);
         return connection;
+    }
+
+    /// <summary>A setting of the connections the library works through (tests).</summary>
+    internal object? Pragma(string name)
+    {
+        using var c = Open();
+        return Scalar(c, $"PRAGMA {name};");
     }
 
     /// <summary>

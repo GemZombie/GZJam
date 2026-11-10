@@ -13,6 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Fixed:
+
+- **Saving no longer holds up the screen** (#362). Each change GZJam keeps (a rating, a cue, a
+  song's EQ, a song played) waited for the disk, up to a twentieth of a second, and an EQ fader
+  saved at every half-dB step as it moved. Now writes don't wait, and a fader you hold is heard
+  as it moves and saved once, when you let go.
+
 ## 1.7.0-beta.1 (2026-11-10)
 
 The first beta of 1.7, where nothing GZJam does should ever be heard in the room. Its own sound
