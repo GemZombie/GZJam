@@ -76,6 +76,25 @@ public sealed class UnpluggedOutputTests : IDisposable
     }
 
     [Fact]
+    public void Speakers_that_stop_by_themselves_are_lost_once_shared_too()
+    {
+        // Shared speakers weren't watched (#353): a USB card dropping out left GZJam silent.
+        int lost = 0;
+        _mix.MainOutputLost += (_, _) => lost++;
+        bool stopped = false;
+        _mix.DeviceStopped = bus => stopped && bus == _mix.Main;
+        Assert.False(_mix.SpeakersAreExclusive);
+
+        _mix.Update();
+        Assert.Equal(0, lost);
+        stopped = true;
+        _mix.Update();
+        _mix.Update();
+        Assert.Equal(1, lost);   // once: the app opens outputs again
+        Assert.Equal(TimeSpan.Zero, _mix.MainLostAfter);   // BASS said so, before any silence was timed
+    }
+
+    [Fact]
     public void An_unplugged_booth_is_watched_the_same_way()
     {
         var unplugged = new List<TableOutput>();

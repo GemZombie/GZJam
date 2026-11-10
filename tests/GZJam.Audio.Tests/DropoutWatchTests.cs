@@ -39,6 +39,21 @@ public sealed class DropoutWatchTests
     }
 
     [Fact]
+    public void Sound_gone_for_good_is_seen_growing_though_never_reported_as_a_dropout()
+    {
+        Steady(30);
+        Assert.Equal(TimeSpan.Zero, _watch.Silent);
+        // The card dropped out (#353): the position stands still from now on.
+        for (int i = 0; i < 90; i++)
+            Step(33, 0);
+        Assert.InRange(_watch.Silent.TotalSeconds, 2.9, 3.0);
+        Assert.Empty(_found);   // a dropout is reported once it's over, and this one isn't
+
+        Steady(30);   // back (the output opened again): no longer silent
+        Assert.Equal(TimeSpan.Zero, _watch.Silent);
+    }
+
+    [Fact]
     public void A_gap_is_reported_once_whole_after_it_ends()
     {
         Steady(30);

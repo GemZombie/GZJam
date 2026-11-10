@@ -953,6 +953,30 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
 - Everything else BASS runs is native already: decoding, tempo, EQ, the mixers and the exclusive
   output (BASSWASAPI feeds from the mixer itself).
 
+### Status: shared speakers unplugged mid-song (2026-11-10, issue #353)
+
+- **Found** while testing for #343: GZJam played on a shared USB card ("Speakers (Cable
+  Creation)"), the default way since #209. The card dropped out of Windows, twice in an hour.
+  GZJam went silent and stayed so for 12 minutes, the deck still shown ON AIR and playing, its
+  clock frozen, and nothing in the log: only exclusive speakers were watched, and the dropout
+  watch (#345) reports a gap only once it's over.
+- **Now** the speakers count as lost, shared or exclusive, when any of these says so
+  (`MixEngine.Update`):
+  - BASS says the device stopped (`BASS_ACTIVE_PAUSED_DEVICE`, as for the headphones, #72);
+  - an exclusive output reports it, as before;
+  - the sound has been gone for 2 s (`MixEngine.SpeakersGoneAfter`), whatever the reason: the
+    dropout watch now says how long the current silence has lasted (`DropoutWatch.Silent`). The
+    mixers run non-stop, so a play position standing still always means no sound. This one
+    doesn't depend on how each system reports a card going.
+- The app does what it did for exclusive speakers: opens them again if they're still listed, else
+  the system default, never the headphones' own output, with a notice. The log says how long
+  there was no sound. Speakers that go quiet again within 10 s of being opened again (Windows
+  can still list a card just unplugged) aren't tried a second time.
+- Switching back by itself when the card is plugged in again is #338.
+- **Tested:** offline, with a stand-in for BASS's "device stopped"; on the real speakers, shared,
+  with the audio thread held up for 4 s (found lost after 2.0-2.5 s of silence, and not logged as
+  a dropout); and the dropout watch with a position that stops for good.
+
 ### Status: asking before closing mid-set (2026-10-23, issue #28)
 
 - Closing GZJam (the close button, Alt+F4, Cmd+Q) while the room is hearing a deck asks
@@ -1431,8 +1455,8 @@ rest of it.
 - **Headphones on Default** (Settings › Sound): a warning, since Default follows the computer's own
   choice and the computer may move it anywhere when they're unplugged. Choose them by name.
 - **Not covered:** a laptop whose jack shares one output with its built-in speakers (common with
-  Realtek): the sound chip switches between them by itself, invisible to GZJam. Speakers on a
-  shared (not exclusive) output still aren't watched for unplugging.
+  Realtek): the sound chip switches between them by itself, invisible to GZJam. (Speakers on a
+  shared output weren't watched for unplugging either, until #353.)
 - **Untested on hardware so far:** whether Windows, macOS and Linux all report "device paused"; the
   checklist (docs/TESTING.md › Unplugging) covers it.
 
