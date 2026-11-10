@@ -166,6 +166,24 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
+    public void Saved_speakers_that_arent_plugged_in_are_still_shown_as_the_choice()
+    {
+        // #338: MAIN on a fallback. The saved speakers stay the choice, first in the list and
+        // marked, so picking the fallback from the list is a real change.
+        using var app = new AppHarness();
+        app.Settings.MainDevice = new AudioDevicePreference("Speakers (Cable Creation)", "{gone}");
+        app.ViewModel.Settings.RefreshDevices();
+
+        var settings = app.ViewModel.Settings;
+        Assert.Equal("Speakers (Cable Creation) (not plugged in)", settings.MainDevices[0].Name);
+        Assert.Same(settings.MainDevices[0], settings.MainDevice);
+        Assert.Equal(new AudioDevicePreference("Speakers (Cable Creation)", "{gone}"), app.ViewModel.AwaitedMain);
+
+        settings.MainDevice = settings.MainDevices[0];   // choosing it again does nothing
+        Assert.Equal("{gone}", app.Settings.MainDevice!.Driver);
+    }
+
+    [AvaloniaFact]
     public void The_booth_is_off_by_default_and_its_volume_and_mono_reach_it()
     {
         using var app = new AppHarness();

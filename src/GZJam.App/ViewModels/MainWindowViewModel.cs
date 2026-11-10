@@ -1200,7 +1200,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         string? notice = null;
         if (savedMain is not null && main is null)
-            notice = $"Speaker output \"{savedMain.Name}\" isn't connected; using {fallback?.Name ?? "the system default"}.";
+            notice = $"Speaker output \"{savedMain.Name}\" isn't connected; using {fallback?.Name ?? "the system default"}." +
+                     " GZJam switches back to it when it's plugged in.";
         else if (savedCue is not null && cue is null)
             notice = $"Headphone output \"{savedCue.Name}\" isn't connected.";
 
@@ -1254,6 +1255,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             string notice = main is null
                 ? $"{name} stopped (unplugged?), and no other speakers are connected. Choose them in Settings › Sound."
                 : $"{name} stopped (unplugged?), so the music is playing through {main.Name}." +
+                  " GZJam switches back to it when it's plugged in, between songs." +
                   (cue is not null && newCue is null ? " Headphones are off: they'd play in the room. Choose them in Settings › Sound." : "");
             Log.Info(notice);
             ShowNotice(notice);
@@ -1309,11 +1311,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Opens outputs. Returns whether they opened (if not, the last ones play on and a notice says why).</summary>
     /// <param name="remember">Save them as the DJ's choice (a booth that won't open is forgotten).</param>
     /// <param name="quiet">No notice if they won't open (GZJam is only trying).</param>
-    public bool SetOutputs(AudioDevice? main, AudioDevice? cue, AudioDevice? booth, bool remember = true, bool quiet = false)
+    /// <param name="mainChosen">The DJ chose this MAIN (Settings): saved even while on a fallback (#338).</param>
+    public bool SetOutputs(AudioDevice? main, AudioDevice? cue, AudioDevice? booth, bool remember = true, bool quiet = false,
+        bool mainChosen = false)
     {
         if (Mix is null)
             return false;
         bool opened = false;
+        // Before the change: whether MAIN is on a fallback, waiting for the saved speakers.
+        AudioDevicePreference? awaited = remember ? AwaitedMain : null;
         try
         {
             Mix.SetOutputs(main, cue, booth);
@@ -1336,7 +1342,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
             if (remember)
             {
-                _settings.MainDevice = main?.Preference;
+                if (SavesMain(mainChosen, awaited))
+                    _settings.MainDevice = main?.Preference;
                 _settings.CueDevice = cue?.Preference;
                 _settings.BoothDevice = Mix.Booth.Device?.Preference;
             }
@@ -1655,6 +1662,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         WatchMemoryPauses();
         Mix?.Update();
+        LookForSavedSpeakers();
         Mixer?.Update();
         AutoPlay?.Tick();
         foreach (DeckViewModel deck in Decks)

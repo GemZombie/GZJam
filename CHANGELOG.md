@@ -19,6 +19,10 @@ New:
   whether GZJam had just stopped to tidy its memory, however the speakers are set up. Before, only
   speakers GZJam had to itself were checked, and a short dropout could slip by. Closing GZJam says
   how many there were, so a stutter you heard can be found in the log.
+- **The speakers come back by themselves** (#338). When the speakers' sound card is plugged in
+  again, or wasn't plugged in when GZJam started, the music moves back to it by itself as soon as
+  nothing is playing to the room, with the headphones as you had them. Before, you had to choose
+  it again in Settings. Changing the headphones meanwhile no longer forgets your speakers.
 
 Changed:
 

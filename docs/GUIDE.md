@@ -124,8 +124,11 @@ says so, and how to avoid it (choose another output as Windows' default).
 ### When something is unplugged
 
 - **The speakers' sound card:** within a couple of seconds GZJam says so and plays through the
-  computer's default output instead, never the headphones' own. Plug it back in, then choose it again in Settings › Sound
-  (*Plugged something in? Refresh the list*).
+  computer's default output instead, never the headphones' own. Plug it back in and GZJam switches
+  back to it by itself, as soon as nothing is playing to the room (between songs with auto-play),
+  with the headphones as you had them. The same if it wasn't plugged in when GZJam started. To
+  stay on the other output instead, choose it in Settings › Sound, where your speakers are listed
+  as *not plugged in* meanwhile.
 - **The headphones:** they go quiet, and nothing moves anywhere else. The top bar's CUE says
   *Unplugged* with an amber light. Plug them back in and within a few seconds they're back, with a
   notice, without a trip to Settings. The booth does the same.
