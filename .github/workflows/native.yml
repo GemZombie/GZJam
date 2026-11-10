@@ -1,0 +1,52 @@
+# Builds GZJam's sound processing library (native/gzjam_dsp.c, #344) for Windows, macOS and
+# Linux. The libraries are kept in the repo beside BASS's (lib/bass/<platform>), so day-to-day
+# builds need no C compiler: run this when the C file changes (it runs by itself when a push
+# changes it), download the "gzjam_dsp" artifact, and commit what's in it.
+
+name: Native
+
+on:
+  push:
+    paths: ['native/**', '.github/workflows/native.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: native\build.cmd
+        shell: cmd
+
+      - name: Build (macOS, Linux)
+        if: runner.os != 'Windows'
+        run: sh native/build.sh
+
+      - name: Check it
+        shell: bash
+        run: |
+          case "${{ runner.os }}" in
+            Linux) f=lib/bass/linux-x64/libgzjam_dsp.so; nm -D --defined-only "$f" | grep gz_; ldd "$f" || true ;;
+            macOS) f=lib/bass/osx/libgzjam_dsp.dylib; nm -gU "$f" | grep gz_; lipo -info "$f"; otool -L "$f" ;;
+            Windows) f=lib/bass/win-x64/gzjam_dsp.dll; ls -l "$f" ;;
+          esac
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gzjam_dsp-${{ runner.os }}
+          path: |
+            lib/bass/linux-x64/libgzjam_dsp.so
+            lib/bass/osx/libgzjam_dsp.dylib
+            lib/bass/win-x64/gzjam_dsp.dll
+          if-no-files-found: ignore

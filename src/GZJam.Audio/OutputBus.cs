@@ -7,9 +7,10 @@ namespace GZJam.Audio;
 /// device; with no device it's "offline" and only produces audio when <see cref="Render"/> pulls
 /// it, which is how tests check what each output would sound like.
 /// Everything leaving the bus goes through its volume, optional mono fold-down and a safety
-/// limiter, and is metered.
+/// limiter, and is metered. That runs in native code (native/gzjam_dsp.c, #344), not .NET, so
+/// nothing GZJam does, its garbage collections included, can hold up the sound.
 /// </summary>
-public sealed class OutputBus : IDisposable
+public sealed unsafe class OutputBus : IDisposable
 {
     /// <summary>
     /// The limiter's ceiling: just under full scale. Mastered tracks already peak near full scale,
@@ -27,14 +28,9 @@ public sealed class OutputBus : IDisposable
     /// <summary>How quickly the limiter lets go after a loud moment: about 300 ms.</summary>
     private const float ReleaseSeconds = 0.3f;
 
-    private readonly DSPProcedure _dsp;   // kept alive: BASS calls it from its mixing thread
-    private volatile float _volume = 1;
-    private volatile bool _mono;
-    private float _gain = 1;
-    private float _peakLeft, _peakRight;
-    private volatile bool _limited;
-    private readonly float _release;   // per sample
+    private readonly NativeDsp.Bus* _bus;   // the audio thread's; freed with the bus
     private readonly ExclusiveOutput? _exclusive;
+    private bool _disposed;
 
     /// <param name="exclusive">The output GZJam has to itself (Windows), freed with the bus.</param>
     internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate, ExclusiveOutput? exclusive = null)
@@ -42,9 +38,18 @@ public sealed class OutputBus : IDisposable
         Handle = handle;
         Device = device;
         _exclusive = exclusive;
-        _release = MathF.Exp(-1f / (ReleaseSeconds * sampleRate));
-        _dsp = Process;
-        Bass.ChannelSetDSP(handle, _dsp);
+        // How much of the gain reduction is left after each sample.
+        float release = MathF.Exp(-1f / (ReleaseSeconds * sampleRate));
+        _bus = NativeDsp.NewBus(Ceiling, Noticeable, release);
+        try
+        {
+            NativeDsp.SetBusDsp(handle, _bus);
+        }
+        catch
+        {
+            NativeDsp.Free(_bus);
+            throw;
+        }
     }
 
     internal int Handle { get; }
@@ -69,8 +74,8 @@ public sealed class OutputBus : IDisposable
     /// <summary>Output level, 0 (silent) to 1 (as mixed).</summary>
     public float Volume
     {
-        get => _volume;
-        set => _volume = Math.Clamp(value, 0, 1);
+        get => Volatile.Read(ref _bus->Volume);
+        set => Volatile.Write(ref _bus->Volume, Math.Clamp(value, 0, 1));
     }
 
     /// <summary>
@@ -80,8 +85,8 @@ public sealed class OutputBus : IDisposable
     /// </summary>
     public bool Mono
     {
-        get => _mono;
-        set => _mono = value;
+        get => Volatile.Read(ref _bus->Mono) != 0;
+        set => Volatile.Write(ref _bus->Mono, value ? 1 : 0);
     }
 
     /// <summary>
@@ -90,58 +95,14 @@ public sealed class OutputBus : IDisposable
     /// </summary>
     public (float Left, float Right, bool Limited) TakeLevels()
     {
-        var levels = (Interlocked.Exchange(ref _peakLeft, 0), Interlocked.Exchange(ref _peakRight, 0), _limited);
-        _limited = false;
-        return levels;
+        return (Interlocked.Exchange(ref _bus->PeakLeft, 0), Interlocked.Exchange(ref _bus->PeakRight, 0),
+                Interlocked.Exchange(ref _bus->Limited, 0) != 0);
     }
 
     internal void CopySettingsFrom(OutputBus other)
     {
         Volume = other.Volume;
         Mono = other.Mono;
-    }
-
-    private unsafe void Process(int handle, int channel, IntPtr buffer, int length, IntPtr user)
-    {
-        var samples = new Span<float>((void*)buffer, length / sizeof(float));
-        float volume = _volume, gain = _gain, left = 0, right = 0;
-        bool mono = _mono, limited = false;
-        for (int i = 0; i + 1 < samples.Length; i += 2)
-        {
-            float l = samples[i] * volume, r = samples[i + 1] * volume;
-            if (mono)
-                l = r = (l + r) / 2;
-
-            // Instant attack, smooth release: the gain drops at once to keep this frame under
-            // the ceiling, then recovers gradually so there's no pumping.
-            gain = 1 - (1 - gain) * _release;
-            float peak = Math.Max(Math.Abs(l), Math.Abs(r));
-            if (peak * gain > Ceiling)
-            {
-                gain = Ceiling / peak;
-                limited |= gain < Noticeable;
-            }
-            l *= gain;
-            r *= gain;
-
-            samples[i] = l;
-            samples[i + 1] = r;
-            left = Math.Max(left, Math.Abs(l));
-            right = Math.Max(right, Math.Abs(r));
-        }
-        _gain = gain;
-        if (limited)
-            _limited = true;
-        Raise(ref _peakLeft, left);
-        Raise(ref _peakRight, right);
-    }
-
-    private static void Raise(ref float peak, float value)
-    {
-        float current;
-        while (value > (current = Volatile.Read(ref peak)) && Interlocked.CompareExchange(ref peak, value, current) != current)
-        {
-        }
     }
 
     /// <summary>
@@ -172,9 +133,13 @@ public sealed class OutputBus : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
         if (_exclusive is not null)
             _exclusive.Dispose();   // stops the output, then frees the mixer
         else
             Bass.StreamFree(Handle);
+        NativeDsp.Free(_bus);   // BASS has stopped calling with it: its stream is gone
     }
 }
