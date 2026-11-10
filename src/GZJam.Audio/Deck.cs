@@ -10,7 +10,7 @@ namespace GZJam.Audio;
 /// The crossfader sets the main split's volume; <see cref="Cue"/> switches the cue split on or off
 /// (and <see cref="MixEngine.PhonesMix"/> lets the headphones hear the room too).
 /// </summary>
-public sealed class Deck : IDisposable
+public sealed unsafe class Deck : IDisposable
 {
     private readonly MixEngine _mix;
     private int _tempo;        // decode stream (owns the file stream)
@@ -31,18 +31,19 @@ public sealed class Deck : IDisposable
     private TimeSpan _lastPosition;   // at the last update, to see the playhead pass the auto fade
     private readonly SongSound _sound;           // EQ and evening out, on the tempo stream
     private readonly List<Jump> _jumps = [];
-    private readonly SyncProcedure _jumpSync;   // kept alive: BASS holds only a pointer to it
-    private volatile bool _jumped;               // set on the audio thread, reported by Update
-    private readonly DSPProcedure _meterDsp;     // kept alive: BASS calls it from its mixing thread
-    private float _peak;                         // since the last TakePeak, set on the audio thread
+    // The audio thread's (native, #344): one per jump by place in the list, and the meter.
+    // Freed with the deck, once BASS can't call with them.
+    private readonly List<IntPtr> _jumpStates = [];
+    private readonly NativeDsp.Meter* _meter;
+    private bool _jumped;   // a jump happened, for Update to report
+    private bool _disposed;
 
     internal Deck(MixEngine mix, int index)
     {
         _mix = mix;
         Index = index;
         _sound = new SongSound($"Deck {Name}");
-        _jumpSync = OnJumpSync;
-        _meterDsp = Measure;
+        _meter = NativeDsp.NewMeter();
     }
 
     public int Index { get; }
@@ -87,7 +88,7 @@ public sealed class Deck : IDisposable
         _splitMain = CreateSplit();
         _splitCue = CreateSplit();
         _splitBooth = CreateSplit();
-        Bass.ChannelSetDSP(_splitMain, _meterDsp);
+        NativeDsp.SetMeterDsp(_splitMain, _meter);
         TrackPath = path;
         _playing = false;
         _ended = false;
@@ -102,8 +103,9 @@ public sealed class Deck : IDisposable
     public void Unload()
     {
         CancelFade();
+        TakeJumps();
         foreach (Jump jump in _jumps)
-            jump.Sync = 0;   // freed with the stream
+            jump.Forget();   // the sync is freed with the stream
         if (_tempo != 0)
         {
             Detach();
@@ -251,12 +253,36 @@ public sealed class Deck : IDisposable
     /// play one again. When armed it happens once, at the exact sample, as the music reaches
     /// <see cref="From"/>; then it disarms.
     /// </summary>
-    public sealed class Jump(TimeSpan from, TimeSpan to)
+    public sealed unsafe class Jump(TimeSpan from, TimeSpan to)
     {
+        private bool _armed;
+
+        /// <summary>What the audio thread jumps with, while the sync is set (the deck's).</summary>
+        private NativeDsp.Jump* _state;
+
         public TimeSpan From { get; } = from;
         public TimeSpan To { get; } = to;
-        public bool Armed { get; internal set; }
-        internal int Sync { get; set; }
+
+        /// <summary>Waiting for the music to reach <see cref="From"/>: false once it has jumped.</summary>
+        public bool Armed
+        {
+            get => _armed && !HasJumped;
+            internal set => _armed = value;
+        }
+
+        internal int Sync { get; private set; }
+
+        /// <summary>The audio thread has jumped (native/gzjam_dsp.c), and the deck hasn't noticed yet.</summary>
+        internal bool HasJumped => Sync != 0 && Volatile.Read(ref _state->Jumped) != 0;
+
+        internal void Set(int sync, NativeDsp.Jump* state)
+        {
+            Sync = sync;
+            _state = sync == 0 ? null : state;
+        }
+
+        /// <summary>The sync is gone (removed, or freed with its stream).</summary>
+        internal void Forget() => Set(0, null);
     }
 
     /// <summary>The track's jumps, in the order they were set.</summary>
@@ -285,34 +311,45 @@ public sealed class Deck : IDisposable
     {
         if (!IsLoaded)
             return;
-        foreach (Jump jump in _jumps.Where(j => j.Armed && j.Sync == 0))
+        for (int i = 0; i < _jumps.Count; i++)
         {
-            long at = Bass.ChannelSeconds2Bytes(_tempo, jump.From.TotalSeconds);
+            Jump jump = _jumps[i];
+            if (!jump.Armed || jump.Sync != 0)
+                continue;
+            while (_jumpStates.Count <= i)
+                _jumpStates.Add((IntPtr)NativeDsp.NewJump());
+            var state = (NativeDsp.Jump*)_jumpStates[i];
+            state->To = (ulong)Bass.ChannelSeconds2Bytes(_tempo, jump.To.TotalSeconds);
+            Volatile.Write(ref state->Jumped, 0);
             // Mixtime: called as the audio is decoded, so moving the position there is seamless.
-            jump.Sync = Bass.ChannelSetSync(_tempo, SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime, at, _jumpSync, (IntPtr)_jumps.IndexOf(jump));
+            // Native (#344): the jump can't be held up by .NET tidying its memory.
+            long at = Bass.ChannelSeconds2Bytes(_tempo, jump.From.TotalSeconds);
+            jump.Set(NativeDsp.SetJumpSync(_tempo, at, state), state);
         }
     }
 
     private void RemoveJumpSyncs()
     {
+        TakeJumps();   // one that's just happened is still reported
         foreach (Jump jump in _jumps.Where(j => j.Sync != 0))
         {
             if (IsLoaded)
                 Bass.ChannelRemoveSync(_tempo, jump.Sync);
-            jump.Sync = 0;
+            jump.Forget();
         }
     }
 
-    /// <summary>On the audio thread, as the music reaches a jump: carry on from where it lands.</summary>
-    private void OnJumpSync(int handle, int channel, int data, IntPtr user)
+    /// <summary>Jumps the audio thread has made since the last look: disarmed, and reported by <see cref="Update"/>.</summary>
+    private void TakeJumps()
     {
-        int index = (int)user;
-        if (index < 0 || index >= _jumps.Count || _jumps[index] is not { Armed: true } jump)
-            return;
-        jump.Armed = false;
-        jump.Sync = 0;
-        Bass.ChannelSetPosition(channel, Bass.ChannelSeconds2Bytes(channel, jump.To.TotalSeconds));
-        _jumped = true;
+        foreach (Jump jump in _jumps)
+        {
+            if (!jump.HasJumped)
+                continue;
+            jump.Armed = false;
+            jump.Forget();   // a one-time sync: BASS has removed it
+            _jumped = true;
+        }
     }
 
     /// <summary>Tempo change in percent; -8 plays 8% slower. Pitch is preserved.</summary>
@@ -427,26 +464,14 @@ public sealed class Deck : IDisposable
     /// before the crossfader, like a mixer's channel meter: a deck the room can't hear still shows
     /// its level. 0 while paused. For the deck's meter: call it regularly.
     /// </summary>
-    public float TakePeak() => Interlocked.Exchange(ref _peak, 0);
-
-    /// <summary>On the audio thread, as the speakers' mix takes the deck's audio (before its volume is applied).</summary>
-    private unsafe void Measure(int handle, int channel, IntPtr buffer, int length, IntPtr user)
-    {
-        var samples = new ReadOnlySpan<float>((void*)buffer, length / sizeof(float));
-        float peak = 0;
-        foreach (float sample in samples)
-            peak = Math.Max(peak, Math.Abs(sample));
-        peak *= (float)_gain;
-        float current;
-        while (peak > (current = Volatile.Read(ref _peak)) && Interlocked.CompareExchange(ref _peak, peak, current) != current)
-        {
-        }
-    }
+    /// <remarks>Measured natively (#344) as the speakers' mix takes the deck's audio, before its volume is applied.</remarks>
+    public float TakePeak() => _disposed ? 0 : Interlocked.Exchange(ref _meter->Peak, 0) * (float)_gain;
 
     internal void Update()
     {
         if (!IsLoaded)
             return;
+        TakeJumps();
         if (_jumped)
         {
             _jumped = false;
@@ -598,5 +623,16 @@ public sealed class Deck : IDisposable
     private static TimeSpan Max(TimeSpan a, TimeSpan b) => a > b ? a : b;
     private static TimeSpan Min(TimeSpan a, TimeSpan b) => a < b ? a : b;
 
-    public void Dispose() => Unload();
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+        _disposed = true;
+        Unload();
+        // Their streams are freed: BASS can't call with them any more.
+        foreach (IntPtr state in _jumpStates)
+            NativeDsp.Free((void*)state);
+        _jumpStates.Clear();
+        NativeDsp.Free(_meter);
+    }
 }

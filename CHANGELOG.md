@@ -22,6 +22,11 @@ New:
 
 Fixed:
 
+- **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound
+  processing (each output's volume, mono and limiter, the meters, and a deck's jumps) now runs as
+  native code. Before, it was .NET code, so whenever GZJam stopped to tidy its memory the sound
+  had to wait too. In a test on real speakers, half-second tidying pauses made the music stop for
+  1.4 seconds before, and not at all now.
 - **Browsing the library no longer makes the music stutter** (#343, part of it). Each search, and
   each folder picked, built the song list's rows from scratch, and the memory that left behind made
   GZJam stop for a moment to tidy up, sound included: a few times an hour, the room heard a gap.
