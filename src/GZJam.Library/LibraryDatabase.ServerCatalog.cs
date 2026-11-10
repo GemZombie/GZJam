@@ -267,6 +267,48 @@ public sealed partial class LibraryDatabase
     {
         using var c = Open();
         using var cmd = c.CreateCommand();
+        var leftOut = new List<string>();
+        string where = CatalogWhere(cmd, serverId, folder, text, leftOut);
+        cmd.CommandText = $"""
+            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id, cover_art
+            FROM server_catalog WHERE {where}
+            ORDER BY folder COLLATE NOCASE, IFNULL(disc, 0), IFNULL(track, 0), file_name COLLATE NOCASE;
+            """;
+        using var r = cmd.ExecuteReader();
+        var songs = new List<ServerSong>();
+        while (r.Read())
+        {
+            cancel.ThrowIfCancellationRequested();
+            songs.Add(new ServerSong(r.GetString(0), Text(r, 1), Text(r, 2), Text(r, 3), Text(r, 4), Int(r, 5), Int(r, 6), Int(r, 7),
+                Text(r, 8), Text(r, 9), r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)),
+                Text(r, 12), r.IsDBNull(13) ? null : r.GetDouble(13), Text(r, 14), Text(r, 15)));
+        }
+        return new CatalogSearch(songs, leftOut.Distinct().ToList());
+
+        static string? Text(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
+        static int? Int(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
+    }
+
+    /// <summary>
+    /// How many of a server's songs a search finds that aren't the DJ's own (#318's "Also: 12 on
+    /// synology" under a search of My music), counted in the database: reading every match and
+    /// every own copy to count them was megabytes of garbage with each search (#343).
+    /// </summary>
+    public int CountServerCatalogNotOwn(long serverId, string text)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        string where = CatalogWhere(cmd, serverId, "", text, []);
+        cmd.CommandText = $"""
+            SELECT COUNT(*) FROM server_catalog WHERE {where}
+            AND song_id NOT IN (SELECT song_id FROM server_songs WHERE server_id = $server AND own_copy = 1);
+            """;
+        return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    /// <summary>The WHERE clause for a search of a server's catalog, its parameters added to <paramref name="cmd"/>.</summary>
+    private static string CatalogWhere(SqliteCommand cmd, long serverId, string folder, string? text, List<string> leftOut)
+    {
         var where = new StringBuilder("server_id = $server");
         cmd.Parameters.AddWithValue("$server", serverId);
         if (folder.Length > 0)
@@ -277,7 +319,6 @@ public sealed partial class LibraryDatabase
             cmd.Parameters.AddWithValue("$length", folder.Length + 1);
         }
 
-        var leftOut = new List<string>();
         int n = 0;
         foreach (Match term in CatalogTerm.Matches(text ?? ""))
         {
@@ -307,25 +348,7 @@ public sealed partial class LibraryDatabase
                 cmd.Parameters.AddWithValue(p, "%" + value.Replace("%", "").Replace("_", "") + "%");
             where.Append(not ? $" AND NOT ({condition})" : $" AND ({condition})");
         }
-
-        cmd.CommandText = $"""
-            SELECT song_id, title, artist, album, album_artist, track, disc, year, path, suffix, size, duration_ms, genre, bpm, album_id, cover_art
-            FROM server_catalog WHERE {where}
-            ORDER BY folder COLLATE NOCASE, IFNULL(disc, 0), IFNULL(track, 0), file_name COLLATE NOCASE;
-            """;
-        using var r = cmd.ExecuteReader();
-        var songs = new List<ServerSong>();
-        while (r.Read())
-        {
-            cancel.ThrowIfCancellationRequested();
-            songs.Add(new ServerSong(r.GetString(0), Text(r, 1), Text(r, 2), Text(r, 3), Text(r, 4), Int(r, 5), Int(r, 6), Int(r, 7),
-                Text(r, 8), Text(r, 9), r.IsDBNull(10) ? null : r.GetInt64(10), TimeSpan.FromMilliseconds(r.GetInt64(11)),
-                Text(r, 12), r.IsDBNull(13) ? null : r.GetDouble(13), Text(r, 14), Text(r, 15)));
-        }
-        return new CatalogSearch(songs, leftOut.Distinct().ToList());
-
-        static string? Text(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
-        static int? Int(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetInt32(i);
+        return where.ToString();
     }
 
     /// <summary>"1935-1940", "130-150", "140" (±4 for a BPM): a range test on <paramref name="column"/>; null if it isn't a number.</summary>

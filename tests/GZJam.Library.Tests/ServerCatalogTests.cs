@@ -96,6 +96,22 @@ public sealed class ServerCatalogTests : IDisposable
     }
 
     [Fact]
+    public async Task A_search_counts_the_servers_songs_that_arent_the_DJs_own()
+    {
+        await ReadAsync();
+        Assert.Equal(2, _lib.Database.CountServerCatalogNotOwn(_record.Id, "basie"));
+
+        // Li'l Darlin' is in My music too (#318): only Basie Boogie is the server's alone.
+        _lib.Database.SaveServerSong(new ServerSongCopy(_record.Id, "s4", @"C:\Music\Li'l Darlin'.mp3", null, null, OwnCopy: true), DateTime.UtcNow);
+        // A download isn't the DJ's own: still counted.
+        _lib.Database.SaveServerSong(new ServerSongCopy(_record.Id, "s1", @"C:\Downloads\Basie Boogie.mp3", null, null, OwnCopy: false), DateTime.UtcNow);
+
+        Assert.Equal(1, _lib.Database.CountServerCatalogNotOwn(_record.Id, "basie"));
+        Assert.Equal(0, _lib.Database.CountServerCatalogNotOwn(_record.Id, "darlin"));
+        Assert.Equal(1, _lib.Database.CountServerCatalogNotOwn(_record.Id, "artist:rainey"));
+    }
+
+    [Fact]
     public async Task Reading_it_again_replaces_it()
     {
         await ReadAsync();

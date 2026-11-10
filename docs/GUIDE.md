@@ -468,7 +468,7 @@ they're in as well. *+ New folder* makes one inside the folder selected.
 - **Columns:** right-click a column header to show or hide ♥, Album, Genre, Grouping, Comment,
   Year, BPM, Energy, Played and Art, and, under *Tags in your songs*, any other tag your songs have
   (Composer, Mood, a Dance tag of your own: the ones most songs have first, the rest under *More
-  tags*). Click a header to sort. Long text is cut off with "…"; point at it (or hold a finger on
+  tags*). Click a header to sort; the list stays sorted that way as you search and pick folders. Long text is cut off with "…"; point at it (or hold a finger on
   it) for the whole text.
 
 ### Marking songs

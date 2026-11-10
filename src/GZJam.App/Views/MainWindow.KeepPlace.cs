@@ -11,7 +11,8 @@ namespace GZJam.App.Views;
 /// or with each song a sync brings down (a new file in the downloads folder is scanned). Before,
 /// it went back to the top each time, every few seconds during a sync, so a song far down a
 /// server's long folder couldn't be reached. The rows in view and the songs selected stay; a new
-/// folder, playlist or search starts at the top as before.
+/// folder, playlist or search starts at the top as before. The grid keeps one collection and its
+/// rows (#343), so it keeps its scroll position too: a new list is scrolled to the top here.
 /// </summary>
 public partial class MainWindow
 {
@@ -19,6 +20,9 @@ public partial class MainWindow
     private sealed record ListPlace(string? Top, string? Bottom, IReadOnlyList<string> Selected);
 
     private ListPlace? _keepPlace;
+
+    /// <summary>A new list is coming: show it from the top.</summary>
+    private bool _toTop;
 
     private ViewModels.LibraryViewModel? _placeKeptFor;
 
@@ -29,13 +33,25 @@ public partial class MainWindow
             if (DataContext is not ViewModels.MainWindowViewModel { Library: { } library } || library == _placeKeptFor)
                 return;
             _placeKeptFor = library;
-            library.ResultsReplacing += same => _keepPlace = same ? PlaceNow() : null;
+            library.ResultsReplacing += same =>
+            {
+                _keepPlace = same ? PlaceNow() : null;
+                _toTop = !same;
+            };
             library.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(ViewModels.LibraryViewModel.Results) && _keepPlace is { } place)
+                if (e.PropertyName != nameof(ViewModels.LibraryViewModel.Results))
+                    return;
+                if (_keepPlace is { } place)
                 {
                     _keepPlace = null;
                     Dispatcher.UIThread.Post(() => PutBack(place), DispatcherPriority.Loaded);
+                }
+                else if (_toTop)
+                {
+                    _toTop = false;
+                    // After the grid's layout: it puts its old scroll position back as it lays out the reset rows.
+                    Dispatcher.UIThread.Post(ScrollToTop, DispatcherPriority.Loaded);
                 }
             };
         };
@@ -56,6 +72,13 @@ public partial class MainWindow
         string? top = rows.Count > 0 ? ((Track)rows[0].Row.DataContext!).Path : null;
         string? bottom = rows.Count > 0 ? ((Track)rows[^1].Row.DataContext!).Path : null;
         return new ListPlace(top, bottom, selected);
+    }
+
+    /// <summary>The first row in the list's order (it may be sorted by a column) in view.</summary>
+    private void ScrollToTop()
+    {
+        if (TrackGrid.CollectionView?.Cast<object>().FirstOrDefault() is { } first)
+            TrackGrid.ScrollIntoView(first, null);
     }
 
     /// <summary>The same songs in view again (the last, then the first, so they sit where they were), and selected again.</summary>
