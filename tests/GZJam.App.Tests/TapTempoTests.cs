@@ -66,7 +66,7 @@ public sealed class TapTempoTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Tune", seconds: 30);
-        vm.LoadToDeckAsync(vm.Deck2!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, song));
         DeckViewModel deck = vm.Deck2!;
         deck.TempoPercent = -2.5;
         var view = app.Window.FindControl<DeckView>("Deck2View")!;
@@ -102,7 +102,7 @@ public sealed class TapTempoTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Tune", seconds: 30);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         var view = app.Window.FindControl<DeckView>("Deck1View")!;
         var pad = view.FindControl<Button>("TapPad")!;
@@ -135,7 +135,7 @@ public sealed class TapTempoTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck1!;
 
         var deckMenu = new MenuItem();
@@ -148,7 +148,7 @@ public sealed class TapTempoTests
         item.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));
         Assert.True(deck.IsTapping);
 
-        vm.LoadToDeckAsync(deck, app.ToneTrack("Another", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(deck, app.ToneTrack("Another", seconds: 30)));
         Assert.False(deck.IsTapping);
     }
 
@@ -161,7 +161,7 @@ public sealed class TapTempoTests
         var vm = app.ViewModel;
         vm.Settings.TouchMode = touch;
         vm.Settings.FourDecks = true;
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Tune", seconds: 30)));
         var view = app.Window.FindControl<DeckView>("Deck3View")!;
         AppHarness.Settle(100);
         double height = view.Bounds.Height;

@@ -93,8 +93,8 @@ public sealed class ScreenshotTests
 
         // A set in progress: A on air, B cued up, a third track previewing in the headphones.
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, tracks[1]).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck2!, tracks[2]).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, tracks[1]));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, tracks[2]));
         AppHarness.WaitFor(() => vm.Deck1!.Waveform is not null && vm.Deck2!.Waveform is not null, TimeSpan.FromSeconds(30));
         vm.Deck1!.TogglePlayCommand.Execute(null);
         vm.Deck2!.TempoPercent = -2.5;
@@ -109,7 +109,7 @@ public sealed class ScreenshotTests
         ReadmePicture(app);
 
         // The live deck refusing a drop.
-        vm.LoadToDeckAsync(vm.Deck1, tracks[6]).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1, tracks[6]));
         vm.Deck1.TogglePlayCommand.Execute(null);   // a tap on the live deck: asks for a hold
         app.Screenshot("06-protected-deck");
 
@@ -225,7 +225,7 @@ public sealed class ScreenshotTests
 
         // Four decks in the space of two: Deck 3 ready under Deck 1, Deck 4 empty.
         vm.SetDeckCount(4);
-        vm.LoadToDeckAsync(vm.Deck3!, tracks[7]).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, tracks[7]));
         AppHarness.WaitFor(() => vm.Deck3!.Waveform is not null, TimeSpan.FromSeconds(30));
         vm.Deck3!.TempoPercent = 1.5;
         library.SearchText = "jump";

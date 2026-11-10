@@ -66,12 +66,18 @@ public sealed unsafe class Deck : IDisposable
     /// <summary>Raised from <see cref="MixEngine.Update"/> after an armed jump has happened.</summary>
     public event EventHandler? Jumped;
 
-    public void Load(string path)
+    /// <summary>Loads <paramref name="path"/> now, on this thread: <see cref="Open"/>, then <see cref="Load(OpenedSong)"/>.</summary>
+    public void Load(string path) => Load(Open(path));
+
+    /// <summary>
+    /// The slow part of loading a song (#361): read into memory (or found read ahead), opened, and
+    /// decoded through its tempo stream. Safe on any thread, so the window needn't wait for a slow
+    /// disk; the deck isn't touched. Hand the result to <see cref="Load(OpenedSong)"/>, or dispose of it.
+    /// Throws an <see cref="AudioException"/>, saying why, if the song can't be played.
+    /// </summary>
+    public OpenedSong Open(string path)
     {
-        Unload();
-        _start = TimeSpan.Zero;
-        _end = null;
-        _mix.Engine.UseNoSoundDevice();
+        _mix.Engine.UseNoSoundDevice();   // this thread's: decoding never touches a real output
 
         // The whole file in memory, so the music never waits for the disk (#346).
         SongMemory? memory = _mix.Songs.Take(path);
@@ -85,19 +91,26 @@ public sealed unsafe class Deck : IDisposable
             memory?.Release();
             throw;
         }
-        _memory = memory;
 
         int tempo = BassFx.TempoCreate(source, BassFlags.Decode | BassFlags.FxFreeSource);
         if (tempo == 0)
         {
             Errors error = Bass.LastError;
             Bass.StreamFree(source);
-            _memory?.Release();
-            _memory = null;
+            memory?.Release();
             throw new AudioException($"Could not create tempo stream for '{path}'", error);
         }
+        return new OpenedSong(path, tempo, memory);
+    }
 
-        _tempo = tempo;
+    /// <summary>Puts a song opened by <see cref="Open"/> on the deck, in place of what's there. Quick: for the window's thread.</summary>
+    public void Load(OpenedSong song)
+    {
+        Unload();
+        _start = TimeSpan.Zero;
+        _end = null;
+        (_tempo, _memory) = song.Take();
+        string path = song.Path;
         _sound.Attach(_tempo);
         SetJumpSyncs();
         _splitMain = CreateSplit();
@@ -651,5 +664,42 @@ public sealed unsafe class Deck : IDisposable
             NativeDsp.Free((void*)state);
         _jumpStates.Clear();
         NativeDsp.Free(_meter);
+    }
+}
+
+/// <summary>
+/// A song opened for a deck by <see cref="Deck.Open"/>, not on it yet (#361). Disposed of
+/// without being loaded (another song was chosen meanwhile), it lets go of its stream and memory.
+/// </summary>
+public sealed class OpenedSong : IDisposable
+{
+    private int _tempo;
+    private SongMemory? _memory;
+
+    internal OpenedSong(string path, int tempo, SongMemory? memory)
+    {
+        Path = path;
+        _tempo = tempo;
+        _memory = memory;
+    }
+
+    public string Path { get; }
+
+    /// <summary>The deck takes the stream and memory: they're its to free from now on.</summary>
+    internal (int Tempo, SongMemory? Memory) Take()
+    {
+        if (_tempo == 0)
+            throw new InvalidOperationException("This song has already been loaded or let go of.");
+        var taken = (_tempo, _memory);
+        (_tempo, _memory) = (0, null);
+        return taken;
+    }
+
+    public void Dispose()
+    {
+        if (_tempo != 0)
+            Bass.StreamFree(_tempo);   // frees the file's stream with it (FxFreeSource)
+        _memory?.Release();
+        (_tempo, _memory) = (0, null);
     }
 }

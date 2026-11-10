@@ -38,7 +38,7 @@ public sealed class MixerTests
         Assert.Equal(Avalonia.Layout.HorizontalAlignment.Left, meter2.HorizontalAlignment);
         Assert.False(meter1.ShowScale);
 
-        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone")));
         vm.Mixer!.Crossfader = 0;   // the room hears Deck 1, which is empty
         vm.Deck2!.TogglePlayCommand.Execute(null);
         app.Play(0.3);
@@ -61,7 +61,7 @@ public sealed class MixerTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var fader = app.Window.FindControl<CrossfaderControl>("PhonesMixFader")!;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("On air")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("On air")));
         vm.Mixer!.Crossfader = 0;   // the room hears Deck 1, which isn't cued
         vm.Deck1!.TogglePlayCommand.Execute(null);
         app.Play(0.3);
@@ -102,7 +102,7 @@ public sealed class MixerTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var mixer = vm.Mixer!;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone")));
         vm.Deck1!.TogglePlayCommand.Execute(null);
 
         // The meter's level: the highest of a few readings. GZJam's own timer can tick between

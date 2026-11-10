@@ -28,7 +28,7 @@ public sealed class CloseUpTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         double empty = Deck(app).View.Bounds.Height;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 40)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 40)));
         DeckViewModel deck = vm.Deck1!;
         AppHarness.WaitFor(() => deck.CloseUpWaveform?.Count > 1000, TimeSpan.FromSeconds(20));
         var (view, closeUp, whole) = Deck(app);
@@ -47,7 +47,7 @@ public sealed class CloseUpTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         var (_, closeUp, _) = Deck(app);
 
         app.Window.MouseWheel(Center(app, closeUp), new Vector(0, 1));   // away: closer in
@@ -67,7 +67,7 @@ public sealed class CloseUpTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         DeckViewModel deck = vm.Deck1!;
         deck.SeekTo(0.5);   // 30 s
         var (_, closeUp, _) = Deck(app);
@@ -106,7 +106,7 @@ public sealed class CloseUpTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         DeckViewModel deck = vm.Deck1!;
         deck.SeekTo(0.5);   // 30 s, in the middle of the close-up
         var (view, closeUp, _) = Deck(app);
@@ -244,7 +244,7 @@ public sealed class CloseUpTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         vm.Settings.FourDecks = true;
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Tune", seconds: 60)));
         var (view, closeUp, whole) = Deck(app, "Deck3View");
         double height = view.Bounds.Height;
 

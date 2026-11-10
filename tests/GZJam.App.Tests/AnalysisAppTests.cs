@@ -22,7 +22,7 @@ public sealed class AnalysisAppTests
         DeckViewModel deck = app.ViewModel.Deck1!;
         Track track = app.ToneTrack("Padded", seconds: 5, silenceBefore: 2, silenceAfter: 3);
 
-        app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, track));
         AppHarness.WaitFor(() => deck.Waveform is not null);
 
         Assert.False(deck.IsAnalyzing);
@@ -39,7 +39,7 @@ public sealed class AnalysisAppTests
         using var app = new AppHarness();
         DeckViewModel deck = app.ViewModel.Deck1!;
         Track track = app.ToneTrack("Padded", seconds: 2, silenceAfter: 4);
-        app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, track));
         AppHarness.WaitFor(() => deck.Waveform is not null);
 
         deck.TogglePlayCommand.Execute(null);
@@ -62,7 +62,7 @@ public sealed class AnalysisAppTests
             Assert.Equal("Bloodest Saxophone", track.Artist);   // its tags, though TagLib can't find its audio (#220)
 
             DeckViewModel deck = app.ViewModel.Deck1!;
-            Assert.True(app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult(), app.ViewModel.Notice);
+            Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, track)), app.ViewModel.Notice);
             AppHarness.WaitFor(() => deck.Waveform is not null);
             deck.TogglePlayCommand.Execute(null);
             float level = app.Play(0.5).Main;
@@ -107,7 +107,7 @@ public sealed class AnalysisAppTests
         using var app = new AppHarness();
         DeckViewModel deck = app.ViewModel.Deck1!;
         Track drums = app.BeatTrack("Drums", bpm: 180);
-        app.ViewModel.LoadToDeckAsync(deck, drums).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, drums));
         AppHarness.WaitFor(() => deck.Waveform is not null);
 
         var view = app.Window.FindControl<DeckView>("Deck1View")!;

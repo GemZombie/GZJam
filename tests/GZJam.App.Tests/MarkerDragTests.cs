@@ -55,7 +55,7 @@ public sealed class MarkerDragTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Tune", seconds: 60);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         deck.SeekTo(0.5);   // 30 s
         deck.AddCue(S(31));
@@ -75,7 +75,7 @@ public sealed class MarkerDragTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         DeckViewModel deck = vm.Deck1!;
         deck.AddCue(S(40));
         vm.Mixer!.Crossfader = 0;
@@ -114,7 +114,7 @@ public sealed class MarkerDragTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         DeckViewModel deck = vm.Deck1!;
         deck.AddCue(S(40));
         var (_, whole) = Waveforms(app);
@@ -134,7 +134,7 @@ public sealed class MarkerDragTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Applause first", seconds: 30, silenceBefore: 4);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         AppHarness.WaitFor(() => deck.Waveform is not null);
         AppHarness.Settle(100);
@@ -157,7 +157,7 @@ public sealed class MarkerDragTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Tune", seconds: 60);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         deck.StartJump(S(20));
         deck.LandJump(S(40));
@@ -183,7 +183,7 @@ public sealed class MarkerDragTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
         DeckViewModel deck = vm.Deck1!;
         deck.AddCue(S(10));
         deck.AddCue(S(30));
