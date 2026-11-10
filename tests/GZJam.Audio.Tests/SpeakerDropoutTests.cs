@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GZJam.Testing;
 using ManagedBass;
 
 namespace GZJam.Audio.Tests;
@@ -27,7 +28,7 @@ public sealed class SpeakerDropoutTests : IDisposable
     public void Held_up_audio_is_logged_as_a_dropout_of_about_the_right_length_and_steady_play_isnt()
     {
         AudioDevice? device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
-        Assert.SkipWhen(device is null, "Needs a sound device.");
+        Assert.SkipWhen(device is null || TestMachine.IsCi, TestMachine.NeedsRealSpeakers);
         _engine.Buffer = SoundBuffer.Low;   // the shortest: 200 ms of mix ready
         _mix.SetOutputs(device, null);
         Assert.False(_mix.Main.IsExclusive);

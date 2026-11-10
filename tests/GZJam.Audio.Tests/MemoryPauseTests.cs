@@ -43,7 +43,7 @@ public sealed class MemoryPauseTests : IDisposable
     public void Long_memory_pauses_dont_stop_the_speakers()
     {
         AudioDevice? device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
-        Assert.SkipWhen(device is null, "Needs a sound device.");
+        Assert.SkipWhen(device is null || TestMachine.IsCi, TestMachine.NeedsRealSpeakers);
         _mix.SetOutputs(device, null);
         _mix.Main.Volume = 0;   // the audio still runs through every stage
         var gaps = new List<TimeSpan>();
