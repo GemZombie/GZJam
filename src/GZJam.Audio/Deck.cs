@@ -26,6 +26,7 @@ public sealed unsafe class Deck : IDisposable
     private double _mainGain;
     private bool _cue;
     private TimeSpan? _fadeLength;   // a fade-out under way: asked for, or started by the song reaching a point
+    private TimeSpan _lastPosition;   // at the last update: to see the playhead play past auto-play's limit
     private TimeSpan _start;
     private TimeSpan? _end;
     private readonly SongSound _sound;           // EQ and evening out, on the tempo stream
@@ -137,6 +138,7 @@ public sealed unsafe class Deck : IDisposable
         _playing = false;
         _ended = false;
         _endFading = false;
+        _lastPosition = TimeSpan.Zero;
         _autoFade = null;
         SetFadeSyncs();
         Attach();
@@ -200,6 +202,21 @@ public sealed unsafe class Deck : IDisposable
     // Why a fade started, as the native fade has it: the strongest since it began wins.
     private const int Asked = 1;       // FADE OUT, or auto-play's limit
     private const int PlayedOut = 2;   // the end of the music: when it's silent, the song has ended
+
+    /// <summary>The playhead passes further than this in one update only when moved, not by playing.</summary>
+    private static readonly TimeSpan PlayedStep = TimeSpan.FromSeconds(1);
+
+    /// <summary>A sync that hasn't come this long after its point isn't coming: well over a block of sound.</summary>
+    private static readonly TimeSpan SyncMissedAfter = TimeSpan.FromSeconds(0.25);
+
+    /// <summary>
+    /// Auto-play's limit was played past without the sound starting its fade, so the app started
+    /// it (a safety net, #359): raised with the deck's state, for the log. It shouldn't happen.
+    /// </summary>
+    public event EventHandler<string>? FadeStartedLate;
+
+    /// <summary>How many times <see cref="FadeStartedLate"/> has been raised (tests).</summary>
+    internal int FadesStartedLate { get; private set; }
 
     /// <summary>A stop at the end of the music, rather than a fade: just long enough not to click.</summary>
     private static readonly TimeSpan EndStop = TimeSpan.FromMilliseconds(5);
@@ -628,7 +645,26 @@ public sealed unsafe class Deck : IDisposable
         }
 
         // The song's own fade at its end, if the sound hasn't begun it (the playhead moved past the end).
-        TimeSpan position = Position;
+        TimeSpan position = Position, last = _lastPosition;
+        _lastPosition = position;
+
+        // Auto-play's limit, played past (not moved past) without the sound having started its fade:
+        // the sound starts it at the exact point (#359), so this is only a safety net. Clearly past
+        // it, by more than the sound decodes at a time: at the point itself, the sound's sync may
+        // simply not have come yet.
+        TimeSpan missedAt = AutoFade is { } limit ? limit.At + SyncMissedAfter : TimeSpan.MaxValue;
+        if (AutoFade is { } fade && _playing && !_ended && _fadeLength is null && state == 0
+            && Volatile.Read(ref _fade->Command) == 0
+            && last < missedAt && position >= missedAt && position - last < PlayedStep && fade.At < End)
+        {
+            FadesStartedLate++;
+            string why = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                $"limit {fade.At.TotalSeconds:0.000} s passed between {last.TotalSeconds:0.000} and {position.TotalSeconds:0.000} s; " +
+                $"sync {_autoSync}, its point {_autoAt->Frames} frames, rate {_rate}, end {End.TotalSeconds:0.000} s");
+            FadeStartedLate?.Invoke(this, why);
+            StartFade(fade.Length, Asked);
+            return;
+        }
         if (EndFade is { } endFade && _playing && !_ended && _fadeLength is null && _end is not null && position >= End)
         {
             StartFade(endFade, PlayedOut);

@@ -312,6 +312,28 @@ public sealed class AutoPlayTests
         Assert.Equal(tracks[2], d1.Track);
     }
 
+    /// <summary>TEMPORARY (#359 on Apple Silicon): does the sound start auto-play's limit every time?</summary>
+    [AvaloniaFact]
+    public void Diagnostic_the_sound_starts_auto_plays_limit_every_time()
+    {
+        var misses = new List<string>();
+        for (int run = 0; run < 8; run++)
+        {
+            var (app, auto, _) = Setup(queued: 3, seconds: 75);
+            using var _ = app;
+            app.Settings.FadeOutSeconds = 0.5;
+            var d1 = app.ViewModel.Deck1!;
+            d1.Deck.FadeStartedLate += (_, why) => misses.Add($"run {run}: {why}");
+            auto.FadeAfterUpCommand.Execute(null);
+            auto.IsOn = true;
+            app.Play(0.1);
+            TimeSpan fadesAt = d1.Deck.Start + TimeSpan.FromSeconds(60);
+            JustBefore(app, d1, fadesAt);
+            PlayUntil(app, () => d1.Deck.IsFading);
+        }
+        Assert.True(misses.Count == 0, string.Join("\n", misses));
+    }
+
     [AvaloniaFact]
     public void Stop_after_this_song_lets_the_room_go_quiet_once_and_play_carries_on()
     {
