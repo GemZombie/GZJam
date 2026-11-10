@@ -152,7 +152,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.7,** to try now in [1.7.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.1):
+**In 1.7,** to try now in [1.7.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.2):
 
 - [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
   the song list reuses its rows, and stays sorted by the column you chose through a new search
@@ -168,9 +168,6 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   can't interrupt a song that's playing, and the next songs are read ahead
 - [The speakers come back by themselves](https://github.com/GemZombie/GZJam/issues/338) when
   plugged in again, as soon as nothing is playing to the room
-
-**Also in 1.7,** in its next beta:
-
 - [Saving no longer holds up the screen](https://github.com/GemZombie/GZJam/issues/362): a rating,
   a cue or an EQ change doesn't wait for the disk, and an EQ fader is saved once, when you let go
 - [The waveforms no longer make work as the night goes on](https://github.com/GemZombie/GZJam/issues/363),
