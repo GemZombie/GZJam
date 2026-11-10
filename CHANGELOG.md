@@ -13,6 +13,16 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Fixed:
+
+- **Browsing the library no longer makes the music stutter** (#343, part of it). Each search, and
+  each folder picked, built the song list's rows from scratch, and the memory that left behind made
+  GZJam stop for a moment to tidy up, sound included: a few times an hour, the room heard a gap.
+  The song list now reuses its rows. Three minutes of browsing a 12,700-song library stopped GZJam
+  for 35 seconds in all before, and for 2 seconds now. Searching feels quicker too.
+- **The song list stays sorted by the column you chose** when you search or pick another folder.
+  It went back to the library's own order each time.
+
 ## 1.6.0-beta.2 (2026-11-09)
 
 The second beta of 1.6: drag a song from the queue to a folder in My music, and fixes to Organize

@@ -152,6 +152,11 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
+**In 1.7,** not in a beta yet:
+
+- [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
+  the song list reuses its rows, and stays sorted by the column you chose through a new search
+
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 
 - [Organize music](https://github.com/GemZombie/GZJam/issues/325), the first part: two sides under
@@ -208,6 +213,15 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   folders and USB sticks, or copy them from a server, and new and renamed folders
 - [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
   empty are cleaned up, when you move a whole album
+
+**1.7: no stutters, ever.** Nothing GZJam does on screen or on disk should ever be heard in the room:
+- [The music never waits for GZJam to tidy its memory](https://github.com/GemZombie/GZJam/issues/343),
+  with far less of it used, and [the sound handled without it](https://github.com/GemZombie/GZJam/issues/344)
+- [Every dropout written in the log](https://github.com/GemZombie/GZJam/issues/345), with what caused
+  it, whichever way the speakers are set up
+- [Songs read into memory when loaded](https://github.com/GemZombie/GZJam/issues/346), so a slow or
+  sleeping drive can't interrupt a song that's playing
+- [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347)
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

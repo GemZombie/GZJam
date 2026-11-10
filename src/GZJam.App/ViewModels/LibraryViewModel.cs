@@ -260,6 +260,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>When tonight's session began, so its songs can be dimmed; null if nothing's been played yet.</summary>
     public Func<DateTime?> TonightSince { get; set; } = () => null;
 
+    /// <summary>What the song list shows: <see cref="Results"/>, in a collection the grid keeps (#343).</summary>
+    public ResultRows ResultRows { get; } = new();
+
     partial void OnResultsChanged(IReadOnlyList<Track> value)
     {
         if (TonightSince() is { } since)
@@ -275,6 +278,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             else
                 _resultsByPath[track.Path] = [track];
         }
+        ResultRows.Replace(value);
         OnPropertyChanged(nameof(PlaylistSummary));
     }
 

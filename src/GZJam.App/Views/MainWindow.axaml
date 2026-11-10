@@ -653,7 +653,7 @@
           </Border>
 
           <DataGrid x:Name="TrackGrid" Grid.Row="2" Classes="tracks" Classes.playlist="{Binding Library.IsPlaylistOpen}"
-                    ItemsSource="{Binding Library.Results}"
+                    ItemsSource="{Binding Library.ResultRows}"
                     IsReadOnly="True" SelectionMode="Extended"
                     CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False">
             <!-- The grid keeps 32 px of every header for the sort arrow, sorted or not, so a narrow

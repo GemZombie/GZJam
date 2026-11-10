@@ -93,12 +93,7 @@ public sealed partial class ServersViewModel
             {
                 // At once, from the catalog.
                 long serverId = item.Server.Id;
-                int notMine = await Task.Run(() =>
-                {
-                    var catalog = _database.SearchServerCatalog(serverId, "", words, cancel);
-                    var own = _database.GetServerOwnCopies(serverId);
-                    return catalog.Songs.Count(s => !own.Contains(s.Id));
-                }, cancel);
+                int notMine = await Task.Run(() => _database.CountServerCatalogNotOwn(serverId, words), cancel);
                 if (notMine > 0)
                     return (item.Server.Id, $"Also: {Format.Count(notMine)} on {item.Name}");
                 continue;
