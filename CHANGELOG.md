@@ -13,16 +13,17 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.7.0-beta.2.
+Nothing yet since 1.7.0-beta.3.
 
-## 1.7.0-beta.2 (2026-11-10)
+## 1.7.0-beta.3 (2026-11-10)
 
-The second beta of 1.7: nothing on screen should hold up the music, and the screen should no
+The next beta of 1.7: nothing on screen should hold up the music, and the screen should no
 longer freeze. Fades, the crossfader and the end of each song are now handled by the sound itself,
 so a busy moment can't leave a fade halfway or the room between two decks. Loading a song,
-counting one as played and saving no longer freeze the screen. Like the others, GZJam's update
-notice doesn't offer it: you only get it from this page. It has everything in 1.7.0-beta.1, and
-nothing changes in your library.
+counting one as played and saving no longer freeze the screen. There was no 1.7.0-beta.2 to
+download: its Mac build found auto-play's limit could be missed, fixed here. Like the others,
+GZJam's update notice doesn't offer it: you only get it from this page. It has everything in
+1.7.0-beta.1, and nothing changes in your library.
 
 Fixed:
 
@@ -46,6 +47,8 @@ Fixed:
   runs, and ends, with the music; the end of a song and auto-play's limit start their fade at the
   exact point; and the crossfader reaches the deck it was going to. A deck's meter now shows its
   fade-out going down.
+  Auto-play's limit fades at its point every time, even when a song's analysis finishes just
+  before it, which on some computers let the song play on.
 - **A song counting as played no longer freezes the screen** (#360). Thirty seconds into each
   song, History read the whole night again, twice, and each song looked through all of History
   for its play count: with a few years of nights, or History brought over from Mixxx, the screen

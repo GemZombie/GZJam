@@ -152,7 +152,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.7,** to try now in [1.7.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.2):
+**In 1.7,** to try now in [1.7.0-beta.3](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.3):
 
 - [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
   the song list reuses its rows, and stays sorted by the column you chose through a new search
@@ -259,7 +259,8 @@ drawn alongside the screen, not by it; [the decks' readouts](https://github.com/
 and [waveforms and meters](https://github.com/GemZombie/GZJam/issues/366) doing only the work that shows;
 [no disk or device checks](https://github.com/GemZombie/GZJam/issues/367) holding up the screen;
 [big libraries](https://github.com/GemZombie/GZJam/issues/368) of 50,000 songs and more listed quickly; and
-[first-time analysis](https://github.com/GemZombie/GZJam/issues/369) going gently while music plays
+[first-time analysis](https://github.com/GemZombie/GZJam/issues/369) going gently while music plays;
+and [a look at a rare short dropout](https://github.com/GemZombie/GZJam/issues/381) on a busy computer
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
