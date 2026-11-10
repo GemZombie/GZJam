@@ -14,6 +14,14 @@ public sealed partial class MainWindowViewModel
     /// <summary>How far back before a dropout is reported its tidying pauses are counted: the gap, the half second before it's reported, and the buffer.</summary>
     private const long PauseLookBackMs = 3000;
 
+    /// <summary>
+    /// How often how much memory GZJam uses goes in the log. At Hot Jam it reached a gigabyte over
+    /// four hours (#343), and nothing tried since makes it grow: the log shows when it does.
+    /// </summary>
+    private const long MemoryLogEveryMs = 10 * 60 * 1000;
+
+    private long _memoryLoggedAt = Environment.TickCount64;
+
     private TimeSpan _memoryPausedSoFar = GC.GetTotalPauseDuration();
     private readonly Queue<(long At, TimeSpan Paused)> _memoryPauses = new();
 
@@ -33,6 +41,13 @@ public sealed partial class MainWindowViewModel
             _memoryPauses.Dequeue();
         if (paused >= LongMemoryPause)
             Log.Info($"GZJam stopped for {paused.TotalMilliseconds:0} ms to tidy its memory ({GC.GetGCMemoryInfo().HeapSizeBytes / (1024 * 1024):N0} MB in use)");
+        if (now - _memoryLoggedAt >= MemoryLogEveryMs)
+        {
+            _memoryLoggedAt = now;
+            var info = GC.GetGCMemoryInfo();
+            Log.Info($"Memory: {info.HeapSizeBytes / (1024 * 1024):N0} MB in use ({info.FragmentedBytes / (1024 * 1024):N0} MB of it free), " +
+                     $"{Environment.WorkingSet / (1024 * 1024):N0} MB in all; stopped {(total.TotalSeconds):0.0} s in all to tidy it");
+        }
     }
 
     private void OnMainDropout(TimeSpan gap)

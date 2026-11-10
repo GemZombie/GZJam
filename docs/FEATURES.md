@@ -894,7 +894,10 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   too, and counts as lost, not as a dropout): *Speakers: the sound stopped for 222 ms (a
   dropout)*, with how long GZJam had just stopped to tidy its memory (.NET garbage collection,
   the cause in #343) if it had. Pauses of 100 ms or more are logged on their own too, heard or
-  not, and closing says how many dropouts there were.
+  not, and closing says how many dropouts there were. Every 10 minutes the log says how much
+  memory GZJam uses: at Hot Jam it reached a gigabyte over four hours, and nothing tried since
+  (browsing, a first scan and analysis of 12,700 songs, 30 songs loaded onto the decks) makes it
+  grow past 200 MB, so the log is to show when it does.
 - Tested on the computer's real speakers, shared (`SpeakerDropoutTests`, skipped on CI), and
   with the readings BASS gave (`DropoutWatchTests`).
 - **Windows default warning:** when the speakers GZJam has to itself are also Windows' default
