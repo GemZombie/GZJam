@@ -17,7 +17,7 @@ public sealed class EqAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Hissy transfer");
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         Assert.False(vm.Deck1!.Eq.IsSet);
 
         vm.Deck1.Eq.High = -7.3;   // half-dB steps
@@ -31,10 +31,10 @@ public sealed class EqAppTests
         Assert.Equal(new TrackEq(TrackEq.MinDb, 0, -7.5), app.Database.GetEq(song.Path));
 
         // Another song on the deck starts flat; the first brings its EQ wherever it goes.
-        vm.LoadToDeckAsync(vm.Deck1, app.ToneTrack("Clean")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1, app.ToneTrack("Clean")));
         Assert.False(vm.Deck1.Eq.IsSet);
         Assert.Equal((0.0, 0.0, 0.0), vm.Deck1.Deck.Eq);
-        vm.LoadToDeckAsync(vm.Deck2!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, song));
         Assert.Equal(-7.5, vm.Deck2!.Eq.High);
         Assert.Equal((TrackEq.MinDb, 0.0, -7.5), vm.Deck2.Deck.Eq);
 
@@ -52,7 +52,7 @@ public sealed class EqAppTests
         var vm = app.ViewModel;
         string hiss = GZJam.Testing.TestWav.WriteTone(Path.Combine(app.WorkDirectory, "hiss.wav"), TimeSpan.FromSeconds(10), frequency: 10000);
         var track = new Track { Path = hiss, Folder = "", FileName = "hiss.wav", Title = "Hiss" };
-        vm.LoadToDeckAsync(vm.Deck1!, track).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, track));
         vm.Deck1!.TogglePlayCommand.Execute(null);
         app.Play(0.3);
         float before = app.Play(0.3).Main;
@@ -70,7 +70,7 @@ public sealed class EqAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Song")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Song")));
         var button = app.Window.FindControl<DeckView>("Deck2View")!.FindControl<Button>("EqButton")!;
         Assert.True(button.IsEffectivelyVisible);
         Assert.DoesNotContain("on", button.Classes);
@@ -99,7 +99,7 @@ public sealed class EqAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Muddy");
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         var button = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("EqButton")!;
         button.Flyout!.ShowAt(button);
         AppHarness.Settle(200);
@@ -132,7 +132,7 @@ public sealed class EqAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Boomy");
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         var deck = vm.Deck1!;
         Assert.Equal("1 kHz", deck.Eq.MidHzText);
         Assert.False(deck.Eq.IsMidMoved);
@@ -154,7 +154,7 @@ public sealed class EqAppTests
         Assert.Equal((1000.0, -3.0), (deck.Deck.MidHz, deck.Eq.Mid));
 
         deck.Eq.MoveMidCommand.Execute("up");
-        vm.LoadToDeckAsync(vm.Deck2!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, song));
         Assert.Equal("1.25 kHz", vm.Deck2!.Eq.MidHzText);
         Assert.Equal(1250, vm.Deck2.Deck.MidHz);
     }
@@ -169,7 +169,7 @@ public sealed class EqAppTests
             [(TimeSpan.FromSeconds(10), 0.5), (TimeSpan.FromSeconds(10), 0.05)]);
         var song = new Track { Path = path, Folder = "", FileName = "wide.wav", Title = "Wide" };
         var deck = vm.Deck1!;
-        vm.LoadToDeckAsync(deck, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(deck, song));
         AppHarness.WaitFor(() => deck.LevelText.Contains("LUFS"));   // measured, so evening works around it
         vm.Mixer!.Crossfader = 0;
 
@@ -208,7 +208,7 @@ public sealed class EqAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Old record")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Old record")));
         var button = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("EqButton")!;
         button.Flyout!.ShowAt(button);
         AppHarness.Settle(200);
@@ -234,7 +234,7 @@ public sealed class EqAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         vm.SetDeckCount(4);
-        vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Song")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Song")));
         AppHarness.Settle(100);
         var view = app.Window.FindControl<DeckView>("Deck4View")!;
 
@@ -278,7 +278,7 @@ public sealed class EqAppTests
         Assert.Null(vm.Preview.Track);
 
         // Loaded later: the deck plays it so.
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         Assert.Equal((-3.0, -6.0), (vm.Deck1!.Eq.Low, vm.Deck1.Eq.High));
         Assert.Equal(-6, vm.Deck1.Deck.Eq.High);
 

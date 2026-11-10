@@ -23,6 +23,11 @@ Fixed:
   of its bars, but only so many: a few songs in, it made new ones for every bar it drew, many
   times a second, and GZJam kept stopping for a moment to clear them away. The screen could
   stutter, more so later in a night. Now every waveform shares one set of colors, made once.
+- **Loading a song no longer freezes the screen** (#361). A song you load onto a deck (dropped,
+  double-clicked, from a deck key) is read and opened in the background, so one on a slow or
+  sleeping drive, a network share or a USB disk doesn't hold up the screen while it's read. If the
+  deck starts playing to the room meanwhile, the song isn't put on it, and a song chosen after it,
+  or Eject, comes first.
 - **A song counting as played no longer freezes the screen** (#360). Thirty seconds into each
   song, History read the whole night again, twice, and each song looked through all of History
   for its play count: with a few years of nights, or History brought over from Mixxx, the screen

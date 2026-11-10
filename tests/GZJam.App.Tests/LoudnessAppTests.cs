@@ -10,7 +10,7 @@ public sealed class LoudnessAppTests
 {
     private static DeckViewModel LoadAndMeasure(AppHarness app, DeckViewModel deck, Track track)
     {
-        app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, track));
         AppHarness.WaitFor(() => deck.Waveform is not null, TimeSpan.FromSeconds(30));
         return deck;
     }

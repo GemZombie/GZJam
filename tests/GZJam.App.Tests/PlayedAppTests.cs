@@ -12,7 +12,7 @@ public sealed class PlayedAppTests
     private static Track PlayToTheRoom(AppHarness app)
     {
         Track track = app.Library.Results[0];
-        app.ViewModel.LoadToDeckAsync(app.ViewModel.Deck1!, track).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(app.ViewModel.Deck1!, track));
         app.ViewModel.Deck1!.TogglePlayCommand.Execute(null);
         for (int i = 0; i < 64; i++)
             app.Play(0.5);

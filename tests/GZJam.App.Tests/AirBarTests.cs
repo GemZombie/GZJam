@@ -15,7 +15,7 @@ public sealed class AirBarTests
         var vm = app.ViewModel;
         var deck = vm.Deck1!;
         // 40 seconds of music, then 20 of silence, trimmed automatically.
-        vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40, silenceAfter: 20)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40, silenceAfter: 20)));
         AppHarness.WaitFor(() => deck.Deck.End < TimeSpan.FromSeconds(45));
         var bar = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<AirBar>("AirBar")!;
         Assert.False(bar.IsVisible);   // not on air yet
@@ -49,7 +49,7 @@ public sealed class AirBarTests
     {
         using var app = new AppHarness();
         var deck = app.ViewModel.Deck1!;
-        app.ViewModel.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40)).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40)));
         deck.TempoPercent = 8;
         deck.Deck.Seek(TimeSpan.FromSeconds(20));
         app.Play(0.05);

@@ -57,8 +57,8 @@ public sealed class LogNoiseTests
         var vm = app.ViewModel;
 
         vm.Queue.Add(app.Library.Results.Take(3));
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A", seconds: 40)).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B", seconds: 40)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A", seconds: 40)));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B", seconds: 40)));
         vm.Deck1!.AddCue(TimeSpan.FromSeconds(20));
         vm.Deck1.TogglePlayCommand.Execute(null);
         app.Play(35);   // long enough to count as played: History has a row

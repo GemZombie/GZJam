@@ -123,7 +123,7 @@ public sealed class SongCache : IDisposable
     private readonly Queue<string> _wanted = new();
     private readonly SemaphoreSlim _available = new(0);
     private readonly CancellationTokenSource _stop = new();
-    private readonly Func<string, SongMemory?> _read;
+    private Func<string, SongMemory?> _read;
 
     public SongCache() : this(path => SongMemory.Read(path, MaxSongBytes))
     {
@@ -136,6 +136,16 @@ public sealed class SongCache : IDisposable
         // Below normal: the audio thread and the window always come first.
         new Thread(Work) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Songs read ahead" }.Start();
     }
+
+    /// <summary>Reads a file into memory: tests put a slow one here.</summary>
+    internal Func<string, SongMemory?> Reader
+    {
+        get => _read;
+        set => _read = value;
+    }
+
+    /// <summary>Reads a file as GZJam does (tests wrap it).</summary>
+    internal static SongMemory? ReadFile(string path) => SongMemory.Read(path, MaxSongBytes);
 
     /// <summary>Reads <paramref name="paths"/> ahead, in the background, unless they're kept already.</summary>
     public void ReadAhead(IEnumerable<string> paths)

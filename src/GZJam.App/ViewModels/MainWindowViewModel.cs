@@ -1538,11 +1538,27 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
         }
 
-        // With auto-play on, a song replaced before it's played isn't lost (#261, #337).
-        Track? bumped = AutoPlay?.ReplacedSongGoesBack(deck) == true ? deck.Track : null;
+        // The song is read and opened off the window's thread (#361); once it's ready, the deck is
+        // looked at again: one that went on air meanwhile isn't replaced under the room, unless
+        // Settings allows it (or the DJ already said yes to replacing it).
+        bool wasOnAir = deck.IsOnAir;
+        Track? bumped = null;
+        bool StillWanted()
+        {
+            if (deck.IsOnAir && !wasOnAir && _settings.LoadOntoPlayingDeck != PlayingDeckLoad.Allow)
+            {
+                Log.Info($"Deck {deck.Label}: \"{track.DisplayTitle}\" not loaded: the deck went on air while it was opening");
+                ShowNotice($"Deck {deck.Label} went on air while {track.DisplayTitle} was opening, so it wasn't loaded.");
+                return false;
+            }
+            // With auto-play on, a song replaced before it's played isn't lost (#261, #337).
+            bumped = AutoPlay?.ReplacedSongGoesBack(deck) == true ? deck.Track : null;
+            return true;
+        }
         try
         {
-            deck.Load(track);
+            if (!await deck.LoadAsync(track, StillWanted))
+                return false;
         }
         catch (AudioException ex)
         {

@@ -85,7 +85,7 @@ public sealed class MixxxImportAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         Track song = app.Library.Results[0];
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         vm.PromptAsync = (_, _, _, _) => Task.FromResult<string?>("156.5");
 
         // The library's track menu › BPM › Type the BPM…

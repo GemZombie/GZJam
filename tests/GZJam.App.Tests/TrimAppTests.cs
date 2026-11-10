@@ -17,7 +17,7 @@ public sealed class TrimAppTests
     private static DeckViewModel LoadAndAnalyze(AppHarness app, Track track)
     {
         DeckViewModel deck = app.ViewModel.Deck1!;
-        app.ViewModel.LoadToDeckAsync(deck, track).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, track));
         AppHarness.WaitFor(() => deck.Waveform is not null);
         return deck;
     }
@@ -39,7 +39,7 @@ public sealed class TrimAppTests
 
         // Next time it's loaded, it starts there straight away, before analysis is even back.
         deck.EjectCommand.Execute(null);
-        app.ViewModel.LoadToDeckAsync(deck, live).GetAwaiter().GetResult();
+        AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, live));
         Assert.Equal(TimeSpan.FromSeconds(4), deck.Deck.Position);
         AppHarness.WaitFor(() => deck.Waveform is not null);
         Assert.Equal(TimeSpan.FromSeconds(4), deck.Deck.Start);   // the analysis doesn't overrule it

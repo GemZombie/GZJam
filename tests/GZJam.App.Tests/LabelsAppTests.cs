@@ -99,7 +99,7 @@ public sealed class LabelsAppTests
         var songs = app.Library.Results.Take(3).ToList();
         vm.SetLabel(songs, "Lindy", on: true);
         vm.Queue.Add([songs[0]]);
-        vm.LoadToDeckAsync(vm.Deck1!, songs[1]).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, songs[1]));
         app.Library.SetLabelFilter("Lindy");
         AppHarness.Settle();
         string? asked = null;
@@ -139,8 +139,8 @@ public sealed class LabelsAppTests
         var vm = app.ViewModel;
         vm.Settings.FourDecks = fourDecks;
         var songs = app.Library.Results.Take(2).ToList();
-        vm.LoadToDeckAsync(vm.Deck1!, songs[0]).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck3!, songs[1]).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, songs[0]));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, songs[1]));
         vm.Queue.Add(songs);
         AppHarness.Settle(200);
         var deck = app.Window.FindControl<DeckView>("Deck1View")!;

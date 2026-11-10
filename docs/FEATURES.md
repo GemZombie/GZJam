@@ -884,6 +884,16 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   it moving queued songs to a folder. Moving and deleting song files (Organize, keeping a server's
   songs) now try again for up to 2 s while a file is in use (`BusyFile`), which a DJ's computer,
   with its own antivirus, indexer or backup, may need anyway.
+- **Opened off the window's thread** (issue #361): a song the DJ loads (dropped, double-clicked,
+  a deck key, a server's song arriving) is read, checked and opened through its tempo stream on a
+  background thread (`Deck.Open` → `OpenedSong`), with its trim, EQ, jumps and cues read from the
+  library; only putting it on the deck (`Deck.Load(OpenedSong)`) runs on the window's thread. A song
+  on a sleeping drive no longer freezes the screen while it's read. Once it's ready the deck is
+  looked at again: a newer load or an eject wins, and a deck that went on air meanwhile isn't
+  replaced unless Settings › Loading a playing deck is *Allow* (`DeckLoadTests`). The log says
+  how long each song took to open. Auto-play still loads on its tick, since it needs the deck ready
+  at once; its songs are the top of the queue, read ahead already, so only the opening is left
+  there. The MP4 check (#224) reads a song from memory when it's been read, not the disk again.
 
 ### Status: extra protection against crackles (2026-10-23, issue #25)
 
