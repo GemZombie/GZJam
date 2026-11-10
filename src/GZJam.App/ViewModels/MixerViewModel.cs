@@ -275,9 +275,16 @@ public sealed partial class MixerViewModel : ObservableObject
         if (_snapTarget is not { } target)
             return;
         double t = _snapTime <= TimeSpan.Zero ? 1 : Math.Min(1, TimeProvider.System.GetElapsedTime(_snapStarted) / _snapTime);
-        mix.Crossfader = _snapFrom + (target - _snapFrom) * t;
         if (t >= 1)
+        {
+            mix.Crossfader = target;
             _snapTarget = null;
+        }
+        else
+        {
+            // BASS carries the volumes on to the target between ticks, should one come late (#359).
+            mix.CrossfadeToward(_snapFrom + (target - _snapFrom) * t, target, _snapTime * (1 - t));
+        }
         Changed();
     }
 

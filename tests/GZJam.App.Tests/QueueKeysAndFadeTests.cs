@@ -39,8 +39,7 @@ public sealed class QueueKeysAndFadeTests
         a.FadeOutCommand.Execute(null);
         a.FadeOutCommand.Execute(null);
         Assert.False(a.IsFadeArmed);
-        AppHarness.Settle(1200);   // the fade runs on the clock
-        app.Play(0.1);
+        app.Play(1.2);   // the fade is the music's own (#359): it runs as the music plays
         Assert.False(a.IsPlaying);   // faded out and stopped
     }
 
@@ -55,8 +54,7 @@ public sealed class QueueKeysAndFadeTests
         app.Play(0.2);
         a.FadeOutCommand.Execute(null);   // one tap chosen (the test harness's setting)
         Assert.False(a.IsFadeArmed);
-        AppHarness.Settle(1200);   // the fade runs on the clock
-        app.Play(0.1);
+        app.Play(1.2);   // the fade is the music's own (#359): it runs as the music plays
         Assert.False(a.IsPlaying);
 
         UseTwoTaps(app);
@@ -66,8 +64,7 @@ public sealed class QueueKeysAndFadeTests
         Assert.False(b.IsOnAir);
         b.FadeOutCommand.Execute(null);
         Assert.False(b.IsFadeArmed);
-        AppHarness.Settle(1200);   // the fade runs on the clock
-        app.Play(0.1);
+        app.Play(1.2);   // the fade is the music's own (#359): it runs as the music plays
         Assert.False(b.IsPlaying);
     }
 

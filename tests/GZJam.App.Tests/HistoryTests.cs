@@ -65,8 +65,7 @@ public sealed class HistoryAppTests
         DeckViewModel deck1 = await OnAir(app, app.ToneTrack("Wrong song", 60));
         Listen(app, 10);
         deck1.FadeOutCommand.Execute(null);
-        AppHarness.Settle(1200);
-        app.Play(0.1);
+        app.Play(1.2);   // the fade is the music's own (#359): it runs as the music plays
         Assert.False(deck1.IsPlaying);
         Assert.Empty(app.ViewModel.History.Plays);
 

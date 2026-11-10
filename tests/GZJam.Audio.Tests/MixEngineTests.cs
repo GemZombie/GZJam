@@ -201,12 +201,13 @@ public sealed class MixEngineTests : IDisposable
         int finished = 0;
         A.Finished += (_, _) => finished++;
 
+        // The fade is the sound's own (#359): it goes as the music plays, not as the app looks.
         A.FadeOut(TimeSpan.FromSeconds(4));
-        _time.Advance(TimeSpan.FromSeconds(2));
-        _mix.Update();
+        Render(1.9);
         Assert.Equal(Full * 0.5f, Render(0.1).Main, 0.03f);
+        Assert.True(A.IsFading);
 
-        _time.Advance(TimeSpan.FromSeconds(2.1));
+        Render(2.1);
         _mix.Update();
         Assert.False(A.IsPlaying);
         Assert.Equal(1, finished);
@@ -215,6 +216,24 @@ public sealed class MixEngineTests : IDisposable
         // The next play is at full volume again.
         A.Play();
         Assert.Equal(Full, Render().Main, 0.02f);
+    }
+
+    [Fact]
+    public void A_fade_ends_in_silence_even_if_the_app_never_looks()
+    {
+        // #359: before, the app stepped the fade at each tick, so a busy window held it halfway.
+        A.Load(_tone);
+        A.Play();
+        A.FadeOut(TimeSpan.FromSeconds(1));
+        Render(1.1);   // no _mix.Update() at all
+        Assert.InRange(Render().Main, 0, Silent);
+        Assert.True(A.IsPlaying);   // the app hasn't looked yet: it pauses the deck when it does
+
+        int finished = 0;
+        A.Finished += (_, _) => finished++;
+        _mix.Update();
+        Assert.False(A.IsPlaying);
+        Assert.Equal(1, finished);
     }
 
     [Fact]
@@ -230,19 +249,18 @@ public sealed class MixEngineTests : IDisposable
 
         A.Play();
         Render(1.1);
-        _mix.Update();   // past the end: the fade starts, the music goes on
+        _mix.Update();   // past the end: the song began its fade there, the music goes on
         Assert.True(A.IsFading);
         Assert.True(A.IsPlaying);
         Assert.Null(A.EndFadesAt);
 
-        _time.Advance(TimeSpan.FromSeconds(1));
+        Render(0.8);
+        Assert.Equal(Full * 0.5f, Render(0.1).Main, 0.03f);   // a second into the fade
         _mix.Update();
-        Render(0.1);   // BASS eases into a new volume
-        Assert.Equal(Full * 0.5f, Render(0.1).Main, 0.03f);
-        Assert.Equal(1, A.Remaining.TotalSeconds, 0.01);
+        Assert.Equal(1, A.Remaining.TotalSeconds, 0.1);
         Assert.Equal(0, finished);
 
-        _time.Advance(TimeSpan.FromSeconds(1.1));
+        Render(1.1);
         _mix.Update();
         Assert.False(A.IsPlaying);
         Assert.Equal(1, finished);
@@ -252,6 +270,86 @@ public sealed class MixEngineTests : IDisposable
         A.Play();
         Assert.Equal(Full, Render().Main, 0.02f);
         Assert.InRange(A.Position.TotalSeconds, 0, 0.5);
+    }
+
+    [Fact]
+    public void The_music_stops_at_its_end_point_even_if_the_app_never_looks()
+    {
+        // #359: the end the DJ set (or where the music ends) stops the sound there, as it's mixed.
+        A.Load(_tone);
+        A.SetTrim(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        A.Play();
+        Assert.Equal(Full, Render(0.9).Main, 0.02f);
+        Render(0.2);   // no _mix.Update(): before, the app had to see the end to stop it
+        Assert.InRange(Render().Main, 0, Silent);
+
+        int finished = 0;
+        A.Finished += (_, _) => finished++;
+        _mix.Update();
+        Assert.False(A.IsPlaying);
+        Assert.Equal(1, finished);
+        A.Play();   // played out: from the top again
+        Assert.Equal(Full, Render().Main, 0.02f);
+    }
+
+    [Fact]
+    public void Auto_plays_limit_fades_the_song_at_its_point_even_if_the_app_never_looks()
+    {
+        // #359: before, a window held up for over a second let the song play on past the limit.
+        A.Load(_tone);
+        A.AutoFade = (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        A.Play();
+        Assert.Equal(Full, Render(0.9).Main, 0.02f);
+        Render(0.6);
+        Assert.Equal(Full * 0.5f, Render(0.1).Main, 0.05f);   // half a second into the fade, unseen
+        Render(0.5);
+        Assert.InRange(Render().Main, 0, Silent);
+
+        int finished = 0;
+        A.Finished += (_, _) => finished++;
+        _mix.Update();
+        Assert.False(A.IsPlaying);
+        Assert.Equal(1, finished);
+    }
+
+    [Fact]
+    public void Auto_plays_limit_lets_a_song_already_past_it_play_on()
+    {
+        A.Load(_tone);
+        A.Seek(TimeSpan.FromSeconds(2));
+        A.AutoFade = (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        A.Play();
+        Render(1.5);
+        Assert.Equal(Full, Render().Main, 0.02f);
+        _mix.Update();
+        Assert.True(A.IsPlaying);
+        Assert.False(A.IsFading);
+    }
+
+    [Fact]
+    public void The_crossfader_gets_where_it_was_going_even_if_the_app_never_looks_again()
+    {
+        // #359: BASS slides the decks' volumes on to the target between the app's ticks.
+        A.Load(_tone);
+        B.Load(_tone);
+        A.Play();
+        B.Play();
+        _mix.Crossfader = 0;
+        Assert.Equal(Full, Render(0.1).Main, 0.02f);
+
+        _mix.CrossfadeToward(0.1, 1, TimeSpan.FromMilliseconds(250));   // and the app is held up
+        Thread.Sleep(450);
+        Render(0.1);
+        float bOnly = Render(0.1).Main;
+        A.Pause();
+        Assert.Equal(Full, bOnly, 0.03f);
+        Assert.Equal(Full, Render(0.1).Main, 0.03f);   // that was all B: without A, the same
+
+        // Moved by hand meanwhile, the fader is where it's put, not where the glide was going.
+        _mix.CrossfadeToward(0.9, 0, TimeSpan.FromMilliseconds(250));
+        _mix.Crossfader = 1;
+        Thread.Sleep(400);
+        Assert.Equal(Full, Render(0.1).Main, 0.03f);
     }
 
     [Fact]

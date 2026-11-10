@@ -28,6 +28,13 @@ Fixed:
   sleeping drive, a network share or a USB disk doesn't hold up the screen while it's read. If the
   deck starts playing to the room meanwhile, the song isn't put on it, and a song chosen after it,
   or Eject, comes first.
+- **Fades, the crossfader and the end of a song are handled by the sound itself** (#359). They were
+  moved along by the screen many times a second, so if GZJam was busy for a moment, a fade stopped
+  halfway (then dropped), a switch of the crossfader left the room between two decks, a song played
+  on past the end you set, and auto-play's limit on each song could be missed altogether. Now a fade
+  runs, and ends, with the music; the end of a song and auto-play's limit start their fade at the
+  exact point; and the crossfader reaches the deck it was going to. A deck's meter now shows its
+  fade-out going down.
 - **A song counting as played no longer freezes the screen** (#360). Thirty seconds into each
   song, History read the whole night again, twice, and each song looked through all of History
   for its play count: with a few years of nights, or History brought over from Mixxx, the screen
