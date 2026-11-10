@@ -156,6 +156,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
   the song list reuses its rows, and stays sorted by the column you chose through a new search
+- [Every dropout in the log](https://github.com/GemZombie/GZJam/issues/345), shared speakers or
+  GZJam's alone, with how long the sound stopped and why, if GZJam knows
 
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 
