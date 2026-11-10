@@ -314,6 +314,9 @@ public sealed class MixEngine : IDisposable
             deck.Update();
         Preview.Update();
         long now = Environment.TickCount64;
+        // An exclusive card found empty because it's been unplugged is marked lost here, sooner
+        // than Windows says so (an empty one that's still there is the dropout watch's to judge).
+        SpeakerOutput.IsDry();
         if (!_mainLostRaised && SpeakerOutput.IsLost)
         {
             _mainLostRaised = true;
