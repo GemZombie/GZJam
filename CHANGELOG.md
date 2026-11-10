@@ -13,6 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **Every dropout is written in the activity log** (#345), with how long the sound stopped and
+  whether GZJam had just stopped to tidy its memory, however the speakers are set up. Before, only
+  speakers GZJam had to itself were checked, and a short dropout could slip by. Closing GZJam says
+  how many there were, so a stutter you heard can be found in the log.
+
 Fixed:
 
 - **Browsing the library no longer makes the music stutter** (#343, part of it). Each search, and

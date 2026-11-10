@@ -878,6 +878,28 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
 - The exclusive speakers' normal buffer went from 100 to 150 ms for everyone: cheap insurance.
 - **Dropouts are logged:** the exclusive speakers' buffer is checked about 30 times a second, and
   an empty one is noted in the activity log (at most every 10 s), with a hint to try the switch.
+  *Replaced in 1.7 (#345), below.*
+
+### Status: every dropout in the log (2026-11-10, issue #345)
+
+- At Hot Jam on 2026-11-09, 3-4 stutters in 40 minutes left nothing in the log: the check above
+  only worked for exclusive speakers, and only when a tick happened to catch the buffer empty.
+- **Now:** each tick compares how far the speakers' mix has played (BASS's position) with how
+  much time has passed (`DropoutWatch`). They stay within a millisecond of each other; when the
+  buffer runs dry the position stands still, and the difference steps up by the gap and stays
+  there. So every dropout is found and measured, shared or exclusive, even when GZJam itself was
+  held up and its ticks came late. Measured on Windows: holding up the audio thread for 400 ms
+  against the 200 ms buffer left the position 222 ms behind, and the log said 222 ms.
+- A gap is logged once it's been over for half a second (a card being unplugged stops the sound
+  too, and counts as lost, not as a dropout): *Speakers: the sound stopped for 222 ms (a
+  dropout)*, with how long GZJam had just stopped to tidy its memory (.NET garbage collection,
+  the cause in #343) if it had. Pauses of 100 ms or more are logged on their own too, heard or
+  not, and closing says how many dropouts there were. Every 10 minutes the log says how much
+  memory GZJam uses: at Hot Jam it reached a gigabyte over four hours, and nothing tried since
+  (browsing, a first scan and analysis of 12,700 songs, 30 songs loaded onto the decks) makes it
+  grow past 200 MB, so the log is to show when it does.
+- Tested on the computer's real speakers, shared (`SpeakerDropoutTests`, skipped on CI), and
+  with the readings BASS gave (`DropoutWatchTests`).
 - **Windows default warning:** when the speakers GZJam has to itself are also Windows' default
   output, Settings › Sound says other programs may refuse to play (YouTube did, in testing) and
   how to avoid it: make another output Windows' default.
