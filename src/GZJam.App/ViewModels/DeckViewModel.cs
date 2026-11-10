@@ -45,6 +45,8 @@ public sealed partial class DeckViewModel : ObservableObject
                 Eq.Refresh();
         };
         Readout = settings.DeckReadouts.GetValueOrDefault(Label, DeckReadout.Remaining);
+        deck.FadeStartedLate += (_, why) =>
+            Log.Info($"Deck {Label}: auto-play's limit was faded by the app, not the sound (#359): {why}");
         deck.Jumped += (_, _) =>
         {
             Log.Info($"Deck {Label}: jumped (\"{Title}\")");
