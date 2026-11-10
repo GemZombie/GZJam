@@ -64,7 +64,8 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
   itself are also Windows' default output: choose another output in Windows' Sound settings.
 
 If it still happens, [open an issue](https://github.com/GemZombie/GZJam/issues/new/choose) and
-attach the activity log: it notes when the speakers' sound ran dry.
+attach the activity log: it notes each time the speakers' sound stopped, for how long, and why
+if GZJam knows.
 
 ## Supporting GZJam
 

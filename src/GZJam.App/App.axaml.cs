@@ -282,6 +282,7 @@ public partial class App : Application
         desktop.Exit += (_, _) =>
         {
             Log.Info("GZJam closing");
+            viewModel.LogDropouts();
             viewModel.CloseNight();
             viewModel.Dispose();
             if (startOver is { } reset)

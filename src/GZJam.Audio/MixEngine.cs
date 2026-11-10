@@ -33,8 +33,8 @@ public sealed class MixEngine : IDisposable
     private readonly bool _offline;
     private double _crossfader;
     private bool _mainLostRaised;
-    private long _lastDropout = long.MinValue / 2;
-    private long _dryAt = -1;
+    private readonly DropoutWatch _dropouts = new();
+    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
 
     /// <param name="offline">
     /// Mix without audio devices; pull audio with <see cref="OutputBus.Render"/>. For tests.
@@ -91,11 +91,12 @@ public sealed class MixEngine : IDisposable
     public event EventHandler? MainOutputLost;
 
     /// <summary>
-    /// The speakers' exclusive output ran dry: a dropout or crackle may have been heard because the
-    /// computer didn't keep up. Raised from <see cref="Update"/> half a second later, unless the card
-    /// turned out to be unplugged, and at most every 10 seconds; the app logs it.
+    /// The speakers' sound stopped for a moment (#345), shared or GZJam's alone: the buffer ran
+    /// dry because the computer, or GZJam, didn't keep up. Raised from <see cref="Update"/> with
+    /// how long the gap was, once it's over (see <see cref="DropoutWatch"/>), unless the card
+    /// turned out to be unplugged; the app logs it.
     /// </summary>
-    public event EventHandler? MainDropout;
+    public event EventHandler<TimeSpan>? MainDropout;
 
     /// <summary>
     /// The headphones' or booth's output stopped by itself: unplugged. It stays quiet (nothing
@@ -290,7 +291,7 @@ public sealed class MixEngine : IDisposable
         Cue = newCue;
         Booth = newBooth;
         _mainLostRaised = false;
-        _dryAt = -1;
+        _dropouts.Reset();
         Array.Clear(_unplugged);
         Array.Clear(_waiting);
         // Headphones or a booth that wouldn't open (unplugged, say): waited for, as if unplugged
@@ -316,25 +317,25 @@ public sealed class MixEngine : IDisposable
         if (!_mainLostRaised && SpeakerOutput.IsLost)
         {
             _mainLostRaised = true;
-            _dryAt = -1;
+            _dropouts.Reset();
             MainOutputLost?.Invoke(this, EventArgs.Empty);
         }
-        else if (_dryAt < 0 && now - _lastDropout > 10_000 && SpeakerOutput.IsDry())
-        {
-            _dryAt = now;
-        }
         WatchTableOutputs(now);
-        // A card being unplugged runs dry a moment before Windows says it's gone: only a dry
-        // buffer that isn't followed by the card going within half a second is a dropout.
-        if (_dryAt >= 0 && now - _dryAt >= 500)
-        {
-            _dryAt = -1;
-            if (!SpeakerOutput.IsLost)
-            {
-                _lastDropout = now;
-                MainDropout?.Invoke(this, EventArgs.Empty);
-            }
-        }
+        if (!_offline && !_mainLostRaised)
+            WatchForDropouts();
+    }
+
+    /// <summary>
+    /// A card being unplugged stops the sound a moment before Windows says it's gone: the watch
+    /// reports a gap only once it's been over for half a second, and not if the card went.
+    /// </summary>
+    private void WatchForDropouts()
+    {
+        int handle = SpeakerOutput.Handle;
+        long bytes = Bass.ChannelGetPosition(handle);
+        double played = bytes < 0 ? -1 : Bass.ChannelBytes2Seconds(handle, bytes);
+        if (_dropouts.Observe(_clock.Elapsed, played) is { } gap && !SpeakerOutput.IsLost)
+            MainDropout?.Invoke(this, gap);
     }
 
     private OutputBus BusFor(TableOutput output) => output == TableOutput.Headphones ? Cue : Booth;

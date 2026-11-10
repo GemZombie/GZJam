@@ -80,8 +80,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             mix.MainOutputLost += (_, _) => OnMainOutputLost();
             mix.OutputUnplugged += (_, output) => OnTableOutputChanged(output, unplugged: true);
             mix.OutputBack += (_, output) => OnTableOutputChanged(output, unplugged: false);
-            mix.MainDropout += (_, _) => Log.Info(
-                $"Speakers: the sound buffer ran dry (a dropout may have been heard){(settings.ExtraBuffering ? "" : "; Settings › Sound › Extra protection against crackles may help")}");
+            mix.MainDropout += (_, gap) => OnMainDropout(gap);
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
@@ -1634,6 +1633,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>One playback tick: fades, end-of-track, snaps, and all the moving readouts.</summary>
     public void Tick()
     {
+        WatchMemoryPauses();
         Mix?.Update();
         Mixer?.Update();
         AutoPlay?.Tick();
