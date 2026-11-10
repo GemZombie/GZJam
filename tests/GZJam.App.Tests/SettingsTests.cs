@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
+using GZJam.Audio;
 
 namespace GZJam.App.Tests;
 
@@ -131,18 +132,37 @@ public sealed class SettingsTests
     }
 
     [AvaloniaFact]
-    public void Extra_protection_against_crackles_is_off_by_default_and_remembered()
+    public void Protection_against_crackles_is_normal_by_default_has_four_levels_and_is_remembered()
     {
         using var app = new AppHarness();
         app.Window.OpenSettings(SettingsSection.Sound);
-        var toggle = Panel(app).FindControl<ToggleButton>("ExtraBufferingSwitch")!;
-        Assert.True(toggle.IsEffectivelyVisible);
-        Assert.False(toggle.IsChecked);
+        var box = Panel(app).FindControl<ComboBox>("SoundBufferBox")!;
+        Assert.True(box.IsEffectivelyVisible);
+        Assert.Equal(4, box.ItemCount);
+        Assert.Equal(SoundBuffer.Normal, Assert.IsType<Choice<SoundBuffer>>(box.SelectedItem).Value);
 
-        app.ViewModel.Settings.ExtraBuffering = true;
-        Assert.True(app.Settings.ExtraBuffering);
-        Assert.True(toggle.IsChecked);
+        box.SelectedItem = app.ViewModel.Settings.BufferChoices.Single(c => c.Value == SoundBuffer.High);
+        Assert.Equal(SoundBuffer.High, app.Settings.SoundBuffer);
+        Assert.Equal(SoundBuffer.High, app.ViewModel.Audio!.Buffer);
         Assert.False(Panel(app).FindControl<TextBlock>("WindowsDefaultHint")!.IsEffectivelyVisible);   // no speakers chosen
+    }
+
+    [Theory]
+    [InlineData("true", SoundBuffer.High)]     // extra protection was on: still as much
+    [InlineData("false", SoundBuffer.Normal)]  // it was off: the new default
+    public void Settings_from_before_17_keep_their_protection_against_crackles(string extraBuffering, SoundBuffer expected)
+    {
+        string file = Path.Combine(Directory.CreateTempSubdirectory("gzjam-settings-").FullName, "settings.json");
+        File.WriteAllText(file, $$"""{ "Mono": true, "ExtraBuffering": {{extraBuffering}} }""");
+
+        AppSettings settings = AppSettings.Load(file);
+        Assert.Equal(expected, settings.SoundBuffer);
+
+        settings.Save(file);   // the old switch isn't saved again: the level is
+        string saved = File.ReadAllText(file);
+        Assert.DoesNotContain("ExtraBuffering", saved);
+        Assert.Contains($"\"SoundBuffer\": \"{expected}\"", saved);
+        Assert.Equal(expected, AppSettings.Load(file).SoundBuffer);
     }
 
     [AvaloniaFact]

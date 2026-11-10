@@ -117,12 +117,12 @@
                         HorizontalAlignment="Left" Margin="8,-6,0,6" />
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
-                  <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Extra protection against crackles" />
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Classes="setting" Text="Protection against crackles" />
                     <TextBlock Classes="setting-help"
-                               Text="If the sound crackles or drops out on this computer, turn this on. Play and the crossfader respond a little later." />
+                               Text="If the sound crackles or drops out on this computer, choose a higher one. The higher it is, the later play and the crossfader are heard: Low 0.2 s, Normal 0.35 s, High 0.6 s, Highest 1 s." />
                   </StackPanel>
-                  <ToggleButton x:Name="ExtraBufferingSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding ExtraBuffering}" />
+                  <ComboBox x:Name="SoundBufferBox" Grid.Column="1" VerticalAlignment="Center" ItemsSource="{Binding BufferChoices}" SelectedItem="{Binding BufferChoice}" />
                 </Grid>
               </StackPanel>
             </Border>

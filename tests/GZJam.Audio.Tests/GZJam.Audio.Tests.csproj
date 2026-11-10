@@ -16,6 +16,7 @@
     <Using Include="Xunit" />
     <Compile Include="..\Shared\TestWav.cs" Link="Shared\TestWav.cs" />
     <Compile Include="..\Shared\DamagedMp3.cs" Link="Shared\DamagedMp3.cs" />
+    <Compile Include="..\Shared\TestMachine.cs" Link="Shared\TestMachine.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -863,8 +863,8 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   instruments recorded on one side), **Match loudness** (on: songs are turned toward the same
   loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), **Loudness
   target** (what matching aims at: -16 LUFS usually; -18, -20 or -23 leave more headroom for a
-  mixer or PA that clips easily, so turn its channel up to make up for it), and **Extra protection
-  against crackles**.
+  mixer or PA that clips easily, so turn its channel up to make up for it), and **Protection
+  against crackles** (Normal: higher if the sound crackles or drops out, see below).
 - **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
@@ -990,8 +990,9 @@ Never remove the ground pin from a power plug.
 
 **The sound crackles or drops out**
 
-- Turn on **Settings › Sound › Extra protection against crackles**. Play and the crossfader respond
-  a little later, which hardly matters for social dancing.
+- Set **Settings › Sound › Protection against crackles** higher: High, then Highest. Play and the
+  crossfader are heard a little later (High 0.6 s, Highest 1 s), which hardly matters for social
+  dancing.
 - Use a wired output: Bluetooth speakers and headphones add delay and drop out.
 - Plug the sound card straight into the computer rather than through a hub or dock.
 - Keep the computer plugged in, at its best performance mode.

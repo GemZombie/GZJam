@@ -49,7 +49,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         if (audio is not null)
         {
-            audio.ExtraBuffering = settings.ExtraBuffering;
+            audio.Buffer = settings.SoundBuffer;
             Analysis = new TrackAnalysisService(database, audio);
             Analysis.Analyzed += OnAnalyzed;
             Analysis.PropertyChanged += (_, _) => BackgroundChanged();
@@ -1284,14 +1284,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             SetOutputs(Mix.Main.Device, Mix.Cue.Device, Mix.Booth.Device, remember: false);
     }
 
-    /// <summary>Applies <see cref="AppSettings.ExtraBuffering"/>, opening the outputs again with it.</summary>
-    public void SetExtraBuffering(bool value)
+    /// <summary>Applies <see cref="AppSettings.SoundBuffer"/>, opening the outputs again with it.</summary>
+    public void SetSoundBuffer(SoundBuffer value)
     {
-        _settings.ExtraBuffering = value;
-        Log.Info($"Extra protection against crackles: {(value ? "on" : "off")}");
+        _settings.SoundBuffer = value;
+        Log.Info($"Protection against crackles: {value}");
         if (Audio is null)
             return;
-        Audio.ExtraBuffering = value;
+        Audio.Buffer = value;
         if (Mix is { IsOffline: false })
             SetOutputs(Mix.Main.Device, Mix.Cue.Device, Mix.Booth.Device, remember: false);
     }

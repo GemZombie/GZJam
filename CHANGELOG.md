@@ -20,6 +20,13 @@ New:
   speakers GZJam had to itself were checked, and a short dropout could slip by. Closing GZJam says
   how many there were, so a stutter you heard can be found in the log.
 
+Changed:
+
+- **Protection against crackles has four levels** (#347, Settings › Sound): Low, Normal, High
+  and Highest, instead of a switch. New installs, and anyone who had the switch off, get Normal:
+  a little more protection than before, with play and the crossfader heard about a third of a
+  second later. Had it on? You're on High, the same as before.
+
 Fixed:
 
 - **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound

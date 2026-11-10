@@ -113,10 +113,10 @@ public sealed class ExclusiveOutputTests : IDisposable
     /// buffer was empty: it failed once, unexplained, and couldn't be reproduced in 170 runs (#47).
     /// </summary>
     [Fact]
-    public void With_extra_buffering_the_speakers_are_still_gzjams_alone()
+    public void With_the_highest_protection_the_speakers_are_still_gzjams_alone()
     {
         AudioDevice device = SpareDevice();
-        _engine.ExtraBuffering = true;
+        _engine.Buffer = SoundBuffer.Highest;
         var opened = System.Diagnostics.Stopwatch.StartNew();
         _mix.SetOutputs(device, null);
         Assert.True(_mix.Main.IsExclusive);
@@ -133,8 +133,8 @@ public sealed class ExclusiveOutputTests : IDisposable
         }
         if (dry.Count > 0)
             Assert.Fail($"{device.Name} ran dry in {dry.Count} of {samples} checks, {dry[0]:0}-{dry[^1]:0} ms after opening " +
-            $"(lost: {_mix.Main.IsLost}): a dropout, with extra buffering on");
-        _engine.ExtraBuffering = false;
+            $"(lost: {_mix.Main.IsLost}): a dropout, with the highest protection");
+        _engine.Buffer = SoundBuffer.Normal;
     }
 
     [Fact]
