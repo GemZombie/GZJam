@@ -197,4 +197,5 @@ script, the Linux tarball and install scripts).
 - `tests/` — library tests and headless UI tests
 - `tools/test.cs` — runs every test, the UI tests in a few processes at once
 - `tools/GZJam.DevTools` — `bench <folder>`: scan timings and tag coverage for a real library
-- `lib/bass/` — native BASS + BASS_FX for Windows (x64), Linux (x64) and macOS (universal); `Bass.targets` copies the right set into each app's output
+- `lib/bass/` — native BASS + BASS_FX, and GZJam's own sound processing (`gzjam_dsp`), for Windows (x64), Linux (x64) and macOS (universal); `Bass.targets` copies the right set into each app's output
+- `native/` — `gzjam_dsp.c`, the sound processing BASS runs on its audio thread (volume, mono, limiter, meters, jumps), so no .NET runs there (#344); `build.cmd` / `build.sh` and the Native workflow build it into `lib/bass/`

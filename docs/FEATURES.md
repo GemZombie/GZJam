@@ -904,6 +904,36 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   output, Settings › Sound says other programs may refuse to play (YouTube did, in testing) and
   how to avoid it: make another output Windows' default.
 
+### Status: the audio thread runs no .NET (2026-11-10, issue #344)
+
+- **Why:** BASS mixes on its own thread, and called back into .NET there for GZJam's own
+  processing: each output's volume, mono, limiter and meter (`OutputBus`), each deck's meter, and
+  the deck's jumps (a mixtime sync). A .NET garbage collection stops every thread that runs .NET
+  code, so the audio thread waited for each one, and a long one (400-500 ms at Hot Jam, #343) let
+  the buffer run dry.
+- **Now:** all of it is a small C library, `native/gzjam_dsp.c` (`NativeDsp` in GZJam.Audio), and
+  BASS calls it directly. The state each callback works on is native memory GZJam allocates and
+  passes as BASS's `user` pointer: the window's thread writes the volume and mono and takes the
+  peaks (an atomic exchange for 0); the audio thread raises them with compare-and-swap. A jump
+  calls `BASS_ChannelSetPosition` through a pointer GZJam looks up, so the library doesn't link to
+  BASS; the deck sees the jump on its next update and reports it.
+- The limiter is the same as before, sample for sample: instant attack, 300 ms release, a ceiling
+  of 0.99. BASS's own effects were tried first (BASS_FX_VOLUME, BFX_MIX, BFX_COMPRESSOR2): the
+  compressor works on the average level, not peaks, so two loud decks blended reached 1.34, over
+  full scale. Not good enough for a limiter.
+- **Builds:** the libraries are kept in `lib/bass/<platform>` beside BASS's own and copied with
+  them (`Bass.targets`), so building GZJam needs no C compiler. `native/build.cmd` (Windows: no C
+  runtime and no Windows libraries, 3.5 KB, needs only `cl.exe`), `native/build.sh` (macOS:
+  Intel and Apple Silicon in one; Linux: no C library, so any glibc), and the Native workflow,
+  which builds all three when the C file changes. `gz_version` guards against an old library.
+- **Tested:** `MemoryPauseTests` plays a deck (a jump armed) on the real speakers, shared, while
+  full compacting collections of a 12-million-object heap stop .NET for up to 0.5 s. On the old
+  code the sound stopped for 1.4 s; now there are no gaps. It's skipped where the pauses come out
+  shorter than the buffer (fast computers), and on CI (no sound card). Every limiter, meter and
+  jump test passes unchanged.
+- Everything else BASS runs is native already: decoding, tempo, EQ, the mixers and the exclusive
+  output (BASSWASAPI feeds from the mixer itself).
+
 ### Status: asking before closing mid-set (2026-10-23, issue #28)
 
 - Closing GZJam (the close button, Alt+F4, Cmd+Q) while the room is hearing a deck asks
