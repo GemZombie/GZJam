@@ -164,6 +164,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   Low, Normal, High and Highest, with the new Normal as the default
 - [Speakers unplugged mid-song are noticed](https://github.com/GemZombie/GZJam/issues/353), shared
   or GZJam's alone, and the music moves to another output within a couple of seconds
+- [Songs play from memory](https://github.com/GemZombie/GZJam/issues/346): a slow or sleeping drive
+  can't interrupt a song that's playing, and the next songs are read ahead
 
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 

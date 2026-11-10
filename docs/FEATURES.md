@@ -867,6 +867,19 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
 - Tested on real devices on Windows (`ExclusiveOutputTests`), using a device that isn't the
   computer's default; they skip on CI machines, which have no sound cards.
 
+### Status: songs played from memory (2026-11-10, issue #346)
+
+- A deck and the headphone preview play the song file from memory (`SongCache`, native memory the
+  garbage collector never touches): BASS read more of a playing file from the disk on its audio
+  thread, so a drive spinning down, an antivirus scan or a sync tool locking the file could stop
+  the music. Read whole when loaded, nothing the deck plays touches the disk; the deck plays on
+  even if the file is deleted (`SongCacheTests`).
+- **Read ahead** on a low-priority thread: the top two songs of the queue (auto-play's next), and
+  the first songs of a drag as it starts, so loading them doesn't wait for the disk either. Six
+  are kept besides those playing; a file changed since (size or time) is read again.
+- Files over 300 MB (an hour-long mix) play from disk as before. A server's song not yet
+  downloaded isn't a file, and isn't read ahead.
+
 ### Status: extra protection against crackles (2026-10-23, issue #25)
 
 - **Settings › Sound › Extra protection against crackles** (off by default): every output's buffers

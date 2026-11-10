@@ -22,6 +22,8 @@ public sealed class PreviewPlayer : IDisposable
     public bool IsPlaying => _playing;
 
     /// <summary>Raised from <see cref="MixEngine.Update"/> when the previewed track reaches its end.</summary>
+    private SongMemory? _memory;   // the song file, read whole (#346)
+
     public event EventHandler? Finished;
 
     /// <summary>Starts previewing <paramref name="path"/>, replacing anything already previewing.</summary>
@@ -29,7 +31,18 @@ public sealed class PreviewPlayer : IDisposable
     {
         Stop();
         _mix.Engine.UseNoSoundDevice();
-        int stream = SongFile.Open(path);
+        SongMemory? memory = _mix.Songs.Take(path);   // from memory, as the decks play (#346)
+        int stream;
+        try
+        {
+            stream = SongFile.Open(path, memory);
+        }
+        catch
+        {
+            memory?.Release();
+            throw;
+        }
+        _memory = memory;
 
         _stream = stream;
         TrackPath = path;
@@ -47,6 +60,8 @@ public sealed class PreviewPlayer : IDisposable
             Detach();
             Bass.StreamFree(_stream);
         }
+        _memory?.Release();
+        _memory = null;
         _stream = 0;
         _sound.Detach();   // freed with the stream
         _playing = false;

@@ -21,6 +21,7 @@ public sealed unsafe class Deck : IDisposable
     private bool _ended;
     private double _tempoPercent;
     private double _volume = 1;
+    private SongMemory? _memory;   // the song file, read whole: what the deck plays from (#346)
     private double _gain = 1;   // loudness matching and the DJ's own gain, as a factor
     private double _mainGain;
     private bool _cue;
@@ -72,13 +73,27 @@ public sealed unsafe class Deck : IDisposable
         _end = null;
         _mix.Engine.UseNoSoundDevice();
 
-        int source = SongFile.Open(path);
+        // The whole file in memory, so the music never waits for the disk (#346).
+        SongMemory? memory = _mix.Songs.Take(path);
+        int source;
+        try
+        {
+            source = SongFile.Open(path, memory);
+        }
+        catch
+        {
+            memory?.Release();
+            throw;
+        }
+        _memory = memory;
 
         int tempo = BassFx.TempoCreate(source, BassFlags.Decode | BassFlags.FxFreeSource);
         if (tempo == 0)
         {
             Errors error = Bass.LastError;
             Bass.StreamFree(source);
+            _memory?.Release();
+            _memory = null;
             throw new AudioException($"Could not create tempo stream for '{path}'", error);
         }
 
@@ -114,6 +129,8 @@ public sealed unsafe class Deck : IDisposable
             Bass.StreamFree(_splitBooth);
             Bass.StreamFree(_tempo);
         }
+        _memory?.Release();   // after its streams: BASS no longer reads it
+        _memory = null;
         _tempo = _splitMain = _splitCue = _splitBooth = 0;
         _sound.Detach();   // freed with the stream
         _playing = false;

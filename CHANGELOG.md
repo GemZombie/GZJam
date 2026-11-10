@@ -26,6 +26,11 @@ Changed:
   and Highest, instead of a switch. New installs, and anyone who had the switch off, get Normal:
   a little more protection than before, with play and the crossfader heard about a third of a
   second later. Had it on? You're on High, the same as before.
+- **A song on a deck plays from memory, not from the disk** (#346). GZJam reads the whole file when
+  it's loaded, so a slow or sleeping drive, an antivirus scan or an unplugged USB stick can't
+  interrupt a song that's playing. The next songs in the queue, and a song you start dragging, are
+  read ahead, so loading them doesn't wait for the disk either. Files over 300 MB (a long DJ mix)
+  still play from the disk.
 
 Fixed:
 

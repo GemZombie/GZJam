@@ -56,6 +56,9 @@ public sealed class MixEngine : IDisposable
 
     internal AudioEngine Engine { get; }
 
+    /// <summary>Songs read whole into memory for the decks and the headphones (#346), and read ahead.</summary>
+    public SongCache Songs { get; } = new();
+
     /// <summary>Mixing without audio devices (tests).</summary>
     public bool IsOffline => _offline;
     internal TimeProvider Time { get; }
@@ -607,6 +610,7 @@ public sealed class MixEngine : IDisposable
         foreach (Deck deck in Decks)
             deck.Dispose();
         Preview.Dispose();
+        Songs.Dispose();
         _carrier?.Dispose();
         Main.Dispose();
         Cue.Dispose();
