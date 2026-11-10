@@ -152,7 +152,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.7,** not in a beta yet:
+**In 1.7,** to try now in [1.7.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.1):
 
 - [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
   the song list reuses its rows, and stays sorted by the column you chose through a new search

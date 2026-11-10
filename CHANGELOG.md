@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+## 1.7.0-beta.1 (2026-11-10)
+
+The first beta of 1.7, where nothing GZJam does should ever be heard in the room. Its own sound
+processing now runs as native code, so the music never waits for GZJam to tidy its memory, which is
+what made it stutter at Hot Jam. Songs play from memory rather than the disk, and speakers that are
+unplugged mid-song are noticed and come back by themselves. Protection against crackles is a little
+higher by default. Like the others, GZJam's update notice doesn't offer it: you only get it from
+this page. It has everything in 1.6.0-beta.2.
+
 New:
 
 - **Every dropout is written in the activity log** (#345), with how long the sound stopped and
