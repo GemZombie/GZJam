@@ -94,6 +94,39 @@ public sealed class EqAppTests
     }
 
     [AvaloniaFact]
+    public void A_fader_held_is_heard_at_every_step_and_saved_once_when_let_go()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var song = app.ToneTrack("Muddy");
+        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        var button = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<Button>("EqButton")!;
+        button.Flyout!.ShowAt(button);
+        AppHarness.Settle(200);
+        var panel = (EqPanel)((Flyout)button.Flyout).Content!;
+        var low = panel.FindControl<GZJam.App.Controls.Fader>("EqLowFader")!;
+        Point At(double db) => low.TranslatePoint(new Point(low.Bounds.Width / 2, low.YOf(db)), app.Window)!.Value;
+
+        // Grabbed on its cap (at 0 dB) and pulled down: heard at once, not yet saved.
+        app.Window.MouseDown(At(0), Avalonia.Input.MouseButton.Left);
+        app.Window.MouseMove(At(-6));
+        app.Window.MouseMove(At(-12));
+        AppHarness.Settle(50);
+        Assert.Equal(-12, vm.Deck1!.Eq.Low);
+        Assert.Equal(-12, vm.Deck1.Deck.Eq.Low);
+        Assert.Equal(TrackEq.Flat, app.Database.GetEq(song.Path));
+
+        app.Window.MouseUp(At(-12), Avalonia.Input.MouseButton.Left);
+        AppHarness.Settle(50);
+        Assert.Equal(-12, app.Database.GetEq(song.Path).Low);
+
+        // Set any other way (a key, a button, a test), it's saved straight away, as before.
+        vm.Deck1.Eq.High = -3;
+        Assert.Equal(-3, app.Database.GetEq(song.Path).High);
+        button.Flyout.Hide();
+    }
+
+    [AvaloniaFact]
     public void The_mid_band_moves_a_third_of_an_octave_a_tap_and_is_remembered()
     {
         using var app = new AppHarness();
