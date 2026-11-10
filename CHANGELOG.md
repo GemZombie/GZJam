@@ -13,6 +13,17 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.7.0-beta.2.
+
+## 1.7.0-beta.2 (2026-11-10)
+
+The second beta of 1.7: nothing on screen should hold up the music, and the screen should no
+longer freeze. Fades, the crossfader and the end of each song are now handled by the sound itself,
+so a busy moment can't leave a fade halfway or the room between two decks. Loading a song,
+counting one as played and saving no longer freeze the screen. Like the others, GZJam's update
+notice doesn't offer it: you only get it from this page. It has everything in 1.7.0-beta.1, and
+nothing changes in your library.
+
 Fixed:
 
 - **Saving no longer holds up the screen** (#362). Each change GZJam keeps (a rating, a cue, a
