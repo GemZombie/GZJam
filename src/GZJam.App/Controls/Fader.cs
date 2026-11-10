@@ -3,6 +3,7 @@ using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace GZJam.App.Controls;
@@ -46,6 +47,28 @@ public sealed class Fader : Control
 
     public static readonly StyledProperty<bool> LightLinesProperty =
         AvaloniaProperty.Register<Fader, bool>(nameof(LightLines), true);
+
+    /// <summary>The fader is grabbed (pressed, by mouse, finger or pen): it moves until it's let go.</summary>
+    public static readonly RoutedEvent<RoutedEventArgs> HeldEvent =
+        RoutedEvent.Register<Fader, RoutedEventArgs>(nameof(Held), RoutingStrategies.Bubble);
+
+    /// <summary>The fader is let go (or the pointer was taken from it).</summary>
+    public static readonly RoutedEvent<RoutedEventArgs> LetGoEvent =
+        RoutedEvent.Register<Fader, RoutedEventArgs>(nameof(LetGo), RoutingStrategies.Bubble);
+
+    public event EventHandler<RoutedEventArgs>? Held
+    {
+        add => AddHandler(HeldEvent, value);
+        remove => RemoveHandler(HeldEvent, value);
+    }
+
+    public event EventHandler<RoutedEventArgs>? LetGo
+    {
+        add => AddHandler(LetGoEvent, value);
+        remove => RemoveHandler(LetGoEvent, value);
+    }
+
+    private bool _held;
 
     private const double CapWidth = 34;
     private const double CapHeight = 16;
@@ -228,6 +251,11 @@ public sealed class Fader : Control
         // the cap from where it is, by as much as the finger moves.
         bool onCap = e.Pointer.Type != PointerType.Mouse || Math.Abs(p.Y - capY) <= CapHeight / 2 + 6;
         _grabOffset = onCap ? p.Y - capY : 0;
+        if (!_held)
+        {
+            _held = true;
+            RaiseEvent(new RoutedEventArgs(HeldEvent, this));
+        }
         if (e.ClickCount == 2 && ResetValue is { } reset)
             Value = reset;
         else if (!onCap)
@@ -249,6 +277,21 @@ public sealed class Fader : Control
         base.OnPointerReleased(e);
         if (e.Pointer.Captured == this)
             e.Pointer.Capture(null);
+        LetGoNow();
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        LetGoNow();
+    }
+
+    private void LetGoNow()
+    {
+        if (!_held)
+            return;
+        _held = false;
+        RaiseEvent(new RoutedEventArgs(LetGoEvent, this));
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
