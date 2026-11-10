@@ -35,6 +35,13 @@ internal sealed class DropoutWatch
     private double _gapPeak;
     private TimeSpan _lastRise;
 
+    /// <summary>
+    /// How long the sound has been gone so far, while it still is (0 when it's playing): a gap
+    /// that keeps growing is reported by <see cref="Observe"/> only once it's over, and one that
+    /// never ends (the speakers' card gone, #353) would never be.
+    /// </summary>
+    public TimeSpan Silent => _gapFrom is { } from ? TimeSpan.FromSeconds(Math.Max(0, _lag - from)) : TimeSpan.Zero;
+
     /// <summary>Forgets what it saw: new outputs, say.</summary>
     public void Reset()
     {

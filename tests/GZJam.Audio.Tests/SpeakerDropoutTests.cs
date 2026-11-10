@@ -66,4 +66,43 @@ public sealed class SpeakerDropoutTests : IDisposable
         Assert.InRange(gap.TotalMilliseconds, 120, 400);
         GC.KeepAlive(holdUp);
     }
+
+    [Fact]
+    public void Speakers_silent_for_two_seconds_are_lost_as_if_unplugged()
+    {
+        // As when a shared USB card dropped out (#353): the sound stops and doesn't come back.
+        // Here the audio thread is held up for 4 s; within a few seconds the speakers count as lost.
+        AudioDevice? device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
+        Assert.SkipWhen(device is null || TestMachine.IsCi, TestMachine.NeedsRealSpeakers);
+        _mix.SetOutputs(device, null);
+        Assert.False(_mix.Main.IsExclusive);
+        int lost = 0;
+        var gaps = new List<TimeSpan>();
+        _mix.MainOutputLost += (_, _) => lost++;
+        _mix.MainDropout += (_, gap) => gaps.Add(gap);
+
+        var clock = Stopwatch.StartNew();
+        int held = 0;
+        DSPProcedure holdUp = (_, _, _, _, _) =>
+        {
+            if (clock.ElapsedMilliseconds >= 1000 && Interlocked.Exchange(ref held, 1) == 0)
+                Thread.Sleep(4000);
+        };
+        Bass.ChannelSetDSP(_mix.Main.Handle, holdUp, IntPtr.Zero, 100);
+
+        long lostAt = -1;
+        while (clock.ElapsedMilliseconds < 6000 && lost == 0)
+        {
+            Thread.Sleep(33);
+            _mix.Update();
+            if (lost > 0)
+                lostAt = clock.ElapsedMilliseconds;
+        }
+
+        Assert.Equal(1, lost);
+        Assert.InRange(_mix.MainLostAfter.TotalSeconds, 2, 2.5);
+        Assert.InRange(lostAt, 3000, 4000);   // held up at about 1 s, with the buffer's worth to play first
+        Assert.Empty(gaps);   // lost, not a dropout
+        GC.KeepAlive(holdUp);
+    }
 }

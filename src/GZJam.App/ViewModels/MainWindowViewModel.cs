@@ -1215,22 +1215,31 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         return (main, cue, notice);
     }
 
+    /// <summary>When the lost speakers were last opened again, by <see cref="OnMainOutputLost"/>.</summary>
+    private long _speakersReopenedAt = long.MinValue / 2;
+
     /// <summary>
-    /// The speakers stopped by themselves while GZJam had them alone (unplugged, or taken by
-    /// Windows): opens them again if they're still there, else the system default, as at startup.
+    /// The speakers stopped by themselves (unplugged, or taken by Windows), shared or GZJam's
+    /// alone (#353): opens them again if they're still there, else the system default, as at
+    /// startup.
     /// </summary>
     private void OnMainOutputLost()
     {
         AudioDevice? lost = Mix!.Main.Device;
         string name = lost?.Name ?? "The speaker output";
-        Log.Error($"Speaker output stopped: {name}");
+        TimeSpan silent = Mix.MainLostAfter;
+        Log.Error($"Speaker output stopped: {name}" +
+                  (silent > TimeSpan.Zero ? $" (no sound for {silent.TotalSeconds:0.0} s)" : ""));
         AudioDevice? cue = Audio!.FindDevice(_settings.CueDevice);
         AudioDevice? booth = Audio.FindDevice(_settings.BoothDevice);
 
         // Still there (Windows took it for a moment): open it again. Windows may still list a card
-        // just unplugged, so only opening it says it's back.
-        if (Audio.FindDevice(_settings.MainDevice) is { } saved && SetOutputs(saved, cue, booth, remember: false, quiet: true))
+        // just unplugged, so only opening it says it's back; and one that opens but goes quiet
+        // again at once (a shared card that's gone, #353) isn't tried again.
+        bool justReopened = Environment.TickCount64 - _speakersReopenedAt < 10_000;
+        if (!justReopened && Audio.FindDevice(_settings.MainDevice) is { } saved && SetOutputs(saved, cue, booth, remember: false, quiet: true))
         {
+            _speakersReopenedAt = Environment.TickCount64;
             ShowNotice($"{name} stopped for a moment; GZJam opened it again.");
             Settings.RefreshDevices();
             return;

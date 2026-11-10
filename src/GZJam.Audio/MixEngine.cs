@@ -85,10 +85,24 @@ public sealed class MixEngine : IDisposable
     public string? BoothRefusal { get; private set; }
 
     /// <summary>
-    /// The speakers' exclusive output stopped by itself (unplugged, or taken by Windows). Raised
-    /// once, from <see cref="Update"/>; the app opens outputs again.
+    /// The speakers' output stopped by itself: unplugged, or taken by Windows. Shared or GZJam's
+    /// alone (#353: shared speakers weren't watched, and a USB card dropping out left GZJam silent,
+    /// showing the deck still playing). Noticed when BASS says the device stopped, when an
+    /// exclusive output reports it, or when the sound has been gone for
+    /// <see cref="SpeakersGoneAfter"/> whatever the reason. Raised once, from <see cref="Update"/>;
+    /// the app opens outputs again.
     /// </summary>
     public event EventHandler? MainOutputLost;
+
+    /// <summary>
+    /// The sound gone from the speakers this long, and not back: they're lost, as if unplugged.
+    /// Far longer than any dropout the buffers ride out, short enough that the room isn't left
+    /// waiting.
+    /// </summary>
+    internal static readonly TimeSpan SpeakersGoneAfter = TimeSpan.FromSeconds(2);
+
+    /// <summary>How long the speakers' sound had been gone when they were found lost (0 if BASS said so first).</summary>
+    public TimeSpan MainLostAfter { get; private set; }
 
     /// <summary>
     /// The speakers' sound stopped for a moment (#345), shared or GZJam's alone: the buffer ran
@@ -317,15 +331,18 @@ public sealed class MixEngine : IDisposable
         // An exclusive card found empty because it's been unplugged is marked lost here, sooner
         // than Windows says so (an empty one that's still there is the dropout watch's to judge).
         SpeakerOutput.IsDry();
-        if (!_mainLostRaised && SpeakerOutput.IsLost)
+        bool watched = !_offline && !SpeakerOutput.IsOffline && !_mainLostRaised;
+        if (watched)
+            WatchForDropouts();
+        if (!_mainLostRaised && (SpeakerOutput.IsLost || DeviceStopped(SpeakerOutput)
+                                 || (watched && _dropouts.Silent >= SpeakersGoneAfter)))
         {
             _mainLostRaised = true;
+            MainLostAfter = _dropouts.Silent;
             _dropouts.Reset();
             MainOutputLost?.Invoke(this, EventArgs.Empty);
         }
         WatchTableOutputs(now);
-        if (!_offline && !_mainLostRaised)
-            WatchForDropouts();
     }
 
     /// <summary>
