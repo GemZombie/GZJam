@@ -234,6 +234,12 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 - [Songs read into memory when loaded](https://github.com/GemZombie/GZJam/issues/346), so a slow or
   sleeping drive can't interrupt a song that's playing
 - [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347), with four levels to choose from
+- [Fades, the crossfader's slide and song ends handled by the sound itself](https://github.com/GemZombie/GZJam/issues/359),
+  so a busy screen can never hold them up
+- No more moments the screen freezes: when [a song counts as played](https://github.com/GemZombie/GZJam/issues/360)
+  (seconds, with a long History), when [a song is loaded](https://github.com/GemZombie/GZJam/issues/361)
+  that wasn't read ahead, when [anything is saved](https://github.com/GemZombie/GZJam/issues/362), and
+  [the close-up waveform's colors](https://github.com/GemZombie/GZJam/issues/363) no longer making work as the night goes on
 
 **1.8: playlists,** with ideas from Danny Cherry's fork:
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
@@ -243,6 +249,13 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
   each under its server, in folders built from their names, as Navidrome apps do, and sent back
   to the server the same way
+
+and a smoother screen, from a performance review: [the close-up waveform](https://github.com/GemZombie/GZJam/issues/364)
+drawn alongside the screen, not by it; [the decks' readouts](https://github.com/GemZombie/GZJam/issues/365)
+and [waveforms and meters](https://github.com/GemZombie/GZJam/issues/366) doing only the work that shows;
+[no disk or device checks](https://github.com/GemZombie/GZJam/issues/367) holding up the screen;
+[big libraries](https://github.com/GemZombie/GZJam/issues/368) of 50,000 songs and more listed quickly; and
+[first-time analysis](https://github.com/GemZombie/GZJam/issues/369) going gently while music plays
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
