@@ -95,8 +95,9 @@ For a release you'd use at a dance, test your real library.
 ### Unplugging
 Do each while a song is playing to the room.
 - [ ] **The speakers' sound card:** within a couple of seconds GZJam says so and falls back to
-      another output (never the headphones' own). Plug it back in, *Refresh the list* in Settings ›
-      Sound, choose it again. Once shared (*Speakers for GZJam alone* off, the default), and once
+      another output (never the headphones' own). Plug it back in: with a song on air, a notice
+      says it switches when nothing is playing, and it does at the next gap; with nothing on air,
+      within a couple of seconds ("Speakers are back on …"). Once shared (*Speakers for GZJam alone* off, the default), and once
       GZJam's alone (Windows). The log says "Speaker output stopped", with how long there was no
       sound.
 - [ ] **The headphones,** while previewing a song: a notice says they're unplugged, CUE in the
@@ -108,7 +109,8 @@ Do each while a song is playing to the room.
 - [ ] **The booth:** the room keeps playing; the booth says *Unplugged*, and comes back by itself
       when plugged in again.
 - [ ] Start GZJam with the speakers' sound card unplugged: it says so and uses another output.
-      Plugged in again before the next start, it's used again.
+      Settings › Sound lists the card first, *(not plugged in)*. Change the headphones, then plug
+      the card in: MAIN switches to it by itself (the headphones change didn't forget it).
 
 ### A night
 - [ ] Fill the queue (and a playlist, added to the queue) and turn on **Auto-play** for an hour or

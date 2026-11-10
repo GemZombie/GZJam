@@ -990,10 +990,30 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   the system default, never the headphones' own output, with a notice. The log says how long
   there was no sound. Speakers that go quiet again within 10 s of being opened again (Windows
   can still list a card just unplugged) aren't tried a second time.
-- Switching back by itself when the card is plugged in again is #338.
+- Switching back by itself when the card is plugged in again: #338, below.
 - **Tested:** offline, with a stand-in for BASS's "device stopped"; on the real speakers, shared,
   with the audio thread held up for 4 s (found lost after 2.0-2.5 s of silence, and not logged as
   a dropout); and the dropout watch with a position that stops for good.
+
+### Status: the speakers come back by themselves (2026-11-10, issue #338)
+
+- **Any time MAIN is on a fallback** (the saved output wasn't there at startup, or was lost during
+  the night, #353), GZJam looks for the saved one every 2 s (`LookForSavedSpeakers`, by name and
+  driver: `AudioEngine.FindDevice`), as the headphones and booth already were (#72).
+- **Never under a song:** it switches only while no deck is on air (`DeckViewModel.IsOnAir`). With
+  one on air, a notice says so once ("… is plugged in. The speakers switch to it when nothing is
+  playing.") and it switches at the next quiet moment, which with auto-play is the gap between
+  songs. Then "Speakers are back on …". The headphones and booth come back as saved, so
+  headphones a fallback turned off (they'd have played in the room) are on again, and a saved
+  split is split again.
+- **The saved choice survives the fallback:** a change of outputs in Settings while on a fallback
+  (the headphones, the booth, the split) no longer saves the fallback as MAIN; only choosing MAIN
+  does (`SavesMain`). Settings › Sound lists the saved speakers first, *(not plugged in)*, as
+  MAIN's choice, so picking the fallback from the list is a real change: the way to stay on it.
+- A card that's listed but dead (Windows can list one just unplugged): if it's lost again within
+  10 s of switching back, GZJam goes straight to the fallback, and doesn't try again for 30 s.
+- **Tested:** the decision (`DecideSpeakersBack`: nothing, wait, or switch), the saving rule, and
+  the Settings list; the switch itself needs real devices (TESTING.md › Unplugging).
 
 ### Status: asking before closing mid-set (2026-10-23, issue #28)
 
