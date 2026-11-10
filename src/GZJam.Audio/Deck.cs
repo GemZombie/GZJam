@@ -465,7 +465,7 @@ public sealed unsafe class Deck : IDisposable
     /// its level. 0 while paused. For the deck's meter: call it regularly.
     /// </summary>
     /// <remarks>Measured natively (#344) as the speakers' mix takes the deck's audio, before its volume is applied.</remarks>
-    public float TakePeak() => Interlocked.Exchange(ref _meter->Peak, 0) * (float)_gain;
+    public float TakePeak() => _disposed ? 0 : Interlocked.Exchange(ref _meter->Peak, 0) * (float)_gain;
 
     internal void Update()
     {

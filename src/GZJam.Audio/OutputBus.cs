@@ -32,6 +32,11 @@ public sealed unsafe class OutputBus : IDisposable
     private readonly ExclusiveOutput? _exclusive;
     private bool _disposed;
 
+    // Kept here too: a bus that's been let go of still says what it was set to, for the one
+    // replacing it (MixEngine.SetOutputs, Reopen), after its native state is freed.
+    private float _volume = 1;
+    private bool _mono;
+
     /// <param name="exclusive">The output GZJam has to itself (Windows), freed with the bus.</param>
     internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate, ExclusiveOutput? exclusive = null)
     {
@@ -74,8 +79,13 @@ public sealed unsafe class OutputBus : IDisposable
     /// <summary>Output level, 0 (silent) to 1 (as mixed).</summary>
     public float Volume
     {
-        get => Volatile.Read(ref _bus->Volume);
-        set => Volatile.Write(ref _bus->Volume, Math.Clamp(value, 0, 1));
+        get => _volume;
+        set
+        {
+            _volume = Math.Clamp(value, 0, 1);
+            if (!_disposed)
+                Volatile.Write(ref _bus->Volume, _volume);
+        }
     }
 
     /// <summary>
@@ -85,8 +95,13 @@ public sealed unsafe class OutputBus : IDisposable
     /// </summary>
     public bool Mono
     {
-        get => Volatile.Read(ref _bus->Mono) != 0;
-        set => Volatile.Write(ref _bus->Mono, value ? 1 : 0);
+        get => _mono;
+        set
+        {
+            _mono = value;
+            if (!_disposed)
+                Volatile.Write(ref _bus->Mono, value ? 1 : 0);
+        }
     }
 
     /// <summary>
@@ -95,6 +110,8 @@ public sealed unsafe class OutputBus : IDisposable
     /// </summary>
     public (float Left, float Right, bool Limited) TakeLevels()
     {
+        if (_disposed)
+            return (0, 0, false);
         return (Interlocked.Exchange(ref _bus->PeakLeft, 0), Interlocked.Exchange(ref _bus->PeakRight, 0),
                 Interlocked.Exchange(ref _bus->Limited, 0) != 0);
     }
