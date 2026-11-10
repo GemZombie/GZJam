@@ -227,6 +227,15 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   sleeping drive can't interrupt a song that's playing
 - [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347)
 
+**1.8: playlists,** with ideas from Danny Cherry's fork:
+- [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
+  column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
+- [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
+  nested, folded away, and brought in from a folder of M3U files with its subfolders
+- [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
+  each under its server, in folders built from their names, as Navidrome apps do, and sent back
+  to the server the same way
+
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
   action, chosen in Settings, with clashes shown and a way back to the defaults
