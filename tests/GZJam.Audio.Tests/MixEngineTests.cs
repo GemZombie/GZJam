@@ -334,6 +334,25 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void The_fade_point_still_works_when_the_end_is_set_again_just_before_it()
+    {
+        // The analysis can finish while the song is just before auto-play's limit, setting the
+        // song's start and end, which sets the fade points again (#359, Apple Silicon and Linux).
+        for (int i = 0; i < 20; i++)
+        {
+            A.Load(_tone);
+            A.AutoFade = (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(0.3));
+            A.Play();
+            A.Seek(TimeSpan.FromSeconds(2.8));
+            Render(0.1 + i * 0.005);
+            A.SetTrim(TimeSpan.Zero, TimeSpan.FromSeconds(9));   // the analysis has come in
+            Render(0.5);
+            Assert.True(Render(0.1).Main < Silent, $"try {i}: still playing past the point (decoded to {A.Position.TotalSeconds:0.000} s)");
+            A.Unload();
+        }
+    }
+
+    [Fact]
     public void Moved_to_just_before_the_end_the_song_still_stops_there()
     {
         for (int i = 0; i < 20; i++)

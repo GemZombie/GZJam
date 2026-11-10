@@ -153,6 +153,7 @@ public sealed unsafe class Deck : IDisposable
         foreach (Jump jump in _jumps)
             jump.Forget();   // the sync is freed with the stream
         _endSync = _autoSync = 0;   // so are these
+        _endSyncFor = _autoSyncFor = null;
         if (_tempo != 0)
         {
             Detach();
@@ -361,23 +362,39 @@ public sealed unsafe class Deck : IDisposable
     {
         if (!IsLoaded)
             return;
-        if (_endSync != 0)
-            Bass.ChannelRemoveSync(_tempo, _endSync);
-        if (_autoSync != 0)
-            Bass.ChannelRemoveSync(_tempo, _autoSync);
-        _endSync = _autoSync = 0;
-        if (_end is not null)
-        {
-            _endAt->Frames = Frames(EndFade ?? EndStop);
-            _endAt->Reason = PlayedOut;
-            _endSync = NativeDsp.SetFadeSync(_tempo, Bass.ChannelSeconds2Bytes(_tempo, End.TotalSeconds), _endAt);
-        }
-        if (AutoFade is { } fade && fade.At < End)
-        {
-            _autoAt->Frames = Frames(fade.Length);
-            _autoAt->Reason = Asked;
-            _autoSync = NativeDsp.SetFadeSync(_tempo, Bass.ChannelSeconds2Bytes(_tempo, fade.At.TotalSeconds), _autoAt);
-        }
+        (long At, uint Frames)? end = _end is not null
+            ? (Bass.ChannelSeconds2Bytes(_tempo, End.TotalSeconds), Frames(EndFade ?? EndStop))
+            : null;
+        (long At, uint Frames)? auto = AutoFade is { } fade && fade.At < End
+            ? (Bass.ChannelSeconds2Bytes(_tempo, fade.At.TotalSeconds), Frames(fade.Length))
+            : null;
+        SetFadeSync(ref _endSync, ref _endSyncFor, end, _endAt, PlayedOut);
+        SetFadeSync(ref _autoSync, ref _autoSyncFor, auto, _autoAt, Asked);
+    }
+
+    // Where each sync is set now, and the fade it starts.
+    private (long At, uint Frames)? _endSyncFor, _autoSyncFor;
+
+    /// <summary>
+    /// Sets one fade point, or leaves it be if it's where it was: one set again just before its point
+    /// can be missed, the sound having decoded a little past it already. The analysis coming in
+    /// while a song was just before auto-play's limit did that (seen on Apple Silicon and Linux).
+    /// </summary>
+    private void SetFadeSync(ref int sync, ref (long At, uint Frames)? setFor, (long At, uint Frames)? wanted,
+        NativeDsp.FadeAt* fadeAt, int reason)
+    {
+        if (sync != 0 && setFor == wanted)
+            return;
+        if (sync != 0)
+            Bass.ChannelRemoveSync(_tempo, sync);
+        sync = 0;
+        setFor = null;
+        if (wanted is not { } point)
+            return;
+        fadeAt->Frames = point.Frames;
+        fadeAt->Reason = reason;
+        sync = NativeDsp.SetFadeSync(_tempo, point.At, fadeAt);
+        setFor = wanted;
     }
 
     /// <summary>Where the song's own <see cref="EndFade"/> will start, if that's still ahead.</summary>

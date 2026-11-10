@@ -301,37 +301,18 @@ public sealed class AutoPlayTests
         Assert.Equal($"0:00 / fade {Format.Duration(fadesAt)}", d1.ReadoutCaption);
         Assert.InRange(d1.Deck.Remaining.TotalSeconds, 59.5, 61);   // to the end of the fade, not the song
 
+        string? late = null;
+        d1.Deck.FadeStartedLate += (_, why) => late = why;
         JustBefore(app, d1, fadesAt);
         Assert.False(d1.Deck.IsFading);
         PlayUntil(app, () => d1.Deck.IsFading);
         Assert.InRange(d1.Deck.Position.TotalSeconds, fadesAt.TotalSeconds, fadesAt.TotalSeconds + 0.5);
+        Assert.True(late is null, $"The app had to start the fade, not the sound (#359): {late}");   // even if the analysis came in meanwhile
 
         PlayUntil(app, () => d2.IsOnAir);
         Assert.Equal(d2.Deck.Start + TimeSpan.FromSeconds(60), d2.Deck.FadesAt);   // the next song has it too
         Assert.Null(d1.Deck.AutoFade);   // out of the room
         Assert.Equal(tracks[2], d1.Track);
-    }
-
-    /// <summary>TEMPORARY (#359 on Apple Silicon): does the sound start auto-play's limit every time?</summary>
-    [AvaloniaFact]
-    public void Diagnostic_the_sound_starts_auto_plays_limit_every_time()
-    {
-        var misses = new List<string>();
-        for (int run = 0; run < 8; run++)
-        {
-            var (app, auto, _) = Setup(queued: 3, seconds: 75);
-            using var _ = app;
-            app.Settings.FadeOutSeconds = 0.5;
-            var d1 = app.ViewModel.Deck1!;
-            d1.Deck.FadeStartedLate += (_, why) => misses.Add($"run {run}: {why}");
-            auto.FadeAfterUpCommand.Execute(null);
-            auto.IsOn = true;
-            app.Play(0.1);
-            TimeSpan fadesAt = d1.Deck.Start + TimeSpan.FromSeconds(60);
-            JustBefore(app, d1, fadesAt);
-            PlayUntil(app, () => d1.Deck.IsFading);
-        }
-        Assert.True(misses.Count == 0, string.Join("\n", misses));
     }
 
     [AvaloniaFact]
