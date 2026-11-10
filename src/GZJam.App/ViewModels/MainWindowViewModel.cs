@@ -58,6 +58,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 if (e.NewItems is not null)
                     Analysis.Prioritize(e.NewItems.Cast<QueueItem>().Select(i => i.Track));
+                ReadAheadFromQueue();
             };
         }
         Library.SongsMoved += OnSongsMoved;
@@ -1638,6 +1639,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         foreach (DeckViewModel deck in Decks)
             deck.Refresh();
     }
+
+    /// <summary>
+    /// The songs at the top of the queue, read into memory ahead of time (#346): the next ones to be
+    /// loaded, by auto-play or by hand, so loading one doesn't wait for the disk.
+    /// </summary>
+    private void ReadAheadFromQueue() =>
+        Mix?.Songs.ReadAhead(Queue.Items.Take(2).Select(i => i.Track.Path).ToList());
+
+    /// <summary>Songs about to be dropped on a deck, perhaps: read into memory ahead of time (#346).</summary>
+    internal void ReadAhead(IEnumerable<Track> tracks) => Mix?.Songs.ReadAhead(tracks.Take(2).Select(t => t.Path).ToList());
 
     /// <summary>One playback tick: fades, end-of-track, snaps, and all the moving readouts.</summary>
     public void Tick()

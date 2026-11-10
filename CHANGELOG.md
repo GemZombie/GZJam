@@ -26,6 +26,11 @@ Changed:
   and Highest, instead of a switch. New installs, and anyone who had the switch off, get Normal:
   a little more protection than before, with play and the crossfader heard about a third of a
   second later. Had it on? You're on High, the same as before.
+- **A song on a deck plays from memory, not from the disk** (#346). GZJam reads the whole file when
+  it's loaded, so a slow or sleeping drive, an antivirus scan or an unplugged USB stick can't
+  interrupt a song that's playing. The next songs in the queue, and a song you start dragging, are
+  read ahead, so loading them doesn't wait for the disk either. Files over 300 MB (a long DJ mix)
+  still play from the disk.
 
 Fixed:
 
@@ -34,6 +39,8 @@ Fixed:
   silent, still showing the song playing. Now, within a couple of seconds, GZJam says so and
   plays through the computer's default output instead, as it already did when it had the
   speakers to itself.
+- **Moving a song no longer fails because another program has it open for a moment** (an
+  antivirus scanning it, say): GZJam waits a moment and tries again.
 - **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound
   processing (each output's volume, mono and limiter, the meters, and a deck's jumps) now runs as
   native code. Before, it was .NET code, so whenever GZJam stopped to tidy its memory the sound

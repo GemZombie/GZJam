@@ -581,7 +581,7 @@ public sealed partial class OrganizeViewModel : ObservableObject
             throw new IOException($"There's a file at {to} now.");
         Directory.CreateDirectory(Path.GetDirectoryName(to)!);
         if (move && SameDrive(from, to))
-            File.Move(from, to);   // never over a file: one there stops it
+            BusyFile.Move(from, to);   // never over a file: one there stops it
         else
             CopyWhole(from, to);
         if (!move)
@@ -593,7 +593,7 @@ public sealed partial class OrganizeViewModel : ObservableObject
         {
             try
             {
-                File.Delete(from);   // only now the copy is whole
+                BusyFile.Delete(from);   // only now the copy is whole
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

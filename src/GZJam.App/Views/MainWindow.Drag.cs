@@ -64,6 +64,7 @@ public partial class MainWindow
         if (drag.Tracks.Count == 0)
             return;
         EndDrag();
+        Vm.ReadAhead(drag.Tracks);   // it may land on a deck: in memory by then (#346)
         _drag = drag;
         _dragPointer = pointer;
         _dragPointerType = pointer?.Type ?? PointerType.Mouse;

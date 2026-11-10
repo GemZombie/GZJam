@@ -471,7 +471,7 @@ public sealed partial class ServersViewModel
         string from = step.From!, to = step.Target;
         Directory.CreateDirectory(Path.GetDirectoryName(to)!);
         DateTime modified = File.GetLastWriteTimeUtc(from);
-        File.Move(from, to);   // never over a file: one there stops it
+        BusyFile.Move(from, to);   // never over a file: one there stops it
         File.SetLastWriteTimeUtc(to, modified);   // a copy to another drive is a new file
         _database.MoveSongFiles([(from, to)]);
         _database.SetServerSongKept(item.Server.Id, step.SongId, to);

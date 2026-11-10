@@ -22,18 +22,22 @@ internal static class SongFile
     /// <summary>MPEG frames in a row, alike, that are taken as the audio rather than chance bytes.</summary>
     private const int FramesInARow = 4;
 
-    /// <summary>A decoding stream for <paramref name="path"/>. Throws, saying why, if it can't be played.</summary>
-    public static int Open(string path)
+    /// <summary>
+    /// A decoding stream for <paramref name="path"/>: from <paramref name="memory"/>, the file read
+    /// whole (#346), if given; from the disk otherwise. Throws, saying why, if it can't be played.
+    /// </summary>
+    public static int Open(string path, SongMemory? memory = null)
     {
         if (Mp4Damaged(path))
             throw AudioException.Damaged();
-        int stream = Bass.CreateStream(path, 0, 0, Flags);
+        int stream = memory is null ? Bass.CreateStream(path, 0, 0, Flags) : Bass.CreateStream(memory.Data, 0, memory.Length, Flags);
         if (stream != 0)
             return stream;
         Errors error = Bass.LastError;
         if (error == Errors.FileFormat && Mp3AudioStart(path) is { } start)
         {
-            stream = Bass.CreateStream(path, start, 0, Flags);
+            stream = memory is null ? Bass.CreateStream(path, start, 0, Flags)
+                : Bass.CreateStream(memory.Data + (nint)start, 0, memory.Length - start, Flags);
             if (stream != 0)
                 return stream;
         }
