@@ -245,7 +245,15 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   sleeping drive can't interrupt a song that's playing
 - [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347), with four levels to choose from
 
-**1.8: playlists,** with ideas from Danny Cherry's fork:
+**1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
+- [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
+  by button or key, without moving the deck
+- [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
+  remembers one, and each playlist its own, between runs too
+- [One clear selection](https://github.com/GemZombie/GZJam/issues/377): only the list you're
+  working in shows it strongly, with more contrast, and the open playlist marked as where you are
+- [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
+  to Artist so it's in view on a laptop
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
   column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
 - [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
