@@ -162,6 +162,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   its sound processing runs as native code, so the music never waits for GZJam to tidy its memory
 - [Protection against crackles has four levels](https://github.com/GemZombie/GZJam/issues/347):
   Low, Normal, High and Highest, with the new Normal as the default
+- [Speakers unplugged mid-song are noticed](https://github.com/GemZombie/GZJam/issues/353), shared
+  or GZJam's alone, and the music moves to another output within a couple of seconds
 
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 

@@ -94,8 +94,11 @@ For a release you'd use at a dance, test your real library.
 
 ### Unplugging
 Do each while a song is playing to the room.
-- [ ] **The speakers' sound card:** GZJam says so and falls back to another output (never the
-      headphones' own). Plug it back in, *Refresh the list* in Settings › Sound, choose it again.
+- [ ] **The speakers' sound card:** within a couple of seconds GZJam says so and falls back to
+      another output (never the headphones' own). Plug it back in, *Refresh the list* in Settings ›
+      Sound, choose it again. Once shared (*Speakers for GZJam alone* off, the default), and once
+      GZJam's alone (Windows). The log says "Speaker output stopped", with how long there was no
+      sound.
 - [ ] **The headphones,** while previewing a song: a notice says they're unplugged, CUE in the
       top bar says *Unplugged* with an amber light, and the preview is heard nowhere else (not the
       room, not the laptop's speakers). Plug them back in: within a few seconds "Headphones are

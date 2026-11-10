@@ -29,6 +29,11 @@ Changed:
 
 Fixed:
 
+- **Speakers unplugged mid-song are noticed, however they're set up** (#353). With the speakers
+  shared with other programs (the usual way), a USB sound card that dropped out left GZJam
+  silent, still showing the song playing. Now, within a couple of seconds, GZJam says so and
+  plays through the computer's default output instead, as it already did when it had the
+  speakers to itself.
 - **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound
   processing (each output's volume, mono and limiter, the meters, and a deck's jumps) now runs as
   native code. Before, it was .NET code, so whenever GZJam stopped to tidy its memory the sound
