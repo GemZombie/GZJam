@@ -400,8 +400,7 @@ public sealed class DeckTests
         app.Play(0.2);
 
         a.FadeOutCommand.Execute(null);
-        AppHarness.Settle(1200);
-        app.Play(0.1);
+        app.Play(1.2);   // the fade is the music's own (#359): it runs as the music plays
 
         Assert.False(a.IsPlaying);
         Assert.True(app.Play(0.2).Main < 0.01);

@@ -229,9 +229,9 @@ is out of scope until it earns a place.
 - **Fade after** (#98, 0.9.1): in the options (below), *Off* or 1:00-5:00 in 15 s steps
   (`AppSettings.AutoFadeAfterSeconds`). While auto-play is on, each deck in the room gets
   `Deck.AutoFade` = (its music's start + the limit, the fade-out length); the deck fades itself
-  when the playhead plays past that point (not when it's moved past it: a seek or jump of more
-  than a second), so a DJ who moves a song on, or turns the limit on mid-song past it, isn't
-  surprised. `Deck.Remaining` counts to the end of that fade, so the readout, its 30 s blink and
+  when the music plays past that point (not when it's moved past it, by a seek or a jump), so a
+  DJ who moves a song on, or turns the limit on mid-song past it, isn't surprised. Since #359 the
+  point is a position sync on the song itself, so the fade starts there however busy the app is. `Deck.Remaining` counts to the end of that fade, so the readout, its 30 s blink and
   auto-play all see it; the caption says *0:42 / fade 1:30*. A song shorter than the limit plays
   to its end. Auto-play off clears it from every deck.
 - **Options menu** (#100, 0.9.1): a **⋯** key after the gap's + opens a panel flyout with *Fade
@@ -980,6 +980,33 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   jump test passes unchanged.
 - Everything else BASS runs is native already: decoding, tempo, EQ, the mixers and the exclusive
   output (BASSWASAPI feeds from the mixer itself).
+
+### Status: fades and the crossfader carried by the sound (2026-11-10, issue #359)
+
+- **Why:** fade-outs, the crossfader's glide and the end of a song were stepped by the window's
+  33 ms timer. Busy for a moment, the window held a fade halfway (then it dropped or cut), left the
+  room between two decks, let a song play on past the end the DJ set, and skipped auto-play's limit
+  altogether after a freeze over a second (it only fired if the playhead moved less than a second
+  between ticks).
+- **Fades:** a deck's fade-out is a gain stage on its own sound (`gz_fade_dsp` in
+  `native/gzjam_dsp.c`, on the tempo stream after the EQ and evening out, before it's split for
+  the speakers, headphones and booth), timed in frames as the music is decoded. FADE OUT asks for
+  one; the song starts its own with mixtime position syncs (`gz_fade_sync`) at the end of its music
+  (a 5 ms stop, or the song's own fade, #267) and at auto-play's limit (#98). The deck sees the fade
+  begin and end on its next update, and pauses once it's silent; a late update only delays the
+  pause, never the silence. A fade asked for while one is under way takes the quicker of the two.
+  `Remaining` reads how far the sound has got. A deck's meter now shows its fade going down.
+- **The crossfader:** a glide (the 300 ms switch, auto-play's slide through the gap) still moves
+  with each tick along the equal-power curve, and each tick also has BASS slide every deck's volumes
+  on to where the glide is going (`MixEngine.CrossfadeToward`, `BASS_ChannelSlideAttribute`, on
+  BASS's own thread). Setting a volume stops a slide, so moving the fader by hand takes over.
+- **Still on the tick:** auto-play's next song starting after the gap (a late tick lengthens the
+  silence, it never cuts music), and noticing the end of the file (the sound has stopped by then).
+- **Tests:** `MixEngineTests` render audio with no updates at all and check a fade, an end point
+  and auto-play's limit fall silent where they should, a song already past the limit plays on, and
+  the crossfader reaches its target with the app held up. Fade tests now play the music through,
+  rather than move a clock.
+- **Library version 2** (`gz_version`): built for every platform by the Native workflow.
 
 ### Status: shared speakers unplugged mid-song (2026-11-10, issue #353)
 
