@@ -287,7 +287,6 @@ public sealed class CloseUpWaveform : Control
     private static readonly IBrush CenterLine = new ImmutableSolidColorBrush(Colors.White, 0.08);
     private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
     private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
-    private readonly Dictionary<Color, (IBrush Bright, IBrush Dim, IBrush Outline)> _brushes = [];
 
     public override void Render(DrawingContext context)
     {
@@ -329,10 +328,10 @@ public sealed class CloseUpWaveform : Control
                 continue;
             double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
             double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
-            var (bright, dim, outline) = BarBrushes(SeekBar.BandColor(low, mid, high));
+            BandPaint paint = BandPaint.For(low, mid, high);   // shared and kept: nothing made per frame (#363)
             bool played = x + BarStep <= playhead;
-            context.DrawRectangle(played ? dim : outline, null, new Rect(x, center - peak, BarStep, peak * 2));
-            context.DrawRectangle(played ? dim : bright, null, new Rect(x, center - body, BarStep, body * 2));
+            context.DrawRectangle(played ? paint.Dim : paint.Outline, null, new Rect(x, center - peak, BarStep, peak * 2));
+            context.DrawRectangle(played ? paint.Dim : paint.Bright, null, new Rect(x, center - body, BarStep, body * 2));
         }
     }
 
@@ -364,17 +363,6 @@ public sealed class CloseUpWaveform : Control
             loud = Math.Max(loud, waveform.Loudness[s]);
         }
         return (low, mid, high, loud);
-    }
-
-    private (IBrush, IBrush, IBrush) BarBrushes(Color color)
-    {
-        if (!_brushes.TryGetValue(color, out var brushes))
-        {
-            brushes = (new ImmutableSolidColorBrush(color), new ImmutableSolidColorBrush(color, 0.3), new ImmutableSolidColorBrush(color, 0.22));
-            if (_brushes.Count < 4096)
-                _brushes[color] = brushes;
-        }
-        return brushes;
     }
 
     private void DrawTrim(DrawingContext context, Rect bounds)

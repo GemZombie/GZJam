@@ -19,6 +19,10 @@ Fixed:
   song's EQ, a song played) waited for the disk, up to a twentieth of a second, and an EQ fader
   saved at every half-dB step as it moved. Now writes don't wait, and a fader you hold is heard
   as it moves and saved once, when you let go.
+- **The waveforms no longer make work as the night goes on** (#363). The close-up kept the colors
+  of its bars, but only so many: a few songs in, it made new ones for every bar it drew, many
+  times a second, and GZJam kept stopping for a moment to clear them away. The screen could
+  stutter, more so later in a night. Now every waveform shares one set of colors, made once.
 
 ## 1.7.0-beta.1 (2026-11-10)
 
