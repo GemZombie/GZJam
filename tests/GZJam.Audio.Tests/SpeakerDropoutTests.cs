@@ -28,6 +28,7 @@ public sealed class SpeakerDropoutTests : IDisposable
     {
         AudioDevice? device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
         Assert.SkipWhen(device is null, "Needs a sound device.");
+        _engine.Buffer = SoundBuffer.Low;   // the shortest: 200 ms of mix ready
         _mix.SetOutputs(device, null);
         Assert.False(_mix.Main.IsExclusive);
         var gaps = new List<TimeSpan>();

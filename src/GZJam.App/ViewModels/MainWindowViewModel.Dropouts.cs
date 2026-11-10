@@ -60,7 +60,8 @@ public sealed partial class MainWindowViewModel
         string cause = tidying.TotalMilliseconds >= 50
             ? $"; GZJam had stopped for {tidying.TotalMilliseconds:0} ms to tidy its memory just before"
             : "";
-        string hint = _settings.ExtraBuffering ? "" : "; Settings › Sound › Extra protection against crackles may help";
+        string hint = _settings.SoundBuffer == GZJam.Audio.SoundBuffer.Highest ? ""
+            : $"; Settings › Sound › Protection against crackles is {_settings.SoundBuffer}: higher may help";
         Log.Info($"Speakers: the sound stopped for {gap.TotalMilliseconds:0} ms (a dropout){cause}{hint}");
     }
 

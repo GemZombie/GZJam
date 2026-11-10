@@ -92,10 +92,17 @@ public sealed class AppSettings
     public bool ExclusiveSpeakers { get; set; }
 
     /// <summary>
-    /// Longer buffers on every output, for a computer where the sound crackles or drops out. Play
-    /// and the crossfader respond a little later. Off by default.
+    /// Protection against crackles (#347): how much sound every output holds ready. Higher rides
+    /// out a computer that's busy for a moment; play and the crossfader are heard a little later.
     /// </summary>
-    public bool ExtraBuffering { get; set; }
+    public SoundBuffer SoundBuffer { get; set; } = SoundBuffer.Normal;
+
+    /// <summary>
+    /// Before 1.7 it was a switch, "extra protection against crackles": on is High now, and off
+    /// the new default, Normal. Read once by <see cref="Migrate"/>, then not saved again.
+    /// </summary>
+    [JsonInclude, JsonPropertyName("ExtraBuffering"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal bool? ExtraBufferingBefore17 { get; set; }
 
     /// <summary>
     /// How many decks are on screen: 2, or 4 (half height, 1 and 3 on the left of the mixer, 2 and
@@ -348,6 +355,9 @@ public sealed class AppSettings
             if (settings.DeckReadouts.Remove(old, out DeckReadout readout))
                 settings.DeckReadouts.TryAdd(renamed, readout);
         }
+        if (settings.ExtraBufferingBefore17 == true)
+            settings.SoundBuffer = SoundBuffer.High;
+        settings.ExtraBufferingBefore17 = null;
         // A hand-edited target that isn't one of the choices: the nearest one.
         settings.LoudnessTarget = LoudnessMatch.Targets.MinBy(t => Math.Abs(t - settings.LoudnessTarget));
         settings.SeenColumns ??= [];

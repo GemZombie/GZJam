@@ -157,15 +157,23 @@ public sealed partial class SettingsViewModel : ObservableObject
     public bool SpeakersAreWindowsDefault =>
         ShowsExclusiveSpeakers && ExclusiveSpeakers && MainDevice is { IsDefault: true, FollowsSystemDefault: false };
 
-    /// <summary>Extra protection against crackles (see <see cref="AppSettings.ExtraBuffering"/>).</summary>
-    public bool ExtraBuffering
+    /// <summary>Protection against crackles (see <see cref="AppSettings.SoundBuffer"/>).</summary>
+    public IReadOnlyList<Choice<SoundBuffer>> BufferChoices { get; } =
+    [
+        new(SoundBuffer.Low, "Low: responds quickest"),
+        new(SoundBuffer.Normal, "Normal (recommended)"),
+        new(SoundBuffer.High, "High"),
+        new(SoundBuffer.Highest, "Highest"),
+    ];
+
+    public Choice<SoundBuffer> BufferChoice
     {
-        get => _settings.ExtraBuffering;
+        get => BufferChoices.First(c => c.Value == _settings.SoundBuffer);
         set
         {
-            if (value == _settings.ExtraBuffering)
+            if (value is null || value.Value == _settings.SoundBuffer)
                 return;
-            _owner.SetExtraBuffering(value);
+            _owner.SetSoundBuffer(value.Value);
             OnPropertyChanged();
         }
     }

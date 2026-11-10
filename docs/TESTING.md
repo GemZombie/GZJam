@@ -82,8 +82,8 @@ For a release you'd use at a dance, test your real library.
 - [ ] **Phones mix:** turning it toward MAIN brings the room into the headphones.
 - [ ] **Mono** (on by default): a song with an instrument on one side plays it on both.
 - [ ] Two loud songs blended light the **LIMIT** light, and the sound doesn't distort.
-- [ ] Moving the crossfader, the tempo and the volumes makes **no crackles**. If it does, turn on
-      *Extra protection against crackles* and try again.
+- [ ] Moving the crossfader, the tempo and the volumes makes **no crackles**. If it does, set
+      *Protection against crackles* higher and try again.
 - [ ] **Splitter cable:** turn on *One output for both (splitter cable)*, with the speakers and
       headphones on the splitter. The room plays only from the left plug, the preview only from
       the right. The top bar says "Left · …" and "Right · …". If they're swapped, note which way

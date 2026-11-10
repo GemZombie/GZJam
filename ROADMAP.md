@@ -160,6 +160,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   GZJam's alone, with how long the sound stopped and why, if GZJam knows
 - [Nothing GZJam does can make the music stutter](https://github.com/GemZombie/GZJam/issues/344):
   its sound processing runs as native code, so the music never waits for GZJam to tidy its memory
+- [Protection against crackles has four levels](https://github.com/GemZombie/GZJam/issues/347):
+  Low, Normal, High and Highest, with the new Normal as the default
 
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 
@@ -225,7 +227,7 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   it, whichever way the speakers are set up
 - [Songs read into memory when loaded](https://github.com/GemZombie/GZJam/issues/346), so a slow or
   sleeping drive can't interrupt a song that's playing
-- [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347)
+- [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347), with four levels to choose from
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

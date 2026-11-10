@@ -15,8 +15,14 @@ public sealed class AudioEngine : IDisposable
 
     private readonly HashSet<int> _initializedDevices = [];
     private readonly Lock _lock = new();   // analysis threads decode alongside the UI thread
+    /// <summary>
+    /// The device buffer BASS starts with, read before GZJam first changes it: BASS keeps one for
+    /// the whole process, so a second engine would otherwise build on the first one's choice.
+    /// </summary>
+    private static readonly Lazy<int> s_systemDeviceBuffer = new(() => Bass.GetConfig(Configuration.DeviceBufferLength));
+
     private readonly int _systemDeviceBuffer;
-    private bool _extraBuffering;
+    private SoundBuffer _buffer = SoundBuffer.Normal;
     private bool _reopenDevices;
 
     public AudioEngine()
@@ -29,39 +35,60 @@ public sealed class AudioEngine : IDisposable
         LoadFormatAddOns();
 
         Bass.Configure(Configuration.UpdatePeriod, 20);
-        _systemDeviceBuffer = Bass.GetConfig(Configuration.DeviceBufferLength);
+        _systemDeviceBuffer = s_systemDeviceBuffer.Value;
         ApplyBuffers();
     }
 
     /// <summary>
-    /// Longer buffers on every output, for a computer where the sound crackles or drops out: about
-    /// three times as long, so play and the crossfader respond a little later. Applies to outputs
-    /// opened from now on; <see cref="MixEngine.SetOutputs"/> reopens the ones in use.
+    /// How much sound every output holds ready (#347): the more, the better it rides out a
+    /// computer that's busy for a moment, and the later play and the crossfader are heard.
+    /// Applies to outputs opened from now on; <see cref="MixEngine.SetOutputs"/> reopens the ones
+    /// in use.
     /// </summary>
-    public bool ExtraBuffering
+    public SoundBuffer Buffer
     {
-        get => _extraBuffering;
+        get => _buffer;
         set
         {
-            if (value == _extraBuffering)
+            if (value == _buffer)
                 return;
-            _extraBuffering = value;
+            _buffer = value;
             ApplyBuffers();
             _reopenDevices = true;
         }
     }
 
     /// <summary>How much audio the exclusive speaker output (Windows) holds.</summary>
-    internal float ExclusiveBufferSeconds => _extraBuffering ? 0.4f : 0.15f;
+    internal float ExclusiveBufferSeconds => _buffer switch
+    {
+        SoundBuffer.Low => 0.15f,
+        SoundBuffer.Normal => 0.25f,
+        SoundBuffer.High => 0.4f,
+        _ => 0.6f,
+    };
+
+    /// <summary>The mix BASS keeps ready ahead of each output, in ms: what play and the crossfader wait behind.</summary>
+    internal static int PlaybackBufferMs(SoundBuffer buffer) => buffer switch
+    {
+        SoundBuffer.Low => 200,
+        SoundBuffer.Normal => 350,
+        SoundBuffer.High => 600,
+        _ => 1000,
+    };
 
     private void ApplyBuffers()
     {
-        // Shorter than BASS's default (500 ms) keeps the crossfader, seeking and the cue preview
-        // responsive, and is still comfortably safe against dropouts. GZJam doesn't beatmatch or
-        // scratch, so extra buffering costs little.
-        Bass.Configure(Configuration.PlaybackBufferLength, _extraBuffering ? 600 : 200);
+        // Low is shorter than BASS's default (500 ms): the crossfader, seeking and the cue preview
+        // respond at once. GZJam doesn't beatmatch or scratch, so more costs little.
+        Bass.Configure(Configuration.PlaybackBufferLength, PlaybackBufferMs(_buffer));
         if (_systemDeviceBuffer > 0)   // Linux, and Windows' shared output: the device's own buffer
-            Bass.Configure(Configuration.DeviceBufferLength, _extraBuffering ? Math.Max(_systemDeviceBuffer * 3, 120) : _systemDeviceBuffer);
+            Bass.Configure(Configuration.DeviceBufferLength, _buffer switch
+            {
+                SoundBuffer.Low => _systemDeviceBuffer,
+                SoundBuffer.Normal => Math.Max(_systemDeviceBuffer * 2, 80),
+                SoundBuffer.High => Math.Max(_systemDeviceBuffer * 3, 120),
+                _ => Math.Max(_systemDeviceBuffer * 4, 200),
+            });
     }
 
     public Version BassVersion { get; }
@@ -254,6 +281,22 @@ public sealed class AudioEngine : IDisposable
         }
         _initializedDevices.Clear();
     }
+}
+
+/// <summary>
+/// How much sound each output holds ready (#347, Settings › Sound › Protection against
+/// crackles): enough to ride out the computer being busy for a moment, at the cost of play and
+/// the crossfader being heard a little later.
+/// </summary>
+public enum SoundBuffer
+{
+    /// <summary>The least: what GZJam had before 1.7, unless extra protection was on.</summary>
+    Low,
+    /// <summary>The default since 1.7.</summary>
+    Normal,
+    /// <summary>Before 1.7, extra protection against crackles.</summary>
+    High,
+    Highest,
 }
 
 public sealed class AudioException : Exception

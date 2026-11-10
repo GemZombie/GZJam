@@ -60,11 +60,12 @@ public sealed class OutputSwitchingTests : IDisposable
     }
 
     [Fact]
-    public void Extra_buffering_lengthens_the_buffers_and_reopens_the_outputs_with_them()
+    public void More_protection_lengthens_the_buffers_and_reopens_the_outputs_with_them()
     {
-        int normal = Bass.GetConfig(Configuration.PlaybackBufferLength);
-        _engine.ExtraBuffering = true;
-        Assert.Equal(normal * 3, Bass.GetConfig(Configuration.PlaybackBufferLength));
+        Assert.Equal(SoundBuffer.Normal, _engine.Buffer);
+        Assert.Equal(350, Bass.GetConfig(Configuration.PlaybackBufferLength));
+        _engine.Buffer = SoundBuffer.High;
+        Assert.Equal(600, Bass.GetConfig(Configuration.PlaybackBufferLength));
 
         var devices = _engine.GetOutputDevices();
         if (devices.Count > 0)
@@ -81,8 +82,12 @@ public sealed class OutputSwitchingTests : IDisposable
             Assert.True(IsOpen(devices[0]));
         }
 
-        _engine.ExtraBuffering = false;
-        Assert.Equal(normal, Bass.GetConfig(Configuration.PlaybackBufferLength));
+        _engine.Buffer = SoundBuffer.Low;
+        Assert.Equal(200, Bass.GetConfig(Configuration.PlaybackBufferLength));
+        _engine.Buffer = SoundBuffer.Highest;
+        Assert.Equal(1000, Bass.GetConfig(Configuration.PlaybackBufferLength));
+        _engine.Buffer = SoundBuffer.Normal;
+        Assert.Equal(350, Bass.GetConfig(Configuration.PlaybackBufferLength));
     }
 
     [Fact]

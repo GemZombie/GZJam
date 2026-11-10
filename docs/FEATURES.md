@@ -876,6 +876,25 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   GZJam doesn't beatmatch or scratch, so a little delay costs little. Turning it on reopens the
   outputs (a short gap), since a device's buffer is set when it's opened.
 - The exclusive speakers' normal buffer went from 100 to 150 ms for everyone: cheap insurance.
+
+### Status: four levels of protection against crackles (2026-11-10, issue #347)
+
+- **Settings › Sound › Protection against crackles** is a choice of four, not a switch, and the
+  default is the new one in between. Still levels rather than numbers, for the reason above.
+
+  | Level | BASS playback buffer | Device buffer (Linux, Windows shared) | Exclusive speakers |
+  | --- | --- | --- | --- |
+  | Low (the old "off") | 200 ms | the system's | 150 ms |
+  | **Normal** (default) | 350 ms | 2 × the system's, at least 80 ms | 250 ms |
+  | High (the old "on") | 600 ms | 3 × the system's, at least 120 ms | 400 ms |
+  | Highest | 1000 ms | 4 × the system's, at least 200 ms | 600 ms |
+
+- Settings from before keep what they had: the switch on is High; off is Normal, since it was
+  the old default rather than a choice. The old switch isn't saved again.
+- The system's device buffer is read once per run, before GZJam first changes it: BASS keeps one
+  for the whole process, and a second audio engine (tests make many) built on the first one's
+  choice until the device wouldn't open.
+- A dropout in the log says which level is set, and that a higher one may help (#345).
 - **Dropouts are logged:** the exclusive speakers' buffer is checked about 30 times a second, and
   an empty one is noted in the activity log (at most every 10 s), with a hint to try the switch.
   *Replaced in 1.7 (#345), below.*

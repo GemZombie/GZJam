@@ -55,8 +55,8 @@ GZJam is free and isn't signed with a paid certificate, so the first time you op
 
 ## If the sound crackles or drops out
 
-- Turn on **Settings › Sound › Extra protection against crackles**. Play and the crossfader respond
-  a little later, which hardly matters for most DJing.
+- Set **Settings › Sound › Protection against crackles** higher: High, then Highest. Play and the
+  crossfader are heard a little later, which hardly matters for most DJing.
 - Use a wired output: Bluetooth speakers and headphones add delay and drop out.
 - Plug the sound card straight into the computer rather than through a hub or dock.
 - Keep the computer plugged in, and set its power mode to best performance during a set.
