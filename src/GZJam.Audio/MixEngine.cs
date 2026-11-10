@@ -183,9 +183,26 @@ public sealed class MixEngine : IDisposable
         get => _crossfader;
         set
         {
+            _glide = null;
             _crossfader = Math.Clamp(value, 0, 1);
             ApplyRouting();
         }
+    }
+
+    /// <summary>A glide under way: where the crossfader's going, and when it's there (<see cref="Environment.TickCount64"/>).</summary>
+    private (double Target, long Until)? _glide;
+
+    /// <summary>
+    /// The crossfader on its way (#359): at <paramref name="now"/>, reaching <paramref name="target"/>
+    /// in <paramref name="left"/>. The app moves it on at each tick, as before; between ticks BASS
+    /// slides the decks' volumes on toward the target by itself, so if the app is held up the room
+    /// still ends up on the deck it was going to, not halfway between two.
+    /// </summary>
+    public void CrossfadeToward(double now, double target, TimeSpan left)
+    {
+        _crossfader = Math.Clamp(now, 0, 1);
+        _glide = left > TimeSpan.Zero ? (Math.Clamp(target, 0, 1), Environment.TickCount64 + (long)left.TotalMilliseconds) : null;
+        ApplyRouting();
     }
 
     private double _phonesMix;
@@ -491,9 +508,14 @@ public sealed class MixEngine : IDisposable
 
     internal void ApplyRouting()
     {
+        long left = _glide is { } glide ? glide.Until - Environment.TickCount64 : 0;
         foreach (Deck deck in Decks)
         {
-            deck.SetMainGain(Crossfade.MainGain(Crossfade.Audibility(deck.Index, _crossfader)));
+            double gain = Crossfade.MainGain(Crossfade.Audibility(deck.Index, _crossfader));
+            if (left > 0)
+                deck.SetMainGain(gain, (Crossfade.MainGain(Crossfade.Audibility(deck.Index, _glide!.Value.Target)), TimeSpan.FromMilliseconds(left)));
+            else
+                deck.SetMainGain(gain);
         }
     }
 

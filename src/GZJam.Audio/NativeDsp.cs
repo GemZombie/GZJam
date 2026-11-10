@@ -19,7 +19,7 @@ internal static unsafe class NativeDsp
     private const string Library = "gzjam_dsp";
 
     /// <summary>The library's GZ_VERSION: the layouts below match it.</summary>
-    private const int Version = 1;
+    private const int Version = 2;
 
     private static readonly Lazy<Exports> Loaded = new(Load);
 
@@ -28,7 +28,7 @@ internal static unsafe class NativeDsp
     /// </summary>
     private static Exports Functions => Loaded.Value;
 
-    private sealed record Exports(IntPtr BusDsp, IntPtr MeterDsp, IntPtr JumpSync, IntPtr SetPosition);
+    private sealed record Exports(IntPtr BusDsp, IntPtr MeterDsp, IntPtr JumpSync, IntPtr SetPosition, IntPtr FadeDsp, IntPtr FadeSync);
 
     private static Exports Load()
     {
@@ -43,7 +43,9 @@ internal static unsafe class NativeDsp
             NativeLibrary.GetExport(library, "gz_bus_dsp"),
             NativeLibrary.GetExport(library, "gz_meter_dsp"),
             NativeLibrary.GetExport(library, "gz_jump_sync"),
-            NativeLibrary.GetExport(bass, "BASS_ChannelSetPosition"));
+            NativeLibrary.GetExport(bass, "BASS_ChannelSetPosition"),
+            NativeLibrary.GetExport(library, "gz_fade_dsp"),
+            NativeLibrary.GetExport(library, "gz_fade_sync"));
     }
 
     // BASS's own calls, taking a native callback where ManagedBass takes a .NET one.
@@ -141,4 +143,62 @@ internal static unsafe class NativeDsp
     /// </summary>
     internal static int SetJumpSync(int handle, long at, Jump* jump) =>
         ChannelSetSync(handle, SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime, at, Functions.JumpSync, (IntPtr)jump);
+
+    // ── A deck's fade-out (#359) ─────────────────────────────────────────────────────────────
+
+    internal const int FadeStart = 1, FadeReset = 2;
+
+    /// <summary>As gz_fade in the C file.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Fade
+    {
+        public int Command;
+        public uint Frames;
+        public int Reason;
+        public int Channels;
+        public float Gain;
+        public float Step;
+        public float ShownGain;
+        public int State;   // 0 full, 1 fading, 2 silent
+        public int Why;
+    }
+
+    /// <summary>As gz_fade_at in the C file.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct FadeAt
+    {
+        public Fade* Fade;
+        public uint Frames;
+        public int Reason;
+    }
+
+    internal static Fade* NewFade()
+    {
+        _ = Functions;
+        Fade* fade = Allocate<Fade>();
+        fade->Gain = 1;
+        fade->ShownGain = 1;
+        return fade;
+    }
+
+    internal static FadeAt* NewFadeAt(Fade* fade)
+    {
+        FadeAt* at = Allocate<FadeAt>();
+        at->Fade = fade;
+        return at;
+    }
+
+    /// <summary>
+    /// The fade on a deck's own sound. Last of its processing (BASS runs higher priorities first):
+    /// after the EQ and evening out, so the compressor can't make up what the fade takes away.
+    /// </summary>
+    internal static void SetFadeDsp(int handle, Fade* fade)
+    {
+        if (ChannelSetDSP(handle, Functions.FadeDsp, (IntPtr)fade, -100) == 0)
+            throw new AudioException("Could not set up a deck's fade-out", Bass.LastError);
+    }
+
+    /// <summary>When <paramref name="handle"/> reaches <paramref name="at"/> bytes, the fade <paramref name="fadeAt"/> describes starts, as the audio is mixed. 0 if BASS refused.</summary>
+    internal static int SetFadeSync(int handle, long at, FadeAt* fadeAt) =>
+        ChannelSetSync(handle, SyncFlags.Position | SyncFlags.Mixtime, at, Functions.FadeSync, (IntPtr)fadeAt);
 }
