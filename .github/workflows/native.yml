@@ -2,6 +2,9 @@
 # Linux. The libraries are kept in the repo beside BASS's (lib/bass/<platform>), so day-to-day
 # builds need no C compiler: run this when the C file changes (it runs by itself when a push
 # changes it), download the "gzjam_dsp" artifact, and commit what's in it.
+#
+# It also runs the audio tests on an Intel Mac, with the libraries in the repo: CI's Mac is Apple
+# Silicon, so this is what checks the Intel half of the macOS library works.
 
 name: Native
 
@@ -50,3 +53,23 @@ jobs:
             lib/bass/osx/libgzjam_dsp.dylib
             lib/bass/win-x64/gzjam_dsp.dll
           if-no-files-found: ignore
+
+  intel-mac:
+    name: Audio tests (Intel Mac)
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: The library in the repo has an Intel half
+        run: lipo -info lib/bass/osx/libgzjam_dsp.dylib && uname -m
+
+      - name: Audio tests
+        run: dotnet test --project tests/GZJam.Audio.Tests -c Release
