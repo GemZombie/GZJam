@@ -433,23 +433,24 @@ public sealed class SeekBar : Control
             // The body: loudness, with the loudest moment filling the height. The outline: peaks.
             double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
             double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
-            Color color = BandColor(low, mid, high);
+            BandPaint paint = BandPaint.For(low, mid, high);   // shared with every waveform (#363)
             double x = i * BarStep;
             bars[i] = (new Rect(x, center - body, BarWidth, body * 2),
                 new Rect(x, center - peak, BarWidth, peak * 2),
-                new ImmutableSolidColorBrush(color),
-                new ImmutableSolidColorBrush(color, 0.3),
-                new ImmutableSolidColorBrush(color, 0.22));
+                paint.Bright, paint.Dim, paint.Outline);
         }
         return bars;
     }
 
     /// <summary>Red for bass, green for mids, blue for highs, mixed by how strong each band is.</summary>
+    /// <summary>(b / 255)^4 for each byte: worked out once, not for every bar of every frame.</summary>
+    private static readonly double[] Weights = Enumerable.Range(0, 256).Select(b => Math.Pow(b / 255.0, 4)).ToArray();
+
     internal static Color BandColor(byte low, byte mid, byte high)
     {
         // Stored values are square roots of the level, so the 4th power is the level squared,
         // which lets the strongest band dominate the color.
-        static double Weight(byte b) => Math.Pow(b / 255.0, 4);
+        static double Weight(byte b) => Weights[b];
         double l = Weight(low), m = Weight(mid), h = Weight(high);
         double r = 1.00 * l + 0.25 * m + 0.30 * h;
         double g = 0.25 * l + 0.90 * m + 0.55 * h;
