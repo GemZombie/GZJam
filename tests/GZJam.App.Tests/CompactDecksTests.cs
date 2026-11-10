@@ -91,7 +91,7 @@ public sealed class CompactDecksTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         vm.Settings.FourDecks = true;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A")));
         vm.CompactDecks = true;
         AppHarness.Settle(150);
         app.Screenshot("compact-four-decks");

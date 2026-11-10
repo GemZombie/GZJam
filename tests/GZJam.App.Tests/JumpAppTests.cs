@@ -17,7 +17,7 @@ public sealed class JumpAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Five minute tune", seconds: 30);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         Assert.False(deck.HasJumps);
 
@@ -44,7 +44,7 @@ public sealed class JumpAppTests
 
         // Loaded again later: the jump is there, armed.
         vm.Deck2!.TogglePlayCommand.Execute(null);
-        vm.LoadToDeckAsync(vm.Deck2, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2, song));
         Assert.True(vm.Deck2.IsJumpArmed);
         Assert.Single(vm.Deck2.JumpMarkers);
     }
@@ -54,7 +54,7 @@ public sealed class JumpAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck1!;
         deck.StartJump(S(5));
         deck.LandJump(S(15));
@@ -77,7 +77,7 @@ public sealed class JumpAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck1!;
 
         Assert.False(deck.StartJump(S(1)));
@@ -103,7 +103,7 @@ public sealed class JumpAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         var view = app.Window.FindControl<DeckView>("Deck1View")!;
         var menu = view.FindControl<ContextMenu>("TrimMenu")!;
 

@@ -20,7 +20,7 @@ public sealed class HardwareControlTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Song")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Song")));
         AppHarness.Settle(100);   // the deck's layout changes once a track is loaded
         var fader = app.Window.FindControl<DeckView>("Deck1View")!.FindControl<PitchFader>("TempoFader")!;
         double y = fader.Bounds.Height / 3;
@@ -63,7 +63,7 @@ public sealed class HardwareControlTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Song")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Song")));
         var deck = app.Window.FindControl<DeckView>("Deck1View")!;
         Border CueLed() => (Border)((StackPanel)deck.FindControl<ToggleButton>("CueButton")!.Content!).Children[0];
         Border SideLed(string name) => (Border)((StackPanel)app.Window.FindControl<Button>(name)!.Content!).Children[0];

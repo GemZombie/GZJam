@@ -62,8 +62,8 @@ public sealed class LayoutStabilityTests
         var vm = app.ViewModel;
         vm.Settings.FourDecks = fourDecks;
         vm.CompactDecks = compact;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A")).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone A")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Tone B")));
         vm.Mixer!.Crossfader = 1;   // the room hears Deck 2's side
         app.Play(0.1);
         vm.UpdateQueueEnd();   // as the clock does each second: not left to when it ticks
@@ -98,7 +98,7 @@ public sealed class LayoutStabilityTests
         vm.Settings.TouchMode = touch;
         vm.Settings.FourDecks = fourDecks;
         foreach (var deck in vm.Decks)
-            vm.LoadToDeckAsync(deck, app.ToneTrack("Tone " + deck.Label)).GetAwaiter().GetResult();
+            AppHarness.Await(vm.LoadToDeckAsync(deck, app.ToneTrack("Tone " + deck.Label)));
         AppHarness.Settle(200);
 
         Rect At(Control control) => new(control.TranslatePoint(default, app.Window)!.Value, control.Bounds.Size);

@@ -28,7 +28,7 @@ internal static class SongFile
     /// </summary>
     public static int Open(string path, SongMemory? memory = null)
     {
-        if (Mp4Damaged(path))
+        if (memory is null ? Mp4Damaged(path) : Mp4Damaged(memory))   // from memory if read: no disk (#361)
             throw AudioException.Damaged();
         int stream = memory is null ? Bass.CreateStream(path, 0, 0, Flags) : Bass.CreateStream(memory.Data, 0, memory.Length, Flags);
         if (stream != 0)
@@ -89,6 +89,25 @@ internal static class SongFile
         try
         {
             using var file = File.OpenRead(path);
+            return Mp4Damaged(file);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;   // BASS says why
+        }
+    }
+
+    /// <inheritdoc cref="Mp4Damaged(string)"/>
+    private static unsafe bool Mp4Damaged(SongMemory memory)
+    {
+        using var file = new UnmanagedMemoryStream((byte*)memory.Data, memory.Length);
+        return Mp4Damaged(file);
+    }
+
+    private static bool Mp4Damaged(Stream file)
+    {
+        try
+        {
             Span<byte> header = stackalloc byte[16];
             long at = 0, length = file.Length;
             bool first = true;

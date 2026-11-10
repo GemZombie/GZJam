@@ -24,7 +24,7 @@ public sealed class MarksAppTests
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         Track track = app.Library.Results[0];
         vm.Queue.Add([track]);
-        vm.LoadToDeckAsync(vm.Deck1!, track).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, track));
         AppHarness.Settle(200);
 
         Button HeartButton() => grid.GetVisualDescendants().OfType<RatingIcon>()

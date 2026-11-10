@@ -56,7 +56,7 @@ public sealed class SearchAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone")).GetAwaiter().GetResult();   // tagged 150 BPM
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tone")));   // tagged 150 BPM
         vm.Deck1!.TempoPercent = -4;   // the room hears 144
         int everything = app.Library.Results.Count;
 

@@ -11,7 +11,7 @@ public sealed class EndingWarningTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var deck = vm.Deck1!;
-        vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 60)));
         vm.Mixer!.Crossfader = 0;
         deck.TogglePlayCommand.Execute(null);
         app.Play(0.2);
@@ -45,7 +45,7 @@ public sealed class EndingWarningTests
         var vm = app.ViewModel;
         var deck = vm.Deck1!;
         // 40 seconds of music, then 20 of silence, trimmed automatically.
-        vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40, silenceAfter: 20)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(deck, app.ToneTrack("Song", seconds: 40, silenceAfter: 20)));
         AppHarness.WaitFor(() => deck.Deck.End < TimeSpan.FromSeconds(45));
         vm.Mixer!.Crossfader = 0;
         deck.TogglePlayCommand.Execute(null);
