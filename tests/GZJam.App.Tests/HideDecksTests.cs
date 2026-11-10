@@ -66,7 +66,7 @@ public sealed class HideDecksTests
         using var app = new AppHarness(settings: new AppSettings { MatchLoudness = false, QueuePanelFolded = true });
         app.Settings.OnAirPause = OnAirPause.TapTwice;
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Jump Steady", 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Jump Steady", 60)));
         vm.Mixer!.Crossfader = 0;
         vm.DecksHidden = true;
         app.Play(0.05);
@@ -92,7 +92,7 @@ public sealed class HideDecksTests
         Assert.InRange(Find<AirBar>(app, "AirLineBar").Progress, 0.45, 0.55);
 
         // The other deck loaded: that's next.
-        vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Blue Lou", 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, app.ToneTrack("Blue Lou", 60)));
         app.Play(0.05);
         Assert.Equal("NEXT · DECK 2", line.NextFrom);
         Assert.Equal("Blue Lou · Test Band", line.NextText);

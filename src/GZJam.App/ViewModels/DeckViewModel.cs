@@ -907,6 +907,7 @@ public sealed partial class DeckViewModel : ObservableObject
     {
         if (IsPlaying)
             return;
+        _loads++;   // a song still on its way to the deck doesn't land after it's been emptied
         Deck.Unload();
         CancelTap();
         Track = null;
@@ -977,33 +978,90 @@ public sealed partial class DeckViewModel : ObservableObject
         Refresh();
     }
 
-    /// <summary>Loads a track (the caller has already checked deck protection).</summary>
+    /// <summary>A song opened, with what the DJ gave it, ready to go on the deck (#361).</summary>
+    private sealed record Prepared(OpenedSong Song, ManualTrim Trim, TrackEq Eq, List<SongJump> Jumps, List<SongCue> Cues, TimeSpan Took);
+
+    /// <summary>Counts loads, so one that was overtaken by a newer one (or a sync load) is let go.</summary>
+    private int _loads;
+
+    /// <summary>
+    /// The slow part of a load, safe off the window's thread (#361): the song read and opened
+    /// (<see cref="Deck.Open"/>), and its trim, EQ, jumps and cues read from the library.
+    /// </summary>
+    private Prepared Prepare(Track track)
+    {
+        var took = System.Diagnostics.Stopwatch.StartNew();
+        OpenedSong song = Deck.Open(track.Path);
+        try
+        {
+            return new Prepared(song, _owner.GetTrim(track.Path), _owner.GetEq(track.Path),
+                _owner.GetJumps(track.Path).ToList(), _owner.GetCues(track.Path).ToList(), took.Elapsed);
+        }
+        catch
+        {
+            song.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Loads a track now, on this thread (the caller has already checked deck protection): for
+    /// auto-play, which needs the deck ready at once, and songs it plays are read ahead.
+    /// </summary>
     internal void Load(Track track)
+    {
+        _loads++;
+        Apply(track, Prepare(track));
+    }
+
+    /// <summary>
+    /// Loads a track with the slow part off the window's thread (#361), so a song on a slow or
+    /// sleeping drive doesn't freeze the screen. <paramref name="stillWanted"/> is asked once it's
+    /// ready, on the window's thread, just before it goes on the deck (deck protection again). False
+    /// if it didn't go on: not wanted any more, or another song was loaded meanwhile. Throws an
+    /// <see cref="AudioException"/> if it can't be played.
+    /// </summary>
+    internal async Task<bool> LoadAsync(Track track, Func<bool>? stillWanted = null)
+    {
+        int load = ++_loads;
+        Prepared prepared = await Task.Run(() => Prepare(track));
+        if (load != _loads || stillWanted?.Invoke() == false)
+        {
+            prepared.Song.Dispose();
+            Log.Info($"Deck {Label}: \"{track.DisplayTitle}\" not loaded after all ({(load != _loads ? "another song was loaded" : "not wanted any more")})");
+            return false;
+        }
+        Apply(track, prepared);
+        return true;
+    }
+
+    /// <summary>Puts a prepared song on the deck: quick, on the window's thread.</summary>
+    private void Apply(Track track, Prepared prepared)
     {
         Disarm();
         CancelTap();   // the taps were for the song before
         IsFinished = false;
         ResetListening();
-        Deck.Load(track.Path);
+        Deck.Load(prepared.Song);
         Deck.TempoPercent = 0;
         Track = track;
         Waveform = null;
         ForgetDetail();
-        Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path})");
+        Log.Info($"Deck {Label}: load \"{track.DisplayTitle}\" ({track.Path}), opened in {prepared.Took.TotalMilliseconds:0} ms");
         OnPropertyChanged(nameof(TempoPercent));
         OnPropertyChanged(nameof(TempoText));
         // A start set by hand applies straight away; silence trimming follows with the analysis.
         _autoStart = _autoEnd = null;
-        _manualTrim = _owner.GetTrim(track.Path);
+        _manualTrim = prepared.Trim;
         ApplyTrim();
         _lufs = _peakDb = null;
         _matchDb = 0;
-        Eq.Set(_owner.GetEq(track.Path), save: false);
+        Eq.Set(prepared.Eq, save: false);
         _jumpFrom = null;
-        _jumps = _owner.GetJumps(track.Path).ToList();
+        _jumps = prepared.Jumps;
         Deck.SetJumps(_jumps.Select(j => (j.From, j.To, true)).ToList());
         OnJumpsChanged();
-        _cues = _owner.GetCues(track.Path).ToList();
+        _cues = prepared.Cues;
         OnCuesChanged();
         if (Eq.IsSet)
             Log.Info($"Deck {Label}: EQ for this song: {Eq.Describe()}");

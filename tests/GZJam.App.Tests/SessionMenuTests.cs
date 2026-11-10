@@ -102,7 +102,7 @@ public sealed class SessionMenuTests
         var vm = app.ViewModel;
         Track song = app.Library.Results[0];
         vm.Queue.Add([song]);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         vm.Deck1!.TogglePlayCommand.Execute(null);
         for (int i = 0; i < 64; i++)
             app.Play(0.5);
@@ -118,7 +118,7 @@ public sealed class SessionMenuTests
         if (vm.Deck1.IsPlaying)
             vm.Deck1.TogglePlayCommand.Execute(null);   // pause
         Track next = app.Library.Results[1];
-        vm.LoadToDeckAsync(vm.Deck1, next).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1, next));
         vm.Deck1.TogglePlayCommand.Execute(null);
         Assert.True(vm.Deck1.IsPlaying);
         for (int i = 0; i < 64; i++)

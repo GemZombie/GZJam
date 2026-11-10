@@ -27,7 +27,7 @@ public sealed class CueAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         var song = app.ToneTrack("Long tune", seconds: 30);
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         DeckViewModel deck = vm.Deck1!;
         Assert.Empty(CueKeys(app));
 
@@ -50,7 +50,7 @@ public sealed class CueAppTests
 
         // Loaded again later: the cues are there.
         vm.Deck2!.TogglePlayCommand.Execute(null);
-        vm.LoadToDeckAsync(vm.Deck2, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2, song));
         Assert.Equal([1, 2], vm.Deck2.Cues.Select(c => c.Number));
         Assert.Equal(2, CueKeys(app, "Deck2View").Count);
     }
@@ -60,7 +60,7 @@ public sealed class CueAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck1!;
         deck.AddCue(S(20));
 
@@ -77,7 +77,7 @@ public sealed class CueAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck1!;
 
         foreach (double at in new[] { 2.0, 8, 14, 20 })
@@ -105,7 +105,7 @@ public sealed class CueAppTests
     {
         using var app = new AppHarness();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         vm.Deck1!.AddCue(S(12));
         var view = app.Window.FindControl<DeckView>("Deck1View")!;
         var menu = view.FindControl<ContextMenu>("TrimMenu")!;
@@ -127,7 +127,7 @@ public sealed class CueAppTests
         var vm = app.ViewModel;
         vm.Settings.TouchMode = true;
         vm.Settings.FourDecks = true;
-        vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Tune", seconds: 30)));
         DeckViewModel deck = vm.Deck4!;   // a lower deck: as tall as what's on it (an upper one takes the spare room)
         deck.AddCue(S(15));
         AppHarness.Settle(200);
@@ -162,7 +162,7 @@ public sealed class CueAppTests
         using var app = new AppHarness();
         var vm = app.ViewModel;
         vm.Settings.TouchMode = true;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 30)));
         foreach (double at in new[] { 5.0, 10, 15, 20 })
             vm.Deck1!.AddCue(S(at));
         AppHarness.Settle(200);

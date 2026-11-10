@@ -54,8 +54,8 @@ public sealed class FourDeckTests
     {
         using var app = FourDecks();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Four")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Four")));
 
         vm.Mixer!.Crossfader = 0;
         vm.Deck3!.TogglePlayCommand.Execute(null);
@@ -81,8 +81,8 @@ public sealed class FourDeckTests
     {
         using var app = FourDecks();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("One")).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("One")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")));
         vm.Mixer!.Crossfader = 0;
         vm.Deck1!.TogglePlayCommand.Execute(null);
         app.Play(0.1);
@@ -130,8 +130,8 @@ public sealed class FourDeckTests
     {
         using var app = FourDecks();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")).GetAwaiter().GetResult();
-        vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Four")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")));
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck4!, app.ToneTrack("Four")));
         vm.Mixer!.Crossfader = 1;
         vm.Deck3!.TogglePlayCommand.Execute(null);
 
@@ -151,7 +151,7 @@ public sealed class FourDeckTests
     {
         using var app = FourDecks();
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck3!, app.ToneTrack("Three")));
         var view = View(app, 3);
         var more = view.FindControl<Button>("MoreButton")!;
         Assert.True(more.IsEffectivelyVisible);

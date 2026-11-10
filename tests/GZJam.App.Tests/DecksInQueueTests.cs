@@ -30,7 +30,7 @@ public sealed class DecksInQueueTests
         using var app = new AppHarness();
         app.Settings.OnAirPause = OnAirPause.TapTwice;
         var vm = app.ViewModel;
-        vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Jump Steady", 60)).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Jump Steady", 60)));
         vm.Mixer!.Crossfader = 0;
         vm.AddToQueue([app.Library.Results[0], app.Library.Results[1]]);
         vm.DecksHidden = true;
@@ -86,7 +86,7 @@ public sealed class DecksInQueueTests
         var tone = app.ToneTrack("Jump Steady", 60);
         var song = new Track { Path = tone.Path, Folder = "", FileName = tone.FileName, Title = tone.Title, Artist = "Count Basie",
             Album = "The Complete Decca Recordings", Year = 1938, TagBpm = 150 };
-        vm.LoadToDeckAsync(vm.Deck1!, song).GetAwaiter().GetResult();
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, song));
         vm.Deck1!.TempoPercent = 4;
         vm.AddToQueue([app.Library.Results[0]]);
         app.Window.SetQueueColumnShown("Album", true);
