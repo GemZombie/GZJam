@@ -313,6 +313,45 @@ public sealed class MixEngineTests : IDisposable
     }
 
     [Fact]
+    public void Moved_to_just_before_a_fade_point_the_song_still_fades_there()
+    {
+        // The Mac's release build (v1.7.0-beta.2): auto-play's limit sometimes didn't start after
+        // the song was moved to just before it. Moved there many times over, as a DJ might, the
+        // sound must fade at the point every time, without the app looking.
+        for (int i = 0; i < 20; i++)
+        {
+            A.Load(_tone);
+            A.AutoFade = (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(0.3));
+            A.Play();
+            Render(0.1 + i * 0.01);
+            A.Seek(TimeSpan.FromSeconds(2.8));
+            Render(0.15);
+            Assert.True(Render(0.05).Main > Full * 0.9f, $"try {i}: faded before the point");
+            Render(0.4);   // past the point, and through its 0.3 s fade
+            Assert.True(Render(0.1).Main < Silent, $"try {i}: still playing {Render(0.01).Main:0.000} past the point (decoded to {A.Position.TotalSeconds:0.000} s)");
+            A.Unload();
+        }
+    }
+
+    [Fact]
+    public void Moved_to_just_before_the_end_the_song_still_stops_there()
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            A.Load(_tone);
+            A.SetTrim(TimeSpan.Zero, TimeSpan.FromSeconds(3));
+            A.Play();
+            Render(0.1 + i * 0.01);
+            A.Seek(TimeSpan.FromSeconds(2.8));
+            Render(0.15);
+            Assert.True(Render(0.05).Main > Full * 0.9f, $"try {i}: stopped before the end");
+            Render(0.1);
+            Assert.True(Render(0.1).Main < Silent, $"try {i}: still playing past the end (decoded to {A.Position.TotalSeconds:0.000} s)");
+            A.Unload();
+        }
+    }
+
+    [Fact]
     public void Auto_plays_limit_lets_a_song_already_past_it_play_on()
     {
         A.Load(_tone);
