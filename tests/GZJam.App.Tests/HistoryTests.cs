@@ -140,6 +140,34 @@ public sealed class HistoryAppTests
         Assert.Equal("7:42 PM", Spaced(play.TimeText));
     }
 
+    [AvaloniaFact]
+    public void A_song_played_tonight_is_added_as_a_row_and_the_list_isnt_read_again()
+    {
+        // #360: reading the night again for each song froze the window for seconds with a long History.
+        using var app = new AppHarness();
+        HistoryViewModel history = app.ViewModel.History;
+        DateTime first = DateTime.UtcNow.AddMinutes(-10);
+        history.Record(app.ToneTrack("Opener"), first, "1", 0, TimeSpan.FromMinutes(3));
+        PlayItem opener = Assert.Single(history.Plays);
+
+        history.Record(app.ToneTrack("Second"), first.AddMinutes(4), "2", 2, TimeSpan.FromMinutes(3));
+
+        Assert.Equal(["Opener", "Second"], history.Plays.Select(p => p.Title));
+        Assert.Same(opener, history.Plays[0]);   // kept, not read again
+        Assert.Equal([1, 2], history.Plays.Select(p => p.Number));
+        Assert.Equal("This session · 2 songs", history.SelectedSession!.Label);
+        Assert.Equal("2 songs · 6:00", history.Summary);
+
+        // One that went on air before the last one recorded: the night is read again, in order.
+        history.Record(app.ToneTrack("Blended in"), first.AddMinutes(3), "1", 0, TimeSpan.FromMinutes(3));
+        Assert.Equal(["Opener", "Blended in", "Second"], history.Plays.Select(p => p.Title));
+        Assert.Equal([1, 2, 3], history.Plays.Select(p => p.Number));
+
+        // Reopened, it reads the same.
+        var reopened = new HistoryViewModel(app.Database);
+        Assert.Equal(["Opener", "Blended in", "Second"], reopened.Plays.Select(p => p.Title));
+    }
+
     // On Linux and macOS, .NET takes time formats from ICU, which puts a narrow no-break space before PM.
     private static string Spaced(string text) => text.Replace((char)0x202F, ' ');
 

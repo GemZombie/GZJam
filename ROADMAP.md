@@ -175,6 +175,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   a cue or an EQ change doesn't wait for the disk, and an EQ fader is saved once, when you let go
 - [The waveforms no longer make work as the night goes on](https://github.com/GemZombie/GZJam/issues/363),
   which could make the screen stutter later in a night
+- [A song counting as played no longer freezes the screen](https://github.com/GemZombie/GZJam/issues/360),
+  which took seconds with a long History
 
 **In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
 
@@ -243,9 +245,8 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 - [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347), with four levels to choose from
 - [Fades, the crossfader's slide and song ends handled by the sound itself](https://github.com/GemZombie/GZJam/issues/359),
   so a busy screen can never hold them up
-- No more moments the screen freezes: when [a song counts as played](https://github.com/GemZombie/GZJam/issues/360)
-  (seconds, with a long History), and when [a song is loaded](https://github.com/GemZombie/GZJam/issues/361)
-  that wasn't read ahead
+- No more freezing when [a song is loaded](https://github.com/GemZombie/GZJam/issues/361) that
+  wasn't read ahead
 
 **1.8: playlists,** with ideas from Danny Cherry's fork:
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
