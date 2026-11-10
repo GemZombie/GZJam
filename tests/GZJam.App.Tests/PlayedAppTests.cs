@@ -38,7 +38,8 @@ public sealed class PlayedAppTests
         AppHarness.Settle(300);
 
         var grid = app.Window.FindControl<Avalonia.Controls.DataGrid>("TrackGrid")!;
-        var rows = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(grid).OfType<Avalonia.Controls.DataGridRow>().ToList();
+        var rows = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(grid).OfType<Avalonia.Controls.DataGridRow>()
+            .Where(r => r.IsVisible).ToList();   // the grid keeps spare rows hidden, with the songs they last showed (#343)
         var playedRow = rows.Single(r => r.DataContext is Track { PlaylistNumber: 1 });
         var missingRow = rows.Single(r => r.DataContext is Track { PlaylistNumber: 2 });
         Assert.Equal(1, playedRow.Opacity);
