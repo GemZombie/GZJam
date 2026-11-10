@@ -879,6 +879,11 @@ For DJs on MediaMonkey, foobar2000 and most other players (one DJ giving input p
   are kept besides those playing; a file changed since (size or time) is read again.
 - Files over 300 MB (an hour-long mix) play from disk as before. A server's song not yet
   downloaded isn't a file, and isn't read ahead.
+- **Moving a song just read:** reading a file makes Windows' antivirus scan it, and while it does,
+  the file can't be moved ("being used by another process"). Under load the full test suite hit
+  it moving queued songs to a folder. Moving and deleting song files (Organize, keeping a server's
+  songs) now try again for up to 2 s while a file is in use (`BusyFile`), which a DJ's computer,
+  with its own antivirus, indexer or backup, may need anyway.
 
 ### Status: extra protection against crackles (2026-10-23, issue #25)
 

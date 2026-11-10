@@ -99,8 +99,8 @@ public sealed class QueueToFolderAppTests
         Assert.Contains("stays in My music, in a new place", asked()!.Details);
         Assert.Equal(s.Lindy, asked()!.Folder);   // the folder it was dropped on
         Assert.False(asked()!.CanGoBackToUsual);
-        Assert.True(File.Exists(to));
-        Assert.False(File.Exists(from));
+        Assert.True(File.Exists(to), "NOTICE: " + s.Vm.Notice);
+        Assert.False(File.Exists(from), "NOTICE: " + s.Vm.Notice);
         AppHarness.WaitFor(() => s.Queue.Items.Single().Track.Path == to);
         AppHarness.WaitFor(() => s.App.Database.FindTrack(to) is not null);
         Assert.Equal(Rating.Loved, s.App.Database.GetMarks(to).Rating);
@@ -124,7 +124,7 @@ public sealed class QueueToFolderAppTests
         Finish(s.Vm.SendToFolderAsync([song], s.Lindy));
 
         Assert.Contains("joins My music", asked()!.Details);
-        Assert.False(File.Exists(from));
+        Assert.False(File.Exists(from), "NOTICE: " + s.Vm.Notice);
         AppHarness.WaitFor(() => s.App.Database.FindTrack(to) is not null);
         AppHarness.WaitFor(() => s.Queue.Items.Single().Track.Path == to);
     }
@@ -149,7 +149,7 @@ public sealed class QueueToFolderAppTests
         Assert.StartsWith("Add \"At Last\"", asked()!.Heading);
         Assert.Contains("the USB stick keeps its song", asked()!.Details);
         Assert.True(File.Exists(onStick));
-        Assert.True(File.Exists(to));
+        Assert.True(File.Exists(to), "NOTICE: " + s.Vm.Notice);
         AppHarness.WaitFor(() => s.App.Database.FindTrack(to) is not null);
         AppHarness.WaitFor(() => s.Queue.Items.Single().Track.Path == to);
         Assert.Equal(Rating.Loved, s.App.Database.GetMarks(to).Rating);

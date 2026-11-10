@@ -39,6 +39,8 @@ Fixed:
   silent, still showing the song playing. Now, within a couple of seconds, GZJam says so and
   plays through the computer's default output instead, as it already did when it had the
   speakers to itself.
+- **Moving a song no longer fails because another program has it open for a moment** (an
+  antivirus scanning it, say): GZJam waits a moment and tries again.
 - **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound
   processing (each output's volume, mono and limiter, the meters, and a deck's jumps) now runs as
   native code. Before, it was .NET code, so whenever GZJam stopped to tidy its memory the sound
