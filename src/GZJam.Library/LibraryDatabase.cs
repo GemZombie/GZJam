@@ -1027,9 +1027,9 @@ public sealed partial class LibraryDatabase
             "SELECT e.path AS entry_path, " +
             "a.bpm AS detected_bpm, a.length_ms AS analyzed_ms, a.file_size AS analyzed_size, a.modified_utc AS analyzed_modified, " +
             "r.min AS range_min, r.max AS range_max, mb.bpm AS manual_bpm, m.rating AS rating, m.energy AS energy, " +
-            "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels " +
+            PlaysAndLabelsOf("e.path") + " " +
             "FROM (SELECT $path AS path) e " +
-            "LEFT JOIN analysis a ON a.path = e.path " + TrackJoins[(TrackJoins.IndexOf(" LEFT JOIN bpm_ranges", StringComparison.Ordinal) + 1)..].Replace("t.path", "e.path") + ";";
+            "LEFT JOIN analysis a ON a.path = e.path" + MarkJoins.Replace("t.path", "e.path") + ";";
         var path = cmd.Parameters.Add("$path", SqliteType.Text);
         foreach (string one in paths)
         {
@@ -1206,11 +1206,32 @@ public sealed partial class LibraryDatabase
         "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels, " +
         // A file whose tags give no length (its audio behind a damaged tag, #220): as long as the analysis found.
         "CASE WHEN t.duration_ms > 0 THEN t.duration_ms ELSE COALESCE(a.length_ms, 0) END AS length_ms";
-    private const string TrackJoins =
-        JoinAnalysis + " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN manual_bpm mb ON mb.path = t.path LEFT JOIN marks m ON m.path = t.path " +
-        "LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path " +
+    private const string TrackJoins = JoinAnalysis + MarkJoins +
+        " LEFT JOIN (SELECT path, MAX(played_utc) AS last_played, COUNT(*) AS play_count FROM plays GROUP BY path) lp ON lp.path = t.path " +
         "LEFT JOIN (SELECT tl.path, group_concat(l.name, char(31)) AS labels FROM track_labels tl JOIN labels l ON l.id = tl.label_id " +
         "GROUP BY tl.path) lb ON lb.path = t.path";
+
+    /// <summary>The DJ's marks on a song: a BPM range or BPM of their own, its heart and energy.</summary>
+    private const string MarkJoins =
+        " LEFT JOIN bpm_ranges r ON r.path = t.path LEFT JOIN manual_bpm mb ON mb.path = t.path LEFT JOIN marks m ON m.path = t.path";
+
+    /// <summary>
+    /// What <see cref="TrackColumns"/> and <see cref="TrackJoins"/> give, for a song or a few looked
+    /// up by path (#360). The joins group the whole of History and every label once per query: right
+    /// for a list of thousands, but a song read alone paid for all of it, 40-80 ms each with a few
+    /// years of History, and History reading a night's songs one by one froze the window for seconds.
+    /// Here each song's plays and labels are looked up by its path.
+    /// </summary>
+    private static readonly string OneTrackColumns = TrackColumns.Replace(
+        "lp.last_played AS last_played, lp.play_count AS play_count, lb.labels AS labels", PlaysAndLabelsOf("t.path"), StringComparison.Ordinal);
+
+    private const string OneTrackJoins = JoinAnalysis + MarkJoins;
+
+    /// <summary>A song's last play, play count and labels, by its path (an index lookup each).</summary>
+    private static string PlaysAndLabelsOf(string path) =>
+        $"(SELECT MAX(played_utc) FROM plays WHERE path = {path}) AS last_played, " +
+        $"(SELECT COUNT(*) FROM plays WHERE path = {path}) AS play_count, " +
+        $"(SELECT group_concat(l.name, char(31)) FROM track_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.path = {path}) AS labels";
 
     /// <summary>Joins a track's analysis, if there is one for the file as it is now.</summary>
     private const string JoinAnalysis =
