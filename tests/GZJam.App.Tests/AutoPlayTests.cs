@@ -301,10 +301,13 @@ public sealed class AutoPlayTests
         Assert.Equal($"0:00 / fade {Format.Duration(fadesAt)}", d1.ReadoutCaption);
         Assert.InRange(d1.Deck.Remaining.TotalSeconds, 59.5, 61);   // to the end of the fade, not the song
 
+        string? late = null;
+        d1.Deck.FadeStartedLate += (_, why) => late = why;
         JustBefore(app, d1, fadesAt);
         Assert.False(d1.Deck.IsFading);
         PlayUntil(app, () => d1.Deck.IsFading);
         Assert.InRange(d1.Deck.Position.TotalSeconds, fadesAt.TotalSeconds, fadesAt.TotalSeconds + 0.5);
+        Assert.True(late is null, $"The app had to start the fade, not the sound (#359): {late}");   // even if the analysis came in meanwhile
 
         PlayUntil(app, () => d2.IsOnAir);
         Assert.Equal(d2.Deck.Start + TimeSpan.FromSeconds(60), d2.Deck.FadesAt);   // the next song has it too
