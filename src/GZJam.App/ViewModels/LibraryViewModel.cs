@@ -117,7 +117,30 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Rows can be dragged into a new order: a playlist, shown whole and in its own order.</summary>
-    public bool CanReorderPlaylist => IsPlaylistOpen && string.IsNullOrWhiteSpace(SearchText);
+    public bool CanReorderPlaylist => IsPlaylistOpen && string.IsNullOrWhiteSpace(SearchText) && !IsSorted;
+
+    /// <summary>
+    /// Whose sort the song list shows (#376): each playlist its own, and My music, Servers and
+    /// Files one each, shared by their folders.
+    /// </summary>
+    public string SortKey => SelectedPlaylist is { } playlist ? PlaylistSortKey(playlist.Id) : Source.ToString();
+
+    /// <summary>A playlist's <see cref="SortKey"/>.</summary>
+    public static string PlaylistSortKey(long id) => $"playlist:{id}";
+
+    /// <summary>The song list is sorted by a column, not in its own order. Set by the window.</summary>
+    public bool IsSorted
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanReorderPlaylist));
+        }
+    }
 
     /// <summary>
     /// Reads the playlists again (one was made, renamed, deleted or changed), keeping the open one
@@ -206,6 +229,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(IsFilesShowing));
+        OnPropertyChanged(nameof(SortKey));
         OnPropertyChanged(nameof(SearchPlaceholder));
         OnPropertyChanged(nameof(CanFilter));
         OnPropertyChanged(nameof(HasNoRoots));
@@ -310,6 +334,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(IsFilesShowing));
+        OnPropertyChanged(nameof(SortKey));
         OnPropertyChanged(nameof(SelectedFolderRow));
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(HasNoRoots));

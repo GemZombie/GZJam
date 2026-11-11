@@ -485,7 +485,12 @@ they're in as well. *+ New folder* makes one inside the folder selected.
 - **Columns:** Title, Artist and Time (each song's length) always show. Right-click a column
   header to show or hide ♥, Album, Genre, Grouping, Comment, Year, BPM, Energy, Played and Art, and, under *Tags in your songs*, any other tag your songs have
   (Composer, Mood, a Dance tag of your own: the ones most songs have first, the rest under *More
-  tags*). Click a header to sort; the list stays sorted that way as you search and pick folders. Long text is cut off with "…"; point at it (or hold a finger on
+  tags*). Click a header to sort, again to reverse it, and a third time for the list's own
+  order. My music keeps its sort as you search and pick folders, and so do Servers and Files, each
+  their own. **Each playlist keeps its own sort**: it opens in its own order, your planned set,
+  until you sort it, and sorting it leaves the library and other playlists as they were. GZJam
+  remembers them all for next time. A sorted playlist can't be reordered by dragging: click the
+  header until its arrow goes. Long text is cut off with "…"; point at it (or hold a finger on
   it) for the whole text.
 
 ### Marking songs

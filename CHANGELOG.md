@@ -15,6 +15,10 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **The song list keeps its sort** (#376, thanks to a DJ moving over from Mixxx). Sort the
+  library by BPM, open a playlist, come back: still by BPM. Each playlist keeps its own sort, so a
+  planned set opens in its own order until you sort it, and My music, Servers and Files keep one
+  each. A third click on a header goes back to the list's own order. Remembered between runs.
 - **Move songs into My music, not only copy them** (#384). *Add to my music…* from Files has
   **Move them, out of where they are now**: the songs leave the folder they were in, so a folder
   you drop new music into is left with what you didn't keep. Remembered for next time. Hearts,

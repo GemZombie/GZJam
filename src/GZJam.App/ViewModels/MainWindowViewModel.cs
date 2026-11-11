@@ -718,6 +718,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (Library.SelectedPlaylist?.Id == playlist.Id)
             Library.OpenPlaylist(null);
         _database.DeletePlaylist(playlist.Id);
+        _settings.ListSorts.Remove(LibraryViewModel.PlaylistSortKey(playlist.Id));
         Log.Info($"Playlist \"{playlist.Name}\" deleted");
         Library.RefreshPlaylists();
     }
@@ -1781,6 +1782,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         undo?.Invoke();
     }
 
+    /// <summary>The sort a list was left in (#376), or null for its own order.</summary>
+    public AppSettings.ListSort? SortFor(string key) => _settings.ListSorts.GetValueOrDefault(key);
+
+    /// <summary>Remembers the sort a list is in (null: its own order), saved with the settings.</summary>
+    public void RememberSort(string key, AppSettings.ListSort? sort)
+    {
+        if (sort is null)
+            _settings.ListSorts.Remove(key);
+        else
+            _settings.ListSorts[key] = sort;
+    }
+
     /// <summary>Library columns the DJ has hidden (by header); changed by the column menu, saved with the settings.</summary>
     public List<string> HiddenColumns => _settings.HiddenColumns;
 
@@ -1801,6 +1814,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         (_settings.SelectedRootPath, _settings.SelectedFolder) = Library.GetSelection();
         _settings.OpenPlaylist = Library.SelectedPlaylist?.Id;
         _settings.LibrarySource = Library.Source.ToString();
+        if (Library.HasLoaded)
+        {
+            // A deleted playlist takes its sort with it.
+            var playlists = Library.Playlists.Select(p => LibraryViewModel.PlaylistSortKey(p.Id)).ToHashSet();
+            foreach (string key in _settings.ListSorts.Keys.Where(k => k.StartsWith("playlist:", StringComparison.Ordinal) && !playlists.Contains(k)).ToList())
+                _settings.ListSorts.Remove(key);
+        }
     }
 
     public void Dispose()

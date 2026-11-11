@@ -308,6 +308,8 @@ public sealed class FilesAppTests
         Assert.Equal(ListSortDirection.Descending, grid.CollectionView!.SortDescriptions.Single().Direction);
         ClickHeader(s, "Added");   // then oldest first
         Assert.Equal(newestFirst.AsEnumerable().Reverse(), Shown(s));
+        ClickHeader(s, "Added");   // then the folder's own order again (#376)
+        Assert.Empty(grid.CollectionView!.SortDescriptions);
         ClickHeader(s, "Added");
         Assert.Equal(newestFirst, Shown(s));
         s.App.Screenshot("files-added-newest-first");
@@ -330,6 +332,11 @@ public sealed class FilesAppTests
         Assert.False(added.IsVisible);
         Assert.DoesNotContain(grid.CollectionView!.SortDescriptions, d => d.PropertyPath == nameof(Track.AddedUtc));
         Assert.DoesNotContain(s.App.Window.ColumnsMenu().Items.OfType<MenuItem>(), i => (string?)i.Header == "Added");
+
+        // Files keeps its own sort (#376): back there, newest first again.
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        Assert.Equal(ListSortDirection.Descending, Assert.Single(grid.CollectionView!.SortDescriptions, d => d.PropertyPath == nameof(Track.AddedUtc)).Direction);
     }
 
     [Theory]

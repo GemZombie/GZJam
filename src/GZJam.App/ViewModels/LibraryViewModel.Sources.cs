@@ -127,6 +127,7 @@ public sealed partial class LibraryViewModel
         OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(IsServerShowing));
         OnPropertyChanged(nameof(IsFilesShowing));
+        OnPropertyChanged(nameof(SortKey));
         OnPropertyChanged(nameof(SearchPlaceholder));
         OnPropertyChanged(nameof(CanFilter));
         OnPropertyChanged(nameof(ClearScopeTip));

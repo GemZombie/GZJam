@@ -205,6 +205,15 @@ public sealed class AppSettings
     public List<string> HiddenColumns { get; set; } = ["Genre", "Art", "Grouping", "Comment"];
 
     /// <summary>
+    /// The song list's sort for each list (#376), by <see cref="ViewModels.LibraryViewModel.SortKey"/>:
+    /// "MyMusic", "Servers", "Files", or "playlist:12". A list that isn't here is in its own order.
+    /// </summary>
+    public Dictionary<string, ListSort> ListSorts { get; set; } = [];
+
+    /// <summary>A sort: the column (its sort path, or "tag:" and a tag's key) and its direction.</summary>
+    public sealed record ListSort(string Column, bool Descending);
+
+    /// <summary>
     /// What the queue doesn't show of each song, chosen from its menu (#131), by
     /// <see cref="Views.MainWindow.QueueColumns"/> name. Album, genre, year and when it was last
     /// played start hidden: they're for a wide queue (#178).
