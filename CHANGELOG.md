@@ -13,422 +13,160 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.7.0-beta.3.
+Nothing yet since 1.7.0.
 
-## 1.7.0-beta.3 (2026-11-10)
+## 1.7.0 (2026-11-11)
 
-The next beta of 1.7: nothing on screen should hold up the music, and the screen should no
-longer freeze. Fades, the crossfader and the end of each song are now handled by the sound itself,
-so a busy moment can't leave a fade halfway or the room between two decks. Loading a song,
-counting one as played and saving no longer freeze the screen. There was no 1.7.0-beta.2 to
-download: its Mac build found auto-play's limit could be missed, fixed here. Like the others,
-GZJam's update notice doesn't offer it: you only get it from this page. It has everything in
-1.7.0-beta.1, and nothing changes in your library.
-
-Fixed:
-
-- **Saving no longer holds up the screen** (#362). Each change GZJam keeps (a rating, a cue, a
-  song's EQ, a song played) waited for the disk, up to a twentieth of a second, and an EQ fader
-  saved at every half-dB step as it moved. Now writes don't wait, and a fader you hold is heard
-  as it moves and saved once, when you let go.
-- **The waveforms no longer make work as the night goes on** (#363). The close-up kept the colors
-  of its bars, but only so many: a few songs in, it made new ones for every bar it drew, many
-  times a second, and GZJam kept stopping for a moment to clear them away. The screen could
-  stutter, more so later in a night. Now every waveform shares one set of colors, made once.
-- **Loading a song no longer freezes the screen** (#361). A song you load onto a deck (dropped,
-  double-clicked, from a deck key) is read and opened in the background, so one on a slow or
-  sleeping drive, a network share or a USB disk doesn't hold up the screen while it's read. If the
-  deck starts playing to the room meanwhile, the song isn't put on it, and a song chosen after it,
-  or Eject, comes first.
-- **Fades, the crossfader and the end of a song are handled by the sound itself** (#359). They were
-  moved along by the screen many times a second, so if GZJam was busy for a moment, a fade stopped
-  halfway (then dropped), a switch of the crossfader left the room between two decks, a song played
-  on past the end you set, and auto-play's limit on each song could be missed altogether. Now a fade
-  runs, and ends, with the music; the end of a song and auto-play's limit start their fade at the
-  exact point; and the crossfader reaches the deck it was going to. A deck's meter now shows its
-  fade-out going down.
-  Auto-play's limit fades at its point every time, even when a song's analysis finishes just
-  before it, which on some computers let the song play on.
-- **A song counting as played no longer freezes the screen** (#360). Thirty seconds into each
-  song, History read the whole night again, twice, and each song looked through all of History
-  for its play count: with a few years of nights, or History brought over from Mixxx, the screen
-  froze for seconds in the middle of every song. Now the new song is added to the list, and a
-  song's plays are looked up directly: a 60-song night takes 3 ms rather than 5 seconds.
-
-## 1.7.0-beta.1 (2026-11-10)
-
-The first beta of 1.7, where nothing GZJam does should ever be heard in the room. Its own sound
-processing now runs as native code, so the music never waits for GZJam to tidy its memory, which is
-what made it stutter at Hot Jam. Songs play from memory rather than the disk, and speakers that are
-unplugged mid-song are noticed and come back by themselves. Protection against crackles is a little
-higher by default. Like the others, GZJam's update notice doesn't offer it: you only get it from
-this page. It has everything in 1.6.0-beta.2.
+The first release for everyone since 1.3.0, with everything from the 1.4, 1.5, 1.6 and 1.7 betas.
+**No stutters:** nothing GZJam does on screen or on disk should ever be heard in the room, and the
+screen no longer freezes. **Your own music server** (Navidrome, or another that speaks the Subsonic
+API) in the library, with its songs on the computer before the night so the room never depends on
+the Wi-Fi. **The library's sources**, My music, Servers and Files, so a request on a USB stick plays
+without leaving GZJam. And **Organize music**, for copying and moving songs between your music, the
+computer's folders and USB sticks. Moving is the first time GZJam changes where your files are, so
+it always asks first and can be undone: GZJam never changes your music files unless you ask it to.
+It adds a few things to your library; 1.3.0 can still open it, so you can go back at any time.
+[The guide](docs/GUIDE.md#your-own-music-server) shows how to set up a server.
 
 New:
 
-- **Every dropout is written in the activity log** (#345), with how long the sound stopped and
-  whether GZJam had just stopped to tidy its memory, however the speakers are set up. Before, only
-  speakers GZJam had to itself were checked, and a short dropout could slip by. Closing GZJam says
-  how many there were, so a stutter you heard can be found in the log.
+- **Nothing GZJam does can make the music stutter** (#344, #343). GZJam's own sound processing
+  (each output's volume, mono and limiter, the meters, a deck's jumps) now runs as native code, so
+  the music never waits while GZJam tidies its memory, which is what made it stutter at Hot Jam.
+  In a test on real speakers, half-second tidying pauses stopped the music for 1.4 seconds before,
+  and not at all now. Browsing the library makes far less to tidy: three minutes of browsing a
+  12,700-song library stopped GZJam for 35 seconds in all before, and 2 seconds now.
+- **Songs play from memory, not from the disk** (#346). GZJam reads the whole file when it's
+  loaded, so a slow or sleeping drive, an antivirus scan or an unplugged USB stick can't interrupt
+  a song that's playing. The next songs in the queue, and a song you start dragging, are read
+  ahead. Files over 300 MB (a long DJ mix) still play from the disk.
+- **Fades, the crossfader and the end of a song are handled by the sound itself** (#359), not by
+  the screen, so a busy moment can't leave a fade halfway, the room between two decks, or a song
+  playing on past the end you set. Auto-play's limit on each song fades at its point every time.
+  A deck's meter now shows its fade-out going down.
 - **The speakers come back by themselves** (#338). When the speakers' sound card is plugged in
-  again, or wasn't plugged in when GZJam started, the music moves back to it by itself as soon as
-  nothing is playing to the room, with the headphones as you had them. Before, you had to choose
-  it again in Settings. Changing the headphones meanwhile no longer forgets your speakers.
-
-Changed:
-
-- **Protection against crackles has four levels** (#347, Settings › Sound): Low, Normal, High
-  and Highest, instead of a switch. New installs, and anyone who had the switch off, get Normal:
-  a little more protection than before, with play and the crossfader heard about a third of a
-  second later. Had it on? You're on High, the same as before.
-- **A song on a deck plays from memory, not from the disk** (#346). GZJam reads the whole file when
-  it's loaded, so a slow or sleeping drive, an antivirus scan or an unplugged USB stick can't
-  interrupt a song that's playing. The next songs in the queue, and a song you start dragging, are
-  read ahead, so loading them doesn't wait for the disk either. Files over 300 MB (a long DJ mix)
-  still play from the disk.
-
-Fixed:
-
-- **Speakers unplugged mid-song are noticed, however they're set up** (#353). With the speakers
-  shared with other programs (the usual way), a USB sound card that dropped out left GZJam
-  silent, still showing the song playing. Now, within a couple of seconds, GZJam says so and
-  plays through the computer's default output instead, as it already did when it had the
-  speakers to itself.
-- **Moving a song no longer fails because another program has it open for a moment** (an
-  antivirus scanning it, say): GZJam waits a moment and tries again.
-- **Nothing GZJam does can make the music stutter any more** (#344). GZJam's own sound
-  processing (each output's volume, mono and limiter, the meters, and a deck's jumps) now runs as
-  native code. Before, it was .NET code, so whenever GZJam stopped to tidy its memory the sound
-  had to wait too. In a test on real speakers, half-second tidying pauses made the music stop for
-  1.4 seconds before, and not at all now.
-- **Browsing the library no longer makes the music stutter** (#343, part of it). Each search, and
-  each folder picked, built the song list's rows from scratch, and the memory that left behind made
-  GZJam stop for a moment to tidy up, sound included: a few times an hour, the room heard a gap.
-  The song list now reuses its rows. Three minutes of browsing a 12,700-song library stopped GZJam
-  for 35 seconds in all before, and for 2 seconds now. Searching feels quicker too.
-- **The song list stays sorted by the column you chose** when you search or pick another folder.
-  It went back to the library's own order each time.
-
-## 1.6.0-beta.2 (2026-11-09)
-
-The second beta of 1.6: drag a song from the queue to a folder in My music, and fixes to Organize
-music and auto-play. Dragging a song from the computer moves its file, so try it on a few songs
-first. Like the others, GZJam's update notice doesn't offer it: you only get it from this page. It
-has everything in 1.6.0-beta.1.
-
-New:
-
-- **Drag a song from the queue to a folder in My music, and it ends up there** (#335). Drop it on the
-  song list while it shows that folder, or on a folder in the tree, or on *My music* at the top of
-  the library column, or right-click it in the queue. Nothing moves until you say so: a window says what will happen and lets you change the
-  folder. A song on the computer moves there, with Undo; one from a USB stick or a server is copied.
-  Its hearts, cues, labels and playlists go with it, and its place in the queue follows.
-
-Changed:
-
-- GZJam's promise about your files now reads: **GZJam never changes your music files unless you ask
-  it to.**
-
-Fixed:
-
-- **Organize music: Space previews the song selected,** as it does in the song list. It did nothing,
-  and only the headphones worked.
-- **Organize music has the headphone player** that's under the song list, to see how far along a
-  preview is, skip through it and stop it.
-- **Auto-play: a song replaced on a deck that isn't playing goes back to the top of the queue,**
-  wherever the crossfader is (#337). On the crossfader's side it was replaced and lost, with no
-  notice.
-
-## 1.6.0-beta.1 (2026-11-08)
-
-The first beta of 1.6: Organize music, for copying and moving songs without leaving GZJam, and
-choosing the folder when you add songs to My music. Organize is the first part of it, and the first
-time GZJam moves your files, so try it on a few songs first. Like the others, GZJam's update notice
-doesn't offer it: you only get it from this page. It has everything in 1.5.0-beta.2.
-
-New:
-
-- **Organize music: copying and moving songs without leaving GZJam** (#325, the first part): two sides, each
-  My music or Files, with every combination between them. Drag songs across, or use the *Move* and
-  *Copy* buttons between the sides, which say what will happen: into My music the songs join it,
-  out of it they leave it. A move keeps a song's hearts, cues and playlists, and can be undone.
-  Songs on a deck stay put, and a song never replaces another. Open it with **Organize** at the top
-  of the library column, or right-click a folder: it takes the place of the library and queue, with
-  the decks still above it, and **Done** brings them back.
-- ***Add to my music…* lets you choose the folder** (#324): from a server, Files or a USB stick,
-  with My music's folders to pick from and *New folder* to make one. Songs go straight into the
-  folder you pick, or bring their own folders if you tick that. It opens on the last folder you
-  chose, or on the usual place, so *Add* alone puts them where they've always gone.
-
-## 1.5.0-beta.2 (2026-11-08)
-
-The second beta of 1.5: send a playlist of yours to your server, and share a link to it. Like the
-others, GZJam's update notice doesn't offer it: you only get it from this page. It has everything
-in 1.5.0-beta.1.
-
-New:
-
-- **Send a playlist of yours to your server, and share it** (#303, thanks to Danny for asking).
-  Right-click a playlist › *Send to synology* makes it on the server in its order, for your
-  setlist the next day; sending it again updates the same one. Songs the server doesn't have are
-  named first and left out. *Share a link…* makes a link anyone can open and listen to, and copies
-  it, ready to paste into a post (Navidrome needs sharing turned on: *EnableSharing*). Adds one
-  more small thing to your library; older versions can still open it.
-
-## 1.5.0-beta.1 (2026-11-08)
-
-The first beta of 1.5: the library's sources, My music, Servers and Files, each apart, and USB
-sticks played without leaving GZJam. Like the 1.4 betas, GZJam's update notice doesn't offer it:
-you only get it from this page. It has everything in 1.4.0-beta.5 too. Nothing changes in your
-library's format, so 1.4.0-beta.5 can still open it.
-
-New:
-
-- **The library's sources: My music and Servers, each apart** (#318). The top of the library
-  column lists them; click one to see all of it, and the folder tree shows its folders alone. A
-  search covers the source you're in, and a line under it says what the other has, a click away:
-  *Also: 4 on synology · Show*, or *Also: 12 in My music · Show*. With no server chosen, a search
-  of Servers covers every server. A server's song that's in My music as well says **in My music**.
-- **Files: the computer's own places and drives, and any USB stick** (#318), as the library's
-  third source, so a one-off song (a request, a first dance) plays without leaving GZJam or
-  dragging it in. A stick shows as soon as it's plugged in. Open a folder to see its songs; the
-  search box filters them by name. **A song from a USB stick is read into GZJam when it's loaded
-  or queued**, so pulling the stick out never stops the room. *Add to my music* copies songs (or a
-  whole folder) into your music, under *Added* and the folder they came from, with their hearts
-  and cues.
-- **Each song in the queue, History and a playlist says where it's from** (#318): a small icon
-  by its title for My music, a server, the computer's files or a USB stick.
-
-Changed:
-
-- **Songs downloaded from a server are the server's, not My music's** (#318). The downloads
-  folder (*GZJam from servers*) is where GZJam keeps them for playing offline: they show under
-  their server, never twice, and no longer in My music's folders or its search. Set up with the
-  downloads folder as a music folder of its own, or inside your Music folder, it moves over by
-  itself, its songs keeping their hearts, cues, labels, playlists and plays. Nothing else changes
-  in your library, so 1.4 can still open it.
-- **Keep a copy in my library is now *Add to my music*** (#318), and *Keep the whole server in my
-  library* is *Add the whole server to my music*. Where they put songs, *Songs you add go to*, is
-  in Settings › Library now.
-- **Settings › Servers says what adding a whole server's two settings are for** (thanks to
-  Danny for the wording): *Speed for copying a whole server* and *Allow copying a whole server
-  while music plays* now say they're for *Add the whole server to my music* (right-click a
-  server): off, it copies only while no music is playing; on, at any time. They show only once a
-  server is being added whole: until then they do nothing.
-
-Fixed:
-
-- **A folder's right-click menu is its own size:** on Windows, a folder's or playlist's menu
-  opened after a bigger one could keep that size, with empty space under its choices. Now it
-  opens again straight away, the right size.
-
-## 1.4.0-beta.5 (2026-11-07)
-
-The fifth beta of 1.4: the library's folder tree with no gaps, and never blank as you scroll. Like
-the others, GZJam's update notice doesn't offer it: you only get it from this page. It has
-everything in 1.4.0-beta.4, and nothing more changes in your library, so 1.3.0 can still open it.
-
-Fixed:
-
-- **The library's folder tree no longer leaves gaps or goes blank as you scroll**: with a folder
-  opened, a gap could follow its folders, and scrolling a long list (a server's artists) could
-  leave the whole tree blank until you scrolled back. The tree is now one list of rows, each
-  indented for its place, so it only makes rows for the folders in view and always knows where
-  each one is. It works as before: a click opens a folder, a click on the chosen one closes it,
-  and the arrow keys go through it (right opens a folder, left closes it or goes up). A folder
-  chosen inside one you close stays chosen, its songs still showing.
-
-## 1.4.0-beta.4 (2026-11-07)
-
-The fourth beta of 1.4: fewer reads of your server's song list, and fewer library scans while
-a sync downloads. Like the others, GZJam's update notice doesn't offer it: you only get it from
-this page. It has everything in 1.4.0-beta.3. Your library gets one small addition, which 1.3.0
-and the earlier betas can still open.
-
-Fixed:
-
-- **GZJam no longer reads your server's whole song list again when nothing changed there**: at
-  its start, once the list is more than 12 hours old, it asks the server whether it has read its
-  music since, and keeps the list it has if not (Navidrome says; a server that doesn't is read as
-  before). Read again unchanged, 18,000 songs took 90 seconds over the internet. And while it
-  reads, the song list no longer shows a note that came back with each song a sync brought down.
-- **Fewer library scans while a sync downloads**: a song being downloaded no longer sets off a
-  scan of its own, and songs arriving one after another are scanned together, at most every 15
-  seconds, rather than a scan, a folder tree refresh and a song list reload for each song.
-
-## 1.4.0-beta.3 (2026-11-07)
-
-The third beta of 1.4: your server back in the library, which 1.4.0-beta.2 lost. Like the others,
-GZJam's update notice doesn't offer it: you only get it from this page. It has everything in
-1.4.0-beta.2, and nothing changes in your library, so 1.3.0 can still open it.
-
-Fixed:
-
-- **Your server is back in the library's folder tree** (it went missing in 1.4.0-beta.2): the
-  tree was first made a moment before GZJam had read your servers, and kept that.
-
-## 1.4.0-beta.2 (2026-11-06)
-
-The second beta of 1.4, with fixes from trying the first on a sync over the internet. Like the
-first, GZJam's update notice doesn't offer it: you only get it from this page. It has everything
-in 1.4.0-beta.1, and nothing changes in your library, so 1.3.0 can still open it.
-
-Fixed:
-
-- **The song list stays where you scrolled it while a sync brings songs down:** each song that
-  arrived made GZJam read the list again, which sent it back to the top every few seconds, so a
-  song far down a server's long folder couldn't be reached. Now a list read again by itself (after
-  a scan, or a download) keeps the songs in view and the songs selected; a new folder, playlist or
-  search still starts at the top.
-- **No more stutters during a long sync:** each song a sync brought down made GZJam build the
-  folder tree again, your server's thousands of folders with it, and the old ones stayed in memory
-  (2.4 GB after an evening of syncing), so the window hitched every so often, even while a song
-  played (the sound itself was never affected). Now the tree only takes the new song counts, and
-  a new folder makes only its own music folder again.
-
-## 1.4.0-beta.1 (2026-11-06)
-
-A beta of 1.4, for trying it before everyone gets it: your music from your own server (Navidrome,
-or another that speaks the Subsonic API), on the computer before the night so the room never
-depends on the Wi-Fi, and artist and title from file names. GZJam's update notice doesn't offer
-betas: you only get one from this page. It adds a few small things to your library (your
-servers, and what came from them); 1.3.0 can still open it, so you can go back at any time.
-[The guide](docs/GUIDE.md#your-own-music-server) shows how to set up a server. Worth a try on
-your own, and a word if anything's off.
-
-New:
-
-- **Your own music server, in Settings › Servers** (the first part of
-  [#184](https://github.com/GemZombie/GZJam/issues/184)): sign in to Navidrome, or another server
-  that speaks the Subsonic API, at home or over Tailscale. GZJam signs in before saving and says
-  what it found: the server, how many songs it has, and whether your account may download them (if
-  not, its songs will be for the headphones only, never the room). Add as many as you like, your
-  own and a friend's. The password is kept in the computer's keychain (Windows Credential Manager,
-  the Mac's Keychain, or the Linux desktop's), never in GZJam's settings or a backup; a Linux
-  desktop with no keychain keeps it in a file only you can read. Adds one small thing to your
-  library; older versions can still open it.
-- **A server's songs on the computer before the night** ([#283](https://github.com/GemZombie/GZJam/issues/283)):
-  right-click the server in the library › *Keep on this computer…*: its playlists, and what's starred
-  there (songs, whole albums and artists you starred in Navidrome's web page or app), then *Sync
-  now*. GZJam downloads the original files into *GZJam from servers* in your Music folder, laid out
-  as the server has them, as a music folder like your others: the room never depends on the Wi-Fi.
-  Each playlist becomes a GZJam playlist and follows the server's on every sync. A song you already
-  have (the same title, artist and file size) isn't downloaded again, and a half-downloaded song
-  never shows up. Settings › Servers shows how much is downloaded and the room left, lets you set a
-  limit, and can sync each server when GZJam starts (pausing once the room hears music). Adds one
-  more small thing to your library; older versions can still open it.
-- **Your server in the library** ([#290](https://github.com/GemZombie/GZJam/issues/290)): each server
-  sits in the folder tree after your music folders, with its own folders under it, as they are on
-  the server (or by artist and album, for a server that doesn't say). GZJam reads its song list when
-  it's added and at most twice a day (*Read its song list again* on its right-click menu), so it's
-  browsed and searched as fast as your own folders, offline too, and filters such as `year:`,
-  `bpm:` and `genre:` work on its songs (hearts, labels and plays are for the songs on this computer).
-  Songs that aren't on this computer are dimmed,
-  with a cloud by the title: preview them in the headphones as usual, and a double-click, a load
-  onto a deck or *Add to queue* downloads the song first (it goes on a deck only once it's here,
-  and never onto the deck the room hears). Right-click › *Download to this computer* or *Download
-  the album* keeps them, and right-click a server's folder › *Download to this computer* brings
-  everything in it, kept up to date as songs are added to it. Under an ordinary library search, *Also on synology: 12 songs not on this
-  computer · Show* opens the same search on the server. Album art comes from the server too: small
-  in the rows of songs not on this computer (kept, so it shows offline), and for a downloaded song
-  with no picture of its own, the album's picture is saved beside it as *cover.jpg*, as the server
-  keeps it in the album's folder. The server's playlists are under *Playlists*, first under
-  the server: one opens in the song list in its order, as the server has it now (or as last read,
-  offline), and its right-click › *Keep on this computer* downloads it into a playlist of yours, kept
-  up to date on every sync. In your playlists, a cloud marks one kept from a server: a sync makes it
-  the server's again, so changing it here says so, and its right-click › *Stop following the server*
-  makes it yours. Adds one more small thing to your library; older versions can still open it.
-- **When a server can't be reached** (#290): no Wi-Fi, venue Wi-Fi without your Tailscale, the NAS
-  off. Its folders and songs still show (GZJam keeps its song list), and everything already on the
-  computer plays as usual. The server gets a crossed-out cloud in the folder tree, and so do its songs;
-  *Only on this computer* turns on by itself to show what can be played tonight, and off again when the
-  server answers. Asking for one of its songs says at once that it can't be reached, rather than
-  trying for half a minute. GZJam asks again every couple of minutes, and when the network changes.
-- **Stop a download** (#290): *Stop* beside the downloads' progress in the top bar stops a sync
-  after the song coming down (what came stays, and *SYNC* goes on from there), and pauses keeping
-  a whole server. A server's playlist kept by mistake? Right-click it under the server › *Stop
-  keeping on this computer…*: it stops coming (a sync running stops), your copy of it stays as
-  yours, and the songs downloaded only for it can be removed too.
-- **Downloads window** ([#304](https://github.com/GemZombie/GZJam/issues/304), after Danny's own):
-  click the downloads' progress in the top bar, or right-click a server › *Downloads…*, to see
-  every song coming down from your servers. Each one says what it's for (a sync and its playlist,
-  the queue, a deck, *Keep a copy*, or keeping the whole server) and how far along it is ("4.2 of
-  9.8 MB"), and a failed one says why. Each sync or keep running gets a line of its own. *Stop* on
-  a song stops just that one, *Stop all* does what the top bar's *Stop* does, and *Retry failed*
-  and *Clear finished* do what they say. The last 100 finished stay for the session. Songs
-  downloading for the queue or a deck now show in the top bar too, and its *Stop* stops the
-  queue's (a song a deck is waiting for still comes).
-- **Hearts back to the server** ([#286](https://github.com/GemZombie/GZJam/issues/286)): a ♥ on a
-  song from your server (downloaded, kept, or your own copy of one) stars it there, so Navidrome's
-  own app and web page show the same favorites, and taking the ♥ off takes the star off. Stars are
-  saved under your account, so a friend's own aren't changed. A server that can't be reached is
-  told once it answers. Settings › Servers can leave a server out (*Send my hearts*).
+  again, or wasn't plugged in when GZJam started, the music moves back to it as soon as nothing is
+  playing to the room, with the headphones as you had them.
+- **Every dropout is written in the activity log** (#345), with how long the sound stopped and
+  whether GZJam had just stopped to tidy its memory, however the speakers are set up. Closing
+  GZJam says how many there were, so a stutter you heard can be found in the log.
+- **The library's sources: My music, Servers and Files** (#318). The top of the library column
+  lists them; click one to see all of it, and the folder tree shows its folders alone. A search
+  covers the source you're in, and a line under it says what another has, a click away: *Also: 4
+  on synology · Show*. Each song in the queue, History and a playlist has a small icon saying
+  where it's from.
+- **Files: the computer's own places and drives, and any USB stick** (#318), so a one-off song (a
+  request, a first dance) plays without leaving GZJam or dragging it in. A stick shows as soon as
+  it's plugged in. **A song from a USB stick is read into GZJam when it's loaded or queued**, so
+  pulling the stick out never stops the room.
+- **Add to my music** (#318, #324): right-click songs from a server, Files or a USB stick, or a
+  whole folder, to copy them into your music with their hearts and cues. You choose the folder,
+  from My music's folders or a *New folder*; it opens on the last one you chose, so *Add* alone
+  puts them where they went last time.
+- **Organize music: copying and moving songs without leaving GZJam** (#325). Two sides, each My
+  music or Files, with every combination between them. Drag songs across, or use the *Move* and
+  *Copy* buttons, which say what will happen. A move keeps a song's hearts, cues and playlists,
+  and can be undone. Songs on a deck stay put, and a song never replaces another. Open it with
+  **Organize** at the top of the library column, or right-click a folder: it takes the place of
+  the library and queue, with the decks still above it and playing, and **Done** brings them back.
+  Space previews the song selected, and the headphone player is under the two sides.
+- **Drag a song from the queue to a folder in My music** (#335), or right-click it in the queue.
+  A window says what will happen and lets you change the folder before anything moves. A song on
+  the computer moves there, with Undo; one from a USB stick or a server is copied. Its hearts,
+  cues, labels and playlists go with it, and its place in the queue follows.
+- **Your own music server, in Settings › Servers** (#184): sign in to Navidrome, or another server
+  that speaks the Subsonic API, at home or over Tailscale, your own and a friend's. GZJam says what
+  it found: how many songs, and whether your account may download them (if not, they're for the
+  headphones only, never the room). The password is kept in the computer's keychain, never in
+  GZJam's settings or a backup.
+- **Your server in the library** (#290): each server sits under Servers with its own folders, as
+  they are on the server. GZJam keeps its song list, so it's browsed and searched as fast as your
+  own folders, offline too, with filters such as `year:` and `bpm:`, and reads it again at most
+  twice a day, and only if the server's music changed. Songs not on this computer are dimmed, with a cloud by the title:
+  preview them in the headphones as usual, and a double-click, a load onto a deck or *Add to queue*
+  downloads the song first (it goes on a deck only once it's here, and never onto the deck the room
+  hears). Album art comes from the server too. The server's playlists are under *Playlists*, under
+  the server.
+- **A server's songs on the computer before the night** (#283): right-click the server › *Keep on
+  this computer…*: its playlists and what's starred there, then *Sync now*. The original files come
+  down into *GZJam from servers* in your Music folder, and each playlist becomes one of yours,
+  following the server's on every sync. A song you already have isn't downloaded again. Settings ›
+  Servers shows how much is downloaded and the room left, sets a limit, and can sync each server
+  when GZJam starts (pausing once the room hears music).
+- **When a server can't be reached** (#290): its folders and songs still show, and everything
+  already on the computer plays as usual. The server and its songs get a crossed-out cloud, and
+  *Only on this computer* turns on by itself to show what can be played tonight. GZJam asks again
+  every couple of minutes, and when the network changes.
+- **A server's song in the queue waits in its place** (#290): *Downloading…*, then the song itself;
+  *Waiting for synology* while the server can't be reached; a failed download says why, with *Try
+  again*. It can't go on a deck until it's here, and auto-play plays the next song that's here
+  rather than waiting in silence. The queue's songs come down two at a time, in its order.
+- **Downloads window** (#304): click the downloads' progress in the top bar to see every song coming
+  down from your servers, what it's for and how far along it is, and why a failed one failed. Stop
+  one song or all of them, retry the failed ones.
+- **Hearts back to the server** (#286): a ♥ on a song from your server stars it there, so
+  Navidrome's own app and web page show the same favorites, and taking it off takes the star off.
 - **Downloaded songs that go by themselves** (#286): Settings › Servers › *Keep downloaded songs*:
-  *Until I remove them* (as before, the default), *For 4 weeks after they were last played*, or
-  *For the night only* (songs downloaded for the queue or a deck go the next time GZJam starts).
-  The songs of lists kept on this computer always stay, and so does anything on a deck, in the
-  queue or played tonight; a list that wants a song again brings it again. And with *Room for
-  downloaded songs* set, a sync that would pass it now makes room with the downloads played least
-  recently, rather than stopping. Adds one more small thing to your library; older versions can
-  still open it.
-- **Songs moved or renamed on the server** (#286): when GZJam reads the server's song list, a song
-  on this computer whose song moved there follows it, rather than being downloaded again: a
-  downloaded one moves to its new place, with its hearts, cues, labels, playlists and plays; one
-  kept in your music stays where it is. (Navidrome gives a moved song a new ID; GZJam finds it by
-  its size and its file name, or title and artist.)
-- **Artist and title from file names** ([#273](https://github.com/GemZombie/GZJam/issues/273)):
-  for old transfers and rips with empty tags but good names, a song with no title or artist tag
-  shows what its file name says, in italics, everywhere: `1924 Ma Rainey - Lucky Rock Blues.mp3`
-  reads as *Lucky Rock Blues* by *Ma Rainey*. In a song's info, **Fill tags from file name…**
-  fills them for good, for one song or many: GZJam guesses how the names are laid out, shows what
-  each one gives before anything changes, fills only the empty tags unless you say, and Undo puts
-  them back (kept in GZJam's library, or written into the files if you've turned that on).
+  until you remove them (the default), for 4 weeks after they were last played, or for the night
+  only. The songs of kept playlists always stay, and so does anything on a deck, in the queue or
+  played tonight.
+- **Free up space, for a small drive** (#290): right-click downloaded songs › *Remove from this
+  computer*, or the server › *Free up space…*: what was downloaded on the spot for the last night,
+  what hasn't been played in 4 weeks, or everything, with what each frees. They stay on the server.
+  **Move the downloaded songs to another drive** in Settings › Servers, with their hearts, cues and
+  history, the queue following them.
+- **Songs moved or renamed on the server** follow it here, with their hearts, cues, labels,
+  playlists and plays, rather than being downloaded again (#286).
+- **Add a server's songs to my music** (#285), to bring a library home a bit at a time: songs, a
+  folder or a playlist from a server go into your music for good, laid out as on the server. A
+  server's song that's in your music already shows as yours and isn't downloaded again. **Add the
+  whole server to my music** brings every song in the background, waiting while the room hears
+  music, at a speed you set so it leaves room on the home connection.
+- **Send a playlist of yours to your server, and share it** (#303, thanks to Danny for asking):
+  right-click a playlist › *Send to synology* makes it on the server in its order, for your setlist
+  the next day; sending it again updates it. *Share a link…* makes a link anyone can open and
+  listen to (Navidrome needs *EnableSharing* turned on).
+- **Artist and title from file names** (#273): a song with no title or artist tag shows what its
+  file name says, in italics: `1924 Ma Rainey - Lucky Rock Blues.mp3` reads as *Lucky Rock Blues*
+  by *Ma Rainey*. In a song's info, **Fill tags from file name…** fills them for good, for one song
+  or many, showing what each gives before anything changes, with Undo.
 - **The guide's [Your own music server](docs/GUIDE.md#your-own-music-server)**: adding a server,
-  browsing it, songs on the computer before the night, keeping songs for good, hearts, room on a
-  small drive, and setting up Navidrome on a Synology, with Tailscale, and a friend's server.
-- **Free up space, for a small drive** (#290): right-click songs downloaded from a server (or one
-  of its folders) › *Remove from this computer*, or right-click the server › *Free up space…*: what
-  was downloaded on the spot for the last night, what hasn't been played in 4 weeks, or everything,
-  with what each frees and what's left on the drive. They stay on the server, and a sync doesn't
-  bring them back: a double-click, the queue or a download does, with their hearts, cues and EQ.
-  Your own songs, and songs on a deck, in the queue or played tonight, are never removed. Adds one
-  more small thing to your library; older versions can still open it.
-- **Move the downloaded songs to another drive** (#290): Settings › Servers › *Downloaded to* ›
-  *CHANGE…* works at any time now. The songs already downloaded move to the new folder, with their
-  hearts, cues, EQ, playlists and history, and the queue follows them; songs downloaded from then on
-  go there too. GZJam checks there's room first, and the old folder leaves the library once it's
-  empty. A song on a deck has to come off it first; one still downloading finishes first and moves
-  too. A backup restored on another computer takes the downloads folder where its music is now, or
-  back to that computer's own place for them if it isn't there.
-- **A server's song in the queue waits in its place** (#290): added to the queue, it's there at
-  once, *Downloading…*, then becomes the song itself. While its server can't be reached it says
-  *Waiting for synology* and comes by itself when it answers; a download that fails says why, with
-  *Try again*. It's never taken out of the queue by itself, can't go on a deck until it's here, and
-  auto-play plays the next song that's here rather than waiting in silence, saying so. One left
-  waiting when GZJam closes is back in its place the next time. The queue's songs download two at
-  a time, in its order, and a song a deck is waiting for goes first; a song asked for twice at once
-  comes down once, and one taken out of the queue stops downloading.
-- **Keep a copy in my library** ([#285](https://github.com/GemZombie/GZJam/issues/285)), to bring
-  a library home from the server a bit at a time: right-click songs from a server, or one of its
-  folders or playlists in the tree › *Keep a copy in my library…*. They go into a music folder of
-  yours (asked the first time; Settings › Servers › *Songs you keep go to* changes it), laid out as
-  on the server, and GZJam shows where they'll go before anything moves. A song downloaded already
-  moves there with its hearts, cues, labels, playlists and plays; one not on the computer comes from
-  the server straight into its place, with its album's picture. Nothing in the folder is ever
-  replaced. Kept songs are your own from then on: never removed to free up space, and tag edits can
-  be written into them.
-- **Songs you already have** (#285): a server's song that's in your library already (the same title
-  and artist, and the same file size, or the same length for a copy you tagged your own way) shows
-  as yours when you browse the server, isn't downloaded for the queue or a sync, and is left as it
-  is when you keep a copy. GZJam looks after reading the server's song list and after a scan.
-- **Keep a whole server in your library, in the background** (#285): right-click the server › *Keep
-  the whole server in my library…* says how many songs, how much to download and how much room
-  the drive has, then brings every song a song at a time, by the same rules as *Keep a copy*. It
-  waits while the room hears music, picks up where it left off when GZJam starts again, and songs
-  added to the server later come too. Right-click the server to pause, resume or stop it (the songs
-  kept so far stay); a drive that's nearly full pauses it and says so. Settings › Servers sets how
-  fast it may go, so it leaves room on the home connection and the NAS, and whether it may go on
-  while you play.
+  browsing it, songs on the computer before the night, hearts, room on a small drive, and setting
+  up Navidrome on a Synology, with Tailscale, and a friend's server.
+
+Changed:
+
+- **Protection against crackles has four levels** (#347, Settings › Sound): Low, Normal, High and
+  Highest, instead of a switch. New installs, and anyone who had the switch off, get Normal: a
+  little more protection than before, with play and the crossfader heard about a third of a second
+  later. Had it on? You're on High, the same as before.
+- GZJam's promise about your files now reads: **GZJam never changes your music files unless you
+  ask it to.**
+
+Fixed:
+
+- **Loading a song no longer freezes the screen** (#361), even from a slow or sleeping drive, a
+  network share or a USB disk.
+- **A song counting as played no longer freezes the screen** (#360). With a few years of nights,
+  or History brought over from Mixxx, the screen froze for seconds in the middle of every song.
+  A 60-song night now takes 3 ms rather than 5 seconds.
+- **Saving no longer holds up the screen** (#362): a rating, a cue or an EQ change no longer waits
+  for the disk, and an EQ fader you hold is heard as it moves and saved once, when you let go.
+- **The waveforms no longer make work as the night goes on** (#363), which could make the screen
+  stutter later in a night.
+- **Speakers unplugged mid-song are noticed, however they're set up** (#353). With the speakers
+  shared with other programs (the usual way), a USB sound card that dropped out left GZJam silent,
+  still showing the song playing. Now, within a couple of seconds, GZJam says so and plays through
+  the computer's default output instead.
+- **Auto-play: a song replaced on a deck that isn't playing goes back to the top of the queue,**
+  wherever the crossfader is (#337). On the crossfader's side it was lost, with no notice.
+- **The song list stays sorted by the column you chose** when you search or pick another folder.
+- **The library's folder tree no longer leaves gaps or goes blank as you scroll** a long list, and
+  only makes rows for the folders in view.
+- **Moving a song no longer fails because another program has it open for a moment** (an antivirus
+  scanning it, say): GZJam waits a moment and tries again.
+- **A folder's right-click menu is its own size** on Windows, not the size of a bigger one opened
+  before it.
 
 ## 1.3.0 (2026-11-06)
 
