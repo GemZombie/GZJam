@@ -373,6 +373,30 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: the close-up drawn on the render thread (#364, 1.8)
+
+- From the performance review of 2026-11-10: while a deck played, its close-up asked for every
+  frame (`RequestAnimationFrame`) and redrew itself whole on the window's thread, about 600-800
+  rectangles a frame per playing deck. Any moment the window was busy showed as the waveform
+  stuttering.
+- **Now** (`CloseUpHandler`, a `CompositionCustomVisualHandler`, as `StartupLogo`): the render
+  thread draws it at every frame from a `CloseUpScene` (the waveform, zoom, trims, jumps, cues,
+  lock: everything but the playhead, nothing in it changing once made), sent by the window's
+  thread only when one of those changes, and a `CloseUpClock` both threads share (locked): the
+  playhead between the deck's reports, as before, so what's drawn and where a click lands agree.
+- `CloseUpPicture` draws it the same way on either thread (`ICloseUpCanvas`). The render
+  thread's drawing has only rectangles, lines and pictures: the fade's slope is a rectangle
+  skewed along it, a jump's arrow thin strips, and a cue's flag with its number a picture made
+  on the window's thread the first time it's wanted, and kept. On its own (not in a window,
+  tests' pictures of it), the control draws it itself.
+- It moves at every frame only while the deck plays, the close-up is in view
+  (`IsEffectivelyVisible`) and the window isn't minimized, checked with each report from the
+  deck. A marker held while the music moves on is still moved under the finger at every frame,
+  on the window's thread, only while it's held.
+- Checked by eye: a picture with trims, a fade, a jump and cues, drawn the old way and the new,
+  is the same. Tests: `CloseUpTests` (the existing ones, and one that it moves only while
+  playing and in view: not with the decks hidden, minimized or paused).
+
 ### Status: big libraries (#368, 1.8)
 
 - From the performance review of 2026-11-10: GZJam is meant for DJs with 50,000-60,000 songs.

@@ -224,6 +224,47 @@ public sealed class CloseUpTests
         Assert.InRange(moved, 0.002, 0.005);   // give or take the test's own timing
     }
 
+    /// <summary>
+    /// The close-up is drawn at every frame on the render thread (#364), and only while its deck
+    /// plays and it's in view: not with the decks hidden, the window minimized, or paused.
+    /// </summary>
+    [AvaloniaFact]
+    public void The_close_up_moves_at_every_frame_only_while_playing_and_in_view()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck1!, app.ToneTrack("Tune", seconds: 60)));
+        DeckViewModel deck = vm.Deck1!;
+        var (_, closeUp, _) = Deck(app);
+        Assert.False(closeUp.IsMoving);   // loaded, not playing
+
+        deck.TogglePlayCommand.Execute(null);
+        app.Play(0.2);
+        Assert.True(closeUp.IsMoving);
+        double from = closeUp.Playhead;
+        app.Play(0.2);
+        Assert.True(closeUp.Playhead > from);
+
+        vm.DecksHidden = true;
+        app.Play(0.2);
+        Assert.False(closeUp.IsEffectivelyVisible);
+        Assert.False(closeUp.IsMoving);   // still playing, out of sight
+        vm.DecksHidden = false;
+        app.Play(0.2);
+        Assert.True(closeUp.IsMoving);
+
+        app.Window.WindowState = WindowState.Minimized;
+        app.Play(0.2);
+        Assert.False(closeUp.IsMoving);
+        app.Window.WindowState = WindowState.Normal;
+        app.Play(0.2);
+        Assert.True(closeUp.IsMoving);
+
+        deck.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+        Assert.False(closeUp.IsMoving);
+    }
+
     [Fact]
     public void Zoomed_in_tight_a_bar_blends_the_slices_either_side_instead_of_repeating_one()
     {
