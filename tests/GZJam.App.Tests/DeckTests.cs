@@ -40,6 +40,39 @@ public sealed class DeckTests
         Assert.False(b.IsPlaying);
     }
 
+    /// <summary>
+    /// The playback tick raises only what changed (#365): it raised all 22 readouts of all four
+    /// decks 30 times a second, empty or not, shown or not. An empty or paused deck raises nothing;
+    /// a playing one moves its bars every tick and its time once a second.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_tick_raises_only_what_changed()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        var (playing, paused, empty) = (vm.Deck1!, vm.Deck2!, vm.Deck3!);
+        Drop(app, "Deck1View", app.ToneTrack("Playing", seconds: 30));
+        Drop(app, "Deck2View", app.ToneTrack("Paused", seconds: 30));
+        vm.Mixer!.Crossfader = 1;   // Deck 1 off air, so nothing stops it here
+        playing.TogglePlayCommand.Execute(null);
+        app.Play(0.1);
+
+        var raised = new Dictionary<DeckViewModel, List<string>> { [playing] = [], [paused] = [], [empty] = [] };
+        foreach (var (deck, names) in raised)
+            deck.PropertyChanged += (_, e) => names.Add(e.PropertyName!);
+        for (int i = 0; i < 60; i++)   // two seconds of ticks
+            app.Play(1.0 / 30);
+
+        Assert.Empty(raised[empty]);
+        Assert.Empty(raised[paused]);
+        var counts = raised[playing].GroupBy(n => n).ToDictionary(g => g.Key, g => g.Count());
+        Assert.InRange(counts.GetValueOrDefault(nameof(DeckViewModel.Progress)), 55, 60);   // the bars move every tick
+        Assert.InRange(counts.GetValueOrDefault(nameof(DeckViewModel.TimeLeftText)), 1, 3);   // the time, once a second
+        Assert.InRange(counts.GetValueOrDefault(nameof(DeckViewModel.ReadoutText)), 1, 3);
+        Assert.Equal(0, counts.GetValueOrDefault(nameof(DeckViewModel.IsPlaying)));
+        Assert.Equal(0, counts.GetValueOrDefault(nameof(DeckViewModel.Status)));
+    }
+
     [AvaloniaFact]
     public void The_crossfader_picks_the_room_and_cue_buttons_pick_the_headphones()
     {

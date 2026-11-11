@@ -120,6 +120,7 @@ public sealed unsafe class Deck : IDisposable
         _start = TimeSpan.Zero;
         _end = null;
         (_tempo, _memory) = song.Take();
+        _length = TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetLength(_tempo)));
         string path = song.Path;
         // The old song's stream is gone, so nothing else is using the fade: it starts at full.
         ChannelInfo info = Bass.ChannelGetInfo(_tempo);
@@ -165,6 +166,7 @@ public sealed unsafe class Deck : IDisposable
         _memory?.Release();   // after its streams: BASS no longer reads it
         _memory = null;
         _tempo = _splitMain = _splitCue = _splitBooth = 0;
+        _length = TimeSpan.Zero;
         _sound.Detach();   // freed with the stream
         _playing = false;
         _ended = false;
@@ -261,9 +263,10 @@ public sealed unsafe class Deck : IDisposable
         ? TimeSpan.Zero
         : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetPosition(_tempo)));
 
-    public TimeSpan Length => !IsLoaded
-        ? TimeSpan.Zero
-        : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetLength(_tempo)));
+    /// <summary>The song's length: read once, when it's loaded (#365), as it's asked for many times a frame.</summary>
+    public TimeSpan Length => _length;
+
+    private TimeSpan _length;
 
     /// <summary>Where the music starts: playing from the top starts here, skipping silence.</summary>
     public TimeSpan Start => _start;
