@@ -353,5 +353,95 @@ public sealed class FilesViewModel : IDisposable
         return to;
     }
 
+    // ───────────── Delete (#385) ─────────────
+
+    /// <summary>Whether a file there can go to the Recycle Bin. Tests say.</summary>
+    internal Func<string, bool> CanRecycle { get; set; } = RecycleBin.CanRecycle;
+
+    /// <summary>Puts a file in the Recycle Bin. Tests keep their own.</summary>
+    internal Action<string> Recycle { get; set; } = RecycleBin.Recycle;
+
+    /// <summary>Deletes a file for good, where there's no Recycle Bin.</summary>
+    internal Action<string> DeleteForGood { get; set; } = path => BusyFile.Delete(path);
+
+    /// <summary>Why a song can't be deleted from Files, or null if it can.</summary>
+    public string? CantDelete(Track track) =>
+        !track.IsOutsideLibrary ? "it's in My music"
+        : IsOnStick(track) ? "it's on a USB stick, which GZJam never changes"
+        : _owner.Decks.Any(d => d.Track?.Path == track.Path) ? "it's on a deck"
+        : _owner.Queue.Items.Any(i => i.Track.Path == track.Path) ? "it's in the queue"
+        : _database.GetPlaylistsWith(track.Path) is [var playlist, ..] ? $"it's in the playlist {playlist}"
+        : null;
+
+    /// <summary>Whether any of these can be deleted: Delete… is offered for them.</summary>
+    public bool CanDeleteAny(IReadOnlyList<Track> tracks) => tracks.Any(t => CantDelete(t) is null);
+
+    /// <summary>
+    /// Songs in Files deleted from the drive (#385), after one question: to the Recycle Bin, or for
+    /// good where there's none (a network drive), the question saying so. Songs in use (on a deck,
+    /// in the queue, in a playlist), in My music or on a USB stick are left, and the question says
+    /// how many and why. What the DJ gave a deleted song goes with it.
+    /// </summary>
+    public async Task DeleteAsync(IReadOnlyList<Track> tracks)
+    {
+        var why = tracks.Select(t => (Track: t, Why: CantDelete(t))).ToList();
+        var songs = why.Where(x => x.Why is null).Select(x => x.Track).DistinctBy(t => t.Path).ToList();
+        var kept = why.Where(x => x.Why is not null).ToList();
+        if (songs.Count == 0)
+        {
+            _owner.ShowNotice(kept is [var one] ? $"{one.Track.DisplayTitle} isn't deleted: {one.Why}." : "None of those can be deleted: they're in use, in My music or on a USB stick.", seconds: 6);
+            return;
+        }
+        var forGood = await Task.Run(() => songs.Where(t => !CanRecycle(t.Path)).Select(t => t.Path).ToHashSet());
+        string bin = RecycleBin.Name;
+        string count = songs.Count == 1 ? $"\"{songs[0].DisplayTitle}\"" : $"{Format.Count(songs.Count)} songs";
+        string heading = forGood.Count == 0 ? $"Move {count} to the {bin}?" : $"Delete {count} for good?";
+        var lines = new List<string>();
+        if (songs.Count > 1)
+            lines.Add(string.Join(", ", songs.Take(3).Select(t => t.DisplayTitle)) + (songs.Count > 3 ? $", and {Format.Count(songs.Count - 3)} more." : "."));
+        lines.Add(forGood.Count == 0
+            ? $"They go to the computer's {bin}, so they can be put back from there."
+            : forGood.Count == songs.Count
+                ? $"Their drive has no {bin}: they're deleted for good, and can't be put back."
+                : $"{Format.Count(forGood.Count)} of them are on a drive with no {bin}: those are deleted for good.");
+        if (kept.Count > 0)
+            lines.Add(kept is [var only] ? $"{only.Track.DisplayTitle} stays: {only.Why}." : $"{Format.Count(kept.Count)} others stay: they're in use, in My music or on a USB stick.");
+        if (_owner.ConfirmAsync is not { } confirm || !await confirm(heading, string.Join("\n\n", lines), forGood.Count == 0 ? "Delete" : "Delete for good"))
+            return;
+
+        if (_owner.Preview is { Song: { } previewing } preview && songs.Any(t => t.Path == previewing.Path))
+            preview.Stop();   // the song it was playing is going
+        var deleted = new List<string>();
+        string? failed = null;
+        foreach (Track song in songs)
+        {
+            try
+            {
+                bool good = forGood.Contains(song.Path);
+                await Task.Run(() =>
+                {
+                    if (good)
+                        DeleteForGood(song.Path);
+                    else
+                        Recycle(song.Path);
+                });
+                deleted.Add(song.Path);
+                Log.Info($"Files: deleted {song.Path}{(good ? " for good" : $", to the {bin}")}");
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Info($"Files: couldn't delete {song.Path}: {e.Message}");
+                failed ??= $"Couldn't delete {song.DisplayTitle}: {e.Message}";
+            }
+        }
+        if (deleted.Count > 0)
+            await Task.Run(() => _database.ForgetSongFiles(deleted));
+        _owner.Library.RefreshResults();
+        string done = deleted.Count == 0 ? ""
+            : forGood.Count == 0 ? $"{(deleted.Count == 1 ? "1 song" : $"{Format.Count(deleted.Count)} songs")} moved to the {bin}."
+            : $"{(deleted.Count == 1 ? "1 song" : $"{Format.Count(deleted.Count)} songs")} deleted.";
+        _owner.ShowNotice(failed is null ? done : $"{done} {failed}".Trim(), seconds: failed is null ? 4 : 8);
+    }
+
     public void Dispose() => _watch.Stop();
 }

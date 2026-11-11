@@ -385,6 +385,11 @@ Songs on a USB stick are always copied: GZJam never changes a stick.
 Songs that are in My music already (a folder of your music, seen in Files) say *Already in My
 music* there instead.
 
+**Delete…** (right-click, or the Delete key) removes songs in Files that didn't make the cut. It
+asks first, and they go to the Recycle Bin (the Trash on a Mac or Linux), so they can be put back
+from there; on a drive that has none, it says they'd be deleted for good. A song on a deck, in the
+queue or in a playlist is never deleted, and nothing in My music or on a USB stick can be.
+
 ### Organize music
 
 For copying and moving songs around, without leaving GZJam: **Organize** at the top of the library

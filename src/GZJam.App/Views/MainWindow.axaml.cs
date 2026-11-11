@@ -159,6 +159,9 @@ public partial class MainWindow : Window
             case Key.Delete when Vm.Library.IsPlaylistOpen:
                 Vm.RemoveFromPlaylist(SelectedTracks());
                 break;
+            case Key.Delete when Vm.Library.IsFilesShowing:
+                _ = Vm.Files.DeleteAsync(SelectedTracks());   // #385
+                break;
             default:
                 return;
         }

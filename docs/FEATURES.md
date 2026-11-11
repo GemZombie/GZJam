@@ -1844,6 +1844,30 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   under its new place. Only songs move: anything else in the folder, and the folders themselves,
   stay.
 
+### Status: deleting songs from Files (#385, 1.8)
+
+- A DJ curating a drop folder keeps the good songs (#383, #384) and wants the rest gone from the
+  drive without going to File Explorer.
+- **Delete…** in the song menu and the Delete key, in Files only (`LibraryViewModel.IsFilesShowing`,
+  not a playlist), for one song or a selection. Grayed with the reason when none can go.
+- **Never deleted** (`FilesViewModel.CantDelete`): a song in My music, on a USB stick (GZJam never
+  changes a stick), on a deck, in the queue or in a playlist. The question says which stay and why;
+  with nothing left to delete there's no question, only a notice.
+- **One question** (`ConfirmAsync`): "Move 2 songs to the Recycle Bin?", the first three titles, and
+  that they can be put back. Where the drive has no bin (`RecycleBin.CanRecycle`: a network or
+  removable drive), "Delete 2 songs for good?" and *Delete for good*.
+- **The bin** (`GZJam.Library.RecycleBin`): Windows' shell delete with undo (`SHFileOperationW`,
+  silent, no dialogs of its own); macOS' `NSFileManager trashItemAtURL`; on Linux the
+  freedesktop.org trash as Dolphin, Files and Thunar keep it: the file in `Trash/files`, a
+  `.trashinfo` with its escaped path and date in `Trash/info` (claimed first, so two of a name
+  each get their own), the home trash for the home's drive and the drive's own `.Trash-uid`
+  otherwise. Checked afterwards: a file still there is a failure, said in the notice.
+- **Afterwards:** what the DJ gave a deleted song (hearts, cues, EQ, labels, analysis) is forgotten
+  (`ForgetSongFiles`), so a new file at that path starts fresh; its plays stay in History. A
+  preview of it stops. Logged, one line a song.
+- Tests use a stand-in bin, so running them never fills the computer's own; the real bin is tested
+  on CI's throwaway machines only (`RecycleBinTests`).
+
 ### Status: Grouping and Comment columns (#161, 0.9.4)
 
 - A Mac DJ sorts their iTunes library with Grouping and Comments (dance, feel, era, vibe) and wants

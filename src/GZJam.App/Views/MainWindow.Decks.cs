@@ -272,6 +272,7 @@ public partial class MainWindow
         TrackDownloadItem.IsVisible = remote;
         TrackRemoveFromLaptopItem.IsVisible = Vm.Servers.HasServers && Vm.Servers.DownloadsFor(tracks).Count > 0;
         ShowKeepItem(tracks);
+        ShowDeleteItem(tracks);
         TrackDownloadAlbumItem.IsVisible = remote && tracks.Any(t => t.OnServer?.Song.AlbumId is not null);
         TrackEqItem.IsEnabled = tracks.Count == 1;
         TrackInfoItem.IsEnabled = tracks.Count > 0;
@@ -416,6 +417,24 @@ public partial class MainWindow
         TrackKeepItem.Header = "Add to my music…";
         ToolTip.SetTip(TrackKeepItem, _serverKeepTip);
     }
+
+    /// <summary>
+    /// Delete…, in Files only (#385): songs that didn't make the cut, to the Recycle Bin. Grayed,
+    /// saying why, for songs it won't delete: in My music, on a USB stick, or in use.
+    /// </summary>
+    private void ShowDeleteItem(IReadOnlyList<Track> tracks)
+    {
+        TrackDeleteItem.IsVisible = Vm.Library.IsFilesShowing && tracks.Count > 0;
+        if (!TrackDeleteItem.IsVisible)
+            return;
+        bool any = Vm.Files.CanDeleteAny(tracks);
+        TrackDeleteItem.IsEnabled = any;
+        ToolTip.SetTip(TrackDeleteItem, any
+            ? $"Delete from the drive: to the {GZJam.Library.RecycleBin.Name}, after asking. Songs in use, on a deck, in the queue or in a playlist, stay"
+            : tracks is [var one] ? $"Not this one: {Vm.Files.CantDelete(one)}" : "Not these: they're in use, in My music or on a USB stick");
+    }
+
+    private void OnDeleteFilesClick(object? sender, RoutedEventArgs e) => _ = Vm.Files.DeleteAsync(SelectedTracks());
 
     private OrganizeView? _organize;
 

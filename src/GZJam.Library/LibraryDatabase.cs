@@ -821,6 +821,29 @@ public sealed partial class LibraryDatabase
     /// </summary>
     private static readonly string[] SongListTables = ["playlist_entries", "plays", "server_songs"];
 
+    /// <summary>
+    /// Songs deleted from the drive, from Files (#385): what the DJ gave them (hearts, cues, EQ,
+    /// labels, analysis) goes with them, so a new file later at that path starts fresh. Their plays
+    /// stay in History.
+    /// </summary>
+    public void ForgetSongFiles(IReadOnlyList<string> paths)
+    {
+        using var c = Open();
+        using var tx = c.BeginTransaction();
+        using var cmd = c.CreateCommand();
+        var path = cmd.Parameters.Add("$path", SqliteType.Text);
+        foreach (string file in paths)
+        {
+            path.Value = file;
+            foreach (string table in SongDataTables)
+            {
+                cmd.CommandText = $"DELETE FROM {table} WHERE path = $path;";
+                cmd.ExecuteNonQuery();
+            }
+        }
+        tx.Commit();
+    }
+
     /// <summary>A song copied (#325): the copy has what the original has; the original keeps it.</summary>
     public void CopySongFiles(IReadOnlyList<(string From, string To)> copies)
     {
