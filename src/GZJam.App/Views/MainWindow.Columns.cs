@@ -54,15 +54,34 @@ public partial class MainWindow
         ColumnsMenu().Open(header);
     }
 
-    /// <summary>The menu of columns, ticked when shown.</summary>
+    /// <summary>Columns that always show: in the menu too, ticked and grayed, so a DJ looking for one finds it (#379).</summary>
+    internal static readonly string[] FixedColumns = ["Title", "Artist", "Time"];
+
+    /// <summary>The menu of columns, in the list's order, ticked when shown.</summary>
     internal ContextMenu ColumnsMenu()
     {
         _columnsMenu ??= new ContextMenu();
         _columnsMenu.Items.Clear();
         _columnsMenu.Items.Add(new MenuItem { Header = "Show columns", IsEnabled = false });
-        foreach (DataGridColumn column in OptionalGridColumns)
+        foreach (DataGridColumn column in TrackGrid.Columns.Where(c => c.Tag is not TagColumnKey && c.Header is string))
         {
             string name = (string)column.Header!;
+            if (FixedColumns.Contains(name))
+            {
+                var always = new MenuItem
+                {
+                    Header = name,
+                    ToggleType = MenuItemToggleType.CheckBox,
+                    IsChecked = true,
+                    IsEnabled = false,
+                };
+                ToolTip.SetTip(always, "Always shown");
+                ToolTip.SetShowOnDisabled(always, true);
+                _columnsMenu.Items.Add(always);
+                continue;
+            }
+            if (!OptionalColumns.Contains(name))
+                continue;
             var item = new MenuItem
             {
                 Header = name switch { "♥" => "♥ Rating", "Art" => "Album art", _ => name },

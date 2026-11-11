@@ -1770,6 +1770,18 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - The title keeps at least 90 px, however much is shown.
 - In `MainWindow.QueueColumns.cs`.
 
+### Status: the Time column in view (#379, 1.8)
+
+- A DJ couldn't find song length in the library. It was there, as Time, but last: on a laptop with
+  the default columns it was squeezed to 20 px at the right edge, and as it can't be hidden it
+  wasn't in the column menu.
+- **Time is after Artist** (`MainWindow.axaml`). The column menu lists the columns in the list's
+  order, with Title, Artist and Time (`FixedColumns`) ticked, grayed, "Always shown".
+- **The number columns are narrower** so moving Time up didn't push Played off instead: Year and
+  BPM 58 (were 72), Time 60 (76), Energy 64 (84), Played 70 (86). On a 1366 × 768 screen every
+  default column fits, none narrower than 56 px (`ColumnsTests`). Library column widths aren't
+  saved, so nothing to carry over.
+
 ### Status: Grouping and Comment columns (#161, 0.9.4)
 
 - A Mac DJ sorts their iTunes library with Grouping and Comments (dance, feel, era, vibe) and wants

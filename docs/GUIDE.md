@@ -468,8 +468,8 @@ they're in as well. *+ New folder* makes one inside the folder selected.
   `artist:basie`), or back to everywhere. Each button writes its filter into the search box, so the
   box always shows the whole search, and lights up while one of its filters is there.
 - **The ? in the empty search box** shows how to search, with the filters; tap one to try it.
-- **Columns:** right-click a column header to show or hide ♥, Album, Genre, Grouping, Comment,
-  Year, BPM, Energy, Played and Art, and, under *Tags in your songs*, any other tag your songs have
+- **Columns:** Title, Artist and Time (each song's length) always show. Right-click a column
+  header to show or hide ♥, Album, Genre, Grouping, Comment, Year, BPM, Energy, Played and Art, and, under *Tags in your songs*, any other tag your songs have
   (Composer, Mood, a Dance tag of your own: the ones most songs have first, the rest under *More
   tags*). Click a header to sort; the list stays sorted that way as you search and pick folders. Long text is cut off with "…"; point at it (or hold a finger on
   it) for the whole text.

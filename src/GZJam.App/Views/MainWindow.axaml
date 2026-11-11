@@ -748,6 +748,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
+              <!-- Time next to Artist, not at the far end, so it's in view on a laptop (#379) -->
+              <DataGridTextColumn Header="Time" Width="60" CellStyleClasses="num" x:DataType="lib:Track"
+                                  Binding="{Binding Duration, Mode=OneWay, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
               <DataGridTextColumn Header="Album" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
                                   Binding="{Binding Album, Mode=OneWay}" />
               <DataGridTextColumn Header="Genre" Width="88" x:DataType="lib:Track"
@@ -770,12 +773,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Year" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
+              <DataGridTextColumn Header="Year" Width="58" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Year, Mode=OneWay}" />
-              <DataGridTextColumn Header="BPM" Width="72" CellStyleClasses="num" x:DataType="lib:Track"
+              <DataGridTextColumn Header="BPM" Width="58" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Bpm, Mode=OneWay, Converter={x:Static app:Converters.Bpm}}" SortMemberPath="Bpm" />
               <!-- Energy: tap to cycle unset, low, medium, high -->
-              <DataGridTemplateColumn Header="Energy" Width="84" MinWidth="44" SortMemberPath="Energy">
+              <DataGridTemplateColumn Header="Energy" Width="64" MinWidth="44" SortMemberPath="Energy">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate DataType="lib:Track">
                     <Button Classes="row-icon" Padding="8,4" Click="OnEnergyCellClick" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -785,10 +788,8 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Played" Width="86" CellStyleClasses="num" x:DataType="lib:Track"
+              <DataGridTextColumn Header="Played" Width="70" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding LastPlayedUtc, Mode=OneWay, Converter={x:Static app:Converters.Ago}}" SortMemberPath="LastPlayedUtc" />
-              <DataGridTextColumn Header="Time" Width="76" CellStyleClasses="num" x:DataType="lib:Track"
-                                  Binding="{Binding Duration, Mode=OneWay, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
               <ContextMenu x:Name="TrackMenu">

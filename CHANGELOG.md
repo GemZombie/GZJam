@@ -13,7 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.7.0-beta.3.
+Better:
+
+- **The Time column is next to Artist, and in the column menu** (#379). It was the last column,
+  so on a laptop it was squeezed to nothing at the right edge, and since it can't be hidden it
+  wasn't in the menu where you'd look for it. Now it's beside Artist; the menu lists Title,
+  Artist and Time too, ticked and grayed, as always shown; and Year, BPM, Energy, Played and Time
+  are a little narrower, so on a 1366-wide laptop screen every column a new library shows fits.
 
 ## 1.7.0-beta.3 (2026-11-10)
 

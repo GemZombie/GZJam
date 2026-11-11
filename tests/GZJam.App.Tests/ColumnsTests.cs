@@ -41,8 +41,17 @@ public sealed class ColumnsTests
         Assert.True(menu.IsOpen);
         Assert.False(app.Window.FindControl<ContextMenu>("TrackMenu")!.IsOpen);   // not the track menu
         var items = menu.Items.OfType<MenuItem>().Skip(1).ToList();
-        Assert.Equal(["♥ Rating", "Album art", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"], items.Select(i => (string)i.Header!));
+        // In the list's order, with the columns that always show listed too (#379)
+        Assert.Equal(["♥ Rating", "Album art", "Title", "Artist", "Time", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"],
+            items.Select(i => (string)i.Header!));
         Assert.False(items.Single(i => (string)i.Header! == "Genre").IsChecked);
+        foreach (string always in new[] { "Title", "Artist", "Time" })
+        {
+            var item = items.Single(i => (string)i.Header! == always);
+            Assert.True(item.IsChecked, always);
+            Assert.False(item.IsEnabled, always);
+            Assert.Equal("Always shown", ToolTip.GetTip(item));
+        }
 
         items.Single(i => (string)i.Header! == "Year").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));
         menu.Close();
@@ -53,6 +62,29 @@ public sealed class ColumnsTests
         app.Window.SetColumnShown("Genre", true);
         Assert.True(Column(app, "Genre").IsVisible);
         Assert.DoesNotContain("Genre", app.Settings.HiddenColumns);
+    }
+
+    [AvaloniaFact]
+    public void Time_is_next_to_Artist_and_in_view_on_a_laptop_screen()
+    {
+        using var app = new AppHarness();
+        app.Window.Width = 1366;
+        app.Window.Height = 768;
+        AppHarness.Settle(300);
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        var shown = grid.Columns.Where(c => c.IsVisible).Select(c => c.Header as string).ToList();
+        Assert.Equal(shown.IndexOf("Artist") + 1, shown.IndexOf("Time"));
+
+        // With the columns a new DJ starts with, every one is inside the list, none past the right edge
+        // or squeezed (Time was 20 px wide), so moving Time up didn't push Played off instead.
+        foreach (var header in grid.GetVisualDescendants().OfType<DataGridColumnHeader>().Where(h => h.Content is string { Length: > 1 } && h.IsEffectivelyVisible))
+        {
+            string name = (string)header.Content!;
+            var right = header.TranslatePoint(new Point(header.Bounds.Width, 0), grid)!.Value.X;
+            Assert.True(header.Bounds.Width >= 56, $"{name} is {header.Bounds.Width} px wide");
+            Assert.True(right <= grid.Bounds.Width, $"{name} ends at {right}, the list at {grid.Bounds.Width}");
+        }
+        app.Screenshot("library-time-column-1366");
     }
 
     [Fact]
@@ -72,7 +104,7 @@ public sealed class ColumnsTests
         using var app = new AppHarness();
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         // Only the icon columns (the play key, ♥, Art) keep their width.
-        Assert.Equal(["Title", "Artist", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played", "Time"],
+        Assert.Equal(["Title", "Artist", "Time", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"],
             grid.Columns.Where(c => c.CanUserResize).Select(c => (string)c.Header!));
 
         // The line between Energy and Played (#175)
