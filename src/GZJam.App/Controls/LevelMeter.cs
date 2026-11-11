@@ -132,15 +132,19 @@ public sealed class LevelMeter : Control
         return (int)_peaks[channel].Level;
     }
 
-    private void DrawScale(DrawingContext context, double meterWidth)
+    /// <summary>The scale's labels: made once, not at every redraw, 30 a second while music plays (#366).</summary>
+    private static readonly Lazy<(int Db, FormattedText Label)[]> Labels = new(() =>
     {
         var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
+        return [.. new[] { 0, -6, -12, -24, -48 }.Select(db => (db, new FormattedText(db == 0 ? "0" : $"−{-db}",
+            System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 9, db == 0 ? ZeroLabelBrush : LabelBrush)))];
+    });
+
+    private void DrawScale(DrawingContext context, double meterWidth)
+    {
         double below = double.NegativeInfinity;   // where the last label drawn ends
-        foreach (int db in new[] { 0, -6, -12, -24, -48 })
+        foreach (var (db, label) in Labels.Value)
         {
-            string text = db == 0 ? "0" : $"−{-db}";
-            var label = new FormattedText(text, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                typeface, 9, db == 0 ? ZeroLabelBrush : LabelBrush);
             double y = Bounds.Height * (-db / Range);
             y = Math.Clamp(y - label.Height / 2, 0, Bounds.Height - label.Height);
             if (y < below)

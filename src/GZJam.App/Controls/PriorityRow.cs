@@ -51,6 +51,8 @@ public sealed class PriorityRow : Panel
         return new Size(width, height);
     }
 
+    private Size _clipFor = new(-1, -1);
+
     protected override Size ArrangeOverride(Size finalSize)
     {
         double firstWidth = First is { } first ? Math.Min(first.DesiredSize.Width, finalSize.Width) : 0;
@@ -59,13 +61,18 @@ public sealed class PriorityRow : Panel
         {
             double x = firstWidth + Spacing, left = finalSize.Width - x;
             // At its full width (cut off by the clip), or out of sight if there's no useful room.
-            double y = (finalSize.Height - second.DesiredSize.Height) / 2;   // centerd, even if a little taller
+            double y = (finalSize.Height - second.DesiredSize.Height) / 2;   // centered, even if a little taller
             second.Arrange(HasSecond && left >= LeastUseful
                 ? new Rect(x, y, second.DesiredSize.Width, second.DesiredSize.Height)
                 : new Rect(finalSize.Width, 0, 0, 0));
         }
-        // Cut off at the sides only: a chip a pixel taller than the line keeps its edges.
-        Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
+        // Cut off at the sides only: a chip a pixel taller than the line keeps its edges. Made
+        // again only when the row's size changes, not at each arrange (#366).
+        if (finalSize != _clipFor)
+        {
+            Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
+            _clipFor = finalSize;
+        }
         return finalSize;
     }
 }

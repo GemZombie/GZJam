@@ -79,6 +79,10 @@ Better:
   where the song was. Now each deck's place is read once each time, and a readout is updated only
   when what it shows changed: the time once a second, an empty or paused deck not at all. The
   air line, the preview's time and the night's safety copy do the same.
+- **The song's whole-length waveform is drawn only when its playhead moves on screen** (#366).
+  It was drawn again 30 times a second for each playing deck, though on a four-minute song the
+  playhead moves a pixel or two a second. The speakers' meter, the cue numbers and the jump
+  arrows are made once and kept rather than made again at each redraw.
 
 ## 1.7.0 (2026-11-11)
 

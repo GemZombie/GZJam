@@ -89,9 +89,30 @@ public sealed class SeekBar : Control
 
     static SeekBar()
     {
-        AffectsRender<SeekBar>(ProgressProperty, FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
+        // Not Progress: it changes on every tick while the deck plays (#366); see OnPropertyChanged.
+        AffectsRender<SeekBar>(FillProperty, TrackBackgroundProperty, IsEnabledProperty, IsLockedProperty,
             WaveformProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, EndFadeProperty,
             JumpsProperty, PendingJumpFromProperty, CuesProperty, CloseUpProperty, ShowCloseUpProperty);
+    }
+
+    /// <summary>How many times it's been drawn (tests).</summary>
+    internal int Renders { get; private set; }
+
+    /// <summary>The device pixel the playhead was last drawn at.</summary>
+    private long _drawnAt = long.MinValue;
+
+    /// <summary>The device pixel the playhead is at now.</summary>
+    private long PlayheadPixel(double progress) =>
+        (long)Math.Round(Math.Clamp(progress, 0, 1) * Bounds.Width * (TopLevel.GetTopLevel(this)?.RenderScaling ?? 1));
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        // The playhead moves about 2 px a second on a 4-minute song, but its place is reported 30
+        // times a second: the whole waveform was drawn again each time (#366). Now only when it
+        // reaches another pixel on the screen.
+        if (change.Property == ProgressProperty && _seekTo is null && PlayheadPixel(Progress) != _drawnAt)
+            InvalidateVisual();
     }
 
     public Waveform? Waveform
@@ -219,6 +240,8 @@ public sealed class SeekBar : Control
             return;
 
         double x = Math.Clamp(_seekTo ?? Progress, 0, 1) * bounds.Width;
+        _drawnAt = PlayheadPixel(_seekTo ?? Progress);
+        Renders++;
         double center = bounds.Height / 2;
 
         if (Waveform is { } waveform)
@@ -228,7 +251,7 @@ public sealed class SeekBar : Control
         else
         {
             // Not analyzed yet. Unplayed: a thin center line. Played: a softer filled band.
-            context.DrawRectangle(new SolidColorBrush(Colors.White, 0.08), null, new Rect(10, center - 0.5, Math.Max(0, bounds.Width - 20), 1));
+            context.DrawRectangle(NotAnalyzedLine, null, new Rect(10, center - 0.5, Math.Max(0, bounds.Width - 20), 1));
             if (x > 0)
             {
                 using (context.PushOpacity(CanSeek ? 0.28 : 0.18))
@@ -246,12 +269,21 @@ public sealed class SeekBar : Control
         context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(Math.Clamp(x - 1, 0, bounds.Width - 2), 0, 2, bounds.Height));
     }
 
+    private static readonly IBrush NotAnalyzedLine = new ImmutableSolidColorBrush(Colors.White, 0.08);
+
     // ───────────── Jumps ─────────────
 
     internal static readonly IBrush JumpBrush = new ImmutableSolidColorBrush(Color.FromRgb(0x9D, 0xBE, 0xE6));
     internal static readonly IBrush JumpOffBrush = new ImmutableSolidColorBrush(Color.FromArgb(120, 0x9D, 0xBE, 0xE6));
     internal static readonly IBrush SkippedShade = new ImmutableSolidColorBrush(Color.FromArgb(140, 12, 14, 18));
     internal static readonly IBrush RepeatShade = new ImmutableSolidColorBrush(Color.FromArgb(40, 0x9D, 0xBE, 0xE6));
+
+    /// <summary>A jump's arrow, its point <see cref="Arrow"/> from where it leaves: made once each way, not each time it's drawn (#366).</summary>
+    private const double Arrow = 6;
+    private static readonly Geometry ArrowForward = ArrowShape(1), ArrowBack = ArrowShape(-1);
+
+    private static Geometry ArrowShape(double direction) =>
+        new PolylineGeometry([new Point(0, -Arrow / 2), new Point(direction * Arrow, 0), new Point(0, Arrow / 2)], isFilled: true);
 
     /// <summary>
     /// Each jump: a marker where it leaves (with an arrow toward where it lands) and where it lands.
@@ -271,11 +303,8 @@ public sealed class SeekBar : Control
             context.DrawRectangle(brush, null, new Rect(from - 1, 0, 2, bounds.Height));
             context.DrawRectangle(brush, null, new Rect(to - 1, 0, 2, bounds.Height));
             // An arrow at the bottom of the leaving marker, pointing the way the jump goes.
-            const double arrow = 6;
-            double direction = to > from ? 1 : -1, y = bounds.Height - arrow - 1;
-            var geometry = new PolylineGeometry(
-                [new Point(from, y - arrow / 2), new Point(from + direction * arrow, y), new Point(from, y + arrow / 2)], isFilled: true);
-            context.DrawGeometry(brush, null, geometry);
+            using (context.PushTransform(Matrix.CreateTranslation(from, bounds.Height - Arrow - 1)))
+                context.DrawGeometry(brush, null, to > from ? ArrowForward : ArrowBack);
         }
         if (PendingJumpFrom is { } pending)
         {
@@ -305,9 +334,21 @@ public sealed class SeekBar : Control
         context.DrawRectangle(JumpBrush, null, new Rect(at - 1, 0, 2, bounds.Height));
         double left = Math.Clamp(at - 1, 0, bounds.Width - flag);
         context.DrawRectangle(JumpBrush, null, new Rect(left, 0, flag, flag));
-        var text = new FormattedText(number.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, CueTypeface, 10, CueNumberBrush);
+        FormattedText text = CueNumber(number);
         context.DrawText(text, new Point(left + (flag - text.Width) / 2, (flag - text.Height) / 2));
+    }
+
+    private static readonly Dictionary<int, FormattedText> CueNumbers = [];
+
+    /// <summary>A cue's number, as text to draw: made the first time, and kept (#366).</summary>
+    private static FormattedText CueNumber(int number)
+    {
+        if (!CueNumbers.TryGetValue(number, out FormattedText? text))
+        {
+            CueNumbers[number] = text = new FormattedText(number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, CueTypeface, 10, CueNumberBrush);
+        }
+        return text;
     }
 
     // ───────────── Waveform ─────────────
@@ -360,6 +401,9 @@ public sealed class SeekBar : Control
     /// from the top at the end to the bottom where the fade is over, the shade above it, as the
     /// sound goes.
     /// </summary>
+    /// <summary>The last slope drawn: made again only when its size changes (#366).</summary>
+    private static (double Fade, double Height, StreamGeometry Shape)? _slope;
+
     internal static void DrawEndShade(DrawingContext context, double end, double fade, double right, double height)
     {
         if (fade < 1)
@@ -367,17 +411,22 @@ public sealed class SeekBar : Control
             context.DrawRectangle(TrimShade, null, new Rect(end, 0, Math.Max(0, right - end), height));
             return;
         }
-        var slope = new StreamGeometry();
-        using (var g = slope.Open())
+        if (_slope is not { } made || made.Fade != fade || made.Height != height)
         {
-            g.BeginFigure(new Point(end, 0), isFilled: true);
-            g.LineTo(new Point(end + fade, 0));
-            g.LineTo(new Point(end + fade, height));
-            g.EndFigure(isClosed: true);
+            var shape = new StreamGeometry();
+            using (var g = shape.Open())
+            {
+                g.BeginFigure(new Point(0, 0), isFilled: true);
+                g.LineTo(new Point(fade, 0));
+                g.LineTo(new Point(fade, height));
+                g.EndFigure(isClosed: true);
+            }
+            _slope = made = (fade, height, shape);
         }
         using (context.PushClip(new Rect(end, 0, Math.Max(0, right - end), height)))
         {
-            context.DrawGeometry(TrimShade, null, slope);
+            using (context.PushTransform(Matrix.CreateTranslation(end, 0)))
+                context.DrawGeometry(TrimShade, null, made.Shape);
             context.DrawLine(FadeLine, new Point(end, 0), new Point(end + fade, height));
         }
         if (right > end + fade)
