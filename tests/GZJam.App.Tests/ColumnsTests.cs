@@ -104,7 +104,7 @@ public sealed class ColumnsTests
         using var app = new AppHarness();
         var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
         // Only the icon columns (the play key, ♥, Art) keep their width.
-        Assert.Equal(["Title", "Artist", "Time", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"],
+        Assert.Equal(["Title", "Artist", "Time", "Added", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"],
             grid.Columns.Where(c => c.CanUserResize).Select(c => (string)c.Header!));
 
         // The line between Energy and Played (#175)

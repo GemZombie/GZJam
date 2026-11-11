@@ -7,6 +7,8 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using System.ComponentModel;
+using GZJam.App.ViewModels;
 using GZJam.Library;
 using Track = GZJam.Library.Track;
 
@@ -28,11 +30,57 @@ public partial class MainWindow
     {
         // Before the row menu sees it: a right-click on a header is about columns, not tracks.
         TrackGrid.AddHandler(ContextRequestedEvent, OnGridContextRequested, RoutingStrategies.Tunnel);
+        TrackGrid.Sorting += OnGridSorting;
         DataContextChanged += (_, _) =>
         {
             ApplyHiddenColumns();
             ApplyTagColumns();
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.Library.PropertyChanged -= OnLibraryChangedForColumns;
+                vm.Library.PropertyChanged += OnLibraryChangedForColumns;
+                ApplyAddedColumn();
+            }
         };
+    }
+
+    // ───────────── Added, in Files (#383) ─────────────
+
+    private DataGridColumn AddedColumn => TrackGrid.Columns.Single(c => (string?)c.Header == "Added");
+
+    private void OnLibraryChangedForColumns(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LibraryViewModel.IsFilesShowing))
+            ApplyAddedColumn();
+    }
+
+    /// <summary>
+    /// When each file arrived shows in Files only: elsewhere songs have no such date. Leaving Files
+    /// sorted by it, the sort goes too, rather than leaving the list in no order anyone chose.
+    /// </summary>
+    private void ApplyAddedColumn()
+    {
+        bool shown = Vm.Library.IsFilesShowing;
+        AddedColumn.IsVisible = shown;
+        if (!shown && TrackGrid.CollectionView?.SortDescriptions is { } sorts
+            && sorts.FirstOrDefault(d => d.PropertyPath == nameof(Track.AddedUtc)) is { } added)
+            sorts.Remove(added);
+    }
+
+    /// <summary>
+    /// The first click on Added sorts newest first, as a DJ working through new music wants; the
+    /// next, oldest first. Set on the grid's sort itself: the column's own Sort, called from here,
+    /// sorts later and asks again, without end.
+    /// </summary>
+    private void OnGridSorting(object? sender, DataGridColumnEventArgs e)
+    {
+        if ((string?)e.Column.Header != "Added" || TrackGrid.CollectionView?.SortDescriptions is not { } sorts)
+            return;
+        e.Handled = true;
+        bool newestFirst = sorts.FirstOrDefault(d => d.PropertyPath == nameof(Track.AddedUtc)) is not { Direction: ListSortDirection.Descending };
+        sorts.Clear();
+        sorts.Add(Avalonia.Collections.DataGridSortDescription.FromPath(nameof(Track.AddedUtc),
+            newestFirst ? ListSortDirection.Descending : ListSortDirection.Ascending));
     }
 
     private IEnumerable<DataGridColumn> OptionalGridColumns =>
@@ -66,6 +114,16 @@ public partial class MainWindow
         foreach (DataGridColumn column in TrackGrid.Columns.Where(c => c.Tag is not TagColumnKey && c.Header is string))
         {
             string name = (string)column.Header!;
+            if (name == "Added")
+            {
+                if (!column.IsVisible)
+                    continue;   // Files only
+                var files = new MenuItem { Header = name, ToggleType = MenuItemToggleType.CheckBox, IsChecked = true, IsEnabled = false };
+                ToolTip.SetTip(files, "Shown in Files: when each file arrived on the drive");
+                ToolTip.SetShowOnDisabled(files, true);
+                _columnsMenu.Items.Add(files);
+                continue;
+            }
             if (FixedColumns.Contains(name))
             {
                 var always = new MenuItem

@@ -36,6 +36,25 @@ public static class Format
         _ => "th",
     });
 
+    /// <summary>
+    /// When a file arrived (#383), as a file manager says it, in the computer's own format:
+    /// "Today 8:42 PM", "Yesterday 6:10 PM", then "11/3/2026 8:42 PM"; "" for none.
+    /// </summary>
+    public static string Added(DateTime? utc, DateTime? nowUtc = null)
+    {
+        if (utc is not { } then)
+            return "";
+        DateTime now = (nowUtc ?? DateTime.UtcNow).ToLocalTime();
+        DateTime local = then.ToLocalTime();
+        string time = local.ToString("t", CultureInfo.CurrentCulture);
+        return (now.Date - local.Date).Days switch
+        {
+            0 => "Today " + time,
+            1 => "Yesterday " + time,
+            _ => local.ToString("d", CultureInfo.CurrentCulture) + " " + time,
+        };
+    }
+
     /// <summary>How long ago, briefly: "Today", "3 days", "2 wk", "5 mo", "2 yr"; "" for never.</summary>
     public static string Ago(DateTime? utc, DateTime? nowUtc = null)
     {
@@ -62,6 +81,7 @@ public static class Converters
     public static readonly IValueConverter Bpm = new FuncValueConverter<double?, string>(Format.Bpm);
     public static readonly IValueConverter Count = new FuncValueConverter<int, string>(Format.Count);
     public static readonly IValueConverter Ago = new FuncValueConverter<DateTime?, string>(t => Format.Ago(t));
+    public static readonly IValueConverter Added = new FuncValueConverter<DateTime?, string>(t => Format.Added(t));
 
     /// <summary>Played tonight: dimmed, so it isn't played again by mistake.</summary>
     public static readonly IValueConverter Dimmed = new FuncValueConverter<bool, double>(played => played ? 0.4 : 1);

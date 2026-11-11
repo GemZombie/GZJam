@@ -205,6 +205,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(EmptyMessage));
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(IsServerShowing));
+        OnPropertyChanged(nameof(IsFilesShowing));
         OnPropertyChanged(nameof(SearchPlaceholder));
         OnPropertyChanged(nameof(CanFilter));
         OnPropertyChanged(nameof(HasNoRoots));
@@ -308,6 +309,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
+        OnPropertyChanged(nameof(IsFilesShowing));
         OnPropertyChanged(nameof(SelectedFolderRow));
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(HasNoRoots));
@@ -928,6 +930,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         if (IsServerShowing)
             RunSearch();
     }
+
+    /// <summary>Files, or a folder in it, is showing (not a playlist): its songs have the Added column (#383).</summary>
+    public bool IsFilesShowing => SelectedPlaylist is null && Source == LibrarySource.Files;
 
     /// <summary>The servers, a server or one of its folders, is showing: the "Only on this computer" switch shows.</summary>
     public bool IsServerShowing => SelectedPlaylist is null

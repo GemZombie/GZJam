@@ -751,6 +751,9 @@
               <!-- Time next to Artist, not at the far end, so it's in view on a laptop (#379) -->
               <DataGridTextColumn Header="Time" Width="60" CellStyleClasses="num" x:DataType="lib:Track"
                                   Binding="{Binding Duration, Mode=OneWay, Converter={x:Static app:Converters.Duration}}" SortMemberPath="Duration" />
+              <!-- Files only (#383): when each file arrived on the drive, to work through new music newest first -->
+              <DataGridTextColumn Header="Added" Width="132" MinWidth="60" IsVisible="False" x:DataType="lib:Track"
+                                  Binding="{Binding AddedUtc, Mode=OneWay, Converter={x:Static app:Converters.Added}}" SortMemberPath="AddedUtc" />
               <DataGridTextColumn Header="Album" Width="1.3*" MinWidth="100" x:DataType="lib:Track"
                                   Binding="{Binding Album, Mode=OneWay}" />
               <DataGridTextColumn Header="Genre" Width="88" x:DataType="lib:Track"

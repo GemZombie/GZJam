@@ -172,6 +172,20 @@ public static class FileSources
     }
 
     /// <summary>The songs in <paramref name="folder"/> itself (not its folders), by name; none if it can't be read.</summary>
+    /// <summary>
+    /// When a file arrived on its drive (#383): its created date. Copying, downloading or unzipping
+    /// a file sets that to the moment it happened, while its modified date keeps the original's, so
+    /// a 2019 song copied in today arrived today. Where the drive keeps no created date (some Linux
+    /// file systems), .NET gives the older of its modified and changed times. Already read with
+    /// the folder's listing, so it costs nothing.
+    /// </summary>
+    public static DateTime ArrivedUtc(FileInfo file)
+    {
+        DateTime created = file.CreationTimeUtc;
+        // No date at all (1601 on Windows, 1970 elsewhere): the modified date is better than none.
+        return created.Year < 1980 ? file.LastWriteTimeUtc : created;
+    }
+
     public static IReadOnlyList<FileInfo> Songs(string folder)
     {
         try

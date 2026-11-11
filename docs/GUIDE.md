@@ -364,6 +364,10 @@ pulled out. Open a folder to see its songs (only music files show); the search b
 name, as Files is never searched as a whole (a computer is too big to read at the moment you need a
 song).
 
+**Added** says when each song arrived on the drive: copied, downloaded or unzipped there (not when
+the file was last changed, which a copy keeps from wherever it came from). Click it to put the
+newest first, again for oldest first: for a folder you drop new music into and work through later.
+
 A song there plays as one of your own: preview it, load it, queue it, or give it a heart. Its BPM
 and waveform come from analyzing it when it's loaded. **A song from a USB stick is read into GZJam
 when it's loaded or queued** (or added to a playlist), so pulling the stick out never stops the
