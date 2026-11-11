@@ -55,6 +55,18 @@ public sealed class OutputChoiceTests
     }
 
     [Fact]
+    public void On_the_saved_speakers_the_outputs_arent_listed_at_all()
+    {
+        // #367: listing them every 2 s reads a file per sound card on Linux; only a fallback needs it.
+        Assert.True(MainWindowViewModel.IsOnSaved(Tv.Preference, Tv));
+        Assert.True(MainWindowViewModel.IsOnSaved(null, Laptop));   // none saved: nothing to look for
+        Assert.True(MainWindowViewModel.IsOnSaved(new AudioDevicePreference("HISENSE", ""), Tv));
+        Assert.False(MainWindowViewModel.IsOnSaved(Tv.Preference, Laptop));
+        Assert.False(MainWindowViewModel.IsOnSaved(Tv.Preference, null));
+        Assert.False(MainWindowViewModel.IsOnSaved(Tv.Preference, Tv with { Driver = "{other}" }));
+    }
+
+    [Fact]
     public void On_a_fallback_only_choosing_MAIN_saves_it()
     {
         // Choosing headphones while MAIN is on the fallback mustn't make the fallback the saved MAIN.

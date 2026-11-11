@@ -140,6 +140,38 @@ public sealed class FilesAppTests
     }
 
     [AvaloniaFact]
+    public void The_timer_looks_for_sticks_away_from_the_window_and_shows_only_a_change()
+    {
+        using var s = WithFiles();
+        var files = s.App.ViewModel.Files;
+        files.StopWatching();   // this test's checks only
+        AppHarness.WaitFor(() => !files.IsChecking);   // one the timer started, done
+        s.Library.ChooseSource(LibrarySource.Files);
+        AppHarness.Settle(100);
+        var window = Thread.CurrentThread;
+        var listedOn = new List<Thread>();
+        files.Sticks = () =>
+        {
+            lock (listedOn)
+                listedOn.Add(Thread.CurrentThread);
+            return s.Sticks.ToList();
+        };
+        s.Sticks.Add(new FilePlace("SANDISK (E:)", s.Stick, FilesKind.Stick));
+
+        AppHarness.Await(files.CheckSticksAsync());
+        AppHarness.Settle(100);
+
+        Assert.Single(s.Library.FolderRows, r => r.IsStick);
+        var thread = Assert.Single(listedOn);   // read once, and the tree shows what was read
+        Assert.NotSame(window, thread);          // a slow card reader can't hold up the window (#367)
+
+        // Nothing changed: nothing more happens here.
+        AppHarness.Await(files.CheckSticksAsync());
+        Assert.Equal(2, listedOn.Count);
+        Assert.All(listedOn, t => Assert.NotSame(window, t));
+    }
+
+    [AvaloniaFact]
     public async Task A_song_from_a_stick_is_read_in_when_its_loaded_and_keeps_its_heart()
     {
         using var s = WithFiles();

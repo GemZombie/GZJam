@@ -1882,6 +1882,25 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   counting as the song list, hover lighter than a selection, the open folder as a place), with
   screenshots `selection-library-active` and `selection-queue-active`.
 
+### Status: no disk or device checks on the window's thread (#367, 1.8)
+
+- From the performance review of 2026-11-10: small, regular I/O on the window's thread, each
+  harmless until a disk or driver is slow.
+- **The activity log** (`Log`): logging only queues the line; a writer thread of its own (below
+  normal priority) puts what's waiting in the file in one write, 50 ms after the first line of a
+  burst. `Log.Error` writes everything at once (an error may be GZJam's last act), and so do
+  closing and the process's exit. One file write at a time, so lines stay in order.
+- **USB sticks** (`FilesViewModel.CheckSticksAsync`): the 2-second timer lists the drives on a
+  worker thread (a card reader or failing stick can be slow to answer `IsReady`), skips a tick
+  while one is still running, and only a change comes back; the tree, made again, shows what
+  was read rather than reading the drives again on the window's thread.
+- **Saved speakers** (`LookForSavedSpeakers`): nothing is listed while MAIN is on the saved
+  output (`IsOnSaved`: by name, and driver), which is nearly always. On a fallback, the outputs
+  are listed on a worker thread (on Linux that reads `/proc/asound` for each card).
+- Tests: `LogTests` (lines from four threads all there, each thread's in order; written by the
+  log's thread soon, an error at once), the stick check off the window's thread in
+  `FilesAppTests`, and `IsOnSaved` in `OutputChoiceTests`.
+
 ### Status: deleting songs from Files (#385, 1.8)
 
 - A DJ curating a drop folder keeps the good songs (#383, #384) and wants the rest gone from the
