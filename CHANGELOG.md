@@ -19,6 +19,11 @@ New:
   library by BPM, open a playlist, come back: still by BPM. Each playlist keeps its own sort, so a
   planned set opens in its own order until you sort it, and My music, Servers and Files keep one
   each. A third click on a header goes back to the list's own order. Remembered between runs.
+- **One clear selection** (#377, thanks to a DJ moving over from Mixxx). Only the list the keys
+  act on shows its selection strongly, in a stronger blue that reads on a dim laptop screen; the
+  queue's or the song list's, whichever you're in, and the other keeps its selection faintly.
+  The open folder or playlist is marked as where you are (a blue bar at its edge, its name in
+  blue) rather than looking selected too. Pointing at a row is lighter still.
 - **Move songs into My music, not only copy them** (#384). *Add to my music…* from Files has
   **Move them, out of where they are now**: the songs leave the folder they were in, so a folder
   you drop new music into is left with what you didn't keep. Remembered for next time. Hearts,

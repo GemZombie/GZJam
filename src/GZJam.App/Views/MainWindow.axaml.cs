@@ -53,6 +53,7 @@ public partial class MainWindow : Window
         InitializeHistory();
         InitializeSearch();
         InitializeColumns();
+        InitializeSelection();
         InitializeQueueColumns();
         InitializePlaylists();
         InitializeDoubleClick();

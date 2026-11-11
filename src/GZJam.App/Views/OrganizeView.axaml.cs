@@ -35,6 +35,10 @@ public partial class OrganizeView : UserControl
     {
         InitializeComponent();
         _model = model;
+        // One clear selection (#377): the side the keys are in shows its selection in full, the left otherwise.
+        LeftPane.PropertyChanged += (_, e) => { if (e.Property == IsKeyboardFocusWithinProperty) ShowActiveSide(); };
+        RightPane.PropertyChanged += (_, e) => { if (e.Property == IsKeyboardFocusWithinProperty) ShowActiveSide(); };
+        ShowActiveSide();
         if (model is null)
             return;
         DataContext = model;
@@ -60,6 +64,13 @@ public partial class OrganizeView : UserControl
 
     /// <summary>DONE was pressed: back to the library and the queue.</summary>
     public event Action? Done;
+
+    private void ShowActiveSide()
+    {
+        bool right = RightPane.IsKeyboardFocusWithin;
+        LeftPane.SongList.Classes.Set("active", !right);
+        RightPane.SongList.Classes.Set("active", right);
+    }
 
     /// <summary>Ready for the keyboard, on the left side's list.</summary>
     internal void FocusList() => LeftPane.SongList.Focus();
