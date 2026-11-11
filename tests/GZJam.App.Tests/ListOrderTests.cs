@@ -22,10 +22,10 @@ public sealed class ListOrderTests
             Song("1", "basie"), Song("2", "Ellington"), Song("3", "Basie"), Song("4", "Élan"), Song("5", "Calloway"), Song("6", "basie"),
         ];
 
-        var up = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayArtist), false));
+        var up = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayArtist), false), TestContext.Current.CancellationToken);
         Assert.Equal(["1", "3", "6", "5", "4", "2"], Titles(up));   // É with the E's, not after Z
 
-        var down = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayArtist), true));
+        var down = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayArtist), true), TestContext.Current.CancellationToken);
         Assert.Equal(["2", "4", "5", "1", "3", "6"], Titles(down));   // the Basies still in the list's order
     }
 
@@ -33,22 +33,22 @@ public sealed class ListOrderTests
     public void Numbers_go_by_value_songs_without_one_first()
     {
         Track[] songs = [Song("fast", bpm: 180), Song("none"), Song("slow", bpm: 95.5), Song("mid", bpm: 140)];
-        Assert.Equal(["none", "slow", "mid", "fast"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.Bpm), false))));
-        Assert.Equal(["fast", "mid", "slow", "none"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.Bpm), true))));
+        Assert.Equal(["none", "slow", "mid", "fast"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.Bpm), false), TestContext.Current.CancellationToken)));
+        Assert.Equal(["fast", "mid", "slow", "none"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.Bpm), true), TestContext.Current.CancellationToken)));
     }
 
     [Fact]
     public void A_tags_column_goes_by_that_tag()
     {
         Track[] songs = [Song("a", style: "Swing"), Song("b"), Song("c", style: "blues"), Song("d", style: "Lindy")];
-        Assert.Equal(["b", "c", "d", "a"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort("tag:" + SongTags.KeyOf("STYLE"), false))));
+        Assert.Equal(["b", "c", "d", "a"], Titles(ListOrder.Sort(songs, new AppSettings.ListSort("tag:" + SongTags.KeyOf("STYLE"), false), TestContext.Current.CancellationToken)));
     }
 
     [Fact]
     public void The_list_given_is_left_as_it_was()
     {
         Track[] songs = [Song("b"), Song("a")];
-        var sorted = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayTitle), false));
+        var sorted = ListOrder.Sort(songs, new AppSettings.ListSort(nameof(Track.DisplayTitle), false), TestContext.Current.CancellationToken);
         Assert.Equal(["a", "b"], Titles(sorted));
         Assert.Equal(["b", "a"], Titles(songs));
     }
