@@ -15,6 +15,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **Move songs into My music, not only copy them** (#384). *Add to my music…* from Files has
+  **Move them, out of where they are now**: the songs leave the folder they were in, so a folder
+  you drop new music into is left with what you didn't keep. Remembered for next time. Hearts,
+  cues and plays come along, and a song on a deck keeps playing. On another drive it's copied and
+  checked before the original goes, so a problem halfway leaves it where it was. Songs on a USB
+  stick are still only copied.
 - **Queue the song you're previewing from the preview bar** (#386). Preview a song, move on to
   another folder or search while it plays, and it can still go in the queue: **QUEUE** on the bar
   adds it to the end, its title drags onto the queue, a deck or a playlist, and right-click (or

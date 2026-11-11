@@ -253,6 +253,9 @@ public sealed class AppSettings
     /// <summary>The folder last chosen in Add to my music (#324); null: the usual place.</summary>
     public string? AddToMyMusicLastFolder { get; set; }
 
+    /// <summary>Whether songs from Files were last moved into My music, rather than copied (#384).</summary>
+    public bool AddToMyMusicMove { get; set; }
+
     /// <summary>Whether songs last brought their folders into the folder chosen.</summary>
     public bool AddToMyMusicKeepFolders { get; set; }
 

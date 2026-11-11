@@ -1824,6 +1824,26 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   first. Leaving Files takes a sort by Added away with the column, so My music isn't left in an
   order nobody chose.
 
+### Status: moving songs into My music, from Files (#384, 1.8)
+
+- A DJ curates a drop folder: previews each song and keeps the good ones. *Add to my music* only
+  copied, so keepers and rejects stayed mixed in the drop folder, and each keeper took its space
+  twice.
+- **The dialog asks, from Files only** (`AddPlaceViewModel.Move`, `MoveChoice`): *Move them, out of
+  where they are now*, remembered (`AppSettings.AddToMyMusicMove`). Off to start with, so nothing
+  changes for a DJ who doesn't choose it. Not asked for a server's songs, or the queue's songs
+  sent to a folder.
+- **A USB stick's songs are only copied:** the choice shows grayed, saying why, and what was
+  chosen for the computer's files is kept.
+- **How** (`FilesViewModel.MoveIn`): on one drive a rename (`BusyFile.Move`, waiting out a virus
+  scanner); across drives copied whole, its size checked, then the original removed; if it can't
+  be removed, the copy goes and the original stays (whole in one place or the other). The very
+  same file there already (byte for byte): the original goes. Another file of that name: a number.
+- **Afterwards:** hearts, cues and plays move with it (`MoveSongFiles`); the queue and decks follow
+  (`LibraryViewModel.FollowMoves`), so a song playing keeps playing from memory (#346) and is
+  under its new place. Only songs move: anything else in the folder, and the folders themselves,
+  stay.
+
 ### Status: Grouping and Comment columns (#161, 0.9.4)
 
 - A Mac DJ sorts their iTunes library with Grouping and Comments (dance, feel, era, vibe) and wants

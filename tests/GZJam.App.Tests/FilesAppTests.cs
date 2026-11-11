@@ -346,4 +346,143 @@ public sealed class FilesAppTests
         Assert.Equal(expected, shown);
         Assert.Equal("", Format.Added(null));
     }
+
+    // ───────────── Move, not only copy (#384) ─────────────
+
+    /// <summary>The Add to my music dialog, answered with the usual place and Move as given: what it was opened with is kept.</summary>
+    private static Func<AddPlaceViewModel> AnswerMove(Setup s, bool move)
+    {
+        AddPlaceViewModel? asked = null;
+        s.App.ViewModel.ChooseAddPlaceAsync = model =>
+        {
+            asked = model;
+            model.Move = move;
+            return Task.FromResult<AddPlace?>(model.Result());
+        };
+        return () => asked!;
+    }
+
+    [AvaloniaFact]
+    public void Moving_into_My_music_takes_the_songs_out_of_the_drop_folder_with_their_hearts()
+    {
+        using var s = WithFiles();
+        var asked = AnswerMove(s, move: true);
+        s.Library.ChooseSource(LibrarySource.Files);
+        FolderNodeViewModel edits = Open(s, "Edits", inside: "Desktop");
+        Track sing = s.Library.Results.Single(t => t.DisplayTitle == "Sing Sing Sing");
+        string original = sing.Path;
+        s.App.ViewModel.SetRating([sing], Rating.Loved);
+
+        Finish(s.App.ViewModel.Files.AddFolderToMyMusicAsync(edits));
+
+        Assert.True(asked().CanChooseMove);
+        Assert.True(asked().CanMove);
+        string added = Path.Combine(s.App.MusicPath, "Added", "Edits");
+        string moved = Path.Combine(added, "Sing Sing Sing (Sam's edit).mp3");
+        Assert.True(File.Exists(moved));
+        Assert.True(File.Exists(Path.Combine(added, "Shiny Stockings (short).mp3")));
+        Assert.False(File.Exists(original));   // gone from the drop folder
+        Assert.Empty(Directory.GetFiles(Path.Combine(s.Desktop, "Edits"), "*.mp3"));
+        Assert.True(File.Exists(Path.Combine(s.Desktop, "Edits", "notes.txt")));   // only songs move
+        AppHarness.WaitFor(() => s.App.Database.FindTrack(moved) is not null);
+        Assert.Equal(Rating.Loved, s.App.Database.GetMarks(moved).Rating);
+        Assert.True(s.App.Settings.AddToMyMusicMove);   // remembered for next time
+        Assert.StartsWith("Moved 2 songs into My music", s.App.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public void A_song_on_a_deck_and_in_the_queue_keeps_playing_from_where_its_moved()
+    {
+        using var s = WithFiles();
+        AnswerMove(s, move: true);
+        var vm = s.App.ViewModel;
+        vm.Files.SameDrive = (_, _) => false;   // another drive: copied whole, then the original removed
+        File.Copy(s.App.ToneTrack("Sing Sing Sing", seconds: 30).Path, Path.Combine(s.Desktop, "Edits", "Sing Sing Sing.wav"));   // real sound
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        Track sing = s.Library.Results.Single(t => t.FileName == "Sing Sing Sing.wav");
+        Track shiny = s.Library.Results.Single(t => t.DisplayTitle == "Shiny Stockings");
+        long size = new FileInfo(sing.Path).Length;
+        Assert.True(AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[0], sing)));
+        vm.AddToQueue([shiny]);
+        vm.Decks[0].TogglePlayCommand.Execute(null);
+        s.App.Play(0.3);
+        Assert.True(vm.Decks[0].IsPlaying);
+
+        Finish(vm.Files.AddTracksToMyMusicAsync([sing, shiny], s.Library.SelectedFolder));
+
+        string added = Path.Combine(s.App.MusicPath, "Added", "Edits");
+        Assert.Equal(Path.Combine(added, "Sing Sing Sing.wav"), vm.Decks[0].Track!.Path);
+        Assert.Equal(size, new FileInfo(vm.Decks[0].Track!.Path).Length);
+        Assert.True(vm.Decks[0].IsPlaying);   // never stopped
+        Assert.Equal(Path.Combine(added, "Shiny Stockings (short).mp3"), Assert.Single(vm.Queue.Items).Track.Path);
+        Assert.False(File.Exists(sing.Path));
+        Assert.False(File.Exists(shiny.Path));
+    }
+
+    [AvaloniaFact]
+    public void Moving_a_song_already_in_My_music_removes_the_original_and_a_different_one_gets_a_number()
+    {
+        using var s = WithFiles();
+        AnswerMove(s, move: true);
+        string added = Path.Combine(s.App.MusicPath, "Added", "Edits");
+        string sing = Path.Combine(s.Desktop, "Edits", "Sing Sing Sing (Sam's edit).mp3");
+        string shiny = Path.Combine(s.Desktop, "Edits", "Shiny Stockings (short).mp3");
+        Directory.CreateDirectory(added);
+        File.Copy(sing, Path.Combine(added, "Sing Sing Sing (Sam's edit).mp3"));   // the very same file there already
+        File.Copy(sing, Path.Combine(added, "Shiny Stockings (short).mp3"));       // another song by that name
+        var shinyBytes = File.ReadAllBytes(shiny);
+        s.Library.ChooseSource(LibrarySource.Files);
+        FolderNodeViewModel edits = Open(s, "Edits", inside: "Desktop");
+
+        Finish(s.App.ViewModel.Files.AddFolderToMyMusicAsync(edits));
+
+        Assert.False(File.Exists(sing));
+        Assert.False(File.Exists(shiny));
+        Assert.Equal(["Shiny Stockings (short) (2).mp3", "Shiny Stockings (short).mp3", "Sing Sing Sing (Sam's edit).mp3"],
+            Directory.GetFiles(added).Select(Path.GetFileName).Order(StringComparer.Ordinal));
+        Assert.Equal(shinyBytes, File.ReadAllBytes(Path.Combine(added, "Shiny Stockings (short) (2).mp3")));
+    }
+
+    [AvaloniaFact]
+    public void Songs_on_a_stick_are_copied_even_with_Move_chosen()
+    {
+        using var s = WithFiles();
+        s.App.Settings.AddToMyMusicMove = true;
+        var asked = AnswerMove(s, move: true);
+        PlugIn(s);
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Gig Nov 14", inside: "SANDISK (E:)");
+        Track atLast = s.Library.Results.Single(t => t.DisplayTitle == "At Last");
+
+        Finish(s.App.ViewModel.Files.AddTracksToMyMusicAsync([atLast], s.Library.SelectedFolder));
+
+        Assert.True(asked().CanChooseMove);
+        Assert.False(asked().CanMove);   // grayed, saying why
+        Assert.Contains("USB stick", asked().MoveTip);
+        Assert.False(asked().Result().Move);
+        Assert.True(File.Exists(Path.Combine(s.Stick, "Gig Nov 14", "At Last.mp3")));   // the stick untouched
+        Assert.True(File.Exists(Path.Combine(s.App.MusicPath, "Added", "Gig Nov 14", "At Last.mp3")));
+        Assert.True(s.App.Settings.AddToMyMusicMove);   // what was chosen for the computer's own files stays
+    }
+
+    [AvaloniaFact]
+    public void Copy_is_still_the_choice_to_start_with_and_leaves_the_originals()
+    {
+        using var s = WithFiles();
+        AddPlaceViewModel? asked = null;
+        s.App.ViewModel.ChooseAddPlaceAsync = model =>
+        {
+            asked = model;
+            return Task.FromResult<AddPlace?>(model.Result());
+        };
+        s.Library.ChooseSource(LibrarySource.Files);
+        FolderNodeViewModel edits = Open(s, "Edits", inside: "Desktop");
+
+        Finish(s.App.ViewModel.Files.AddFolderToMyMusicAsync(edits));
+
+        Assert.False(asked!.Move);
+        Assert.Equal(2, Directory.GetFiles(Path.Combine(s.Desktop, "Edits"), "*.mp3").Length);
+        Assert.False(s.App.Settings.AddToMyMusicMove);
+    }
 }

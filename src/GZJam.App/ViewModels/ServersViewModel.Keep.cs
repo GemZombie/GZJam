@@ -185,16 +185,22 @@ public sealed partial class ServersViewModel
     /// <param name="what">What will happen to the songs, wherever they go.</param>
     /// <param name="usual">Where they go unless the DJ says otherwise.</param>
     /// <param name="yesOrNo">The whole question, where there's no dialog to choose in.</param>
-    internal async Task<AddPlace?> AskAddPlaceAsync(string heading, string what, string usual, bool canKeepFolders, string yesOrNo)
+    /// <param name="canMove">Songs from Files: they can be moved rather than copied (#384), as chosen last time.</param>
+    /// <param name="cantMoveWhy">Why they can't be after all (on a USB stick), the choice grayed.</param>
+    internal async Task<AddPlace?> AskAddPlaceAsync(string heading, string what, string usual, bool canKeepFolders, string yesOrNo,
+        bool canMove = false, string? cantMoveWhy = null)
     {
         if (_owner.ChooseAddPlaceAsync is not { } choose)
             return _owner.ConfirmAsync is { } confirm && await confirm(heading, yesOrNo, "Add") ? new AddPlace(usual, KeepFolders: true, IsUsual: true) : null;
+        MoveChoice? move = canMove ? new MoveChoice(_settings.AddToMyMusicMove, cantMoveWhy) : null;
         if (await choose(new AddPlaceViewModel(heading, what, usual, _owner.Library.MusicFolders,
-                _settings.AddToMyMusicLastFolder, _settings.AddToMyMusicKeepFolders, canKeepFolders, DownloadsFolder)) is not { } place)
+                _settings.AddToMyMusicLastFolder, _settings.AddToMyMusicKeepFolders, canKeepFolders, DownloadsFolder, move: move)) is not { } place)
             return null;
         _settings.AddToMyMusicLastFolder = place.IsUsual ? null : place.Folder;
         if (!place.IsUsual && canKeepFolders)
             _settings.AddToMyMusicKeepFolders = place.KeepFolders;
+        if (move is { CantWhy: null })
+            _settings.AddToMyMusicMove = place.Move;
         return place;
     }
 

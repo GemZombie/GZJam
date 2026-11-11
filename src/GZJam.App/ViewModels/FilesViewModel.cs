@@ -196,21 +196,26 @@ public sealed class FilesViewModel : IDisposable
             return;
         string usual = Path.Combine(folder, "Added", FileSources.SafeName(from));
         string count = songs.Count == 1 ? "1 song" : $"{Format.Count(songs.Count)} songs";
-        string what = $"The originals are left where they are. The copies are yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.";
+        string them = songs.Count == 1 ? "it" : "them";
+        string what = $"In My music they're yours from then on, never removed by GZJam, with what you gave {them} here.";
+        bool onStick = songs.Any(s => IsOnStick(s.Track));
         if (await servers.AskAddPlaceAsync($"Add {count} to My music?", what, usual, canKeepFolders: songs.Any(s => s.Folder.Length > 0),
-                $"Copied into {usual}, the originals left where they are: yours from then on, never removed by GZJam, with what you gave {(songs.Count == 1 ? "it" : "them")} here.") is not { } place)
+                $"Copied into {usual}, the originals left where they are: yours from then on, never removed by GZJam, with what you gave {them} here.",
+                canMove: true, cantMoveWhy: onStick ? "Songs on a USB stick are copied: GZJam never changes a stick, which can be pulled out at any moment" : null) is not { } place)
             return;
         if (choosing && !servers.SetKeepFolder(folder))
             return;
-        await CopyIntoMyMusicAsync(songs, place.Folder, place.KeepFolders, folder);
+        await CopyIntoMyMusicAsync(songs, place.Folder, place.KeepFolders, folder, move: place.Move && !onStick);
     }
 
     /// <summary>
     /// Songs copied into a folder of My music, with what the DJ gave them, the originals left where
-    /// they are. Says how it went, and returns each song and where its copy went.
+    /// they are; or, with <paramref name="move"/>, moved there (#384), out of where they were. Says
+    /// how it went, and returns each song and where it went.
     /// </summary>
     /// <param name="rootIfNone">The music folder to add to the library if <paramref name="into"/> isn't in one yet.</param>
-    internal async Task<List<(string From, string To)>> CopyIntoMyMusicAsync(IReadOnlyList<(Track Track, string Folder)> songs, string into, bool keepFolders, string rootIfNone)
+    internal async Task<List<(string From, string To)>> CopyIntoMyMusicAsync(IReadOnlyList<(Track Track, string Folder)> songs, string into, bool keepFolders, string rootIfNone,
+        bool move = false)
     {
         var servers = _owner.Servers;
         var moves = new List<(string From, string To)>();
@@ -220,15 +225,16 @@ public sealed class FilesViewModel : IDisposable
             string inside = keepFolders ? under.Replace('/', Path.DirectorySeparatorChar) : "";
             try
             {
-                string to = FreePath(Path.Combine(into, inside, track.FileName), track.Path);
-                if (!File.Exists(to))
+                string wanted = Path.Combine(into, inside, track.FileName);
+                string to = move ? await Task.Run(() => MoveIn(track.Path, wanted)) : FreePath(wanted, track.Path);
+                if (!move && !File.Exists(to))
                     await Task.Run(() => CopyIn(track.Path, to));
                 moves.Add((track.Path, to));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Log.Info($"Files: couldn't add {track.Path} to My music: {e.Message}");
-                failed ??= $"Couldn't copy {track.DisplayTitle}: {e.Message}";
+                Log.Info($"Files: couldn't {(move ? "move" : "add")} {track.Path} to My music: {e.Message}");
+                failed ??= $"Couldn't {(move ? "move" : "copy")} {track.DisplayTitle}: {e.Message}";
             }
         }
         if (moves.Count > 0)
@@ -238,12 +244,80 @@ public sealed class FilesViewModel : IDisposable
                 await _owner.Library.ScanRootAsync(root.Id);
             else
                 await _owner.Library.AddRootAsync(rootIfNone);
-            Log.Info($"Files: added {moves.Count} songs to My music, in {into}");
+            Log.Info($"Files: {(move ? "moved" : "added")} {moves.Count} songs to My music, in {into}");
         }
-        _owner.Library.RefreshResults();
-        string done = $"Added {(moves.Count == 1 ? "1 song" : $"{Format.Count(moves.Count)} songs")} to My music, in {into}.";
+        if (move && moves.Count > 0)
+            _owner.Library.FollowMoves(moves);   // on a deck or in the queue: there still, from its new place
+        else
+            _owner.Library.RefreshResults();
+        string done = $"{(move ? "Moved" : "Added")} {(moves.Count == 1 ? "1 song" : $"{Format.Count(moves.Count)} songs")} {(move ? "into" : "to")} My music, in {into}.";
         _owner.ShowNotice(failed is null ? done : $"{done} {failed}", seconds: 8);
         return moves;
+    }
+
+    /// <summary>Whether two paths are on one drive, so a move is only a rename. Tests say no.</summary>
+    internal Func<string, string, bool> SameDrive { get; set; } = (a, b) =>
+        string.Equals(Path.GetPathRoot(a), Path.GetPathRoot(b), StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// A song moved into My music (#384), whole in one place or the other however it ends, and
+    /// where it went. On one drive it's a rename. Across drives it's copied whole, checked, and only
+    /// then the original removed; if that can't be, the copy goes and the original stays. The very
+    /// same file there already: the original goes. A different one of that name: a number.
+    /// </summary>
+    private string MoveIn(string from, string wanted)
+    {
+        string to = wanted;
+        string folder = Path.GetDirectoryName(wanted)!, name = Path.GetFileNameWithoutExtension(wanted), extension = Path.GetExtension(wanted);
+        for (int n = 2; File.Exists(to) && !SameContent(from, to); n++)
+            to = Path.Combine(folder, $"{name} ({n}){extension}");
+        if (File.Exists(to))
+        {
+            BusyFile.Delete(from);   // in My music already, byte for byte
+            return to;
+        }
+        Directory.CreateDirectory(folder);
+        if (SameDrive(from, to))
+        {
+            BusyFile.Move(from, to);
+            return to;
+        }
+        CopyIn(from, to);
+        if (new FileInfo(to).Length != new FileInfo(from).Length)
+        {
+            File.Delete(to);
+            throw new IOException("the copy wasn't whole");
+        }
+        try
+        {
+            BusyFile.Delete(from);   // only now the copy is whole
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            File.Delete(to);
+            throw;
+        }
+        return to;
+    }
+
+    /// <summary>Whether two files hold the same bytes.</summary>
+    private static bool SameContent(string a, string b)
+    {
+        var (first, second) = (new FileInfo(a), new FileInfo(b));
+        if (first.Length != second.Length)
+            return false;
+        using FileStream x = first.OpenRead(), y = second.OpenRead();
+        byte[] bufferX = new byte[81920], bufferY = new byte[81920];
+        while (true)
+        {
+            int read = x.ReadAtLeast(bufferX, bufferX.Length, throwOnEndOfStream: false);
+            if (y.ReadAtLeast(bufferY, bufferY.Length, throwOnEndOfStream: false) != read)
+                return false;
+            if (read == 0)
+                return true;
+            if (!bufferX.AsSpan(0, read).SequenceEqual(bufferY.AsSpan(0, read)))
+                return false;
+        }
     }
 
     /// <summary>A folder in Files, or a stick: every song in it and in its folders, laid out as there.</summary>
