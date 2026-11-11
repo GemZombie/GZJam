@@ -306,9 +306,11 @@ public sealed class FilesAppTests
         // Shiny Stockings arrives after Sing Sing Sing, but its file says it was last changed in
         // 2019, as a copied file does; Sing Sing Sing's says yesterday.
         string sing = Path.Combine(s.Desktop, "Edits", "Sing Sing Sing (Sam's edit).mp3");
-        string shiny = Path.Combine(s.Desktop, "Edits", "Shiny Stockings (short).mp3");
-        File.Delete(shiny);
+        File.Delete(Path.Combine(s.Desktop, "Edits", "Shiny Stockings (short).mp3"));
         Thread.Sleep(50);
+        // Under another name: a file made again under the same name soon after is given the old
+        // one's creation time by Windows ("tunneling"), so it wouldn't have arrived later.
+        string shiny = Path.Combine(s.Desktop, "Edits", "Shiny Stockings (short edit).mp3");
         TestMp3.Write(shiny, new TestMp3.Tags(Title: "Shiny Stockings", Artist: "Count Basie"));
         File.SetLastWriteTimeUtc(shiny, new DateTime(2019, 6, 1, 12, 0, 0, DateTimeKind.Utc));
         File.SetLastWriteTimeUtc(sing, DateTime.UtcNow.AddDays(-1));
