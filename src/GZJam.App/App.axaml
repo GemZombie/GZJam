@@ -42,6 +42,15 @@
       <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
       <SolidColorBrush x:Key="AccentSoftBrush" Color="#337FA3CF" />
       <SolidColorBrush x:Key="AccentFaintBrush" Color="#1F7FA3CF" />
+      <!-- One clear selection (#377): the list the keys act on shows its selection in full, the
+           others faintly; hover is lighter than either. The open folder or playlist is a place
+           (an accent bar and its name in the accent color), not a selection. -->
+      <SolidColorBrush x:Key="SelectionActiveBrush" Color="#617FA3CF" />
+      <SolidColorBrush x:Key="SelectionActiveHoverBrush" Color="#707FA3CF" />
+      <SolidColorBrush x:Key="SelectionInactiveBrush" Color="#1A7FA3CF" />
+      <SolidColorBrush x:Key="SelectionInactiveHoverBrush" Color="#267FA3CF" />
+      <SolidColorBrush x:Key="RowHoverBrush" Color="#0FFFFFFF" />
+      <SolidColorBrush x:Key="PlaceHoverBrush" Color="#147FA3CF" />
       <SolidColorBrush x:Key="Deck2SoftBrush" Color="#24EEA23A" />
 
       <!-- Settings: a lighter, bluer gray than the decks, so it never passes for part of the set -->

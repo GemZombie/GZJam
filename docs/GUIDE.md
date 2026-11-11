@@ -1072,6 +1072,11 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 The keys that start with Ctrl (Cmd on a Mac) work from anywhere, most of them from the search box too. FADE OUT has
 no key on purpose: one keypress ending the song the room hears is too easy to hit by mistake.
 
+**What the keys act on** is the one selection shown strongly, in blue: the song list's, unless
+you've clicked into the queue, History, the folders or the playlists. The other lists keep their
+selection, faintly, for when you go back to them. The open folder or playlist isn't a selection:
+it's where you are, with a blue bar at its edge and its name in blue.
+
 | | |
 |---|---|
 | **Enter** | add the selected songs to the queue (**Shift+Enter**: play next) |

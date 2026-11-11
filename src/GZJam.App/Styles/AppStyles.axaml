@@ -1287,4 +1287,67 @@
     <Setter Property="Background" Value="{StaticResource WellBrush}" />
     <Setter Property="CornerRadius" Value="7" />
   </Style>
+
+  <!-- ───────────── One clear selection (#377) ─────────────
+       Only the list the keys act on (.active, from MainWindow.Selection.cs) shows its selection
+       in full; the others keep theirs, faintly, until the DJ goes back to them. Hover is lighter
+       than either. Last in the file, so these win over the lists' own styles above. -->
+
+  <!-- The song list -->
+  <Style Selector="DataGrid.tracks DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource RowHoverBrush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="DataGrid.tracks DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource SelectionInactiveBrush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="DataGrid.tracks DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource SelectionInactiveHoverBrush}" />
+  </Style>
+  <Style Selector="DataGrid.tracks.active DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource SelectionActiveBrush}" />
+  </Style>
+  <Style Selector="DataGrid.tracks.active DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource SelectionActiveHoverBrush}" />
+  </Style>
+
+  <!-- The queue, History, and Organize music's two sides -->
+  <Style Selector="ListBox.queue ListBoxItem:pointerover /template/ ContentPresenter, ListBox.rows ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource RowHoverBrush}" />
+  </Style>
+  <Style Selector="ListBox.queue ListBoxItem:selected /template/ ContentPresenter, ListBox.queue ListBoxItem:selected:pressed /template/ ContentPresenter, ListBox.rows ListBoxItem:selected /template/ ContentPresenter, ListBox.rows ListBoxItem:selected:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionInactiveBrush}" />
+  </Style>
+  <Style Selector="ListBox.queue ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.rows ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionInactiveHoverBrush}" />
+  </Style>
+  <Style Selector="ListBox.queue.active ListBoxItem:selected /template/ ContentPresenter, ListBox.queue.active ListBoxItem:selected:pressed /template/ ContentPresenter, ListBox.rows.active ListBoxItem:selected /template/ ContentPresenter, ListBox.rows.active ListBoxItem:selected:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionActiveBrush}" />
+  </Style>
+  <Style Selector="ListBox.queue.active ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.rows.active ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionActiveHoverBrush}" />
+  </Style>
+
+  <!-- The open folder, playlist or source: where you are, not a selection. An accent bar at its
+       edge (drawn inside it, so nothing moves) and its name in the accent color; a fill only
+       while the keys are in that list. -->
+  <Style Selector="ListBoxItem.folder-row:pointerover /template/ ContentPresenter, ListBox.playlists ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource RowHoverBrush}" />
+  </Style>
+  <Style Selector="ListBoxItem.folder-row:selected /template/ ContentPresenter, ListBoxItem.folder-row:selected:pressed /template/ ContentPresenter, ListBox.playlists ListBoxItem:selected /template/ ContentPresenter, ListBox.playlists ListBoxItem:selected:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BoxShadow" Value="inset 3 0 0 0 #7FA3CF" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+  <Style Selector="ListBoxItem.folder-row:selected:pointerover /template/ ContentPresenter, ListBox.playlists ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PlaceHoverBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+  <Style Selector="ListBox.folders.active ListBoxItem.folder-row:selected /template/ ContentPresenter, ListBox.playlists.active ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionActiveBrush}" />
+  </Style>
+  <Style Selector="ListBox.folders.active ListBoxItem.folder-row:selected:pointerover /template/ ContentPresenter, ListBox.playlists.active ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionActiveHoverBrush}" />
+  </Style>
 </Styles>

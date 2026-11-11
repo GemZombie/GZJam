@@ -1861,6 +1861,27 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
 - Tests: `ListSortAppTests` (the library through a playlist, a folder and a search; each playlist
   its own; a restart; the third click; a deleted playlist), and the Added column in `FilesAppTests`.
 
+### Status: one clear selection (#377, 1.8)
+
+- Several things looked selected at once (the open folder, a song in the library, a song in the
+  queue), and the song list's selection was faint (18%), so a glance didn't say what Enter, Space
+  or Ctrl+Alt+1 would act on.
+- **The active list** (`MainWindow.Selection.cs`, the `active` class): the queue, History, the
+  folders, the playlists or the sources while the keyboard is in them, and otherwise the song list,
+  the search box included. The same rule the keys already used (`LoadSelectedOnto`,
+  `ShowSelectedSongInfo`). Organize music: the side the keyboard is in, the left otherwise.
+- **Brushes** (`App.axaml`): `SelectionActiveBrush` (the accent at 38%), `SelectionInactiveBrush`
+  (10%, the selection kept for going back), their hover steps, `RowHoverBrush` (white at 6%,
+  lighter than either) and `PlaceHoverBrush`. Styles last in `AppStyles.axaml`, so they win over
+  the lists' own: the song list's row background (`Rectangle#BackgroundRectangle`), and the item
+  presenter of the queue, History and Organize's rows.
+- **A place, not a selection:** the open folder, playlist or source has no fill, an inset accent
+  bar at its left edge (`BoxShadow`, so nothing shifts) and its name in the accent color; a fill
+  only while the keyboard is in that list.
+- Tests: `SelectionAppTests` (the strong and faint fills moving with the keyboard, the search box
+  counting as the song list, hover lighter than a selection, the open folder as a place), with
+  screenshots `selection-library-active` and `selection-queue-active`.
+
 ### Status: deleting songs from Files (#385, 1.8)
 
 - A DJ curating a drop folder keeps the good songs (#383, #384) and wants the rest gone from the
