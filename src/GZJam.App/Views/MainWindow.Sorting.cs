@@ -32,18 +32,22 @@ public partial class MainWindow
         if (key == _sortKey || TrackGrid.CollectionView is null)
             return;
         _sortKey = key;
-        ShowSort(Vm.SortFor(key));
+        _ = ShowSort(Vm.SortFor(key));
     }
 
     /// <summary>What a sort calls a column: its sort path, or a tag's key for a tag's column (#119).</summary>
     private static string? ColumnId(DataGridColumn column) =>
         column.Tag is TagColumnKey tag ? "tag:" + tag.Key : column.CanUserSort ? column.SortMemberPath : null;
 
-    /// <summary>Sorts the song list by <paramref name="sort"/>, or puts it in the list's own order (null).</summary>
-    private void ShowSort(AppSettings.ListSort? sort)
+    /// <summary>
+    /// Sorts the song list by <paramref name="sort"/>, or puts it in the list's own order (null):
+    /// done when the rows show it. The songs are sorted by the library (#368); the grid only shows
+    /// the column's arrow.
+    /// </summary>
+    private Task ShowSort(AppSettings.ListSort? sort)
     {
         if (TrackGrid.CollectionView is not { } view)
-            return;
+            return Task.CompletedTask;
         DataGridColumn? column = sort is null ? null : TrackGrid.Columns.FirstOrDefault(c => ColumnId(c) == sort.Column);
         _shownSort = column is null ? null : sort;
         using (view.DeferRefresh())
@@ -52,12 +56,10 @@ public partial class MainWindow
             if (column is not null)
             {
                 var direction = sort!.Descending ? ListSortDirection.Descending : ListSortDirection.Ascending;
-                view.SortDescriptions.Add(column.CustomSortComparer is { } comparer
-                    ? DataGridSortDescription.FromComparer(comparer, direction)
-                    : DataGridSortDescription.FromPath(column.SortMemberPath, direction));
+                view.SortDescriptions.Add(new PresortedSort(column, direction));
             }
         }
-        Vm.Library.IsSorted = _shownSort is not null;
+        return Vm.Library.SortByAsync(_shownSort);
     }
 
     /// <summary>
@@ -65,7 +67,7 @@ public partial class MainWindow
     /// newest first, then oldest, as a DJ working through new music wants. Set on the grid's sort
     /// itself: the column's own Sort, called from here, sorts later and asks again, without end.
     /// </summary>
-    private void OnGridSorting(object? sender, DataGridColumnEventArgs e)
+    private async void OnGridSorting(object? sender, DataGridColumnEventArgs e)
     {
         if (TrackGrid.CollectionView is null || ColumnId(e.Column) is not { } id)
             return;
@@ -75,8 +77,19 @@ public partial class MainWindow
         AppSettings.ListSort? next = now?.Column != id ? new AppSettings.ListSort(id, firstDescending)
             : now.Descending == firstDescending ? now with { Descending = !firstDescending }
             : null;
-        ShowSort(next);
         Vm.RememberSort(Vm.Library.SortKey, next);
         Log.Info($"Song list ({Vm.Library.SortKey}) sorted {(next is null ? "in its own order" : $"by {e.Column.Header}, {(next.Descending ? "descending" : "ascending")}")}");
+        var selected = TrackGrid.SelectedItems.OfType<Track>().ToList();
+        var rows = Vm.Library.ResultRows;
+        await ShowSort(next);
+        if (selected.Count == 0)
+            return;
+        // The songs selected stay selected, the first in view, wherever the sort put them.
+        var shown = rows.ToHashSet();
+        TrackGrid.SelectedItems.Clear();
+        foreach (Track track in selected.Where(shown.Contains))
+            TrackGrid.SelectedItems.Add(track);
+        if (TrackGrid.SelectedItems.OfType<Track>().FirstOrDefault() is { } first)
+            TrackGrid.ScrollIntoView(first, null);
     }
 }

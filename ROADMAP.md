@@ -197,6 +197,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [No disk or device checks holding up the screen](https://github.com/GemZombie/GZJam/issues/367):
   the activity log has a writer of its own, and USB sticks and speakers are looked for in the
   background
+- [Big libraries listed quickly](https://github.com/GemZombie/GZJam/issues/368): a list of 60,000
+  songs is sorted where the library reads it, not on the screen's time
 - Curating new music in Files: [sort a folder by when songs arrived](https://github.com/GemZombie/GZJam/issues/383),
   newest first; [move the keepers into My music](https://github.com/GemZombie/GZJam/issues/384)
   rather than copy them; and [delete the rest](https://github.com/GemZombie/GZJam/issues/385),
@@ -227,7 +229,6 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 and a smoother screen, from a performance review: [the close-up waveform](https://github.com/GemZombie/GZJam/issues/364)
 drawn alongside the screen, not by it; [the decks' readouts](https://github.com/GemZombie/GZJam/issues/365)
 and [waveforms and meters](https://github.com/GemZombie/GZJam/issues/366) doing only the work that shows;
-[big libraries](https://github.com/GemZombie/GZJam/issues/368) of 50,000 songs and more listed quickly; and
 [first-time analysis](https://github.com/GemZombie/GZJam/issues/369) going gently while music plays;
 and [a look at a rare short dropout](https://github.com/GemZombie/GZJam/issues/381) on a busy computer
 

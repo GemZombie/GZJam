@@ -97,7 +97,8 @@ public partial class MainWindow
                 if (byPath.TryGetValue(path, out Track? track))
                     TrackGrid.SelectedItems.Add(track);
         }
-        bool atTop = place.Top is not null && byPath.TryGetValue(place.Top, out Track? first) && ReferenceEquals(first, results[0]);
+        bool atTop = place.Top is not null && byPath.TryGetValue(place.Top, out Track? first)
+            && Vm.Library.ResultRows.Count > 0 && ReferenceEquals(first, Vm.Library.ResultRows[0]);   // the first row, sorted or not
         if (atTop)
             return;   // it was at the top, and is
         if (place.Bottom is not null && byPath.TryGetValue(place.Bottom, out Track? last))

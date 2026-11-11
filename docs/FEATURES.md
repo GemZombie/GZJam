@@ -373,6 +373,34 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: big libraries (#368, 1.8)
+
+- From the performance review of 2026-11-10: GZJam is meant for DJs with 50,000-60,000 songs.
+  Timed on a copy of a 12,714-song library made five times bigger (63,570 songs), before:
+  - Reading the whole list (all of My music): about 350 ms, on the search's worker thread. Fine
+    where it is.
+  - On the window's thread, unsorted: 35-57 ms (the per-path index with a `List` per song, the
+    played-tonight marks, the grid's reset), allocating about 14 MB.
+  - Sorted by a column, which since #376 a list nearly always is: 100-180 ms each time a list
+    came, and up to 240 ms on a header click. The grid's `DataGridCollectionView` sorts on the
+    window's thread, and slowly whatever the comparer (a typed BPM comparer was no quicker).
+- **The sort moved to the library** (`ListOrder`): the search's worker sorts what it read (a
+  stable sort, so songs alike keep the list's own order; text by culture sort keys made once a
+  song, case aside, about 85 ms for 63,570 titles), and builds the index (`ResultIndex`: one entry
+  a song, a list only for a song a playlist has twice). A header click sorts the list shown on a
+  worker thread (above 3,000 songs; a small list is sorted at once). The grid gets a
+  `PresortedSort`: the column's sort description, for the header's arrow, whose `OrderBy` keeps
+  the rows in the order they come. The selection stays through a header click.
+- After: a 63,570-song list costs the window's thread about 20-40 ms, sorted or not, and about
+  2 MB.
+- **First import:** the list filled in every 1.5 s while a new library was read (14 reads of the
+  whole list in 20 s on 2026-11-09); now the first fill-in comes after 1.5 s, then every 5 s.
+- Not done, as the timing showed no need: updating only the rows a scan or sync changed, and
+  reading the list in pages as it scrolls.
+- Tests: `ListOrderTests` (text as read, stable both ways, numbers with blanks first, a tag's
+  column), and in `ListSortAppTests` a list sorted away from the window, shown in order with the
+  column's arrow, the selection kept, a new search arriving sorted.
+
 ### Status: acting on the song in the headphones (#386, 1.8)
 
 - A DJ previews a song, moves on to another folder or search while it plays, then wants it in the

@@ -143,4 +143,54 @@ public sealed class ListSortAppTests : IDisposable
         AppHarness.Await(app.ViewModel.DeletePlaylistAsync(app.Library.Playlists.Single(p => p.Id == gone.Id)));
         Assert.Empty(app.Settings.ListSorts);
     }
+
+    /// <summary>
+    /// A big list (#368) is sorted on a worker thread, by the library, not by the grid on the
+    /// window's thread: the grid shows the rows as they come, with the column's arrow. Here every
+    /// list counts as big.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_big_list_is_sorted_away_from_the_window_and_shown_in_order_with_the_columns_arrow()
+    {
+        int was = ListOrder.SortHereUpTo;
+        ListOrder.SortHereUpTo = 0;
+        try
+        {
+            using var app = new AppHarness(workDirectory: _work);
+            var grid = Grid(app);
+            var picked = (Track)grid.CollectionView!.Cast<object>().Last();
+            grid.SelectedItems.Add(picked);
+
+            ClickHeader(app, "Artist");
+            ClickHeader(app, "Artist");
+            AppHarness.WaitFor(() => app.Library.ResultRows.Count > 0 && Shown(app).SequenceEqual(ByArtistDescending(app)));
+            Assert.Equal(("DisplayArtist", ListSortDirection.Descending), Sort(app));
+            Assert.Equal(["Artist"], Arrows(app));
+            Assert.Equal([picked], grid.SelectedItems.Cast<Track>());   // still selected, wherever it went
+
+            // A new list comes in that order by itself: read and sorted on the search's thread.
+            app.Library.SearchText = "a";
+            AppHarness.WaitFor(() => !app.Library.IsSearching);
+            AppHarness.Settle(150);
+            Assert.True(app.Library.Results.Count > 1);
+            Assert.Equal(ByArtistDescending(app), Shown(app));
+            Assert.Equal(["Artist"], Arrows(app));
+
+            // Back in its own order with a third click.
+            ClickHeader(app, "Artist");
+            AppHarness.WaitFor(() => Shown(app).SequenceEqual(app.Library.Results.Select(t => t.DisplayTitle)));
+            Assert.Empty(Arrows(app));
+        }
+        finally
+        {
+            ListOrder.SortHereUpTo = was;
+        }
+    }
+
+    private static List<string> ByArtistDescending(AppHarness app) =>
+        ListOrder.Sort(app.Library.Results, new AppSettings.ListSort(nameof(Track.DisplayArtist), true)).Select(t => t.DisplayTitle).ToList();
+
+    /// <summary>The headers that show a sort arrow.</summary>
+    private static List<string> Arrows(AppHarness app) => Grid(app).GetVisualDescendants().OfType<DataGridColumnHeader>()
+        .Where(h => h.Classes.Contains(":sortascending") || h.Classes.Contains(":sortdescending")).Select(h => (string)h.Content!).ToList();
 }

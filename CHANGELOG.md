@@ -60,6 +60,13 @@ Better:
   writer of its own, and errors still go in at once. The check for USB sticks every couple of
   seconds runs in the background, so a slow card reader can't hold up the window, and the outputs
   are only listed to look for your speakers while GZJam is playing on another output.
+- **A big library lists quickly, sorted too** (#368). With 60,000 songs, a sorted song list held
+  the screen up for over a tenth of a second each time it changed, longer when you clicked a
+  column, because the songs were sorted on the screen's own time. Now they're sorted where the
+  library reads them, and the screen only shows them: about a fifth of the time, whatever the
+  column. Titles and artists sort as you'd read them (É with the E's), as before. While a new
+  library is first read in, the list fills in every few seconds rather than every second and a
+  half, since each time reads every song again.
 
 ## 1.7.0 (2026-11-11)
 
