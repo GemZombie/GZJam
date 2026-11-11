@@ -75,6 +75,9 @@ public sealed class FilesViewModel : IDisposable
     /// <summary>A check of the sticks is running in the background: the next tick waits for it.</summary>
     private bool _checking;
 
+    /// <summary>Each read of the drives, numbered: an older one coming back late is left unshown.</summary>
+    private int _sticksReads;
+
     /// <summary>
     /// The timer's check (#367): the drives are listed in the background, since a card reader or a
     /// failing stick can be slow to say whether it's ready, and only a change comes back here.
@@ -86,8 +89,9 @@ public sealed class FilesViewModel : IDisposable
         _checking = true;
         try
         {
-            if (await Task.Run(ReadSticks) is { } now)
-                ShowSticks(now);
+            int read = ++_sticksReads;
+            if (await Task.Run(ReadSticks) is { } now && read == _sticksReads)
+                ShowSticks(now);   // unless a newer look (CheckSticks) came meanwhile: a stick plugged in stays
         }
         finally
         {
@@ -110,6 +114,7 @@ public sealed class FilesViewModel : IDisposable
     /// <summary>A stick plugged in or pulled out: Files shows it, or not. Now, on this thread (tests, and starting).</summary>
     public void CheckSticks()
     {
+        ++_sticksReads;
         if (ReadSticks() is { } now)
             ShowSticks(now);
     }

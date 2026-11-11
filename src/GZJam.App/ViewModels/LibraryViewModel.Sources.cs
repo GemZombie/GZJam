@@ -205,7 +205,8 @@ public sealed partial class LibraryViewModel
         DidYouMeanText = null;
         ServerProblem = rows.Count == 0 ? problem : null;
         ServerNote = note;
-        ShowResults(OnlyHere ? rows.Where(t => !t.IsOnServerOnly).ToList() : rows, key);
+        if (!await ShowResultsAsync(OnlyHere ? rows.Where(t => !t.IsOnServerOnly).ToList() : rows, key, version))
+            return;
         IsSearching = false;
         OnPropertyChanged(nameof(EmptyMessage));
         if (text.Trim().Length > 1)

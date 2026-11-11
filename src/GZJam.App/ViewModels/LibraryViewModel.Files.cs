@@ -75,7 +75,8 @@ public sealed partial class LibraryViewModel
         DidYouMeanText = null;
         ServerProblem = null;
         ServerNote = null;
-        ShowResults(words.Length == 0 ? songs : songs.Where(t => words.All(w => NameHas(t, w))).ToList(), key);
+        if (!await ShowResultsAsync(words.Length == 0 ? songs : songs.Where(t => words.All(w => NameHas(t, w))).ToList(), key, version))
+            return;
         IsSearching = false;
         OnPropertyChanged(nameof(EmptyMessage));
     }

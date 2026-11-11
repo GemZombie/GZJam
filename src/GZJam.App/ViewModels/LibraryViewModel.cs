@@ -21,7 +21,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private int _searchVersion;
     private bool _suppressSearch;
     private (string RootPath, string Folder)? _pendingSelection;
-    private Dictionary<string, List<Track>> _resultsByPath = new(StringComparer.Ordinal);
+    private ResultIndex _resultsByPath = ResultIndex.Empty;
 
     public LibraryViewModel(LibraryDatabase database)
     {
@@ -128,18 +128,54 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>A playlist's <see cref="SortKey"/>.</summary>
     public static string PlaylistSortKey(long id) => $"playlist:{id}";
 
-    /// <summary>The song list is sorted by a column, not in its own order. Set by the window.</summary>
-    public bool IsSorted
+    /// <summary>The song list is sorted by a column, not in its own order.</summary>
+    public bool IsSorted => Order is not null;
+
+    /// <summary>
+    /// The column the song list is sorted by, or null in its own order: set by the window from
+    /// the header the DJ clicks (#376). The songs are put in that order here, a big list on a
+    /// worker thread (#368), and the grid shows them as they come.
+    /// </summary>
+    public AppSettings.ListSort? Order
     {
-        get;
-        set
+        get => Volatile.Read(ref _order);
+        private set
         {
-            if (field == value)
+            if (Equals(_order, value))
                 return;
-            field = value;
+            Volatile.Write(ref _order, value);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSorted));
             OnPropertyChanged(nameof(CanReorderPlaylist));
         }
+    }
+
+    private AppSettings.ListSort? _order;
+    private int _sortVersion;
+
+    /// <summary>
+    /// Sorts the song list by <paramref name="order"/> (null: its own order). Done when the rows
+    /// show it; a big list is sorted on a worker thread. A list on its way (a search running)
+    /// comes in this order by itself.
+    /// </summary>
+    public Task SortByAsync(AppSettings.ListSort? order)
+    {
+        Order = order;
+        return SortAgainAsync();
+    }
+
+    /// <summary>Puts the list shown in <see cref="Order"/>: a big one on a worker thread.</summary>
+    private async Task SortAgainAsync()
+    {
+        AppSettings.ListSort? order = Order;
+        int version = ++_sortVersion;
+        IReadOnlyList<Track> results = Results;
+        IReadOnlyList<Track> rows = order is null ? results
+            : results.Count <= ListOrder.SortHereUpTo ? ListOrder.Sort(results, order)
+            : await Task.Run(() => ListOrder.Sort(results, order));
+        if (version != _sortVersion || !ReferenceEquals(results, Results))
+            return;   // sorted again meanwhile, or another list came, in the order asked for now
+        ResultRows.Replace(rows);
     }
 
     /// <summary>
@@ -288,6 +324,15 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>What the song list shows: <see cref="Results"/>, in a collection the grid keeps (#343).</summary>
     public ResultRows ResultRows { get; } = new();
 
+    /// <summary>A list made ready to show: its index and its rows (sorted) made on the thread that read it (#368).</summary>
+    private sealed record ReadyList(IReadOnlyList<Track> Results, IReadOnlyList<Track> Rows, AppSettings.ListSort? Order, ResultIndex Index);
+
+    private ReadyList? _ready;
+
+    /// <summary>Makes a list ready to show, in <paramref name="order"/>: on a worker thread for a big list.</summary>
+    private static ReadyList Ready(IReadOnlyList<Track> results, AppSettings.ListSort? order, CancellationToken cancel = default) =>
+        new(results, order is null ? results : ListOrder.Sort(results, order, cancel), order, ResultIndex.Of(results));
+
     partial void OnResultsChanged(IReadOnlyList<Track> value)
     {
         if (TonightSince() is { } since)
@@ -295,23 +340,28 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             foreach (Track track in value)
                 track.IsPlayedTonight = track.LastPlayedUtc >= since;
         }
-        _resultsByPath = new Dictionary<string, List<Track>>(value.Count, StringComparer.Ordinal);
-        foreach (Track track in value)
+        ReadyList ready = _ready is { } r && ReferenceEquals(r.Results, value) ? r : Ready(value, null);
+        _ready = null;
+        _resultsByPath = ready.Index;
+        AppSettings.ListSort? order = Order;
+        if (Equals(ready.Order, order))
+            ResultRows.Replace(ready.Rows);
+        else if (order is not null && value.Count <= ListOrder.SortHereUpTo)
+            ResultRows.Replace(ListOrder.Sort(value, order));
+        else
         {
-            if (_resultsByPath.TryGetValue(track.Path, out var rows))
-                rows.Add(track);   // in a playlist twice
-            else
-                _resultsByPath[track.Path] = [track];
+            // Sorted again while a big list was read: a moment in the order it came in, then this one.
+            ResultRows.Replace(ready.Rows);
+            _ = SortAgainAsync();
         }
-        ResultRows.Replace(value);
         OnPropertyChanged(nameof(PlaylistSummary));
     }
 
     /// <summary>The track for a file in the current results, if it's there.</summary>
-    public Track? ResultFor(string path) => _resultsByPath.GetValueOrDefault(path)?[0];
+    public Track? ResultFor(string path) => _resultsByPath.First(path);
 
     /// <summary>Every row for a file in the current results: more than one in a playlist that has it twice.</summary>
-    public IReadOnlyList<Track> ResultsFor(string path) => _resultsByPath.GetValueOrDefault(path) ?? [];
+    public IReadOnlyList<Track> ResultsFor(string path) => _resultsByPath.All(path);
 
     partial void OnSelectedFolderChanged(FolderNodeViewModel? value)
     {
@@ -611,6 +661,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             bool firstImport = _database.GetFolderCounts().All(c => c.RootId != root.Id);
             Log.Info($"Scanning {root.Path}" + (firstImport ? " (first time)" : "") + (readAllTags ? ", reading every song's tags again" : ""));
             DateTime lastRefresh = DateTime.UtcNow;
+            TimeSpan refreshEvery = TimeSpan.FromSeconds(1.5);
             bool found = false;
             var progress = new Progress<ScanProgress>(p =>
             {
@@ -630,10 +681,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 ScanStatus = $"Reading tags… {Format.Count(p.FilesRead)} / {Format.Count(p.FilesToRead)}";
                 ScanPercent = 100.0 * p.FilesRead / p.FilesToRead;
 
-                // During a first import, let the library fill in as it goes.
-                if (firstImport && DateTime.UtcNow - lastRefresh > TimeSpan.FromSeconds(1.5))
+                // During a first import, let the library fill in as it goes: soon, then every few
+                // seconds, since each time reads the whole list again, 60,000 songs for some (#368).
+                if (firstImport && DateTime.UtcNow - lastRefresh > refreshEvery)
                 {
                     lastRefresh = DateTime.UtcNow;
+                    refreshEvery = TimeSpan.FromSeconds(5);
                     RefreshTree();
                     RunSearch("first scan, filling in");
                 }
@@ -810,11 +863,25 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private object ResultsKey() => (SelectedPlaylist?.Id, SelectedFolder?.Node.Scope, SelectedFolder?.Node.ServerId,
         SelectedFolder?.Node.RelativePath, SearchText, OnlyHere, Source);
 
-    private void ShowResults(IReadOnlyList<Track> results, object key)
+    private void ShowResults(ReadyList ready, object key)
     {
         ResultsReplacing?.Invoke(Equals(key, _shownKey));
         _shownKey = key;
-        Results = results;
+        _ready = ready;
+        Results = ready.Results;
+    }
+
+    /// <summary>
+    /// Shows a list read for search <paramref name="version"/>, made ready on a worker thread if
+    /// it's big (#368). False when a newer search came meanwhile: that one shows.
+    /// </summary>
+    private async Task<bool> ShowResultsAsync(IReadOnlyList<Track> results, object key, int version)
+    {
+        ReadyList ready = results.Count <= ListOrder.SortHereUpTo ? Ready(results, Order) : await Task.Run(() => Ready(results, Order));
+        if (version != _searchVersion)
+            return false;
+        ShowResults(ready, key);
+        return true;
     }
 
     /// <summary>A search is waiting out the typing delay or running: <see cref="Results"/> is about to change.</summary>
@@ -859,14 +926,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             var found = _database.Search(text, scope, cancel.Token, near, playlist, notIn);
             if (found.Count == 0)
                 didYouMean = DidYouMeanFor(text, scope, cancel.Token, near, playlist, notIn);
-            return found;
+            return Ready(found, Order, cancel.Token);   // the order now: the DJ may have sorted meanwhile
         }, cancel.Token).ContinueWith(t =>
         {
             if (t.IsFaulted && t.Exception?.InnerException is not OperationCanceledException)
                 Log.Error($"Search \"{text}\" failed", t.Exception);
             if (why is not null)
                 Log.Info(t.IsCompletedSuccessfully
-                    ? $"Library list ({why}): {Format.Count(t.Result.Count)} songs in {started.ElapsedMilliseconds} ms" +
+                    ? $"Library list ({why}): {Format.Count(t.Result.Results.Count)} songs in {started.ElapsedMilliseconds} ms" +
                       (version == _searchVersion ? "" : ", replaced by a newer search")
                     : $"Library list ({why}): {(t.IsCanceled ? "canceled by a newer search" : "failed")} after {started.ElapsedMilliseconds} ms");
             if (version == _searchVersion)
@@ -1032,7 +1099,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         DidYouMeanText = null;
         ServerProblem = found.Problem;
         ServerNote = found.Note;
-        ShowResults(OnlyHere ? found.Tracks.Where(t => !t.IsOnServerOnly).ToList() : found.Tracks, key);
+        if (!await ShowResultsAsync(OnlyHere ? found.Tracks.Where(t => !t.IsOnServerOnly).ToList() : found.Tracks, key, version))
+            return;
         IsSearching = false;
         OnPropertyChanged(nameof(EmptyMessage));
     }
