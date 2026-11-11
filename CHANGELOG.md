@@ -67,6 +67,12 @@ Better:
   column. Titles and artists sort as you'd read them (É with the E's), as before. While a new
   library is first read in, the list fills in every few seconds rather than every second and a
   half, since each time reads every song again.
+- **The close-up waveform keeps gliding when the computer is busy** (#364). It was drawn by the
+  window itself, at every frame, so anything else the window was doing (a long list arriving,
+  a menu opening) showed as the waveform stuttering, the most visible thing on the screen. Now
+  it's drawn alongside the screen, by the part that puts each frame on it, and the window only
+  says when something changes. It also stops moving while the decks are hidden or GZJam is
+  minimized, instead of drawing what nobody sees.
 
 ## 1.7.0 (2026-11-11)
 

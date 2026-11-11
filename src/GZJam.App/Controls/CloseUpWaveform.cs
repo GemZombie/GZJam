@@ -4,6 +4,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Rendering.Composition;
 using GZJam.Audio;
 
 namespace GZJam.App.Controls;
@@ -16,10 +17,13 @@ namespace GZJam.App.Controls;
 /// waveform (10 ms a slice) or, until that's ready, the overview.
 /// <para>
 /// While the deck plays, it's redrawn at every frame the screen shows, the playhead worked out
-/// from the clock and the tempo and eased toward where the deck says it is (which arrives about
-/// 30 times a second, in uneven 20 and 40 ms steps), so the music glides past instead of
-/// stuttering. Each bar covers a fixed stretch of the song, so bars keep their shape as they
-/// move; zoomed in so far that a bar is shorter than a slice, bars blend the slices either side.
+/// from the clock and the tempo and eased toward where the deck says it is (<see cref="CloseUpClock"/>),
+/// so the music glides past instead of stuttering. It's drawn on the render thread
+/// (<see cref="CloseUpHandler"/>, <see cref="CloseUpPicture"/>, #364), so a busy moment on the
+/// window's thread never shows as the waveform stuttering; the window's thread only says what
+/// changed. Only while it's in view and the window isn't minimized. Each bar covers a fixed
+/// stretch of the song, so bars keep their shape as they move; zoomed in so far that a bar is
+/// shorter than a slice, bars blend the slices either side.
 /// </para>
 /// <para>
 /// Drag it to move through the song like a record (a mouse click goes to that spot); locked, a
@@ -88,13 +92,6 @@ public sealed class CloseUpWaveform : Control
     public static readonly StyledProperty<double> TempoPercentProperty =
         AvaloniaProperty.Register<CloseUpWaveform, double>(nameof(TempoPercent));
 
-    static CloseUpWaveform()
-    {
-        AffectsRender<CloseUpWaveform>(WaveformProperty, LengthProperty, ProgressProperty, WindowSecondsProperty,
-            TrimStartProperty, TrimEndProperty, IsStartManualProperty, IsEndManualProperty, EndFadeProperty, JumpsProperty,
-            PendingJumpFromProperty, CuesProperty, IsLockedProperty, FillProperty, IsEnabledProperty, IsPlayingProperty);
-    }
-
     public CloseUpWaveform()
     {
         GestureRecognizers.Add(new PinchGestureRecognizer());
@@ -132,108 +129,130 @@ public sealed class CloseUpWaveform : Control
 
     // ───────────── The playhead, between reports ─────────────
 
-    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
-    private double _clockFrom;    // the song's position (s) at _clockAt
-    private double _clockAt;      // on _clock, in seconds
-    private double _correction;   // where the corrections from reports have got to (s)
-    private double _shown;        // how much of it is shown so far: it follows over CorrectionSpread
-    private double _shownAt;      // on _clock, in seconds
-    private bool _animating;
-
-    /// <summary>A report's error counts for this much, so one report moves the playhead little.</summary>
-    private const double CorrectionGain = 0.1;
-
-    /// <summary>
-    /// The most a report's error counts for (s): reports come in 20 and 40 ms steps, now and then
-    /// 80, and one far out mustn't jolt the picture.
-    /// </summary>
-    private const double CorrectionCap = 0.03;
-
-    /// <summary>
-    /// Each correction is spread over about this long (s), not made in one frame: zoomed in tight,
-    /// a few milliseconds at once is a visible jerk. Measured on real reports (GZJam.DevTools
-    /// clock): the worst frame went from about 2 px off steady to 0.4 px, as close to the music.
-    /// </summary>
-    private const double CorrectionSpread = 0.15;
-
-    private double Now => _clock.Elapsed.TotalSeconds;
-
-    private static double Rate(double tempoPercent) => 1 + tempoPercent / 100;
-
-    private double Clock(double now) => _clockFrom + (now - _clockAt) * Rate(TempoPercent);
-
-    private double Predicted => Clock(Now) + Shown(Now);
-
-    /// <summary>The part of the correction shown by <paramref name="now"/>, catching up smoothly.</summary>
-    private double Shown(double now)
-    {
-        if (now > _shownAt)
-        {
-            _shown = _correction - (_correction - _shown) * Math.Exp(-(now - _shownAt) / CorrectionSpread);
-            _shownAt = now;
-        }
-        return _shown;
-    }
+    private readonly CloseUpClock _clock = new();
 
     /// <summary>Where the playhead is drawn, in seconds into the song.</summary>
-    internal double Playhead => IsPlaying && Length > 0 ? Math.Clamp(Predicted, 0, Length) : Progress * Length;
+    internal double Playhead => _clock.Playhead;
 
-    /// <summary>Starts the clock again from where the deck says it is.</summary>
-    private void Restart() => (_clockFrom, _clockAt, _correction, _shown, _shownAt) = (Progress * Length, Now, 0, 0, Now);
+    /// <summary>The properties the picture shows, apart from where the playhead is.</summary>
+    private static readonly HashSet<AvaloniaProperty> SceneProperties =
+    [
+        WaveformProperty, LengthProperty, WindowSecondsProperty, TrimStartProperty, TrimEndProperty, IsStartManualProperty,
+        IsEndManualProperty, EndFadeProperty, JumpsProperty, PendingJumpFromProperty, CuesProperty, IsLockedProperty, FillProperty,
+        IsEnabledProperty,
+    ];
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == ProgressProperty || change.Property == LengthProperty)
-        {
-            double now = Now, reported = Progress * Length;
-            if (!IsPlaying || Math.Abs(reported - Predicted) > 0.25)
-                Restart();               // paused, a seek, a jump, a new song
-            else
-            {
-                // Reports come in uneven steps: ease toward them, a little at a time.
-                Shown(now);
-                double error = reported - (Clock(now) + _correction);
-                _correction += Math.Clamp(error, -CorrectionCap, CorrectionCap) * CorrectionGain;
-            }
-            Animate();
-        }
+            _clock.Report(Progress, Length);
         else if (change.Property == TempoPercentProperty)
-        {
-            // Carry on from where the old tempo had got to.
-            double now = Now;
-            _clockFrom += (now - _clockAt) * Rate(change.GetOldValue<double>());
-            _clockAt = now;
-        }
-        else if (change.Property == IsPlayingProperty || change.Property == IsVisibleProperty)
-        {
-            Restart();
-            Animate();
-        }
+            _clock.SetTempo(TempoPercent);
+        else if (change.Property == IsPlayingProperty)
+            _clock.SetPlaying(IsPlaying);
+        else if (change.Property == IsVisibleProperty)
+            _clock.Restart();
+        if (SceneProperties.Contains(change.Property))
+            SceneChanged();
+        else if (change.Property == ProgressProperty || change.Property == IsPlayingProperty || change.Property == IsVisibleProperty
+                 || change.Property == TempoPercentProperty)
+            Moved();
     }
+
+    // ───────────── Drawn on the render thread (#364) ─────────────
+
+    private CompositionCustomVisual? _visual;
+    private CloseUpScene? _scene;
+    private bool _animating;
+
+    /// <summary>The render thread is drawing it at every frame (tests).</summary>
+    internal bool IsMoving => _animating;
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        Animate();
+        if (ElementComposition.GetElementVisual(this)?.Compositor is not { } compositor)
+            return;
+        _visual = compositor.CreateCustomVisual(new CloseUpHandler(_clock));
+        ElementComposition.SetElementChildVisual(this, _visual);
+        _visual.Size = new Vector(Bounds.Width, Bounds.Height);
+        _animating = false;
+        SceneChanged();
     }
 
-    /// <summary>While playing and shown, redraws at every frame the screen shows.</summary>
-    private void Animate()
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        if (_animating || !IsPlaying || !IsVisible || TopLevel.GetTopLevel(this) is not { } top)
+        base.OnDetachedFromVisualTree(e);
+        ElementComposition.SetElementChildVisual(this, null);
+        _visual = null;
+        _animating = false;
+    }
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        if (_visual is not null)
+            _visual.Size = new Vector(e.NewSize.Width, e.NewSize.Height);
+    }
+
+    /// <summary>What the picture shows, made now from the properties (and a marker being dragged).</summary>
+    private CloseUpScene Scene()
+    {
+        double scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1;
+        var cues = (_grab.Cues(Cues) ?? []).Select(c => (c.At, CloseUpPicture.CueFlag(c.Number, scaling))).ToList();
+        return new CloseUpScene(Waveform, Length, WindowSeconds, _grab.TrimStart(TrimStart), _grab.TrimEnd(TrimEnd),
+            _grab.StartManual(IsStartManual), _grab.EndManual(IsEndManual), EndFade, _grab.Jumps(Jumps) ?? [], PendingJumpFrom, cues,
+            CanSeek, Fill?.ToImmutable() ?? (IImmutableBrush)Brushes.White);
+    }
+
+    /// <summary>Something the picture shows changed: the render thread gets it, or (on its own, tests) it's drawn here.</summary>
+    private void SceneChanged()
+    {
+        _scene = null;
+        if (_visual is null)
+        {
+            InvalidateVisual();
             return;
-        _animating = true;
+        }
+        _visual.SendHandlerMessage(Scene());
+        Moved();
+    }
+
+    /// <summary>
+    /// The playhead moved, or playing started or stopped: drawn again, at every frame while the deck
+    /// plays and the close-up is in view. Not while it's hidden (the decks, or a deck zoomed out of
+    /// it) or the window is minimized: then the render thread does nothing for it.
+    /// </summary>
+    private void Moved()
+    {
+        if (_visual is null)
+        {
+            InvalidateVisual();
+            return;
+        }
+        bool animate = IsPlaying && IsEffectivelyVisible && TopLevel.GetTopLevel(this) is not Window { WindowState: WindowState.Minimized };
+        if (animate != _animating)
+        {
+            _animating = animate;
+            _visual.SendHandlerMessage(animate ? CloseUpHandler.Play : CloseUpHandler.Stop);
+        }
+        else if (!animate)
+            _visual.SendHandlerMessage(CloseUpHandler.Redraw);   // paused: a seek, a nudge
+    }
+
+    /// <summary>While a marker is held and the music moves on, it stays under the finger: moved at every frame.</summary>
+    private void FollowHeldMarker()
+    {
+        if (!IsPlaying || !_grab.IsHolding || TopLevel.GetTopLevel(this) is not { } top)
+            return;
         top.RequestAnimationFrame(_ =>
         {
-            _animating = false;
-            if (!IsPlaying || !IsVisible)
+            if (!IsPlaying || !_grab.IsHolding)
                 return;
-            // A marker held still while the music moves on stays under the finger.
-            if (_grab.IsDragging)
-                _grab.Drag(_dragX, FractionAt(new Point(_dragX, 0)));
-            InvalidateVisual();
-            Animate();
+            if (_grab.IsDragging && _grab.Drag(_dragX, FractionAt(new Point(_dragX, 0))))
+                SceneChanged();
+            FollowHeldMarker();
         });
     }
 
@@ -282,57 +301,17 @@ public sealed class CloseUpWaveform : Control
 
     // ───────────── Drawing ─────────────
 
-    private const double BarStep = 2;
-    private static readonly IBrush Background = new ImmutableSolidColorBrush(Color.Parse("#0E1116"));
-    private static readonly IBrush CenterLine = new ImmutableSolidColorBrush(Colors.White, 0.08);
-    private static readonly IBrush TrimShade = new ImmutableSolidColorBrush(Color.FromArgb(150, 12, 14, 18));
-    private static readonly IBrush TrimMarker = new ImmutableSolidColorBrush(Color.FromRgb(0x8B, 0x94, 0xA5));
-
     public override void Render(DrawingContext context)
     {
         var bounds = new Rect(Bounds.Size);
-        if (bounds.Width < 4 || bounds.Height < 1)
+        if (_visual is not null)
+        {
+            // Drawn on the render thread; this only lets presses land on it.
+            context.DrawRectangle(Brushes.Transparent, null, bounds);
             return;
-        context.DrawRectangle(Background, null, bounds, 3, 3);
-        double middle = Math.Round(bounds.Width / 2);
-        if (Length > 0 && SecondsPerPixel > 0)
-        {
-            using (context.PushClip(bounds))
-            {
-                if (Waveform is { Count: > 0, Peak: > 0, LoudnessPeak: > 0 } waveform)
-                    DrawBars(context, waveform, bounds, middle);
-                else
-                    context.DrawRectangle(CenterLine, null, new Rect(0, bounds.Height / 2 - 0.5, bounds.Width, 1));
-                DrawTrim(context, bounds);
-                DrawJumps(context, bounds);
-                DrawCues(context, bounds);
-            }
         }
-        context.DrawRectangle(CanSeek ? Brushes.White : Fill, null, new Rect(middle - 1, 0, 2, bounds.Height));
-    }
-
-    private void DrawBars(DrawingContext context, Waveform waveform, Rect bounds, double playhead)
-    {
-        double center = bounds.Height / 2, reach = center - 3;
-        double maxPeak = Waveform.Decode(waveform.Peak), maxLoudness = Waveform.Decode(waveform.LoudnessPeak);
-        double slicesPerSecond = waveform.Count / Length, start = WindowStart, spp = SecondsPerPixel;
-        // Each bar is a fixed stretch of the song (not of the screen), so it keeps its shape as it
-        // slides past; the first one may start just off the left edge.
-        double barSeconds = BarStep * spp;
-        for (long bar = (long)Math.Floor(start / barSeconds); ; bar++)
-        {
-            double from = bar * barSeconds, x = (from - start) / spp;
-            if (x >= bounds.Width)
-                break;
-            if (BarLevels(waveform, from * slicesPerSecond, (from + barSeconds) * slicesPerSecond) is not var (low, mid, high, loud))
-                continue;
-            double body = Math.Max(0.5, Waveform.Decode(loud) / maxLoudness * reach);
-            double peak = Math.Max(body, Waveform.Decode(Math.Max(low, Math.Max(mid, high))) / maxPeak * reach);
-            BandPaint paint = BandPaint.For(low, mid, high);   // shared and kept: nothing made per frame (#363)
-            bool played = x + BarStep <= playhead;
-            context.DrawRectangle(played ? paint.Dim : paint.Outline, null, new Rect(x, center - peak, BarStep, peak * 2));
-            context.DrawRectangle(played ? paint.Dim : paint.Bright, null, new Rect(x, center - body, BarStep, body * 2));
-        }
+        // On its own (a picture of it, in tests): drawn here, the same way.
+        CloseUpPicture.Draw(new ControlCanvas(context), _scene ??= Scene(), Playhead, bounds.Size);
     }
 
     /// <summary>
@@ -365,55 +344,6 @@ public sealed class CloseUpWaveform : Control
         return (low, mid, high, loud);
     }
 
-    private void DrawTrim(DrawingContext context, Rect bounds)
-    {
-        double trimStart = _grab.TrimStart(TrimStart), trimEnd = _grab.TrimEnd(TrimEnd);
-        bool startManual = _grab.StartManual(IsStartManual), endManual = _grab.EndManual(IsEndManual);
-        double start = X(Math.Clamp(trimStart, 0, 1)), end = X(Math.Clamp(trimEnd, 0, 1));
-        // Before the song's own start and after its end (the file's edges) is plain background.
-        double fileStart = X(0), fileEnd = X(1);
-        if (start > 0 && (trimStart > 0 || startManual))
-        {
-            context.DrawRectangle(TrimShade, null, new Rect(Math.Max(0, fileStart), 0, Math.Max(0, start - Math.Max(0, fileStart)), bounds.Height));
-            context.DrawRectangle(startManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(start - (startManual ? 1 : 0.5), 0, startManual ? 2 : 1, bounds.Height));
-        }
-        if (end < bounds.Width && (trimEnd < 1 || endManual))
-        {
-            double fade = X(Math.Clamp(trimEnd + EndFade, 0, 1)) - end;
-            SeekBar.DrawEndShade(context, end, fade, Math.Min(bounds.Width, fileEnd), bounds.Height);
-            context.DrawRectangle(endManual ? SeekBar.JumpBrush : TrimMarker, null, new Rect(end - (endManual ? 1 : 0.5), 0, endManual ? 2 : 1, bounds.Height));
-        }
-    }
-
-    private void DrawJumps(DrawingContext context, Rect bounds)
-    {
-        foreach (JumpMarker jump in _grab.Jumps(Jumps) ?? [])
-        {
-            double from = X(Math.Clamp(jump.From, 0, 1)), to = X(Math.Clamp(jump.To, 0, 1));
-            IBrush brush = jump.Armed ? SeekBar.JumpBrush : SeekBar.JumpOffBrush;
-            if (jump.Armed)
-                context.DrawRectangle(to > from ? SeekBar.SkippedShade : SeekBar.RepeatShade, null, new Rect(Math.Min(from, to), 0, Math.Abs(to - from), bounds.Height));
-            context.DrawRectangle(brush, null, new Rect(from - 1, 0, 2, bounds.Height));
-            context.DrawRectangle(brush, null, new Rect(to - 1, 0, 2, bounds.Height));
-            const double arrow = 6;
-            double direction = to > from ? 1 : -1, y = bounds.Height - arrow - 1;
-            context.DrawGeometry(brush, null, new PolylineGeometry(
-                [new Point(from, y - arrow / 2), new Point(from + direction * arrow, y), new Point(from, y + arrow / 2)], isFilled: true));
-        }
-        if (PendingJumpFrom is { } pending)
-            context.DrawRectangle(SeekBar.JumpOffBrush, null, new Rect(X(Math.Clamp(pending, 0, 1)) - 1, 0, 2, bounds.Height));
-    }
-
-    private void DrawCues(DrawingContext context, Rect bounds)
-    {
-        foreach (CueMarker cue in _grab.Cues(Cues) ?? [])
-        {
-            double at = X(Math.Clamp(cue.At, 0, 1));
-            if (at >= -1 && at <= bounds.Width + 1)   // off the close-up: not pinned to its edge
-                SeekBar.DrawCue(context, bounds, at, cue.Number);
-        }
-    }
-
     // ───────────── Input ─────────────
 
     private double? _pinchFrom;
@@ -442,6 +372,7 @@ public sealed class CloseUpWaveform : Control
             e.Pointer.Capture(this);
             _grab.Hold(marker, point.X);
             (_pressedAt, _dragX) = (point, point.X);
+            FollowHeldMarker();
             e.Handled = true;
             return;
         }
@@ -470,7 +401,7 @@ public sealed class CloseUpWaveform : Control
         {
             _dragX = point.X;
             if (_grab.Drag(point.X, FractionAt(point)))
-                InvalidateVisual();
+                SceneChanged();
             return;
         }
         if (!CanSeek || Length <= 0)
@@ -495,7 +426,7 @@ public sealed class CloseUpWaveform : Control
             _grab.Drag(point.X, FractionAt(point));
             MarkerMove? move = _grab.Release();
             e.Pointer.Capture(null);
-            InvalidateVisual();
+            SceneChanged();
             if (move is { } moved)
                 MarkerMoved?.Invoke(this, moved);
             else if (IsLocked)
@@ -516,7 +447,49 @@ public sealed class CloseUpWaveform : Control
         if (_grab.IsHolding)
         {
             _grab.Cancel();   // taken away (a menu opening, say): the marker stays where it was
-            InvalidateVisual();
+            SceneChanged();
         }
+    }
+}
+
+/// <summary>
+/// Draws <see cref="CloseUpWaveform"/> on the render thread (#364): at every frame while the deck
+/// plays, from the scene the window's thread last sent and the shared clock. The window's thread
+/// only says when something changes, so a busy moment there never shows as the waveform stuttering.
+/// </summary>
+internal sealed class CloseUpHandler(CloseUpClock clock) : CompositionCustomVisualHandler
+{
+    /// <summary>Messages: draw at every frame (playing), stop doing that, or draw once (a seek while paused).</summary>
+    public static readonly object Play = new(), Stop = new(), Redraw = new();
+
+    private readonly ImmediateCanvas _canvas = new();
+    private CloseUpScene? _scene;
+    private bool _playing;
+
+    public override void OnMessage(object message)
+    {
+        if (message is CloseUpScene scene)
+            _scene = scene;
+        else if (message == Play)
+            _playing = true;
+        else if (message == Stop)
+            _playing = false;
+        Invalidate();
+        if (_playing)
+            RegisterForNextAnimationFrameUpdate();
+    }
+
+    public override void OnAnimationFrameUpdate()
+    {
+        if (!_playing)
+            return;
+        Invalidate();
+        RegisterForNextAnimationFrameUpdate();
+    }
+
+    public override void OnRender(ImmediateDrawingContext context)
+    {
+        if (_scene is { } scene)
+            CloseUpPicture.Draw(_canvas.On(context), scene, clock.Playhead, new Size(EffectiveSize.X, EffectiveSize.Y));
     }
 }
