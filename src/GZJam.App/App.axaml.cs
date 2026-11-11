@@ -285,6 +285,7 @@ public partial class App : Application
             viewModel.LogDropouts();
             viewModel.CloseNight();
             viewModel.Dispose();
+            Log.Flush();
             if (startOver is { } reset)
                 Relaunch(reset);
         };

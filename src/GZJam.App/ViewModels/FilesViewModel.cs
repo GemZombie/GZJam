@@ -21,7 +21,7 @@ public sealed class FilesViewModel : IDisposable
         _owner = owner;
         _database = database;
         ReadInFolder = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(database.DatabasePath))!, "From USB sticks");
-        _watch = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background, (_, _) => CheckSticks());
+        _watch = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background, (_, _) => _ = CheckSticksAsync());
     }
 
     /// <summary>The computer's own places. Tests put their own here.</summary>
@@ -30,8 +30,19 @@ public sealed class FilesViewModel : IDisposable
     /// <summary>The computer's own drives.</summary>
     public Func<IReadOnlyList<FilePlace>> Drives { get; set; } = FileSources.Drives;
 
-    /// <summary>The USB sticks plugged in now.</summary>
-    public Func<IReadOnlyList<FilePlace>> Sticks { get; set; } = FileSources.Sticks;
+    /// <summary>The USB sticks plugged in now. Tests put their own here.</summary>
+    public Func<IReadOnlyList<FilePlace>> Sticks
+    {
+        get;
+        set
+        {
+            field = value;
+            _sticksRead = null;
+        }
+    } = FileSources.Sticks;
+
+    /// <summary>The sticks the last check read, for the tree to show without reading them again; null to read them.</summary>
+    private IReadOnlyList<FilePlace>? _sticksRead;
 
     /// <summary>Where songs from a stick are read into, by the stick's name and the song's place on it.</summary>
     public string ReadInFolder { get; set; }
@@ -43,10 +54,17 @@ public sealed class FilesViewModel : IDisposable
         _watch.Start();
     }
 
+    /// <summary>Stops looking for sticks by itself (tests that check by hand).</summary>
+    internal void StopWatching() => _watch.Stop();
+
+    /// <summary>A check started by the timer is still running.</summary>
+    internal bool IsChecking => _checking;
+
     /// <summary>Files' places for the tree: "This computer" with its places and drives, then each stick.</summary>
     public IReadOnlyList<FolderNode> TreeNodes()
     {
-        _sticks = Sticks();
+        _sticks = _sticksRead ?? Sticks();
+        _sticksRead = null;
         _sticksSeen = Seen(_sticks);
         var computer = new FilePlace("This computer", "", FilesKind.Computer);
         return [FolderNode.ForFiles(computer, Places().Concat(Drives())), .. _sticks.Select(s => FolderNode.ForFiles(s))];
@@ -54,19 +72,52 @@ public sealed class FilesViewModel : IDisposable
 
     private static string Seen(IReadOnlyList<FilePlace> sticks) => string.Join("|", sticks.Select(s => s.Path + "=" + s.Name));
 
-    /// <summary>A stick plugged in or pulled out: Files shows it, or not.</summary>
-    public void CheckSticks()
+    /// <summary>A check of the sticks is running in the background: the next tick waits for it.</summary>
+    private bool _checking;
+
+    /// <summary>
+    /// The timer's check (#367): the drives are listed in the background, since a card reader or a
+    /// failing stick can be slow to say whether it's ready, and only a change comes back here.
+    /// </summary>
+    internal async Task CheckSticksAsync()
     {
-        IReadOnlyList<FilePlace> now;
+        if (_checking)
+            return;
+        _checking = true;
         try
         {
-            now = Sticks();
+            if (await Task.Run(ReadSticks) is { } now)
+                ShowSticks(now);
+        }
+        finally
+        {
+            _checking = false;
+        }
+    }
+
+    private IReadOnlyList<FilePlace>? ReadSticks()
+    {
+        try
+        {
+            return Sticks();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            return;
+            return null;
         }
+    }
+
+    /// <summary>A stick plugged in or pulled out: Files shows it, or not. Now, on this thread (tests, and starting).</summary>
+    public void CheckSticks()
+    {
+        if (ReadSticks() is { } now)
+            ShowSticks(now);
+    }
+
+    private void ShowSticks(IReadOnlyList<FilePlace> now)
+    {
         string seen = Seen(now);
+        _sticksRead = seen == _sticksSeen ? null : now;   // the tree, made again, shows these
         if (seen == _sticksSeen)
             return;
         var arrived = now.Where(s => _sticks.All(o => o.Path != s.Path)).ToList();

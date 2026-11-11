@@ -54,6 +54,12 @@ Better:
   wasn't in the menu where you'd look for it. Now it's beside Artist; the menu lists Title,
   Artist and Time too, ticked and grayed, as always shown; and Year, BPM, Energy, Played and Time
   are a little narrower, so on a 1366-wide laptop screen every column a new library shows fits.
+- **The window never waits for the disk to write the activity log, or to look for USB sticks or
+  speakers** (#367). Each log line was written to the disk as it happened, mostly from the
+  window; a slow disk, or an antivirus watching the folder, made it wait. The log now has a
+  writer of its own, and errors still go in at once. The check for USB sticks every couple of
+  seconds runs in the background, so a slow card reader can't hold up the window, and the outputs
+  are only listed to look for your speakers while GZJam is playing on another output.
 
 ## 1.7.0 (2026-11-11)
 

@@ -62,16 +62,48 @@ public sealed partial class MainWindowViewModel
     /// </summary>
     internal static bool SavesMain(bool mainChosen, AudioDevicePreference? awaited) => mainChosen || awaited is null;
 
-    /// <summary>From the tick: switches MAIN back to the saved speakers once they're plugged in and the room is quiet.</summary>
-    private void LookForSavedSpeakers()
+    /// <summary>The outputs are being listed in the background: the next tick waits for it.</summary>
+    private bool _lookingForSpeakers;
+
+    /// <summary>
+    /// Whether MAIN is on the saved speakers already, by name (and driver), from the output it has:
+    /// then there's nothing to look for, and the outputs aren't listed at all (#367).
+    /// </summary>
+    internal static bool IsOnSaved(AudioDevicePreference? saved, AudioDevice? current) =>
+        saved is null || current is not null && current.Name == saved.Name && (current.Driver == saved.Driver || saved.Driver.Length == 0);
+
+    /// <summary>
+    /// From the tick: switches MAIN back to the saved speakers once they're plugged in and the room
+    /// is quiet. Only while MAIN is on another output; the outputs are listed in the background
+    /// (on Linux that reads a file for each sound card), and only the answer comes back here.
+    /// </summary>
+    private async void LookForSavedSpeakers()
     {
         long now = Environment.TickCount64;
-        if (now < _nextSpeakersLook || Audio is null || Mix is not { IsOffline: false } mix)
+        if (now < _nextSpeakersLook || _lookingForSpeakers || Audio is not { } audio || Mix is not { IsOffline: false } mix)
             return;
         _nextSpeakersLook = now + SpeakersLookMs;
-        if (now - _speakersReopenedAt < SpeakersRetryMs)
+        if (now - _speakersReopenedAt < SpeakersRetryMs || IsOnSaved(_settings.MainDevice, mix.Main.Device))
             return;
-        AudioDevice? found = Audio.FindDevice(_settings.MainDevice);
+        AudioDevicePreference? saved = _settings.MainDevice;
+        AudioDevice? found;
+        _lookingForSpeakers = true;
+        try
+        {
+            found = await Task.Run(() => audio.FindDevice(saved));
+        }
+        catch (Exception e)
+        {
+            Log.Error("Speakers: couldn't list the outputs", e);
+            return;
+        }
+        finally
+        {
+            _lookingForSpeakers = false;
+        }
+        if (saved != _settings.MainDevice || Mix is not { IsOffline: false })
+            return;   // the DJ chose other speakers meanwhile
+        now = Environment.TickCount64;
         switch (DecideSpeakersBack(_settings.MainDevice, found, mix.Main.Device, Decks.Any(d => d.IsOnAir)))
         {
             case SpeakersBack.Nothing:
