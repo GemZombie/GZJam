@@ -35,10 +35,8 @@ public partial class MainWindow
 
     private void OnLibraryChangedForPlaylists(object? sender, PropertyChangedEventArgs e)
     {
-        // A playlist shows in its own order: whatever column the library was sorted by doesn't apply.
-        if (e.PropertyName == nameof(LibraryViewModel.IsPlaylistOpen) && Vm.Library.IsPlaylistOpen)
-            TrackGrid.CollectionView?.SortDescriptions.Clear();
-        else if (e.PropertyName == nameof(LibraryViewModel.AreFoldersFolded))
+        // A playlist's sort is its own (#376, MainWindow.Sorting.cs): none until the DJ sorts it.
+        if (e.PropertyName == nameof(LibraryViewModel.AreFoldersFolded))
             ApplyLibraryColumn();
     }
 

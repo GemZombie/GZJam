@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using GZJam.Library;
@@ -74,7 +75,15 @@ public sealed class SongListRowsAppTests
     {
         using var app = Long();
         AppHarness.WaitFor(() => app.Library.Results.Count == 150);
-        Grid(app).Columns.Single(c => (string?)c.Header == "Title").Sort(ListSortDirection.Descending);
+        // Title, clicked twice: descending (#376's clicks: ascending, descending, off).
+        var header = Grid(app).GetVisualDescendants().OfType<DataGridColumnHeader>().First(h => (string?)h.Content == "Title");
+        var at = header.TranslatePoint(new Point(10, header.Bounds.Height / 2), app.Window)!.Value;
+        for (int i = 0; i < 2; i++)
+        {
+            app.Window.MouseDown(at, Avalonia.Input.MouseButton.Left);
+            app.Window.MouseUp(at, Avalonia.Input.MouseButton.Left);
+            AppHarness.Settle(100);
+        }
         AppHarness.Settle(200);
         Assert.Equal("Song 150", TopInView(app));
 

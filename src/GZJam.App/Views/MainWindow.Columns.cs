@@ -39,7 +39,11 @@ public partial class MainWindow
             {
                 vm.Library.PropertyChanged -= OnLibraryChangedForColumns;
                 vm.Library.PropertyChanged += OnLibraryChangedForColumns;
+                vm.Library.PropertyChanged -= OnLibraryChangedForSort;
+                vm.Library.PropertyChanged += OnLibraryChangedForSort;
                 ApplyAddedColumn();
+                _sortKey = null;
+                RestoreSort();   // after the tag columns, which a sort may be by
             }
         };
     }
@@ -55,33 +59,10 @@ public partial class MainWindow
     }
 
     /// <summary>
-    /// When each file arrived shows in Files only: elsewhere songs have no such date. Leaving Files
-    /// sorted by it, the sort goes too, rather than leaving the list in no order anyone chose.
+    /// When each file arrived shows in Files only: elsewhere songs have no such date. Files keeps
+    /// a sort of its own (#376), so a sort by it doesn't follow the DJ out of Files.
     /// </summary>
-    private void ApplyAddedColumn()
-    {
-        bool shown = Vm.Library.IsFilesShowing;
-        AddedColumn.IsVisible = shown;
-        if (!shown && TrackGrid.CollectionView?.SortDescriptions is { } sorts
-            && sorts.FirstOrDefault(d => d.PropertyPath == nameof(Track.AddedUtc)) is { } added)
-            sorts.Remove(added);
-    }
-
-    /// <summary>
-    /// The first click on Added sorts newest first, as a DJ working through new music wants; the
-    /// next, oldest first. Set on the grid's sort itself: the column's own Sort, called from here,
-    /// sorts later and asks again, without end.
-    /// </summary>
-    private void OnGridSorting(object? sender, DataGridColumnEventArgs e)
-    {
-        if ((string?)e.Column.Header != "Added" || TrackGrid.CollectionView?.SortDescriptions is not { } sorts)
-            return;
-        e.Handled = true;
-        bool newestFirst = sorts.FirstOrDefault(d => d.PropertyPath == nameof(Track.AddedUtc)) is not { Direction: ListSortDirection.Descending };
-        sorts.Clear();
-        sorts.Add(Avalonia.Collections.DataGridSortDescription.FromPath(nameof(Track.AddedUtc),
-            newestFirst ? ListSortDirection.Descending : ListSortDirection.Ascending));
-    }
+    private void ApplyAddedColumn() => AddedColumn.IsVisible = Vm.Library.IsFilesShowing;
 
     private IEnumerable<DataGridColumn> OptionalGridColumns =>
         TrackGrid.Columns.Where(c => c.Header is string header && c.Tag is not TagColumnKey && OptionalColumns.Contains(header));

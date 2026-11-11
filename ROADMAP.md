@@ -187,6 +187,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
   to Artist so it's in view on a laptop
+- [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
+  remembers one, and each playlist its own, between runs too
 - [Queue the song you're previewing](https://github.com/GemZombie/GZJam/issues/386) from the
   preview bar, by a key, a drag or its menu, after the list has moved on to another folder
 - Curating new music in Files: [sort a folder by when songs arrived](https://github.com/GemZombie/GZJam/issues/383),
@@ -205,8 +207,6 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 **1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
 - [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
   by button or key, without moving the deck
-- [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
-  remembers one, and each playlist its own, between runs too
 - [One clear selection](https://github.com/GemZombie/GZJam/issues/377): only the list you're
   working in shows it strongly, with more contrast, and the open playlist marked as where you are
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*

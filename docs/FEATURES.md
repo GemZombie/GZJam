@@ -1844,6 +1844,23 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   under its new place. Only songs move: anything else in the folder, and the folders themselves,
   stay.
 
+### Status: the song list keeps its sort (#376, 1.8)
+
+- A DJ moving over from Mixxx: sorting the library by BPM, opening a playlist and coming back lost
+  the sort, every time (opening a playlist cleared it, so the playlist showed in its own order).
+- **Whose sort** (`LibraryViewModel.SortKey`): each playlist its own (`playlist:12`), and My
+  music, Servers and Files one each, shared by their folders and kept through a search.
+- **Remembered** in settings (`AppSettings.ListSorts`: the column, by its sort path or `tag:` and
+  a tag's key, and the direction). A list with none is in its own order. A deleted playlist takes
+  its sort with it (on deleting, and when the settings are saved).
+- **Clicks** (`MainWindow.Sorting.cs`, handling the grid's `Sorting` itself): ascending,
+  descending, then off, back to the list's own order. Added (#383) goes newest first, then oldest,
+  then off. The grid's sort is set directly, with the column's comparer for a tag's column.
+- **A sorted playlist can't be reordered by dragging** (`CanReorderPlaylist` is false while
+  `IsSorted`): a drop between two rows means nothing when the rows aren't in the playlist's order.
+- Tests: `ListSortAppTests` (the library through a playlist, a folder and a search; each playlist
+  its own; a restart; the third click; a deleted playlist), and the Added column in `FilesAppTests`.
+
 ### Status: deleting songs from Files (#385, 1.8)
 
 - A DJ curating a drop folder keeps the good songs (#383, #384) and wants the rest gone from the
