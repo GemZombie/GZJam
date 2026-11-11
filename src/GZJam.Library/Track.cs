@@ -230,6 +230,23 @@ public sealed class Track : INotifyPropertyChanged
         }
     } = [];
 
+    /// <summary>
+    /// When the file arrived on its drive: its created date, which a copy, a download or an unzip
+    /// sets to that moment, where its modified date keeps the old one (#383). Read with a folder's
+    /// listing in Files, never stored; null elsewhere.
+    /// </summary>
+    public DateTime? AddedUtc
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AddedUtc)));
+        }
+    }
+
     /// <summary>When the room last heard this file (from History), or null if never.</summary>
     public DateTime? LastPlayedUtc
     {

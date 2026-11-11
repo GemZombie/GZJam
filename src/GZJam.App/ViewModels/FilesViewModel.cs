@@ -84,20 +84,30 @@ public sealed class FilesViewModel : IDisposable
         Path.Combine(ReadInFolder, FileSources.SafeName(stick.Name), Path.GetRelativePath(stick.Path, path));
 
     /// <summary>
-    /// A folder's songs for the song list, each with what the DJ gave it. A song on a stick that's
-    /// been read in already is its copy: what the DJ gave it is there.
+    /// A folder's songs for the song list, each with what the DJ gave it and when it arrived on the
+    /// drive (#383). A song on a stick that's been read in already is its copy: what the DJ gave it
+    /// is there, and it arrived when the stick's file did.
     /// </summary>
     public Task<IReadOnlyList<Track>> ListAsync(string folder, CancellationToken cancel) => Task.Run(() =>
     {
         FilePlace? stick = StickOf(folder);
+        var arrived = new Dictionary<string, DateTime>(StringComparer.Ordinal);
         var paths = FileSources.Songs(folder).Select(f =>
         {
-            if (stick is null)
-                return f.FullName;
-            string copy = ReadInPath(stick, f.FullName);
-            return File.Exists(copy) && new FileInfo(copy).Length == f.Length ? copy : f.FullName;
+            string path = f.FullName;
+            if (stick is not null)
+            {
+                string copy = ReadInPath(stick, f.FullName);
+                if (File.Exists(copy) && new FileInfo(copy).Length == f.Length)
+                    path = copy;
+            }
+            arrived[path] = FileSources.ArrivedUtc(f);
+            return path;
         }).ToList();
-        return _database.TracksForFiles(paths, cancel);
+        var songs = _database.TracksForFiles(paths, cancel);
+        foreach (Track song in songs)
+            song.AddedUtc = arrived.TryGetValue(song.Path, out DateTime at) ? at : null;
+        return songs;
     }, cancel);
 
     /// <summary>Whether a song is on a USB stick, so it's read in before it's loaded or queued.</summary>

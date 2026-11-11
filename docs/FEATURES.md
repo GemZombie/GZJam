@@ -1802,6 +1802,28 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   default column fits, none narrower than 56 px (`ColumnsTests`). Library column widths aren't
   saved, so nothing to carry over.
 
+### Status: when each file arrived, in Files (#383, 1.8)
+
+- A DJ drops new music into a folder and curates it later, newest first, as File Explorer's date
+  sort lets him. Files (#318) had no date.
+- **Added**, after Time, in Files only (`LibraryViewModel.IsFilesShowing`; not a playlist): "Today
+  8:42 PM", "Yesterday 6:10 PM", then the computer's short date and time (`Format.Added`). Listed in
+  the column menu while it shows, grayed (it can't be hidden there).
+- **The file's created date** (`FileSources.ArrivedUtc`, `Track.AddedUtc`, read with the folder's
+  listing and never stored). A copy, download or unzip sets it to that moment; the modified date
+  keeps the original's, so a 2019 file copied in today would sort as 2019. Where a drive keeps no
+  created date, .NET gives the older of the modified and changed times on Linux; a missing date
+  (before 1980) falls back to the modified one. A stick song read in already arrived when the
+  stick's file did.
+- **macOS, not yet as Finder:** a Finder copy keeps the original's created date (and setting a
+  file's modified date earlier moves its created date back too), so Added can show an older date
+  there. Finder's own *Date Added* is a separate attribute (`ATTR_CMN_ADDEDTIME`, read with
+  `getattrlist`): a follow-up if Mac DJs use this. Windows (the DJ who asked) and downloads
+  anywhere are right.
+- **The first click sorts newest first** (`DataGrid.Sorting`, handled for Added), the next oldest
+  first. Leaving Files takes a sort by Added away with the column, so My music isn't left in an
+  order nobody chose.
+
 ### Status: Grouping and Comment columns (#161, 0.9.4)
 
 - A Mac DJ sorts their iTunes library with Grouping and Comments (dance, feel, era, vibe) and wants

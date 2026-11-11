@@ -1,8 +1,15 @@
+using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
 using GZJam.Library;
 using GZJam.Testing;
+using Track = GZJam.Library.Track;
 
 namespace GZJam.App.Tests;
 
@@ -243,5 +250,100 @@ public sealed class FilesAppTests
         string copy = Path.Combine(s.App.MusicPath, "Added", "Gig Nov 14", "At Last.mp3");
         Assert.True(File.Exists(copy));
         AppHarness.WaitFor(() => s.App.Database.FindTrack(copy) is not null);
+    }
+
+    // ───────────── When each file arrived (#383) ─────────────
+
+    private static IReadOnlyList<string> Shown(Setup s) =>
+        s.App.Window.FindControl<DataGrid>("TrackGrid")!.CollectionView!.Cast<Track>().Select(t => t.DisplayTitle).ToList();
+
+    private static void ClickHeader(Setup s, string name)
+    {
+        var grid = s.App.Window.FindControl<DataGrid>("TrackGrid")!;
+        var header = grid.GetVisualDescendants().OfType<DataGridColumnHeader>().First(h => (string?)h.Content == name);
+        var at = header.TranslatePoint(new Point(10, header.Bounds.Height / 2), s.App.Window)!.Value;
+        s.App.Window.MouseDown(at, MouseButton.Left);
+        s.App.Window.MouseUp(at, MouseButton.Left);
+        AppHarness.Settle(100);
+    }
+
+    [AvaloniaFact]
+    public void Files_sorts_a_folder_newest_first_by_when_each_file_arrived_not_when_it_was_modified()
+    {
+        using var s = WithFiles();
+        // Shiny Stockings arrives after Sing Sing Sing, but its file says it was last changed in
+        // 2019, as a copied file does; Sing Sing Sing's says yesterday.
+        string sing = Path.Combine(s.Desktop, "Edits", "Sing Sing Sing (Sam's edit).mp3");
+        string shiny = Path.Combine(s.Desktop, "Edits", "Shiny Stockings (short).mp3");
+        File.Delete(shiny);
+        Thread.Sleep(50);
+        TestMp3.Write(shiny, new TestMp3.Tags(Title: "Shiny Stockings", Artist: "Count Basie"));
+        File.SetLastWriteTimeUtc(shiny, new DateTime(2019, 6, 1, 12, 0, 0, DateTimeKind.Utc));
+        File.SetLastWriteTimeUtc(sing, DateTime.UtcNow.AddDays(-1));
+
+        var grid = s.App.Window.FindControl<DataGrid>("TrackGrid")!;
+        DataGridColumn added = grid.Columns.Single(c => (string?)c.Header == "Added");
+        Assert.False(added.IsVisible);   // My music's songs have no such date
+
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Desktop");
+        Open(s, "Edits", inside: "Desktop");
+        Assert.True(added.IsVisible);
+        Assert.Equal(["Shiny Stockings", "Sing Sing Sing"], Shown(s));   // by file name, to start with
+        Track shinyTrack = s.Library.Results.Single(t => t.DisplayTitle == "Shiny Stockings");
+        Assert.Equal(FileSources.ArrivedUtc(new FileInfo(shiny)), shinyTrack.AddedUtc);
+
+        // Where the drive keeps when a file was created (Windows, macOS, most Linux), that's when it
+        // arrived: today, though its modified date says 2019. Elsewhere .NET gives the older of its
+        // modified and changed times, and the order follows that.
+        bool keepsCreated = new FileInfo(shiny).CreationTimeUtc.Year > 2019;
+        if (keepsCreated)
+            Assert.StartsWith("Today ", Format.Added(shinyTrack.AddedUtc));
+        var newestFirst = s.Library.Results.OrderByDescending(t => t.AddedUtc).Select(t => t.DisplayTitle).ToList();
+        if (keepsCreated)
+            Assert.Equal(["Shiny Stockings", "Sing Sing Sing"], newestFirst);
+
+        ClickHeader(s, "Added");   // newest first
+        Assert.Equal(newestFirst, Shown(s));
+        Assert.Equal(ListSortDirection.Descending, grid.CollectionView!.SortDescriptions.Single().Direction);
+        ClickHeader(s, "Added");   // then oldest first
+        Assert.Equal(newestFirst.AsEnumerable().Reverse(), Shown(s));
+        ClickHeader(s, "Added");
+        Assert.Equal(newestFirst, Shown(s));
+        s.App.Screenshot("files-added-newest-first");
+
+        // Listed in the column menu while it shows, grayed: it can't be hidden.
+        var item = s.App.Window.ColumnsMenu().Items.OfType<MenuItem>().Single(i => (string?)i.Header == "Added");
+        Assert.True(item.IsChecked);
+        Assert.False(item.IsEnabled);
+
+        // Filtering by name keeps the order.
+        s.Library.SearchText = "s";
+        AppHarness.WaitFor(() => !s.Library.IsSearching);
+        AppHarness.Settle(100);
+        Assert.Equal(newestFirst, Shown(s));
+
+        // Back in My music: no Added column, and no sort by it left behind.
+        s.Library.SearchText = "";
+        s.Library.ChooseSource(LibrarySource.MyMusic);
+        AppHarness.Settle(200);
+        Assert.False(added.IsVisible);
+        Assert.DoesNotContain(grid.CollectionView!.SortDescriptions, d => d.PropertyPath == nameof(Track.AddedUtc));
+        Assert.DoesNotContain(s.App.Window.ColumnsMenu().Items.OfType<MenuItem>(), i => (string?)i.Header == "Added");
+    }
+
+    [Theory]
+    [InlineData(0, 20, 42, "Today 8:42 PM")]
+    [InlineData(1, 18, 10, "Yesterday 6:10 PM")]
+    [InlineData(7, 9, 5, "11/3/2026 9:05 AM")]
+    public void Added_says_when_as_a_file_manager_does(int daysAgo, int hour, int minute, string expected)
+    {
+        var now = new DateTime(2026, 11, 10, 21, 30, 0, DateTimeKind.Local);
+        var then = new DateTime(2026, 11, 10, hour, minute, 0, DateTimeKind.Local).AddDays(-daysAgo);
+        // Linux writes a narrow no-break space before "PM" (as its time format has it): fine on
+        // screen, so compared as a plain one.
+        string shown = Format.Added(then.ToUniversalTime(), now.ToUniversalTime()).Replace('\u202F', ' ').Replace('\u00A0', ' ');
+        Assert.Equal(expected, shown);
+        Assert.Equal("", Format.Added(null));
     }
 }

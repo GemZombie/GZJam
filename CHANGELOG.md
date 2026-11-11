@@ -20,6 +20,11 @@ New:
   adds it to the end, its title drags onto the queue, a deck or a playlist, and right-click (or
   **⋯**) has *Play next*, *Load to Deck*, *Add to playlist*, *Song info* and *Show in folder tree*.
   It keeps playing in the headphones throughout. No more going back to find it.
+- **Files sorts a folder by when its songs arrived** (#383). For a folder you drop new music
+  into and work through later: an *Added* column says when each file arrived on the drive
+  ("Today 8:42 PM"), and a click on it puts the newest first (again: oldest first). It's when the
+  file was copied, downloaded or unzipped there, not its modified date, which a copied file keeps
+  from wherever it came from.
 
 Better:
 
