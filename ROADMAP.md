@@ -217,6 +217,9 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
   each under its server, in folders built from their names, as Navidrome apps do, and sent back
   to the server the same way
+- Servers, smaller: [reading a server's song list again](https://github.com/GemZombie/GZJam/issues/395)
+  only if it has read its music since, and [sending a playlist](https://github.com/GemZombie/GZJam/issues/396)
+  to a server that already has one by that name asks before replacing it
 
 and a smoother screen, from a performance review: [the close-up waveform](https://github.com/GemZombie/GZJam/issues/364)
 drawn alongside the screen, not by it; [the decks' readouts](https://github.com/GemZombie/GZJam/issues/365)
