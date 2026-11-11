@@ -340,7 +340,10 @@ public sealed class FilesAppTests
     {
         var now = new DateTime(2026, 11, 10, 21, 30, 0, DateTimeKind.Local);
         var then = new DateTime(2026, 11, 10, hour, minute, 0, DateTimeKind.Local).AddDays(-daysAgo);
-        Assert.Equal(expected, Format.Added(then.ToUniversalTime(), now.ToUniversalTime()));
+        // Linux writes a narrow no-break space before "PM" (as its time format has it): fine on
+        // screen, so compared as a plain one.
+        string shown = Format.Added(then.ToUniversalTime(), now.ToUniversalTime()).Replace('\u202F', ' ').Replace('\u00A0', ' ');
+        Assert.Equal(expected, shown);
         Assert.Equal("", Format.Added(null));
     }
 }
