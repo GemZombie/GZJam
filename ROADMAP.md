@@ -248,6 +248,8 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
 **1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
 - [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
   by button or key, without moving the deck
+- [Queue the song you're previewing](https://github.com/GemZombie/GZJam/issues/386) from the
+  preview bar, by a key, a drag or its menu, after the list has moved on to another folder
 - [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
   remembers one, and each playlist its own, between runs too
 - [One clear selection](https://github.com/GemZombie/GZJam/issues/377): only the list you're
