@@ -377,6 +377,11 @@ room; it's the song you see in Files from then on, with what you gave it.
 music. Usually that's under *Added* and the folder they came from (*Music › Added › Gig Nov 14*), so
 a stick's requests stay together, but you choose: see *Choosing the folder*, below. The originals
 stay where they are; the copies are yours, with their hearts and cues, and show in My music. A stick is never added as a music folder: it comes and goes.
+
+**Move them, out of where they are now** (in the same dialog) moves the songs instead of copying
+them: handy for a folder you drop new music into, which is then left with what you didn't keep.
+GZJam remembers your choice. A song on a deck or in the queue stays there, and keeps playing.
+Songs on a USB stick are always copied: GZJam never changes a stick.
 Songs that are in My music already (a folder of your music, seen in Files) say *Already in My
 music* there instead.
 

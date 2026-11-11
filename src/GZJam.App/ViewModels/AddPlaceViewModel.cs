@@ -4,8 +4,17 @@ using GZJam.Library;
 
 namespace GZJam.App.ViewModels;
 
-/// <summary>Where songs added to My music go (#324): a folder, whether their own folders come too, and whether it's the usual place.</summary>
-public sealed record AddPlace(string Folder, bool KeepFolders, bool IsUsual);
+/// <summary>
+/// Where songs added to My music go (#324): a folder, whether their own folders come too, whether
+/// it's the usual place, and whether they're moved there rather than copied (#384).
+/// </summary>
+public sealed record AddPlace(string Folder, bool KeepFolders, bool IsUsual, bool Move = false);
+
+/// <summary>
+/// Songs from Files can be moved into My music rather than copied (#384): what was chosen last
+/// time, or why they can't be (a USB stick's).
+/// </summary>
+public sealed record MoveChoice(bool Remembered, string? CantWhy = null);
 
 /// <summary>A folder of My music, in the Add to my music dialog: its own folders read from the disk when it's opened.</summary>
 public sealed partial class AddFolderRow : ObservableObject
@@ -84,9 +93,12 @@ public sealed partial class AddPlaceViewModel : ObservableObject
     /// <param name="notThis">A folder that can't be chosen: the servers' downloads, whose songs GZJam can remove.</param>
     /// <param name="action">What the button says.</param>
     /// <param name="hasUsualPlace">False when the DJ has said where already (a drop on a folder, #335): there's no usual place to go back to.</param>
+    /// <param name="move">Whether they can be moved rather than copied (from Files), and how it was last time; null: copied, not asked.</param>
     public AddPlaceViewModel(string heading, string details, string usual, IReadOnlyList<string> musicFolders, string? last, bool keepFolders, bool canKeepFolders, string? notThis = null,
-        string action = "Add", bool hasUsualPlace = true)
+        string action = "Add", bool hasUsualPlace = true, MoveChoice? move = null)
     {
+        _move = move;
+        Move = move is { CantWhy: null, Remembered: true };
         Heading = heading;
         Action = action;
         HasUsualPlace = hasUsualPlace;
@@ -115,6 +127,21 @@ public sealed partial class AddPlaceViewModel : ObservableObject
     public ObservableCollection<AddFolderRow> Roots { get; } = [];
 
     public bool CanKeepFolders { get; }
+
+    private readonly MoveChoice? _move;
+
+    /// <summary>Move or copy is asked: songs from Files (#384).</summary>
+    public bool CanChooseMove => _move is not null;
+
+    /// <summary>They can be moved: not from a USB stick, which GZJam never changes.</summary>
+    public bool CanMove => _move is { CantWhy: null };
+
+    public string MoveTip => _move?.CantWhy
+        ?? "On: the songs leave the folder they're in now, so what's left there is what you didn't add. Off: they're copied, the originals left where they are";
+
+    /// <summary>Move them out of where they are, rather than copy them.</summary>
+    [ObservableProperty]
+    public partial bool Move { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanMakeFolder))]
@@ -151,7 +178,7 @@ public sealed partial class AddPlaceViewModel : ObservableObject
     public bool CanChooseKeepFolders => CanKeepFolders && !IsUsual;
 
     /// <summary>What was chosen.</summary>
-    public AddPlace Result() => new(Folder, IsUsual || (CanKeepFolders && KeepFolders), IsUsual);
+    public AddPlace Result() => new(Folder, IsUsual || (CanKeepFolders && KeepFolders), IsUsual, CanMove && Move);
 
     public void UseUsualPlace()
     {

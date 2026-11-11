@@ -239,4 +239,41 @@ public sealed class AddToMyMusicPlaceAppTests
         dialog.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, "add-to-my-music.png"), new PngBitmapEncoderOptions());
         dialog.Close();
     }
+
+    [AvaloniaFact]
+    public async Task From_Files_the_dialog_asks_move_or_copy_and_a_sticks_songs_only_copy()
+    {
+        using var s = await WithPlaces();
+        AddToMyMusicDialog Show(MoveChoice move, string name)
+        {
+            var model = new AddPlaceViewModel("Add 2 songs to My music?", "In My music they're yours from then on, never removed by GZJam.",
+                s.App.MusicPath, [s.App.MusicPath], s.Lindy, keepFolders: false, canKeepFolders: false, move: move);
+            var dialog = new AddToMyMusicDialog(model);
+            dialog.Show();
+            AppHarness.Settle(200);
+            Directory.CreateDirectory(AppHarness.ScreenshotDirectory);
+            dialog.CaptureRenderedFrame()?.Save(Path.Combine(AppHarness.ScreenshotDirectory, name), new PngBitmapEncoderOptions());
+            return dialog;
+        }
+
+        var files = Show(new MoveChoice(Remembered: true), "add-to-my-music-move.png");
+        var box = files.FindControl<Avalonia.Controls.CheckBox>("MoveBox")!;
+        Assert.True(box.IsVisible && box.IsEnabled);
+        Assert.Equal(true, box.IsChecked);   // as last time
+        files.Close();
+
+        var stick = Show(new MoveChoice(Remembered: true, CantWhy: "Songs on a USB stick are copied"), "add-to-my-music-stick.png");
+        box = stick.FindControl<Avalonia.Controls.CheckBox>("MoveBox")!;
+        Assert.True(box.IsVisible);
+        Assert.False(box.IsEnabled);
+        Assert.Equal(false, box.IsChecked);
+        stick.Close();
+
+        // From a server: not asked at all.
+        var server = new AddToMyMusicDialog(new AddPlaceViewModel("Add 2 songs to My music?", "", s.App.MusicPath, [s.App.MusicPath], null, false, true));
+        server.Show();
+        AppHarness.Settle(100);
+        Assert.False(server.FindControl<Avalonia.Controls.CheckBox>("MoveBox")!.IsVisible);
+        server.Close();
+    }
 }
