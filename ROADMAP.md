@@ -254,6 +254,10 @@ Organize music, so **the next release for everyone is 1.6**. Found something? Sa
   working in shows it strongly, with more contrast, and the open playlist marked as where you are
 - [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
   to Artist so it's in view on a laptop
+- Curating new music in Files: [sort a folder by when songs arrived](https://github.com/GemZombie/GZJam/issues/383),
+  newest first; [move the keepers into My music](https://github.com/GemZombie/GZJam/issues/384)
+  rather than copy them; and [delete the rest](https://github.com/GemZombie/GZJam/issues/385),
+  to the Recycle Bin
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
   column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
 - [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
