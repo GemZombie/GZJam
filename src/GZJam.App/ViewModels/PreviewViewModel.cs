@@ -12,6 +12,22 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
     [NotifyPropertyChangedFor(nameof(IsActive), nameof(Title), nameof(Artist))]
     public partial Track? Track { get; private set; }
 
+    /// <summary>
+    /// The song being previewed as its list has it, for acting on from the bar (#386): the row it
+    /// was previewed from. For a server's song that's its row, not the copy fetched for the
+    /// headphones, so queuing it from the bar queues the server's song.
+    /// </summary>
+    public Track? Song { get; private set; }
+
+    partial void OnTrackChanged(Track? value) => Song = value;
+
+    /// <summary>A server's song is in the headphones: the bar acts on <paramref name="song"/>, its row.</summary>
+    internal void ShowAs(Track song)
+    {
+        if (Track is not null)
+            Song = song;
+    }
+
     public bool IsActive => Track is not null;
     public string Title => Track?.DisplayTitle ?? "";
     public string Artist => Track?.DisplayArtist ?? "";

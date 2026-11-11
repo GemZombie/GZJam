@@ -13,6 +13,14 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **Queue the song you're previewing from the preview bar** (#386). Preview a song, move on to
+  another folder or search while it plays, and it can still go in the queue: **QUEUE** on the bar
+  adds it to the end, its title drags onto the queue, a deck or a playlist, and right-click (or
+  **⋯**) has *Play next*, *Load to Deck*, *Add to playlist*, *Song info* and *Show in folder tree*.
+  It keeps playing in the headphones throughout. No more going back to find it.
+
 Better:
 
 - **The Time column is next to Artist, and in the column menu** (#379). It was the last column,

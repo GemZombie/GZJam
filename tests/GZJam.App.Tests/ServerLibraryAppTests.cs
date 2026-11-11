@@ -179,6 +179,8 @@ public sealed class ServerLibraryAppTests
 
         Assert.StartsWith(app.ViewModel.Servers.PreviewFolder, app.ViewModel.Preview.Track!.Path);
         Assert.True(app.ViewModel.Servers.IsPreviewing(boogie));
+        // The preview bar acts on the server's song, not the copy fetched for the headphones (#386).
+        WaitFor(() => app.ViewModel.Preview.Song == boogie, "the bar's song, the server's");
         app.ViewModel.Preview.Toggle(boogie);   // a second tap stops it
         Assert.Null(app.ViewModel.Preview.Track);
         Assert.Empty(app.Database.GetServerSongs(app.ViewModel.Servers.Items[0].Server.Id));
