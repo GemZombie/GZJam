@@ -485,4 +485,156 @@ public sealed class FilesAppTests
         Assert.Equal(2, Directory.GetFiles(Path.Combine(s.Desktop, "Edits"), "*.mp3").Length);
         Assert.False(s.App.Settings.AddToMyMusicMove);
     }
+
+    // ───────────── Delete, to the Recycle Bin (#385) ─────────────
+
+    /// <summary>A stand-in Recycle Bin (a folder), so tests never fill the computer's own; and the question asked, answered.</summary>
+    private static (string Bin, List<(string Heading, string Text, string Action)> Asked) WithBin(Setup s, bool answer = true, bool canRecycle = true)
+    {
+        string bin = Path.Combine(s.App.WorkDirectory, "Bin");
+        Directory.CreateDirectory(bin);
+        var files = s.App.ViewModel.Files;
+        files.CanRecycle = _ => canRecycle;
+        files.Recycle = path => File.Move(path, Path.Combine(bin, Path.GetFileName(path)));
+        files.DeleteForGood = path => File.Move(path, Path.Combine(bin, "for good - " + Path.GetFileName(path)));
+        var asked = new List<(string, string, string)>();
+        s.App.ViewModel.ConfirmAsync = (heading, text, action) =>
+        {
+            asked.Add((heading, text, action));
+            return Task.FromResult(answer);
+        };
+        return (bin, asked);
+    }
+
+    [AvaloniaFact]
+    public void Delete_in_Files_sends_songs_to_the_Recycle_Bin_after_asking_and_forgets_their_hearts()
+    {
+        using var s = WithFiles();
+        var (bin, asked) = WithBin(s);
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        Track sing = s.Library.Results.Single(t => t.DisplayTitle == "Sing Sing Sing");
+        string path = sing.Path;
+        s.App.ViewModel.SetRating([sing], Rating.Loved);
+
+        Finish(s.App.ViewModel.Files.DeleteAsync(s.Library.Results.ToList()));
+
+        var (heading, text, action) = Assert.Single(asked);
+        Assert.Equal($"Move 2 songs to the {RecycleBin.Name}?", heading);
+        Assert.Contains("Shiny Stockings, Sing Sing Sing.", text);
+        Assert.Contains("put back", text);
+        Assert.Equal("Delete", action);
+        Assert.False(File.Exists(path));
+        Assert.True(File.Exists(Path.Combine(bin, Path.GetFileName(path))));
+        Assert.True(File.Exists(Path.Combine(s.Desktop, "Edits", "notes.txt")));   // only the songs asked
+        Assert.Empty(s.Library.Results);
+        Assert.Equal(Rating.Unrated, s.App.Database.GetMarks(path).Rating);   // forgotten with it
+        Assert.StartsWith("2 songs moved to the", s.App.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public void Songs_in_use_stay_and_the_question_says_why()
+    {
+        using var s = WithFiles();
+        var (_, asked) = WithBin(s);
+        var vm = s.App.ViewModel;
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        Track sing = s.Library.Results.Single(t => t.DisplayTitle == "Sing Sing Sing");
+        Track shiny = s.Library.Results.Single(t => t.DisplayTitle == "Shiny Stockings");
+        vm.AddToQueue([shiny]);
+
+        Assert.Equal("it's in the queue", vm.Files.CantDelete(shiny));
+        Finish(vm.Files.DeleteAsync([sing, shiny]));
+
+        var (heading, text, _) = Assert.Single(asked);
+        Assert.Equal($"Move \"Sing Sing Sing\" to the {RecycleBin.Name}?", heading);
+        Assert.Contains("Shiny Stockings stays: it's in the queue.", text);
+        Assert.False(File.Exists(sing.Path));
+        Assert.True(File.Exists(shiny.Path));
+
+        // On a deck, or in a playlist: not deleted, and with nothing left to delete, nothing asked.
+        Assert.True(AppHarness.Await(vm.LoadToDeckAsync(vm.Decks[1], shiny)));
+        vm.Queue.Clear();
+        Assert.Equal("it's on a deck", vm.Files.CantDelete(shiny));
+        Finish(vm.Files.DeleteAsync([shiny]));
+        Assert.Single(asked);
+        Assert.Contains("isn't deleted: it's on a deck", vm.Notice);
+        Assert.True(File.Exists(shiny.Path));
+    }
+
+    [AvaloniaFact]
+    public void A_song_in_a_playlist_in_My_music_or_on_a_stick_is_never_deleted()
+    {
+        using var s = WithFiles();
+        WithBin(s);
+        var vm = s.App.ViewModel;
+        Track mine = s.Library.Results[0];   // My music's
+        Assert.Equal("it's in My music", vm.Files.CantDelete(mine));
+
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Desktop");
+        Track memo = Assert.Single(s.Library.Results);
+        Assert.NotNull(vm.CreatePlaylist("Requests", [memo]));
+        AppHarness.Settle(200);
+        Assert.Equal("it's in the playlist Requests", vm.Files.CantDelete(memo));
+
+        PlugIn(s);
+        Open(s, "Gig Nov 14", inside: "SANDISK (E:)");
+        Assert.All(s.Library.Results, t => Assert.Contains("USB stick", vm.Files.CantDelete(t)));
+    }
+
+    [AvaloniaFact]
+    public void A_drive_with_no_Recycle_Bin_says_for_good_and_No_deletes_nothing()
+    {
+        using var s = WithFiles();
+        var (bin, asked) = WithBin(s, answer: false, canRecycle: false);
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        var songs = s.Library.Results.ToList();
+
+        Finish(s.App.ViewModel.Files.DeleteAsync(songs));
+
+        var (heading, text, action) = Assert.Single(asked);
+        Assert.Equal("Delete 2 songs for good?", heading);
+        Assert.Contains("can't be put back", text);
+        Assert.Equal("Delete for good", action);
+        Assert.All(songs, t => Assert.True(File.Exists(t.Path)));   // said no
+        Assert.Empty(Directory.GetFiles(bin));
+
+        s.App.ViewModel.ConfirmAsync = (_, _, _) => Task.FromResult(true);
+        Finish(s.App.ViewModel.Files.DeleteAsync(songs));
+        Assert.Equal(2, Directory.GetFiles(bin, "for good - *").Length);
+    }
+
+    [AvaloniaFact]
+    public void Deleting_the_song_in_the_headphones_stops_its_preview_and_the_menu_offers_Delete_in_Files_only()
+    {
+        using var s = WithFiles();
+        WithBin(s);
+        var vm = s.App.ViewModel;
+        var grid = s.App.Window.FindControl<DataGrid>("TrackGrid")!;
+        var menu = s.App.Window.FindControl<ContextMenu>("TrackMenu")!;
+        var item = s.App.Window.FindControl<MenuItem>("TrackDeleteItem")!;
+        bool Offered()
+        {
+            grid.SelectedIndex = 0;
+            menu.Open(grid);
+            AppHarness.Settle(100);
+            bool shown = item.IsVisible && item.IsEnabled;
+            menu.Close();
+            return shown;
+        }
+
+        Assert.False(Offered());   // My music: never
+        s.Library.ChooseSource(LibrarySource.Files);
+        Open(s, "Edits", inside: "Desktop");
+        Assert.True(Offered());
+
+        Track sing = s.Library.Results.Single(t => t.DisplayTitle == "Sing Sing Sing");
+        vm.Preview!.Toggle(sing);
+        Assert.Same(sing, vm.Preview.Song);
+        Finish(vm.Files.DeleteAsync([sing]));
+        Assert.Null(vm.Preview.Track);
+    }
 }

@@ -821,6 +821,8 @@
                           ToolTip.Tip="Every tag in the file, the file itself, and what GZJam knows about the song" />
                 <MenuItem x:Name="TrackShowInTreeItem" Header="Show in folder tree" Click="OnShowInTreeClick" />
                 <MenuItem x:Name="RevealMenuItem" Header="Show in Explorer" Click="OnRevealFileClick" />
+                <!-- Files only (#385): songs that didn't make the cut, to the Recycle Bin -->
+                <MenuItem x:Name="TrackDeleteItem" Header="Delete…" InputGesture="Delete" Click="OnDeleteFilesClick" ToolTip.ShowOnDisabled="True" />
                 <Separator />
                 <MenuItem x:Name="TrackRatingMenu" Header="Rating" />
                 <MenuItem x:Name="TrackLabelsMenu" Header="Labels" />

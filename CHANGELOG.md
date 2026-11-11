@@ -21,6 +21,12 @@ New:
   cues and plays come along, and a song on a deck keeps playing. On another drive it's copied and
   checked before the original goes, so a problem halfway leaves it where it was. Songs on a USB
   stick are still only copied.
+- **Delete songs from Files, to the Recycle Bin** (#385). The songs in your drop folder that
+  didn't make the cut can go without leaving GZJam: right-click › *Delete…*, or the Delete key.
+  It asks once, and they go to the Recycle Bin (the Trash on a Mac or Linux), so they can be put
+  back. On a drive with no Recycle Bin, the question says they'd be deleted for good. A song on
+  a deck, in the queue or in a playlist is never deleted, nor anything in My music or on a USB
+  stick.
 - **Queue the song you're previewing from the preview bar** (#386). Preview a song, move on to
   another folder or search while it plays, and it can still go in the queue: **QUEUE** on the bar
   adds it to the end, its title drags onto the queue, a deck or a playlist, and right-click (or
