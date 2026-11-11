@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.3.0** (6 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.7.0** (11 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -17,6 +17,14 @@ release.
   folder you pick. Nothing to import, and GZJam never changes your music files unless you ask it
   to: by moving songs in Organize music, dragging one from the queue to a folder and saying yes, or
   writing your tag edits into them.
+- The library's sources, a click apart: **My music** (your music folders), **Servers** (your own
+  music servers, below) and **Files** (the computer's places and drives, and any USB stick). A
+  request on a stick plays without leaving GZJam, and pulling the stick out never stops the room.
+  Each song in the queue, History and a playlist says where it's from.
+- Organize music: two sides under the decks, to copy and move songs between your music, the
+  computer's folders and USB sticks, with hearts, cues and playlists going along, and an Undo.
+  *Add to my music* brings songs in from a server, Files or a stick, into the folder you choose,
+  and a song dragged from the queue to a folder in My music goes there.
 - Search filters: `bpm:130-150`, `~bpm:140` (within reach of the tempo slider, or as near as you choose), `artist:`,
   `year:`, `label:`, `rating:`, `energy:`, `played:` (`-played:7` leaves out the songs the room heard last week)
   and `file:`. Words in quotes are a phrase, and `OR` finds either of two (`label:balboa OR label:charleston`).
@@ -55,6 +63,22 @@ release.
 - Start over with an empty library whenever you like; the old one is kept, not deleted.
 - Album art on the decks and queue (and a library column), from the songs' files or the covers in
   their folders, to see at a glance that the right record is loaded.
+- Artist and title from file names, for old transfers and rips with empty tags but good names, and
+  *Fill tags from file name* in song info to keep them, with Undo.
+
+**Your own music server**
+- Navidrome, or another server that speaks the Subsonic API, one or several (yours and a
+  friend's), at home or over Tailscale: browsed and searched in the library like your own folders,
+  offline too. [The guide](docs/GUIDE.md#your-own-music-server) covers setting one up.
+- Its songs on the computer before the night (its playlists, and what's starred there, kept in
+  step on every sync), so the room never depends on the Wi-Fi; or a song downloaded on the spot
+  for the queue or a deck, waiting in its place until it's here. A Downloads window shows every
+  song coming down, and why.
+- A heart stars the song on the server. Downloads can go by themselves after the night or after 4
+  weeks, make room on a small drive, or move to another drive, and songs moved on the server follow
+  here. Add songs, or the whole server in the background, to your music for good.
+- Send a playlist of yours to the server, in its order, and share a link to it for the setlist the
+  next day.
 
 **Decks**
 - Two decks, or four in the same space.
@@ -104,6 +128,11 @@ release.
 - Keys for the decks (play, CUE, load the selected song), the crossfader, auto-play, and MAIN and
   PHONES volume, all with Ctrl (Cmd on a Mac).
 - A level meter and a safety limiter for the speakers.
+- Nothing GZJam does is heard in the room: its sound processing runs as native code, so the music
+  never waits while GZJam tidies its memory; songs play from memory, so a slow drive or an
+  unplugged USB stick can't interrupt one; and fades, the crossfader and the end of a song are
+  handled by the sound itself, so a busy screen never holds them up. Protection against crackles
+  has four levels, and every dropout is written in the activity log.
 - Auto-play through the queue, with a gap of real silence between songs. Through the gap the
   crossfader slides over to the next deck, which counts down to starting. For classes and practice
   nights it can fade each song out after a set time, or wait for you between songs; and it can
@@ -114,7 +143,9 @@ release.
 - On Windows the speakers can be GZJam's alone (a switch, for a laptop kept for gigs), so no
   notification sound reaches the room. On Linux a sound card can be used directly, for the same reason.
 - Headphones (or the booth) unplugged during a night go quiet, never move to the speakers, and come
-  back by themselves when plugged in again.
+  back by themselves when plugged in again. Speakers unplugged mid-song are noticed within a couple
+  of seconds, and the music plays through the computer's default output; plugged in again, it
+  moves back by itself as soon as nothing is playing to the room.
 
 **During the night**
 - History: every night saved as a session, with set lists to export as text or a spreadsheet.
@@ -152,114 +183,32 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.7,** to try now in [1.7.0-beta.3](https://github.com/GemZombie/GZJam/releases/tag/v1.7.0-beta.3):
+**In 1.8**, not in a release yet:
 
-- [Browsing the library no longer makes the music stutter](https://github.com/GemZombie/GZJam/issues/343):
-  the song list reuses its rows, and stays sorted by the column you chose through a new search
-- [Every dropout in the log](https://github.com/GemZombie/GZJam/issues/345), shared speakers or
-  GZJam's alone, with how long the sound stopped and why, if GZJam knows
-- [Nothing GZJam does can make the music stutter](https://github.com/GemZombie/GZJam/issues/344):
-  its sound processing runs as native code, so the music never waits for GZJam to tidy its memory
-- [Protection against crackles has four levels](https://github.com/GemZombie/GZJam/issues/347):
-  Low, Normal, High and Highest, with the new Normal as the default
-- [Speakers unplugged mid-song are noticed](https://github.com/GemZombie/GZJam/issues/353), shared
-  or GZJam's alone, and the music moves to another output within a couple of seconds
-- [Songs play from memory](https://github.com/GemZombie/GZJam/issues/346): a slow or sleeping drive
-  can't interrupt a song that's playing, and the next songs are read ahead
-- [The speakers come back by themselves](https://github.com/GemZombie/GZJam/issues/338) when
-  plugged in again, as soon as nothing is playing to the room
-- [Saving no longer holds up the screen](https://github.com/GemZombie/GZJam/issues/362): a rating,
-  a cue or an EQ change doesn't wait for the disk, and an EQ fader is saved once, when you let go
-- [The waveforms no longer make work as the night goes on](https://github.com/GemZombie/GZJam/issues/363),
-  which could make the screen stutter later in a night
-- [A song counting as played no longer freezes the screen](https://github.com/GemZombie/GZJam/issues/360),
-  which took seconds with a long History
-- [Loading a song no longer freezes the screen](https://github.com/GemZombie/GZJam/issues/361), even
-  from a slow or sleeping drive
-- [Fades, the crossfader and the end of a song are handled by the sound itself](https://github.com/GemZombie/GZJam/issues/359),
-  so a busy screen can never hold them up
-
-**In 1.6,** to try now in [1.6.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.6.0-beta.2):
-
-- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the first part: two sides under
-  the decks, to copy and move songs between your music, the computer's folders and USB sticks,
-  with hearts, cues and playlists going along and an Undo
-- [Choose the folder when you add to My music](https://github.com/GemZombie/GZJam/issues/324), from
-  a server, the computer's files or a USB stick
-- [Drag a song from the queue to a folder in My music](https://github.com/GemZombie/GZJam/issues/335):
-  moved there from the computer, copied from a USB stick or a server, once you've said yes
-- [Organize music](https://github.com/GemZombie/GZJam/issues/325): Space previews the song
-  selected, and the headphone player is under the two sides
-- [Auto-play keeps a song replaced on a stopped deck](https://github.com/GemZombie/GZJam/issues/337):
-  it goes back to the top of the queue, wherever the crossfader is
-
-**In 1.5,** to try now in [1.5.0-beta.2](https://github.com/GemZombie/GZJam/releases/tag/v1.5.0-beta.2):
-
-- [Sources: My music, Servers and Files, each separate](https://github.com/GemZombie/GZJam/issues/318):
-  your music, your servers (their songs downloaded for the nights kept as part of them) and the
-  computer's files and USB sticks, each browsed and searched on its own, with *Add to my music*
-  from any of them. A request on a stick plays without leaving GZJam, pulling the stick never
-  stops the room, and each song in the queue, History and a playlist says where it's from
-- [Send a playlist of yours to your server, and share it](https://github.com/GemZombie/GZJam/issues/303):
-  the night's set, saved as a playlist, sent to Navidrome in its order, and a link to it for
-  posting the setlist the next day
-
-**In 1.4,** to try now in [1.4.0-beta.5](https://github.com/GemZombie/GZJam/releases/tag/v1.4.0-beta.5):
-
-- [Music from your own server](https://github.com/GemZombie/GZJam/issues/184) (Navidrome and
-  other Subsonic servers, one or several), browsed and searched
-  [in the library like your own folders](https://github.com/GemZombie/GZJam/issues/290): songs
-  copied to the computer ahead of the night, so the room never depends on the Wi-Fi, a song dragged
-  to the queue downloaded on the spot, or songs kept in your library for good, to bring a library
-  home a bit at a time, or the whole server in the background.
-  [A Downloads window](https://github.com/GemZombie/GZJam/issues/304) shows every song coming down,
-  why, and how far along. A heart stars the song on the server, and downloads can go by
-  themselves after the night or after 4 weeks. Songs moved on the server follow here, and
-  [the guide](docs/GUIDE.md#your-own-music-server) covers it all, from Navidrome on a Synology to
-  Tailscale and a friend's server.
-- [Artist and title from file names](https://github.com/GemZombie/GZJam/issues/273), when tags are
-  missing, and *Fill tags from file name* in song info
-
-## Planned next
-
-**1.3 is out** (6 November 2026): running the night, from a song faded out where you choose to
-when the queue ends. Fixes come as 1.3.1, 1.3.2 and so on. **1.4 and 1.5 stay betas**, for anyone who
-wants to try them from the links above: the library's new look arrives for everyone together with
-Organize music, so **the next release for everyone is 1.6**. Found something? Say so in
-[Discussions](https://github.com/GemZombie/GZJam/discussions) or
-[the Facebook group](https://www.facebook.com/groups/2178840716051629/).
-
-**1.6:**
-- [Organize music](https://github.com/GemZombie/GZJam/issues/325), the headline: under the
-  decks, with two panes to copy and move songs between your music, the computer's
-  folders and USB sticks, or copy them from a server, and new and renamed folders
-- [Cover art goes with the songs](https://github.com/GemZombie/GZJam/issues/333), and folders left
-  empty are cleaned up, when you move a whole album
-
-**1.7: no stutters, ever.** Nothing GZJam does on screen or on disk should ever be heard in the room:
-- [The music never waits for GZJam to tidy its memory](https://github.com/GemZombie/GZJam/issues/343),
-  with far less of it used, and [the sound handled without it](https://github.com/GemZombie/GZJam/issues/344)
-- [Every dropout written in the log](https://github.com/GemZombie/GZJam/issues/345), with what caused
-  it, whichever way the speakers are set up
-- [Songs read into memory when loaded](https://github.com/GemZombie/GZJam/issues/346), so a slow or
-  sleeping drive can't interrupt a song that's playing
-- [Safer sound buffers by default](https://github.com/GemZombie/GZJam/issues/347), with four levels to choose from
-
-**1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
-- [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
-  by button or key, without moving the deck
-- [Queue the song you're previewing](https://github.com/GemZombie/GZJam/issues/386) from the
-  preview bar, by a key, a drag or its menu, after the list has moved on to another folder
-- [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
-  remembers one, and each playlist its own, between runs too
-- [One clear selection](https://github.com/GemZombie/GZJam/issues/377): only the list you're
-  working in shows it strongly, with more contrast, and the open playlist marked as where you are
 - [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
   to Artist so it's in view on a laptop
+- [Queue the song you're previewing](https://github.com/GemZombie/GZJam/issues/386) from the
+  preview bar, by a key, a drag or its menu, after the list has moved on to another folder
 - Curating new music in Files: [sort a folder by when songs arrived](https://github.com/GemZombie/GZJam/issues/383),
   newest first; [move the keepers into My music](https://github.com/GemZombie/GZJam/issues/384)
   rather than copy them; and [delete the rest](https://github.com/GemZombie/GZJam/issues/385),
   to the Recycle Bin
+
+## Planned next
+
+**1.7 is out** (11 November 2026), the first release for everyone since 1.3.0: your own music
+server, the library's sources with Files and USB sticks, Organize music, and no stutters. Fixes
+come as 1.7.1, 1.7.2 and so on. Found something? Say so in
+[Discussions](https://github.com/GemZombie/GZJam/discussions) or
+[the Facebook group](https://www.facebook.com/groups/2178840716051629/).
+
+**1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
+- [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
+  by button or key, without moving the deck
+- [The song list keeps its sort](https://github.com/GemZombie/GZJam/issues/376): the library
+  remembers one, and each playlist its own, between runs too
+- [One clear selection](https://github.com/GemZombie/GZJam/issues/377): only the list you're
+  working in shows it strongly, with more contrast, and the open playlist marked as where you are
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
   column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
 - [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
