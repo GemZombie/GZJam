@@ -260,6 +260,8 @@ public sealed partial class ServersViewModel
         }
         _owner.ShowNotice($"Getting {track.DisplayTitle} for the headphones…", seconds: 30);
         string? problem = await PreviewAsync(item, remote.Song, null);
+        if (problem is null && IsPreviewing(track))
+            _owner.Preview?.ShowAs(track);   // the bar queues the server's song, not the copy fetched for the headphones (#386)
         _owner.ShowNotice(problem ?? $"In the headphones: {track.DisplayTitle}", seconds: problem is null ? 2 : 8);
     }
 

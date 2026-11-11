@@ -373,6 +373,26 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: acting on the song in the headphones (#386, 1.8)
+
+- A DJ previews a song, moves on to another folder or search while it plays, then wants it in the
+  queue: he had to go back and find it again. The bar under the song list had only its position
+  bar and STOP.
+- **QUEUE** on the bar adds it to the end of the queue (a notice "In the queue: …", or the usual
+  *already in the queue* one with Undo). **⋯** and a right-click anywhere on the bar open its menu
+  (`MainWindow.PreviewMenu`): *Add to queue*, *Play next*, *Load to Deck 1–4* (on-air decks grayed,
+  as in the song list's menu), *Add to playlist*, then *Song info…* and *Show in folder tree*
+  (grayed for a song outside the music folders; neither for a server's song not here yet).
+- **Its grip** (the headphones icon and title, a hand cursor) drags the song like a row: a press
+  that moves 4 px starts `StartTrackDrag`, for mouse, pen and touch alike (the bar doesn't scroll,
+  so there's nothing to tell a drag from).
+- **What it acts on** is `PreviewViewModel.Song`: the row the preview was started from. For a
+  server's song (#290) that's its row, not the copy fetched into the preview folder (`ShowAs`), so
+  QUEUE queues the server's song and it downloads as usual.
+- Organize music's preview bar is unchanged (`PreviewBar.ShowsSongActions`, off there): it has no
+  queue in view.
+- The preview keeps playing through all of it (`PreviewBarTests`).
+
 ## Touch
 
 ### Requirements (from the DJ)

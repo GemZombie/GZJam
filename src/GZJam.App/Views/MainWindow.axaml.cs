@@ -47,6 +47,7 @@ public partial class MainWindow : Window
         Resized += (_, _) => RememberNormalBounds();
 
         InitializeDrag();
+        InitializePreviewBar();
         InitializeFileDrop();
         InitializeDecks();
         InitializeHistory();
@@ -173,8 +174,13 @@ public partial class MainWindow : Window
 
     private void OnShowInTreeClick(object? sender, RoutedEventArgs e)
     {
-        if (SelectedTracks().FirstOrDefault() is not { } track)
-            return;
+        if (SelectedTracks().FirstOrDefault() is { } track)
+            ShowInTree(track);
+    }
+
+    /// <summary>Opens the folder <paramref name="track"/> is in, in the tree, scrolled into view.</summary>
+    internal void ShowInTree(Track track)
+    {
         Vm.Library.RevealTrack(track);
         // Scroll once the expanded folders have been laid out.
         Dispatcher.UIThread.Post(() =>

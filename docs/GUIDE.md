@@ -494,6 +494,12 @@ Tap the 🎧 icon on any row (or press Space) to hear the song in the headphones
 The preview bar under the song list has its own position bar and STOP. Tap or drag along it:
 the song plays on while your finger is down, and moves there when you let go.
 
+The bar keeps the song while you look elsewhere: open another folder or search, and when you
+decide it's the one, **QUEUE** on the bar adds it to the end of the queue. Or drag it by its title
+onto the queue (at any place), a deck or a playlist, or right-click the bar (or tap **⋯**) for
+*Play next*, *Load to Deck*, *Add to playlist*, *Song info* and *Show in folder tree* (to go back
+to where it is). It keeps playing in the headphones all the while.
+
 ### Playlists
 
 Plan a set before the night. Under the folder tree, **+ New** makes a playlist; drag songs onto its
