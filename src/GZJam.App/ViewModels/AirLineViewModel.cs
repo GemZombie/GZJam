@@ -47,29 +47,42 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
             ?? (live is { HasTrack: true } ? live : null);
         UpdateOrder(decks, Now ?? live);
 
-        if (decks.Where(d => d != Now && d.HasTrack).OrderBy(d => d.IsOnAir).FirstOrDefault() is { } other)
+        DeckViewModel? other = null;
+        foreach (DeckViewModel d in decks)
         {
-            NextFrom = $"NEXT · DECK {other.Label}";
-            NextText = Describe(other.Track!);
+            if (d != Now && d.HasTrack && (other is null || other.IsOnAir && !d.IsOnAir))
+                other = d;   // a loaded deck, one off air first
         }
-        else if (queue.Items.FirstOrDefault() is { } first)
-        {
-            NextFrom = "NEXT · QUEUE";
-            NextText = Describe(first.Track);
-        }
-        else
-        {
-            NextFrom = "NEXT";
-            NextText = "";
-        }
+        Track? next = other?.Track ?? (queue.Items.Count > 0 ? queue.Items[0].Track : null);
+        if ((other, next) == _next && next?.DisplayTitle == _nextTitle && next?.DisplayArtist == _nextArtist)
+            return;   // the same as on the last tick: no text made again (#365)
+        (_next, _nextTitle, _nextArtist) = ((other, next), next?.DisplayTitle, next?.DisplayArtist);
+        NextFrom = other is not null ? $"NEXT · DECK {other.Label}" : next is not null ? "NEXT · QUEUE" : "NEXT";
+        NextText = next is null ? "" : Describe(next);
     }
+
+    private bool InOrder(IReadOnlyList<DeckViewModel> decks, int start)
+    {
+        if (Order.Count != decks.Count)
+            return false;
+        for (int i = 0; i < decks.Count; i++)
+        {
+            if (Order[i] != decks[(start + i) % decks.Count])
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>Where the next song came from on the last tick, and what it said, so its text is made only when it changes.</summary>
+    private (DeckViewModel? Deck, Track? Track) _next;
+    private string? _nextTitle, _nextArtist;
 
     private void UpdateOrder(IReadOnlyList<DeckViewModel> decks, DeckViewModel? first)
     {
         int start = first is null ? 0 : Math.Max(0, IndexOf(decks, first));
+        if (InOrder(decks, start))
+            return;   // as it was: the usual tick
         var order = Enumerable.Range(0, decks.Count).Select(i => decks[(start + i) % decks.Count]).ToList();
-        if (order.SequenceEqual(Order))
-            return;
         for (int i = 0; i < order.Count; i++)
         {
             int at = Order.IndexOf(order[i]);

@@ -21,7 +21,7 @@ public sealed partial class MainWindowViewModel
     private bool _keepingNight;
 
     private bool _nightChanged;
-    private string? _nightDecks;
+    private (string? Path, bool Cue, double Tempo, bool Playing)[] _nightDecks = [];
     private long _nightWrittenAt;
     private Task _nightWrite = Task.CompletedTask;
     private readonly Lock _nightLock = new();
@@ -123,12 +123,18 @@ public sealed partial class MainWindowViewModel
     {
         if (!_keepingNight)
             return;
-        // The decks say they've changed on every tick, so what's kept of them is compared instead.
-        string decks = string.Join('|', Decks.Select(d => $"{d.Track?.Path}*{d.IsCueOn}*{d.TempoPercent}*{d.IsPlaying}"));
-        if (decks != _nightDecks)
+        // What's kept of the decks, compared as it is (#365): no text made on every tick.
+        if (_nightDecks.Length != Decks.Count)
+            _nightDecks = new (string?, bool, double, bool)[Decks.Count];
+        for (int i = 0; i < Decks.Count; i++)
         {
-            _nightDecks = decks;
-            _nightChanged = true;
+            DeckViewModel d = Decks[i];
+            var kept = (d.Track?.Path, d.IsCueOn, d.TempoPercent, d.IsPlaying);
+            if (kept != _nightDecks[i])
+            {
+                _nightDecks[i] = kept;
+                _nightChanged = true;
+            }
         }
         long now = Environment.TickCount64;
         bool positionDue = now - _nightWrittenAt >= PositionEveryMs && Decks.Any(d => d.IsPlaying);

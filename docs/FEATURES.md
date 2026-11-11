@@ -373,6 +373,28 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: the decks' readouts, only what changed (#365, 1.8)
+
+- From the performance review of 2026-11-10: every 33 ms, `MainWindowViewModel.Tick` refreshed
+  every deck in `Decks` (all four of the engine's, shown or not), and each raised its 22 readouts
+  whether they'd changed or not: about 2,600 changes a second, each read again by every binding,
+  many of the getters asking BASS where the song is (`Remaining` alone read the position again).
+- **`DeckViewModel.Refresh`** reads the deck's position and time left once a tick (`_tick`;
+  the readouts' getters use it while the refresh lasts), and raises a readout only when what it
+  shows changed (`Raise`, against `_shown`): the bars and on-air bar every tick while playing,
+  the time texts when their whole second changes (compared as seconds, not as text), the BPM
+  when its tenth changes. Anything else that raises one of these readouts (a load, a setting)
+  makes the next tick raise them all once (`_stale`), so nothing is left showing an old value.
+- **`Deck.Length`** is read from BASS once, when the song is loaded.
+- **Elsewhere on the tick:** the air line makes its "next" text only when the next song or where
+  it waits changes, and compares the decks' order without making a list; the preview raises its
+  time only when it changes (nothing with no preview playing); the night's safety copy compares
+  each deck's song, cue, tempo and playing as values, not as a string made every tick; the room
+  controls make their tooltips only when what they depend on changed.
+- Dragging the crossfader still refreshes the decks on each move, now as cheaply as a tick.
+- Test: `DeckTests.A_tick_raises_only_what_changed` (an empty and a paused deck raise nothing in
+  two seconds of ticks; a playing one moves its bars every tick and its time once a second).
+
 ### Status: the close-up drawn on the render thread (#364, 1.8)
 
 - From the performance review of 2026-11-10: while a deck played, its close-up asked for every

@@ -110,7 +110,21 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
     {
         if (Track is not null && !player.IsLoaded)
             Track = null;   // reached the end
-        OnPropertyChanged(nameof(Progress));
-        OnPropertyChanged(nameof(TimeText));
+        // Only what changed (#365): nothing at all with no preview playing, the time once a second.
+        double progress = Progress;
+        if (progress != _shownProgress)
+        {
+            _shownProgress = progress;
+            OnPropertyChanged(nameof(Progress));
+        }
+        (long, long) time = (player.Position.Ticks / TimeSpan.TicksPerSecond, player.Length.Ticks / TimeSpan.TicksPerSecond);
+        if (time != _shownTime)
+        {
+            _shownTime = time;
+            OnPropertyChanged(nameof(TimeText));
+        }
     }
+
+    private double _shownProgress = double.NaN;
+    private (long, long) _shownTime = (-1, -1);
 }

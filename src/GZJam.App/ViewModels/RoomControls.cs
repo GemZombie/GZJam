@@ -30,12 +30,22 @@ public sealed class RoomControls(MainWindowViewModel owner)
     /// <summary>Works out <see cref="Current"/> again (every UI tick), raising <see cref="Changed"/> if it's different.</summary>
     internal void Refresh()
     {
+        // What the buttons depend on, compared first (#365): their tooltips are made only when it changes.
+        DeckViewModel? deck = Deck;
+        AutoPlayViewModel? autoPlay = owner.AutoPlay;
+        var basis = (deck, deck?.Title, deck?.IsPlaying, deck?.IsPauseArmed, deck?.IsFadeArmed, deck?.PauseNeedsConfirm,
+            autoPlay is null, autoPlay?.IsOn, autoPlay?.CanToggle);
+        if (_basis is { } was && was.Equals(basis))
+            return;
+        _basis = basis;
         State state = Compute();
         if (state == Current)
             return;
         Current = state;
         Changed?.Invoke();
     }
+
+    private (DeckViewModel?, string?, bool?, bool?, bool?, bool?, bool, bool?, bool?)? _basis;
 
     private State Compute()
     {

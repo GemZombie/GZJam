@@ -675,7 +675,7 @@ public sealed partial class DeckViewModel : ObservableObject
         : "Drag a track here, or right-click › Load to Deck " + Label;
 
     /// <summary>0..1 through the track.</summary>
-    public double Progress => Deck.Length > TimeSpan.Zero ? Deck.Position / Deck.Length : 0;
+    public double Progress => Deck.Length > TimeSpan.Zero ? PlayedTo / Deck.Length : 0;
 
     /// <summary>
     /// How far into the song, 0..1, for the on-air bar (#165): from where the music starts to where
@@ -689,8 +689,8 @@ public sealed partial class DeckViewModel : ObservableObject
             if (!HasTrack)
                 return 0;
             double speed = 1 + Deck.TempoPercent / 100;
-            double played = Math.Max(0, (Deck.Position - Deck.Start).TotalSeconds / speed);
-            double total = played + Deck.Remaining.TotalSeconds;
+            double played = Math.Max(0, (PlayedTo - Deck.Start).TotalSeconds / speed);
+            double total = played + TimeLeft.TotalSeconds;
             return total > 0 ? played / total : 1;
         }
     }
@@ -731,13 +731,13 @@ public sealed partial class DeckViewModel : ObservableObject
 
     public string ReadoutText => Readout switch
     {
-        DeckReadout.Elapsed => Format.Duration(Deck.Position),
+        DeckReadout.Elapsed => Format.Duration(PlayedTo),
         DeckReadout.Bpm => BpmText,
-        _ => HasTrack ? "-" + Format.Duration(Deck.Remaining) : "-0:00",
+        _ => HasTrack ? "-" + Format.Duration(TimeLeft) : "-0:00",
     };
 
     /// <summary>Time left, whichever readout the deck shows: for the line in place of hidden decks (#164).</summary>
-    public string TimeLeftText => HasTrack ? "-" + Format.Duration(Deck.Remaining) : "";
+    public string TimeLeftText => HasTrack ? "-" + Format.Duration(TimeLeft) : "";
 
     /// <summary>How long before the music ends the readout starts blinking, as on CDJs.</summary>
     internal static readonly TimeSpan EndingWarning = TimeSpan.FromSeconds(30);
@@ -746,18 +746,18 @@ public sealed partial class DeckViewModel : ObservableObject
     /// The song the room hears is in its last <see cref="EndingWarning"/> (to where its music
     /// ends: after trimmed silence, with the tempo and armed jumps counted): get the next one ready.
     /// </summary>
-    public bool IsEnding => IsOnAir && Deck.Remaining is var left && left > TimeSpan.Zero && left <= EndingWarning;
+    public bool IsEnding => IsOnAir && TimeLeft is var left && left > TimeSpan.Zero && left <= EndingWarning;
 
     /// <summary>The readout blinks slowly while <see cref="IsEnding"/>: dimmed for the second half of each second left.</summary>
-    public bool IsReadoutDimmed => IsEnding && Deck.Remaining.TotalSeconds % 1 < 0.5;
+    public bool IsReadoutDimmed => IsEnding && TimeLeft.TotalSeconds % 1 < 0.5;
 
     public string ReadoutCaption => Readout switch
     {
         DeckReadout.Elapsed => $"elapsed of {Format.Duration(Deck.Length)}",
         DeckReadout.Bpm => $"{BpmCaption} · {TempoText}",
         _ => (Deck.FadesAt ?? Deck.EndFadesAt) is { } fadesAt
-            ? $"{Format.Duration(Deck.Position)} / fade {Format.Duration(fadesAt)}"   // auto-play's limit (#98), or the song's own fade (#267)
-            : $"{Format.Duration(Deck.Position)} / {Format.Duration(Deck.Length)}",
+            ? $"{Format.Duration(PlayedTo)} / fade {Format.Duration(fadesAt)}"   // auto-play's limit (#98), or the song's own fade (#267)
+            : $"{Format.Duration(PlayedTo)} / {Format.Duration(Deck.Length)}",
     };
 
     // ───────────── Commands ─────────────
@@ -1285,22 +1285,108 @@ public sealed partial class DeckViewModel : ObservableObject
         UpdateMatch();
         if ((IsPauseArmed || IsFadeArmed) && !PauseNeedsConfirm)
             Disarm();   // no longer on air (or the setting changed): a single tap pauses or fades again
-        OnPropertyChanged(nameof(IsPlaying));
-        OnPropertyChanged(nameof(IsInRoom));
-        OnPropertyChanged(nameof(IsOnAir));
-        OnPropertyChanged(nameof(IsOffAir));
-        OnPropertyChanged(nameof(Status));
-        OnPropertyChanged(nameof(StatusLight));
-        OnPropertyChanged(nameof(ShowsStatus));
-        OnPropertyChanged(nameof(CanSeek));
-        OnPropertyChanged(nameof(Progress));
-        OnPropertyChanged(nameof(AirProgress));
-        OnPropertyChanged(nameof(PauseNeedsConfirm));
-        OnPropertyChanged(nameof(IsCueOn));
-        OnPropertyChanged(nameof(IsFinished));
-        OnPropertyChanged(nameof(IsReady));
-        RefreshReadout();
+        _tick = (Deck.Position, Deck.Remaining);
+        try
+        {
+            Raise(ref _shown.IsPlaying, IsPlaying, nameof(IsPlaying));
+            Raise(ref _shown.IsInRoom, IsInRoom, nameof(IsInRoom));
+            Raise(ref _shown.IsOnAir, IsOnAir, nameof(IsOnAir));
+            Raise(ref _shown.IsOffAir, IsOffAir, nameof(IsOffAir));
+            Raise(ref _shown.Status, Status, nameof(Status));
+            Raise(ref _shown.StatusLight, StatusLight, nameof(StatusLight));
+            Raise(ref _shown.ShowsStatus, ShowsStatus, nameof(ShowsStatus));
+            Raise(ref _shown.CanSeek, CanSeek, nameof(CanSeek));
+            Raise(ref _shown.Progress, Progress, nameof(Progress));
+            Raise(ref _shown.AirProgress, AirProgress, nameof(AirProgress));
+            Raise(ref _shown.PauseNeedsConfirm, PauseNeedsConfirm, nameof(PauseNeedsConfirm));
+            Raise(ref _shown.IsCueOn, IsCueOn, nameof(IsCueOn));
+            Raise(ref _shown.IsFinished, IsFinished, nameof(IsFinished));
+            Raise(ref _shown.IsReady, IsReady, nameof(IsReady));
+            RefreshReadout();
+            _stale = false;
+        }
+        finally
+        {
+            _tick = null;
+        }
     }
+
+    // ───────────── Only what changed (#365) ─────────────
+    //
+    // The tick refreshes every deck 30 times a second. Raising every readout each time (22 of
+    // them, for four decks, shown or not, loaded or not) was about 2,600 changes a second, each
+    // read again by every binding, many asking BASS where the song is. Now the deck's place and
+    // time left are read once a tick, and a readout is raised only when what it shows changed:
+    // the time texts once a second, not 30 times.
+
+    /// <summary>Where the song is and the time left, read once this tick: the readouts use these while it lasts.</summary>
+    private (TimeSpan Position, TimeSpan Remaining)? _tick;
+
+    private TimeSpan PlayedTo => _tick?.Position ?? Deck.Position;
+    private TimeSpan TimeLeft => _tick?.Remaining ?? Deck.Remaining;
+
+    /// <summary>What each readout showed when it was last raised.</summary>
+    private struct Shown
+    {
+        public bool IsPlaying, IsInRoom, IsOnAir, IsOffAir, StatusLight, ShowsStatus, CanSeek, PauseNeedsConfirm, IsCueOn, IsFinished,
+            IsReady, IsEnding, IsReadoutDimmed;
+        public string? Status;
+        public double Progress, AirProgress;
+        public double? CurrentBpm;
+        public (double? Bpm, double Tempo) BpmCaption;
+        public (DeckReadout Readout, long A, long B, long C) ReadoutText, ReadoutCaption;
+        public long TimeLeftText;
+    }
+
+    private Shown _shown;
+
+    /// <summary>
+    /// A readout was raised some other way (a song loaded, a setting changed): the next refresh
+    /// raises them all once, as what was last shown can't be trusted.
+    /// </summary>
+    private bool _stale = true;
+
+    private bool _raising;
+
+    private static readonly HashSet<string> Refreshed =
+    [
+        nameof(IsPlaying), nameof(IsInRoom), nameof(IsOnAir), nameof(IsOffAir), nameof(Status), nameof(StatusLight), nameof(ShowsStatus),
+        nameof(CanSeek), nameof(Progress), nameof(AirProgress), nameof(PauseNeedsConfirm), nameof(IsCueOn), nameof(IsFinished),
+        nameof(IsReady), nameof(CurrentBpm), nameof(BpmText), nameof(BpmCaption), nameof(ReadoutText), nameof(TimeLeftText),
+        nameof(ReadoutCaption), nameof(IsEnding), nameof(IsReadoutDimmed),
+    ];
+
+    protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (!_raising && (string.IsNullOrEmpty(e.PropertyName) || Refreshed.Contains(e.PropertyName)))
+            _stale = true;
+    }
+
+    /// <summary>Raises <paramref name="name"/> if what it shows (<paramref name="now"/>) isn't what was last raised.</summary>
+    private void Raise<T>(ref T last, T now, string name)
+    {
+        if (!_stale && EqualityComparer<T>.Default.Equals(last, now))
+            return;
+        last = now;
+        RaiseNow(name);
+    }
+
+    private void RaiseNow(string name)
+    {
+        _raising = true;
+        try
+        {
+            OnPropertyChanged(name);
+        }
+        finally
+        {
+            _raising = false;
+        }
+    }
+
+    /// <summary>Whole seconds, as <see cref="Format.Duration"/> shows them.</summary>
+    private static long Seconds(TimeSpan t) => t.Ticks / TimeSpan.TicksPerSecond;
 
     /// <summary>The track's BPM changed (typed by the DJ, say): show it.</summary>
     internal void TrackBpmChanged()
@@ -1309,15 +1395,34 @@ public sealed partial class DeckViewModel : ObservableObject
         RefreshReadout();
     }
 
+    /// <summary>The readout and its caption, raised if what they show changed (compared without making their text).</summary>
     private void RefreshReadout()
     {
-        OnPropertyChanged(nameof(CurrentBpm));
-        OnPropertyChanged(nameof(BpmText));
-        OnPropertyChanged(nameof(BpmCaption));
-        OnPropertyChanged(nameof(ReadoutText));
-        OnPropertyChanged(nameof(TimeLeftText));
-        OnPropertyChanged(nameof(ReadoutCaption));
-        OnPropertyChanged(nameof(IsEnding));
-        OnPropertyChanged(nameof(IsReadoutDimmed));
+        double? bpm = CurrentBpm;
+        double? shownBpm = bpm is { } b ? Math.Round(b, 1) : null;
+        if (_stale || shownBpm != _shown.CurrentBpm)
+        {
+            _shown.CurrentBpm = shownBpm;
+            RaiseNow(nameof(CurrentBpm));
+            RaiseNow(nameof(BpmText));
+        }
+        Raise(ref _shown.BpmCaption, (TrackBpm, Deck.TempoPercent), nameof(BpmCaption));
+        bool loaded = HasTrack;
+        long left = loaded ? Seconds(TimeLeft) : -1;
+        Raise(ref _shown.ReadoutText, Readout switch
+        {
+            DeckReadout.Elapsed => (Readout, Seconds(PlayedTo), 0, 0),
+            DeckReadout.Bpm => (Readout, (long)Math.Round((shownBpm ?? -1) * 10), 0, 0),
+            _ => (Readout, left, 0, 0),
+        }, nameof(ReadoutText));
+        Raise(ref _shown.TimeLeftText, left, nameof(TimeLeftText));
+        Raise(ref _shown.ReadoutCaption, Readout switch
+        {
+            DeckReadout.Elapsed => (Readout, Seconds(Deck.Length), 0, 0),
+            DeckReadout.Bpm => (Readout, (long)Math.Round((TrackBpm ?? -1) * 10), (long)Math.Round(Deck.TempoPercent * 10), 0),
+            _ => (Readout, Seconds(PlayedTo), (Deck.FadesAt ?? Deck.EndFadesAt) is { } fadesAt ? Seconds(fadesAt) : -1, Seconds(Deck.Length)),
+        }, nameof(ReadoutCaption));
+        Raise(ref _shown.IsEnding, IsEnding, nameof(IsEnding));
+        Raise(ref _shown.IsReadoutDimmed, IsReadoutDimmed, nameof(IsReadoutDimmed));
     }
 }
