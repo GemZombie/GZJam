@@ -73,6 +73,12 @@ Better:
   it's drawn alongside the screen, by the part that puts each frame on it, and the window only
   says when something changes. It also stops moving while the decks are hidden or GZJam is
   minimized, instead of drawing what nobody sees.
+- **The decks' readouts do only the work that shows** (#365). Thirty times a second, every
+  deck's 22 readouts (time left, the bars, ON AIR and the rest) said they'd changed, for all four
+  decks whether shown, loaded or not: about 2,600 updates a second, many asking the sound system
+  where the song was. Now each deck's place is read once each time, and a readout is updated only
+  when what it shows changed: the time once a second, an empty or paused deck not at all. The
+  air line, the preview's time and the night's safety copy do the same.
 
 ## 1.7.0 (2026-11-11)
 

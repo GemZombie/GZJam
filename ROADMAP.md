@@ -199,6 +199,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   background
 - [The close-up waveform keeps gliding](https://github.com/GemZombie/GZJam/issues/364) when the
   computer is busy: drawn alongside the screen, not by the window
+- [The decks' readouts do only the work that shows](https://github.com/GemZombie/GZJam/issues/365):
+  updated when what they show changes, not 30 times a second for every deck
 - [Big libraries listed quickly](https://github.com/GemZombie/GZJam/issues/368): a list of 60,000
   songs is sorted where the library reads it, not on the screen's time
 - Curating new music in Files: [sort a folder by when songs arrived](https://github.com/GemZombie/GZJam/issues/383),
@@ -228,8 +230,7 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
   only if it has read its music since, and [sending a playlist](https://github.com/GemZombie/GZJam/issues/396)
   to a server that already has one by that name asks before replacing it
 
-and a smoother screen, from a performance review: [the decks' readouts](https://github.com/GemZombie/GZJam/issues/365)
-and [waveforms and meters](https://github.com/GemZombie/GZJam/issues/366) doing only the work that shows;
+and a smoother screen, from a performance review: [waveforms and meters](https://github.com/GemZombie/GZJam/issues/366) doing only the work that shows;
 [first-time analysis](https://github.com/GemZombie/GZJam/issues/369) going gently while music plays;
 and [a look at a rare short dropout](https://github.com/GemZombie/GZJam/issues/381) on a busy computer
 
