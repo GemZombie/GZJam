@@ -597,6 +597,19 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial string? Hint { get; private set; }
 
+    /// <summary>When this deck's song starts playing, by the clock ("now", "9:42 PM"); set with the time the queue ends (<see cref="MainWindowViewModel.UpdateQueueEnd"/>), for the deck's row atop the queue.</summary>
+    [ObservableProperty]
+    public partial string StartsText { get; private set; } = "";
+
+    private ShownStart _start;
+
+    /// <summary>Shows when its song starts ("now" while it plays to the room), made only when that changes (#297).</summary>
+    internal void ShowStart(DateTime? at, bool guess, DateTime now, bool playing = false)
+    {
+        if (_start.Update(at, guess, now, playing) is { } text)
+            StartsText = text;
+    }
+
     /// <summary>The first of two taps needed to pause an on-air deck has happened.</summary>
     [ObservableProperty]
     public partial bool IsPauseArmed { get; private set; }

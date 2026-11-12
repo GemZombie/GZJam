@@ -46,7 +46,7 @@ public sealed class QueueColumnsTests
         Assert.Equal(4, Shown<TextBlock>(app, "q-album").Count);
         Assert.Contains(Shown<TextBlock>(app, "q-album"), t => t.Text == app.ViewModel.Queue.Items[0].Track.Album);
         Assert.Empty(Shown<TextBlock>(app, "q-time"));
-        Assert.Equal(["Genre", "Year", "Played", "Time"], app.Settings.HiddenQueueColumns);   // remembered
+        Assert.Equal(["Genre", "Year", "Played", "Starts", "Time"], app.Settings.HiddenQueueColumns);   // remembered
         Assert.True(Item(app, "Album").IsChecked);
 
         // Everything, in a wide queue (#178): a picture to look at.
@@ -91,7 +91,7 @@ public sealed class QueueColumnsTests
         var song = Rows()[2];
         bool Dropped(string part) => song.IsDropped(song.Children.Single(c => c.Classes.Contains(part)));
         Assert.True(Dropped("q-album"));
-        Assert.False(Dropped("q-bpm"));
+        Assert.False(Dropped("q-time"));
         Assert.True(song.Children.Single(c => c.Classes.Contains("q-title")).Bounds.Width >= song.FillMinWidth);
 
         // At the default width with the default columns, everything shows, as before.
@@ -99,11 +99,13 @@ public sealed class QueueColumnsTests
         plain.ViewModel.Queue.Add(plain.Library.Results.Take(1).ToList());
         AppHarness.Settle(200);
         var first = plain.Window.FindControl<ListBox>("QueueList")!.GetVisualDescendants().OfType<FitRow>().First();
-        Assert.DoesNotContain(first.Children, c => c.IsVisible && first.IsDropped(c));
+        Assert.True(!first.Children.Any(c => c.IsVisible && first.IsDropped(c)), string.Join(",", first.Children.Where(c => c.IsVisible && first.IsDropped(c)).Select(c => FitRow.GetKey(c))) + " hidden=" + string.Join(",", plain.Settings.HiddenQueueColumns));
         foreach (string name in new[] { "AutoPlayRow", "QueueTabsRow" })
         {
+            // The "ends" text and the queue's summary are the first to give way, by design: with a font
+            // a little wider (Linux), the summary goes at the default width, so the buttons can stay.
             var row = plain.Window.FindControl<FitRow>(name)!;
-            Assert.False(row.Children.Any(row.IsDropped), $"{name}, {row.Bounds.Width} px: "
+            Assert.False(row.Children.Any(c => c.IsVisible && row.IsDropped(c) && c.Name is not ("QueueEnds" or "QueueSummary")), $"{name}, {row.Bounds.Width} px: "
                 + string.Join(", ", row.Children.Select(c => $"{c.GetType().Name}{(row.IsDropped(c) ? " (gone)" : "")} {c.DesiredSize.Width}")));
         }
     }

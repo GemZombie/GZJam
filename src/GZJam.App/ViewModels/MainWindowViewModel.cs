@@ -118,6 +118,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 };
             }
         }
+        Plan = new PlannedStartViewModel(this, settings);
         Servers = new ServersViewModel(this, database, settings, passwords ?? new GZJam.Library.Servers.MemoryPasswordStore());
         Library.ServerNodes = () => Servers.TreeNodes;
         Servers.Arrived += async (waitingPath, item) =>
@@ -1137,6 +1138,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Clock = DateTime.Now.ToString("t");
         UpdateQueueEnd();
     }
+
+    /// <summary>The start time the DJ planned, which the queue counts from until the music starts.</summary>
+    public PlannedStartViewModel Plan { get; }
 
     public void Start()
     {

@@ -53,6 +53,14 @@ New:
   the next song with another, press Space on a song in the list or the queue, then 🎧 again to
   come back. Pressing it again stops the preview.
 
+- **When each song in the queue plays, and a start time to plan a night from** (#297, thanks to
+  Danny Cherry, who built it in his fork). Turn on the queue's *Plays at* column (right-click ›
+  *Show*) and each song says when it will start: after the song playing, the songs before it with
+  their fade-outs and jumps, and auto-play's gaps and *Fade after*. The decks' songs show theirs,
+  and the one playing says *now*. The new clock in the queue's header sets when you mean to start
+  ("8:30 PM tonight"): until the music starts, the times, and **ENDS** at the top, count from then,
+  so a set built in the afternoon shows how far into the evening it goes.
+
 Better:
 
 - **A deck's buttons fit a narrow window** (#378). On a smaller laptop screen, or a window made

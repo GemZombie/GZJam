@@ -212,6 +212,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   to the Recycle Bin
 - [Preview the song on a deck](https://github.com/GemZombie/GZJam/issues/378) in the headphones,
   by button or key, without moving the deck
+- [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
+  column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
 
 ## Planned next
 
@@ -222,8 +224,6 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
-- [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
-  column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
 - [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
   nested, folded away, and brought in from a folder of M3U files with its subfolders
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),

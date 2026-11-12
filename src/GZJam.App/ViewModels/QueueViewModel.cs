@@ -54,6 +54,19 @@ public sealed partial class QueueItem : ObservableObject
         ServerProblem = problem;
         CanRetry = canRetry;
     }
+
+    /// <summary>When it will start playing, by the clock ("9:42 PM"); set with the time the queue ends (<see cref="MainWindowViewModel.UpdateQueueEnd"/>).</summary>
+    [ObservableProperty]
+    public partial string StartsText { get; private set; } = "";
+
+    private ShownStart _start;
+
+    /// <summary>Shows when it starts: the text is made only when the minute it shows changes (#297).</summary>
+    internal void ShowStart(DateTime? at, bool guess, DateTime now)
+    {
+        if (_start.Update(at, guess, now) is { } text)
+            StartsText = text;
+    }
 }
 
 /// <summary>The upcoming tracks, in play order.</summary>

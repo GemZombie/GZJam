@@ -985,17 +985,40 @@
                             Click="OnHistoryTabClick">
                 <TextBlock Text="History" TextTrimming="CharacterEllipsis" />
               </ToggleButton>
-              <TextBlock x:Name="QueueSummary" c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+              <TextBlock x:Name="QueueSummary" c:FitRow.DropOrder="2" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding Queue.Summary}" IsVisible="{Binding ShowQueue}" />
+              <!-- The planned start (PlannedStartViewModel): a small clock that is lit when one is set, and its time while there is room -->
+              <TextBlock x:Name="QueuePlanText" c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                         Text="{Binding Plan.PlannedTimeText}" IsVisible="{Binding Plan.HasPlannedStart}" />
+              <Button x:Name="QueueStartButton" c:FitRow.DropOrder="4" Classes="link panel-fold" Classes.planned="{Binding Plan.HasPlannedStart}"
+                      IsVisible="{Binding ShowQueue}" ToolTip.Tip="{Binding Plan.PlannedStartTip}" AutomationProperties.Name="{Binding Plan.PlannedStartText}">
+                <Path Classes="start-clock" Data="M 8,1 A 7,7 0 1 0 8.01,1 Z M 8,4 V 8 L 11,10" />
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedLeft" Opened="OnQueueStartFlyoutOpened">
+                    <StackPanel x:Name="QueueStartPanel" x:DataType="vm:PlannedStartViewModel" Width="270" Spacing="8">
+                      <TextBlock Classes="label" Text="PLANNED START" />
+                      <CalendarDatePicker x:Name="QueueStartDate" SelectedDate="{Binding DraftDate, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                      <TimePicker x:Name="QueueStartTime" SelectedTime="{Binding DraftTime, Mode=TwoWay}" ClockIdentifier="{Binding ClockIdentifier}"
+                                  MinuteIncrement="5" HorizontalAlignment="Stretch" />
+                      <TextBlock Classes="setting-help" TextWrapping="Wrap"
+                                 Text="Until the music starts, the times in the queue are counted from this. Once a song is playing, they follow the real time." />
+                      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button x:Name="QueueStartClearButton" Classes="hw" Content="CLEAR" IsEnabled="{Binding HasPlannedStart}" Click="OnQueueStartClearClick" />
+                        <Button x:Name="QueueStartSetButton" Classes="hw" Content="SET" Click="OnQueueStartSetClick" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
               <TextBlock c:FitRow.DropOrder="1" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                          Text="{Binding History.Summary}" IsVisible="{Binding ShowHistory}" />
               <!-- Give the queue the room in the middle, or the song list back (#178): the divider moves
                    left, or right again. The tip names the key (MainWindow.Panes). -->
-              <Button x:Name="QueueWideButton" c:FitRow.DropOrder="2" Classes="link panel-fold" Click="OnQueueWideClick">
+              <Button x:Name="QueueWideButton" c:FitRow.DropOrder="3" Classes="link panel-fold" Click="OnQueueWideClick">
                 <Path Classes="queue-wide" Data="M 0,0 H 1.6 V 12 H 0 Z M 3.5,6 8.3,1.2 9.4,2.3 6.5,5.2 H 15 V 6.8 H 6.5 L 9.4,9.7 8.3,10.8 Z" />
               </Button>
               <!-- Fold the whole panel into a strip at the window's edge, for more song list -->
-              <Button x:Name="FoldQueueButton" c:FitRow.DropOrder="3" Classes="link panel-fold" Click="OnFoldQueueClick"
+              <Button x:Name="FoldQueueButton" c:FitRow.DropOrder="5" Classes="link panel-fold" Click="OnFoldQueueClick"
                       ToolTip.Tip="Fold the queue panel away">
                 <Path Classes="strip-chevron" Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
               </Button>
@@ -1092,7 +1115,7 @@
             <Panel>
             <c:FitRow x:Name="QueueHeader" Spacing="6" FillMinWidth="74" Margin="0,0,2,0" Background="Transparent">
               <Panel Width="26" />
-              <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="8" Classes="q-number" Text="#" Width="20" TextAlignment="Right" />
+              <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="9" Classes="q-number" Text="#" Width="20" TextAlignment="Right" />
               <Panel c:FitRow.Key="Art" c:FitRow.DropOrder="7" Classes="q-art" Width="30" Margin="2,0,0,0" Background="Transparent"
                      ToolTip.Tip="Album art" />
               <TextBlock c:FitRow.Key="Title" c:FitRow.Fills="True" Classes="trims" Text="Title · Artist" />
@@ -1104,9 +1127,11 @@
                          ToolTip.Tip="Rating" />
               <TextBlock c:FitRow.Key="Energy" c:FitRow.DropOrder="5" Classes="q-energy" Text="E" Width="12" Margin="3,0,0,0" TextAlignment="Center"
                          ToolTip.Tip="Energy" />
-              <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="10" Classes="q-bpm" Text="BPM" Margin="3,0,0,0" TextAlignment="Right" />
-              <TextBlock c:FitRow.Key="Time" c:FitRow.DropOrder="11" Classes="q-time" Text="Time" Margin="3,0,0,0" TextAlignment="Right" />
-              <Panel c:FitRow.DropOrder="9" Width="24" />
+              <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="11" Classes="q-bpm" Text="BPM" Margin="3,0,0,0" TextAlignment="Right" />
+              <TextBlock c:FitRow.Key="Starts" c:FitRow.DropOrder="8" Classes="q-starts" Text="Plays at" Margin="3,0,0,0" TextAlignment="Right"
+                         ToolTip.Tip="When each song will start playing, from now or from the start time you set" />
+              <TextBlock c:FitRow.Key="Time" c:FitRow.DropOrder="13" Classes="q-time" Text="Time" Margin="3,0,0,0" TextAlignment="Right" />
+              <Panel c:FitRow.DropOrder="10" Width="24" />
             </c:FitRow>
             <!-- The lines to drag between the names, lit under the pointer (#198) -->
             <c:FitRowLines x:Name="QueueColumnLines" Row="{Binding #QueueHeader}" Brush="{StaticResource DimBrush}"
@@ -1137,7 +1162,7 @@
                         </Panel>
                       </Button>
                       <!-- At the very narrowest, after everything else: the play key keeps the deck's color -->
-                      <StackPanel c:FitRow.DropOrder="12" VerticalAlignment="Center" Spacing="2" MinWidth="50">
+                      <StackPanel c:FitRow.DropOrder="14" VerticalAlignment="Center" Spacing="2" MinWidth="50">
                         <TextBlock Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
                                    Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
                         <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" FontSize="9.5" />
@@ -1166,8 +1191,10 @@
                       <c:EnergyIcon c:FitRow.Key="Energy" c:FitRow.DropOrder="5" Classes="q-energy song" Energy="{Binding Track.Energy}" ShowUnset="False"
                                     Width="12" Height="10" Margin="3,0,0,0" VerticalAlignment="Center" />
                       <!-- As the room hears it: the song's BPM with the deck's pitch -->
-                      <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="10" Classes="muted mono q-bpm song" Text="{Binding BpmText}" FontSize="11" Margin="3,0,0,0"
+                      <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="11" Classes="muted mono q-bpm song" Text="{Binding BpmText}" FontSize="11" Margin="3,0,0,0"
                                  TextAlignment="Right" VerticalAlignment="Center" ToolTip.Tip="{Binding BpmCaption}" />
+                      <TextBlock c:FitRow.Key="Starts" c:FitRow.DropOrder="8" Classes="muted mono q-starts song" Text="{Binding StartsText}" FontSize="11" Margin="3,0,0,0"
+                                 TextAlignment="Right" VerticalAlignment="Center" ToolTip.Tip="When this song starts playing" />
                       <!-- As wide as the queue's time and preview key (its width set with the columns', #188), so
                            the BPM and the rest line up with the queue's below -->
                       <TextBlock c:FitRow.Key="TimeLeft" Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}" TextAlignment="Right"
@@ -1198,7 +1225,7 @@
                               ToolTip.Tip="Drag to reorder">
                         <TextBlock Classes="dim" Text="⋮⋮" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
                       </Border>
-                      <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="8" Classes="dim mono q-number" Text="{Binding Number}" FontSize="11" Width="20"
+                      <TextBlock c:FitRow.Key="Number" c:FitRow.DropOrder="9" Classes="dim mono q-number" Text="{Binding Number}" FontSize="11" Width="20"
                                  TextAlignment="Right" VerticalAlignment="Center" />
                       <c:AlbumArt c:FitRow.Key="Art" c:FitRow.DropOrder="7" Classes="q-art" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
                                   SongPath="{Binding Track.Path}" />
@@ -1237,11 +1264,13 @@
                                     VerticalAlignment="Center" />
                       <c:EnergyIcon c:FitRow.Key="Energy" c:FitRow.DropOrder="5" Classes="q-energy" Energy="{Binding Track.Energy}" ShowUnset="False" Width="12" Height="10"
                                     Margin="3,0,0,0" VerticalAlignment="Center" />
-                      <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="10" Classes="muted mono q-bpm" Text="{Binding BpmText}" FontSize="11" Margin="3,0,0,0"
+                      <TextBlock c:FitRow.Key="BPM" c:FitRow.DropOrder="11" Classes="muted mono q-bpm" Text="{Binding BpmText}" FontSize="11" Margin="3,0,0,0"
                                  TextAlignment="Right" VerticalAlignment="Center" />
-                      <TextBlock c:FitRow.Key="Time" c:FitRow.DropOrder="11" Classes="muted mono q-time" Text="{Binding DurationText}" FontSize="11" Margin="3,0,0,0"
+                      <TextBlock c:FitRow.Key="Starts" c:FitRow.DropOrder="8" Classes="muted mono q-starts" Text="{Binding StartsText}" FontSize="11" Margin="3,0,0,0"
+                                 TextAlignment="Right" VerticalAlignment="Center" ToolTip.Tip="When it will start playing" />
+                      <TextBlock c:FitRow.Key="Time" c:FitRow.DropOrder="13" Classes="muted mono q-time" Text="{Binding DurationText}" FontSize="11" Margin="3,0,0,0"
                                  TextAlignment="Right" VerticalAlignment="Center" />
-                      <Button c:FitRow.DropOrder="9" Classes="row-icon q-preview" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
+                      <Button c:FitRow.DropOrder="10" Classes="row-icon q-preview" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
                               Width="24" VerticalAlignment="Center">
                         <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
                               StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
