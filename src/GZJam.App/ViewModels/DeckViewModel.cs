@@ -612,6 +612,12 @@ public sealed partial class DeckViewModel : ObservableObject
 
     /// <summary>Loaded with a track that hasn't been played out yet.</summary>
     public bool IsReady => HasTrack && !IsPlaying && !IsFinished;
+
+    /// <summary>The song can be heard in the headphones' preview (#378): loaded, and the deck not playing.</summary>
+    public bool CanPreview => HasTrack && !IsPlaying;
+
+    /// <summary>This deck's song is the one in the headphones' preview (#378): its button lit.</summary>
+    public bool IsPreviewed => Track is { } track && _owner.Preview?.Track?.Path == track.Path;
     public bool IsPlaying => Deck.IsPlaying;
 
     /// <summary>The crossfader lets the room hear this deck.</summary>
@@ -728,6 +734,7 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>The play and CUE keys' tooltips, with their keyboard shortcuts (#132).</summary>
     public string PlayTip => $"Play / pause · key: {Shortcuts.Command}+{Label}";
     public string CueTip => $"Cue: send this deck to your headphones · key: {Shortcuts.Command}+Shift+{Label}";
+    public string PreviewTip => $"Hear this song in your headphones from the start; the deck stays where it is · key: {Shortcuts.Command}+{Shortcuts.Alt}+Shift+{Label}";
 
     public string ReadoutText => Readout switch
     {
@@ -777,6 +784,26 @@ public sealed partial class DeckViewModel : ObservableObject
 
     [RelayCommand]
     private void ToggleCue() => IsCueOn = !IsCueOn;
+
+    /// <summary>
+    /// The deck's song in the headphones' preview, from the start, or the preview stopped if it's
+    /// there already (#378): to compare the next song with another without cueing and playing it,
+    /// then going back to where it was. The preview player isn't the deck, so the deck doesn't
+    /// move. Not while the deck plays: CUE is the way to hear it then.
+    /// </summary>
+    [RelayCommand]
+    private void PreviewSong()
+    {
+        if (Track is not { } track)
+            return;
+        if (IsPlaying && !IsPreviewed)
+        {
+            ShowHint("Playing: use CUE to hear it");
+            return;
+        }
+        _owner.Preview?.Toggle(track);
+        Raise(ref _shown.IsPreviewed, IsPreviewed, nameof(IsPreviewed));
+    }
 
     /// <summary>
     /// Whether pausing needs a second tap (or a press-and-hold): only for a deck the room is
@@ -1302,6 +1329,8 @@ public sealed partial class DeckViewModel : ObservableObject
             Raise(ref _shown.IsCueOn, IsCueOn, nameof(IsCueOn));
             Raise(ref _shown.IsFinished, IsFinished, nameof(IsFinished));
             Raise(ref _shown.IsReady, IsReady, nameof(IsReady));
+            Raise(ref _shown.CanPreview, CanPreview, nameof(CanPreview));
+            Raise(ref _shown.IsPreviewed, IsPreviewed, nameof(IsPreviewed));
             RefreshReadout();
             _stale = false;
         }
@@ -1329,7 +1358,7 @@ public sealed partial class DeckViewModel : ObservableObject
     private struct Shown
     {
         public bool IsPlaying, IsInRoom, IsOnAir, IsOffAir, StatusLight, ShowsStatus, CanSeek, PauseNeedsConfirm, IsCueOn, IsFinished,
-            IsReady, IsEnding, IsReadoutDimmed;
+            IsReady, IsEnding, IsReadoutDimmed, CanPreview, IsPreviewed;
         public string? Status;
         public double Progress, AirProgress;
         public double? CurrentBpm;
@@ -1353,7 +1382,7 @@ public sealed partial class DeckViewModel : ObservableObject
         nameof(IsPlaying), nameof(IsInRoom), nameof(IsOnAir), nameof(IsOffAir), nameof(Status), nameof(StatusLight), nameof(ShowsStatus),
         nameof(CanSeek), nameof(Progress), nameof(AirProgress), nameof(PauseNeedsConfirm), nameof(IsCueOn), nameof(IsFinished),
         nameof(IsReady), nameof(CurrentBpm), nameof(BpmText), nameof(BpmCaption), nameof(ReadoutText), nameof(TimeLeftText),
-        nameof(ReadoutCaption), nameof(IsEnding), nameof(IsReadoutDimmed),
+        nameof(ReadoutCaption), nameof(IsEnding), nameof(IsReadoutDimmed), nameof(CanPreview), nameof(IsPreviewed),
     ];
 
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)

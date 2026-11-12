@@ -11,6 +11,7 @@ namespace GZJam.App.Views;
 /// <item>Ctrl+1..4: play or pause that deck (with the two-tap rule on air, as its button)</item>
 /// <item>Ctrl+Shift+1..4: its CUE</item>
 /// <item>Ctrl+Alt+1..4: load the selected song onto it (from the queue if that's where you are)</item>
+/// <item>Ctrl+Alt+Shift+1..4: its song in the headphones' preview, the deck left where it is (#378)</item>
 /// <item>Ctrl+← / →: the crossfader glides to Deck 1 / 2</item>
 /// <item>Ctrl+P: auto-play on or off</item>
 /// </list>
@@ -36,6 +37,8 @@ public partial class MainWindow
                 deck.IsCueOn = !deck.IsCueOn;
             else if (extra == KeyModifiers.Alt && !typing)   // Ctrl+Alt is AltGr in a text box: a character
                 LoadSelectedOnto(deck);
+            else if (extra == (KeyModifiers.Alt | KeyModifiers.Shift) && !typing)
+                deck.PreviewSongCommand.Execute(null);
             else
                 return;
             e.Handled = true;

@@ -373,6 +373,24 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: a deck's song in the headphones' preview (#378, 1.8)
+
+- `DeckViewModel.PreviewSongCommand` hands the deck's song to `PreviewViewModel.Toggle`, the same
+  as a row's 🎧: from the start, or stopped if it's already the one previewing. The preview
+  player isn't the deck, so the deck's place, play state and CUE are never touched.
+- Offered only on a loaded deck that isn't playing (`CanPreview`): a 🎧 beside Eject on a full
+  deck (otherwise disabled and see-through, its place kept so nothing moves when the deck
+  starts, as `LayoutStabilityTests` asks), lit (`IsPreviewed`) while it's the song in the headphones, and *Preview in headphones* /
+  *Stop the preview* in the song's menu (right-click, or **⋯** on four decks). On a playing deck
+  the key shows "Playing: use CUE to hear it"; a preview already going can still be stopped.
+- **Ctrl+Alt+Shift+1..4** (Cmd+Option+Shift on macOS), in `MainWindow.DeckKeys.cs`. Not in a text
+  box, as Ctrl+Alt is AltGr there. Nothing on Windows, macOS or the usual Linux desktops uses
+  it with a number.
+- Comparing needs nothing new: Space previews the selected song instead, and the deck's key or
+  button brings its song back. Both readouts are raised on the tick, only when they change (#365).
+- Not done: Up from the first song in the queue moving onto the next deck (#404). The queue is
+  the keyboard's last stop for now.
+
 ### Status: the dropout during a long .NET pause, looked into (#381, 1.8)
 
 - `MemoryPauseTests` (a deck on the real speakers while full compacting collections of a

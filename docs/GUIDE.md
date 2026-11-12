@@ -194,6 +194,11 @@ the decks back.
   see at a glance how far in you are. It's full when the time left reaches 0:00 (where the music
   ends, not the file).
 - **Eject** empties a deck that isn't playing.
+- **🎧 beside Eject** plays the deck's song in the headphones' preview, from the start, without
+  touching the deck: to compare the next song with another one, then press Space on a song in the
+  list or the queue to switch to it, and 🎧 again to come back. The deck stays where it was, ready
+  to play. **Ctrl+Alt+Shift+1 / 2** does the same (Cmd+Option+Shift on a Mac); with four decks
+  it's in the deck's **⋯** menu. Not on a deck that's playing: use CUE to hear that.
 - **One song per side:** with four decks, Decks 1 and 3 share the crossfader's left side and 2 and
   4 the right. GZJam won't start a deck the room would hear while the other deck on its side is on
   air ("Deck 1 is playing. Fade it out first").
@@ -1085,6 +1090,7 @@ it's where you are, with a blue bar at its edge and its name in blue.
 | **Ctrl+1 / Ctrl+2** (Cmd on Mac; 3 and 4 with four decks) | play or pause that deck (two presses on air, if you've chosen two taps) |
 | **Ctrl+Shift+1 / 2** | that deck's CUE (headphones) on or off |
 | **Ctrl+Alt+1 / 2** (Cmd+Option on Mac) | load the selected song onto that deck: from the queue if you're in it (it leaves the queue), otherwise from the library |
+| **Ctrl+Alt+Shift+1 / 2** (Cmd+Option+Shift on Mac) | that deck's song in the headphones' preview, from the start, or stop it; the deck stays where it is (not while it plays: use CUE) |
 | **Ctrl+← / Ctrl+→** | the crossfader glides to Deck 1 / Deck 2 (in the search box they move by word, as usual) |
 | **Ctrl+P** | auto-play on or off |
 | **Ctrl+↑ / Ctrl+↓** | MAIN volume up or down, a little each press |

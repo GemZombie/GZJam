@@ -5,4 +5,7 @@ internal static class Shortcuts
 {
     /// <summary>The command key: Cmd on a Mac, Ctrl elsewhere.</summary>
     public static string Command => OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl";
+
+    /// <summary>The Alt key: Option on a Mac.</summary>
+    public static string Alt => OperatingSystem.IsMacOS() ? "Option" : "Alt";
 }

@@ -15,6 +15,11 @@
     <Style Selector="v|DeckView:not(.compact) :is(Control).compact-only">
       <Setter Property="IsVisible" Value="False" />
     </Style>
+    <!-- The headphones button keeps its place when it isn't offered (#378): nothing beside it moves
+         when the deck starts playing. -->
+    <Style Selector="Button.deck-preview:disabled">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
     <Style Selector="Grid.deck-rows">
       <Setter Property="RowSpacing" Value="10" />
     </Style>
@@ -413,10 +418,16 @@
                 IsEnabled="{Binding IsPlaying}" ToolTip.Tip="Fade out and stop (length in Settings)">
           <TextBlock Text="FADE OUT" />
         </Button>
-        <Panel Grid.Column="3" Classes="full-only">
-          <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}" HorizontalAlignment="Left"
+        <StackPanel Grid.Column="3" Classes="full-only" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+          <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}"
                   IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
-        </Panel>
+          <!-- The song in the headphones' preview, the deck left where it is (#378) -->
+          <Button x:Name="PreviewButton" Classes="row-icon deck-preview" Classes.active="{Binding IsPreviewed}" Command="{Binding PreviewSongCommand}"
+                  IsEnabled="{Binding CanPreview}" ToolTip.Tip="{Binding PreviewTip}" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+          </Button>
+        </StackPanel>
 
         <Grid Grid.Column="4" ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalAlignment="Center">
           <Button Classes="link compact-only" Padding="2,0" Command="{Binding ResetTempoCommand}" VerticalAlignment="Center"
