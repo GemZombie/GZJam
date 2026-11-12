@@ -77,12 +77,52 @@ public sealed partial class LibraryDatabase
             throw new LibraryTooNewException(version, Migrations.Length);
         }
 
-        // Apply each upgrade the database hasn't had yet, all or nothing.
+        // Apply each upgrade the database hasn't had yet: a run of them at a time, all or nothing.
+        // One that makes a table again (Rebuilds) runs on its own with foreign keys off, which
+        // can't change inside a transaction.
+        long step = version;
+        while (step < Migrations.Length)
+        {
+            bool rebuild = Rebuilds.Contains((int)step + 1);
+            long end = step + 1;
+            while (!rebuild && end < Migrations.Length && !Rebuilds.Contains((int)end + 1))
+                end++;
+            if (rebuild)
+                Execute(c, "PRAGMA foreign_keys = OFF;");
+            try
+            {
+                using var tx = c.BeginTransaction();
+                for (long s = step; s < end; s++)
+                    Execute(c, Migrations[s]);
+                if (rebuild && Scalar(c, "PRAGMA foreign_key_check;") is not null)
+                    throw new InvalidOperationException($"Upgrade {end} of the library left a reference broken; nothing was changed.");
+                Execute(c, $"PRAGMA user_version = {end};");
+                if (end >= 19)
+                    Execute(c, $"UPDATE schema_compat SET oldest_reader = max(oldest_reader, {OldestReader});");
+                tx.Commit();
+            }
+            finally
+            {
+                if (rebuild)
+                    Execute(c, "PRAGMA foreign_keys = ON;");   // the connection goes back to the pool
+            }
+            step = end;
+        }
+    }
+
+    /// <summary>
+    /// For tests of an upgrade: a new library as a GZJam that knew only the first
+    /// <paramref name="upgrades"/> upgrades left it, made the way that GZJam made it.
+    /// </summary>
+    internal static void CreateAsOf(string path, int upgrades)
+    {
+        using var c = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, ForeignKeys = true, Pooling = false }.ToString());
+        c.Open();
+        Execute(c, "PRAGMA journal_mode = WAL;");
         using var tx = c.BeginTransaction();
-        for (long step = version; step < Migrations.Length; step++)
+        for (int step = 0; step < upgrades; step++)
             Execute(c, Migrations[step]);
-        Execute(c, $"PRAGMA user_version = {Migrations.Length};");
-        Execute(c, $"UPDATE schema_compat SET oldest_reader = max(oldest_reader, {OldestReader});");
+        Execute(c, $"PRAGMA user_version = {upgrades};");
         tx.Commit();
     }
 
@@ -615,7 +655,38 @@ public sealed partial class LibraryDatabase
                 PRIMARY KEY (playlist_id, server_id)
             );
             """,
+
+        // 34: Playlist folders (#354), nested as deep as the DJ likes; deleting one takes what's
+        // in it. A playlist's name is unique within its folder now, not across all of them, so the
+        // playlists table is made again without its UNIQUE (see Rebuilds: foreign keys off, or its
+        // songs would go with the old table), the same ids and names, all at the top. Only adds,
+        // as an older GZJam sees it: the same columns and one more, and it shows the playlists in
+        // one list, as before.
+        """
+            CREATE TABLE playlist_folders (
+                id        INTEGER PRIMARY KEY,
+                parent_id INTEGER REFERENCES playlist_folders(id) ON DELETE CASCADE,
+                name      TEXT NOT NULL COLLATE NOCASE
+            );
+            CREATE UNIQUE INDEX ux_playlist_folders_name ON playlist_folders(coalesce(parent_id, 0), name COLLATE NOCASE);
+            CREATE TABLE playlists_rebuilt (
+                id        INTEGER PRIMARY KEY,
+                name      TEXT NOT NULL COLLATE NOCASE,
+                folder_id INTEGER REFERENCES playlist_folders(id) ON DELETE CASCADE
+            );
+            INSERT INTO playlists_rebuilt (id, name) SELECT id, name FROM playlists;
+            DROP TABLE playlists;
+            ALTER TABLE playlists_rebuilt RENAME TO playlists;
+            CREATE UNIQUE INDEX ux_playlists_name ON playlists(coalesce(folder_id, 0), name COLLATE NOCASE);
+            """,
     ];
+
+    /// <summary>
+    /// Upgrades (by their number) that make a table again: run with the connection's foreign keys
+    /// off, as SQLite asks, and checked after. With them on, dropping the old table would take
+    /// everything pointing at it too (a playlist's songs, ON DELETE CASCADE).
+    /// </summary>
+    private static readonly HashSet<int> Rebuilds = [34];
 
     // ───────────── Roots ─────────────
 

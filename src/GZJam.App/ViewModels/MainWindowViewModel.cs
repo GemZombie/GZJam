@@ -27,7 +27,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Audio = audio;
         Mix = mix;
         AudioError = audioError;
-        Library = new LibraryViewModel(database) { NearBpm = settings.NearBpmPercent / 100, AreFoldersFolded = settings.FoldersFolded };
+        Library = new LibraryViewModel(database)
+        {
+            NearBpm = settings.NearBpmPercent / 100,
+            AreFoldersFolded = settings.FoldersFolded,
+            OpenPlaylistFolders = settings.OpenPlaylistFolders,
+        };
         Art = new AlbumArtCache(database, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(database.DatabasePath))!, "art"));
         Queue = new QueueViewModel();
         Queue.Items.CollectionChanged += (_, _) =>
@@ -542,12 +547,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ───────────── Playlists ─────────────
 
-    /// <summary>A new, empty playlist (a taken name gets a number). Null if the name is empty.</summary>
-    public PlaylistInfo? CreatePlaylist(string name, IReadOnlyList<Track>? songs = null)
+    /// <summary>A new, empty playlist (a taken name gets a number), in <paramref name="folderId"/> or at the top. Null if the name is empty.</summary>
+    public PlaylistInfo? CreatePlaylist(string name, IReadOnlyList<Track>? songs = null, long? folderId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return null;
-        PlaylistInfo playlist = _database.CreatePlaylist(name);
+        PlaylistInfo playlist = _database.CreatePlaylist(name, folderId);
+        OpenFolder(folderId);
         if (songs is { Count: > 0 })
             _database.AddToPlaylist(playlist.Id, songs.Select(t => t.Path));
         Log.Info($"Playlist \"{playlist.Name}\" made{(songs is { Count: > 0 } ? $" with {songs.Count} songs" : "")}");
@@ -555,14 +561,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         return playlist;
     }
 
-    /// <summary>Asks for a name, then makes a playlist (of <paramref name="songs"/>, if any) and opens it.</summary>
-    public async Task<PlaylistInfo?> CreatePlaylistAsync(IReadOnlyList<Track>? songs = null, string suggestion = "", bool open = true)
+    /// <summary>
+    /// Asks for a name, then makes a playlist (of <paramref name="songs"/>, if any) and opens it.
+    /// It goes in the folder chosen in the Playlists panel, or the open playlist's (#354).
+    /// </summary>
+    public async Task<PlaylistInfo?> CreatePlaylistAsync(IReadOnlyList<Track>? songs = null, string suggestion = "", bool open = true,
+        long? folderId = null, bool atTop = false)
     {
+        folderId ??= atTop ? null : Library.NewPlaylistFolder;
         if (PromptAsync is null)
             return null;
         string message = songs is not { Count: > 0 } ? "A set to plan before the night, in order."
             : songs.Count == 1 ? $"With \"{songs[0].DisplayTitle}\"" : $"With {songs.Count} songs";
-        if (await PromptAsync("New playlist", message, "Make it", suggestion) is not { } name || CreatePlaylist(name, songs) is not { } playlist)
+        if (folderId is not null)
+            message += $" In {FolderPathText(folderId)}.";
+        if (await PromptAsync("New playlist", message, "Make it", suggestion) is not { } name || CreatePlaylist(name, songs, folderId) is not { } playlist)
             return null;
         if (open)
             Library.OpenPlaylist(playlist.Id);

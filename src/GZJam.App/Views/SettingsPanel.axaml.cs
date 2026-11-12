@@ -43,6 +43,9 @@ public partial class SettingsPanel : UserControl
     /// <summary>Library › Import playlists was pressed.</summary>
     public event EventHandler? PlaylistImportRequested;
 
+    /// <summary>Library › Import playlists › FOLDER… was pressed (#354).</summary>
+    public event EventHandler? PlaylistFolderImportRequested;
+
     /// <summary>Library › Ratings in the song files was pressed.</summary>
     public event EventHandler? FileRatingsRequested;
 
@@ -92,6 +95,8 @@ public partial class SettingsPanel : UserControl
     private void OnMixxxImportClick(object? sender, RoutedEventArgs e) => MixxxImportRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnPlaylistImportClick(object? sender, RoutedEventArgs e) => PlaylistImportRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnPlaylistFolderImportClick(object? sender, RoutedEventArgs e) => PlaylistFolderImportRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnFileRatingsClick(object? sender, RoutedEventArgs e) => FileRatingsRequested?.Invoke(this, EventArgs.Empty);
 

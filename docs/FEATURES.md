@@ -373,6 +373,53 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: playlist folders (#354, 1.8)
+
+- **Library (upgrade 34):** a `playlist_folders` table (`id`, `parent_id` cascading, `name`), and
+  `folder_id` on `playlists` (cascading: deleting a folder takes its folders and playlists, and
+  their entries). Names are unique within a folder (expression indexes on
+  `coalesce(parent, 0), name COLLATE NOCASE`), not across all.
+- **The rebuild:** that meant rebuilding `playlists` without its `UNIQUE`. With foreign keys on (as
+  every connection has them), dropping the old table would take every playlist's entries, sent
+  copies and kept-server links with it (`ON DELETE CASCADE`). So `CreateSchema` runs such upgrades
+  (`Rebuilds`) on their own, with the connection's foreign keys off (they can't change inside a
+  transaction), then `PRAGMA foreign_key_check`, and puts them back on in a `finally`.
+  - `PlaylistFolderTests` upgrades a 1.7 library (`CreateAsOf(path, 33)`) with entries, a sent
+    copy and a kept link, and checks all of them survive.
+  - Without the foreign-keys-off step, that test fails with the entries gone.
+- **Older versions:** `OldestReader` stays 19. 1.7 sees the same columns plus one and lists every
+  playlist flat; a playlist it makes lands at the top. Since #69 (0.7), upgrades that only add
+  never lock an older GZJam out.
+- **Library API:** `CreatePlaylistFolder`, `RenamePlaylistFolder`, `MovePlaylistFolder` (refuses
+  moving into itself or a folder inside it), `DeletePlaylistFolder`, `MovePlaylist` (a name taken
+  there gets a number), `PlaylistFolderPath`, and `GetPlaylistFolders` (each with its depth and
+  playlists all the way down). `PlaylistInfo` gains `FolderId` and `Depth`.
+- **The panel:** `PlaylistList` is a tree of rows, as the folder tree is:
+  `LibraryViewModel.PlaylistRows` holds `PlaylistFolderRow`s and `PlaylistInfo`s, folders first,
+  then playlists, by name, a folder's rows under it while it's open.
+  - It's synced in place by key, so the list doesn't jump. The rows are synced before the open
+    playlist is chosen again, since the list can only choose a row it has.
+  - Open folders are kept in `AppSettings.OpenPlaylistFolders`.
+  - A click on a folder chooses it (`ChosenPlaylistFolder`, where a new playlist goes, else the
+    open playlist's folder) and opens or closes it.
+- **Moving:** *Move to* (the top, then every folder by its path, its own folders left out for a
+  folder) on both rows' menus, for touch. A mouse or pen drag drops onto a folder, into a
+  playlist's folder, or onto the panel off the rows for the top.
+- **Elsewhere:** `PlaylistsMenu` builds folder submenus, leaving out folders with no playlist in
+  them. `PlaylistImport.PlanFolder` walks a folder's `.m3u`/`.m3u8` files (not `.txt`, so a readme
+  isn't a playlist), puts each in folders as its subfolders, and joins folders that already exist.
+  It skips a playlist already in that folder.
+- **Tests:** `PlaylistFolderTests` (library: the upgrade, nesting and counts, names per folder,
+  moves, deletes) and `PlaylistFolderAppTests`:
+  - rows, indents and folding remembered across a restart;
+  - Move to, a folder never into itself;
+  - dragging onto a folder and to the top;
+  - deleting asks and counts;
+  - new playlists go in the chosen folder;
+  - Add to playlist submenus;
+  - a folder import, and again adds nothing.
+- Not done here: server playlists in the panel, and their folders from names (#355).
+
 ### Status: sending a playlist the server has a name for already (#396, 1.8)
 
 - `ServersViewModel.SendPlaylistAsync`: a playlist GZJam hasn't sent to this server (or whose copy

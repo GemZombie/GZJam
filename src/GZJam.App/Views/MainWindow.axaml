@@ -472,14 +472,52 @@
             <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="label" Text="PLAYLISTS" />
-                <Button x:Name="NewPlaylistButton" Grid.Column="1" Classes="link" Content="+ New" Click="OnNewPlaylistClick"
-                        ToolTip.Tip="Plan a set: a playlist of songs in order" />
+                <!-- A playlist, or a folder for them (#354) -->
+                <Button x:Name="NewPlaylistButton" Grid.Column="1" Classes="link" Content="+ New"
+                        ToolTip.Tip="Plan a set (a playlist of songs in order), or make a folder for playlists">
+                  <Button.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                      <MenuItem x:Name="NewPlaylistItem" Header="Playlist…" Click="OnNewPlaylistClick" />
+                      <MenuItem x:Name="NewPlaylistFolderItem" Header="Folder…" Click="OnNewPlaylistFolderClick" />
+                    </MenuFlyout>
+                  </Button.Flyout>
+                </Button>
               </Grid>
             </Border>
+            <!-- Folders and playlists (#354): one list of rows, each indented for its place -->
             <ListBox x:Name="PlaylistList" Classes="playlists" Margin="4,4,4,6"
-                     ItemsSource="{Binding Library.Playlists}" SelectedItem="{Binding Library.SelectedPlaylist, Mode=TwoWay}">
-              <ListBox.ItemTemplate>
+                     ItemsSource="{Binding Library.PlaylistRows}" SelectedItem="{Binding Library.SelectedPlaylistRow, Mode=TwoWay}">
+              <ListBox.DataTemplates>
+                <DataTemplate DataType="vm:PlaylistFolderRow">
+                  <DockPanel Background="Transparent" ToolTip.Tip="{Binding Tip}" ContextRequested="OnPlaylistFolderMenuRequested"
+                             Tapped="OnPlaylistFolderTapped">
+                    <DockPanel.ContextMenu>
+                      <ContextMenu Opened="OnRowMenuOpened">
+                        <MenuItem Header="New playlist here…" Click="OnNewPlaylistInFolderClick" />
+                        <MenuItem Header="New folder here…" Click="OnNewFolderInFolderClick" />
+                        <Separator />
+                        <MenuItem Header="Rename…" Click="OnRenamePlaylistFolderClick" />
+                        <!-- Filled as the menu opens: the top, and every folder it can go in -->
+                        <MenuItem Tag="move" Header="Move to" ToolTip.Tip="Put this folder, and everything in it, in another folder or at the top" />
+                        <MenuItem Header="Delete…" Click="OnDeletePlaylistFolderClick"
+                                  ToolTip.Tip="Delete this folder and the playlists in it (their songs stay in your library)" />
+                      </ContextMenu>
+                    </DockPanel.ContextMenu>
+                    <Border DockPanel.Dock="Left" Width="{Binding Folder.Depth, Converter={x:Static app:Converters.PlaylistIndent}}" />
+                    <Panel DockPanel.Dock="Left" Classes="playlist-folder-arrow">
+                      <ToggleButton Classes="folder-arrow" IsChecked="{Binding IsExpanded, Mode=TwoWay}" IsVisible="{Binding HasChildren}"
+                                    Focusable="False" />
+                    </Panel>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                      <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    </Grid>
+                  </DockPanel>
+                </DataTemplate>
                 <DataTemplate DataType="lib:PlaylistInfo">
+                  <DockPanel Background="Transparent">
+                  <Border DockPanel.Dock="Left" Width="{Binding Depth, Converter={x:Static app:Converters.PlaylistIndent}}" />
                   <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent" ContextRequested="OnPlaylistRowMenuRequested">
                     <Grid.ContextMenu>
                       <ContextMenu Opened="OnRowMenuOpened">
@@ -498,6 +536,8 @@
                         <MenuItem Tag="share" ToolTip.Tip="Make a link anyone can open and listen to, and copy it, ready to paste into a post" />
                         <Separator />
                         <MenuItem Header="Rename…" Click="OnRenamePlaylistItemClick" />
+                        <!-- Filled as the menu opens: the top, and every folder (#354) -->
+                        <MenuItem Tag="move" Header="Move to" ToolTip.Tip="Put this playlist in a folder, or at the top" />
                         <MenuItem Header="Stop following the server" Click="OnStopFollowingServerClick" IsVisible="{Binding IsFromServer}"
                                   ToolTip.Tip="Make it your own playlist, as it is now: a sync no longer changes it (its songs stay on this computer)" />
                         <MenuItem Header="Delete…" Click="OnDeletePlaylistItemClick" />
@@ -514,8 +554,9 @@
                                ToolTip.Tip="{Binding Tip}" />
                     <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
                   </Grid>
+                  </DockPanel>
                 </DataTemplate>
-              </ListBox.ItemTemplate>
+              </ListBox.DataTemplates>
             </ListBox>
           </DockPanel>
           <!-- Drag up for more playlists, down for more folders: on the playlists' top edge -->

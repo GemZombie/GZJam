@@ -121,6 +121,7 @@ public sealed class HistoryTests : IDisposable
                 DROP TABLE art;                               -- added by upgrade 16
                 ALTER TABLE eq DROP COLUMN mid_hz;            -- added by upgrade 17
                 ALTER TABLE eq DROP COLUMN even;
+                DROP TABLE playlist_folders;                   -- added by upgrade 34, on playlists
                 DROP TABLE server_sent_playlists;              -- added by upgrade 33, on playlists
                 DROP TABLE playlist_entries;                  -- added by upgrade 18
                 DROP TABLE playlists;

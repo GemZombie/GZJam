@@ -31,6 +31,7 @@ public partial class MainWindow
         PlaylistsGrip.PointerPressed += OnPlaylistsGripPressed;
         PlaylistsGrip.PointerMoved += OnPlaylistsGripMoved;
         PlaylistsGrip.PointerReleased += OnPlaylistsGripReleased;
+        InitializePlaylistFolderDrags();
     }
 
     private void OnLibraryChangedForPlaylists(object? sender, PropertyChangedEventArgs e)
@@ -152,6 +153,7 @@ public partial class MainWindow
     {
         if (sender is not Control { ContextMenu: { } menu, DataContext: PlaylistInfo playlist })
             return;
+        FillPlaylistMoveTo(menu, playlist);
         var servers = playlist.IsFromServer ? [] : Vm.Servers.Items.ToList();
         foreach (MenuItem item in menu.Items.OfType<MenuItem>())
         {

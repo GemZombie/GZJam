@@ -134,6 +134,9 @@ public sealed class AppSettings
     /// </summary>
     public bool FoldersFolded { get; set; }
 
+    /// <summary>The folders of playlists left open in the Playlists panel (#354), by their ids in the library.</summary>
+    public List<long> OpenPlaylistFolders { get; set; } = [];
+
     /// <summary>How tall the playlist list may grow, in pixels, dragged by the DJ (#163); null: 220.</summary>
     public double? PlaylistsHeight { get; set; }
 

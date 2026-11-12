@@ -15,6 +15,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **Folders for your playlists** (#354). **+ New › Folder…** makes one; folders go inside folders,
+  fold away, and say how many playlists they hold. Drag a playlist or folder onto a folder to move
+  it, or use **Move to** in its right-click menu (handy by touch). Two playlists can share a name
+  in different folders, so *Setlists › Nov 8* and *Practice › Nov 8* can both exist. *Add to
+  playlist* shows the folders as submenus, and Settings › Library › Import playlists › **FOLDER…**
+  brings in a whole folder of M3U files with its folders. An older GZJam still opens your library:
+  it shows the playlists in one list, as before.
 - **The song list keeps its sort** (#376, thanks to a DJ moving over from Mixxx). Sort the
   library by BPM, open a playlist, come back: still by BPM. Each playlist keeps its own sort, so a
   planned set opens in its own order until you sort it, and My music, Servers and Files keep one

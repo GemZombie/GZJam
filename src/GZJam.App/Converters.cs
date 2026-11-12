@@ -78,6 +78,9 @@ public static class Format
 public static class Converters
 {
     public static readonly IValueConverter Duration = new FuncValueConverter<TimeSpan, string>(t => Format.Duration(t));
+
+    /// <summary>A playlist's indent in the Playlists panel for how many folders deep it is (#354).</summary>
+    public static readonly IValueConverter PlaylistIndent = new FuncValueConverter<int, double>(depth => depth * 20);
     public static readonly IValueConverter Bpm = new FuncValueConverter<double?, string>(Format.Bpm);
     public static readonly IValueConverter Count = new FuncValueConverter<int, string>(Format.Count);
     public static readonly IValueConverter Ago = new FuncValueConverter<DateTime?, string>(t => Format.Ago(t));
