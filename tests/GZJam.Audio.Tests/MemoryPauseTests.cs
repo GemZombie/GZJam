@@ -39,6 +39,32 @@ public sealed class MemoryPauseTests : IDisposable
         public Node? Next = next;
     }
 
+    /// <summary>
+    /// On Windows, BASS's mixing for the speakers joins Windows' class for pro audio (#381), so
+    /// a computer busy to the limit can't keep it waiting longer than the speakers hold, and its
+    /// waits are timed for the log.
+    /// </summary>
+    [Fact]
+    public void On_Windows_the_speakers_mixing_is_in_the_pro_audio_class_and_timed()
+    {
+        AudioDevice? device = _engine.GetOutputDevices().FirstOrDefault(d => !d.FollowsSystemDefault);
+        Assert.SkipWhen(device is null || TestMachine.IsCi, TestMachine.NeedsRealSpeakers);
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows only: elsewhere BASS's mixing keeps its own priority.");
+        _mix.SetOutputs(device, null);
+        _mix.Main.Volume = 0;
+        Deck deck = _mix.Decks[0];
+        deck.Load(TestWav.WriteTone(Path.Combine(_dir, "tone.wav"), TimeSpan.FromSeconds(10)));
+        deck.Play();
+        for (int i = 0; i < 30; i++)
+        {
+            Thread.Sleep(33);
+            _mix.Update();
+        }
+
+        Assert.True(_mix.SpeakersMixInProAudio);
+        Assert.InRange(_mix.LongestMixingWait, TimeSpan.FromMilliseconds(1), TimeSpan.FromSeconds(1));
+    }
+
     [Fact]
     public void Long_memory_pauses_dont_stop_the_speakers()
     {

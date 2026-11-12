@@ -214,6 +214,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   by button or key, without moving the deck
 - [When each song in the queue plays](https://github.com/GemZombie/GZJam/issues/297): a *Plays at*
   column, counting fade-outs, jumps and auto-play's gaps, and a start time to plan a night from
+- Servers, smaller: [reading a server's song list again](https://github.com/GemZombie/GZJam/issues/395)
+  only if it has read its music since, and [sending a playlist](https://github.com/GemZombie/GZJam/issues/396)
+  to a server that already has one by that name asks before replacing it
+- [The sound first in line on a busy Windows computer](https://github.com/GemZombie/GZJam/issues/381):
+  GZJam's mixing in Windows' class for pro audio, and a dropout's log line saying whether it was
+  kept waiting
 
 ## Planned next
 
@@ -229,11 +235,6 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
   each under its server, in folders built from their names, as Navidrome apps do, and sent back
   to the server the same way
-- Servers, smaller: [reading a server's song list again](https://github.com/GemZombie/GZJam/issues/395)
-  only if it has read its music since, and [sending a playlist](https://github.com/GemZombie/GZJam/issues/396)
-  to a server that already has one by that name asks before replacing it
-
-and a smoother screen, from a performance review: [a look at a rare short dropout](https://github.com/GemZombie/GZJam/issues/381) on a busy computer
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

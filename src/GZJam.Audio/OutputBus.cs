@@ -59,6 +59,13 @@ public sealed unsafe class OutputBus : IDisposable
 
     internal int Handle { get; }
 
+    /// <summary>Whether the thread mixing for this output has joined Windows' pro audio class (#381).</summary>
+    internal bool JoinedProAudio => !_disposed && _bus->Joined == 1;
+
+    /// <summary>The longest wait between two blocks of mixing since this was last taken; zero where it isn't timed.</summary>
+    internal TimeSpan TakeLongestWait() =>
+        _disposed ? TimeSpan.Zero : TimeSpan.FromSeconds((double)Interlocked.Exchange(ref _bus->LongestWait, 0) / System.Diagnostics.Stopwatch.Frequency);
+
     /// <summary>The device this bus plays on, or null when offline.</summary>
     public AudioDevice? Device { get; }
 

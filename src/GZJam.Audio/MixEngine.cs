@@ -353,7 +353,10 @@ public sealed class MixEngine : IDisposable
         SpeakerOutput.IsDry();
         bool watched = !_offline && !SpeakerOutput.IsOffline && !_mainLostRaised;
         if (watched)
+        {
+            WatchMixing(now);
             WatchForDropouts();
+        }
         if (!_mainLostRaised && (SpeakerOutput.IsLost || DeviceStopped(SpeakerOutput)
                                  || (watched && _dropouts.Silent >= SpeakersGoneAfter)))
         {
@@ -388,6 +391,30 @@ public sealed class MixEngine : IDisposable
         if (_dropouts.Observe(after, played) is { } gap && !SpeakerOutput.IsLost)
             MainDropout?.Invoke(this, gap);
     }
+
+    /// <summary>
+    /// The longest the speakers' mixing waited between two blocks lately (#381), with when it was
+    /// seen. A wait longer than the output holds is a dropout, and says the mixing was held up,
+    /// rather than Windows' own audio or the card.
+    /// </summary>
+    private (TimeSpan Wait, long At) _mixingWait;
+
+    /// <summary>How long a mixing wait is remembered for: the gap, the half second before it's reported, and the buffer.</summary>
+    private const long MixingWaitLookBackMs = 3000;
+
+    private void WatchMixing(long now)
+    {
+        TimeSpan wait = SpeakerOutput.TakeLongestWait();
+        if (wait >= _mixingWait.Wait || now - _mixingWait.At > MixingWaitLookBackMs)
+            _mixingWait = (wait, now);
+    }
+
+    /// <summary>The longest the speakers' mixing waited between two blocks in the last few seconds; zero where it isn't timed (not Windows).</summary>
+    public TimeSpan LongestMixingWait =>
+        Environment.TickCount64 - _mixingWait.At > MixingWaitLookBackMs ? TimeSpan.Zero : _mixingWait.Wait;
+
+    /// <summary>Whether the thread mixing for the speakers is in Windows' class for pro audio (#381), ahead of a busy computer.</summary>
+    public bool SpeakersMixInProAudio => SpeakerOutput.JoinedProAudio;
 
     /// <summary>The clock and the speakers' position read further apart than this: the look is left out.</summary>
     internal static readonly TimeSpan UnsureRead = TimeSpan.FromMilliseconds(5);
