@@ -373,6 +373,38 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: a deck's song in the headphones' preview (#378, 1.8)
+
+- `DeckViewModel.PreviewSongCommand` hands the deck's song to `PreviewViewModel.Toggle`, the same
+  as a row's 🎧: from the start, or stopped if it's already the one previewing. The preview
+  player isn't the deck, so the deck's place, play state and CUE are never touched.
+- Offered only on a loaded deck that isn't playing (`CanPreview`): a 🎧 beside Eject, on a
+  compact deck too, where Eject is in **⋯** but the row is as wide (otherwise disabled and see-through, its place kept so nothing moves when the deck
+  starts, as `LayoutStabilityTests` asks), lit (`IsPreviewed`) while it's the song in the headphones, and *Preview in headphones* /
+  *Stop the preview* in the song's menu (right-click, and **⋯** on four decks). On a playing deck
+  the key shows "Playing: use CUE to hear it"; a preview already going can still be stopped.
+- **Ctrl+Alt+Shift+1..4** (Cmd+Option+Shift on macOS), in `MainWindow.DeckKeys.cs`. Not in a text
+  box, as Ctrl+Alt is AltGr there. Nothing on Windows, macOS or the usual Linux desktops uses
+  it with a number.
+- Comparing needs nothing new: Space previews the selected song instead, and the deck's key or
+  button brings its song back. Both readouts are raised on the tick, only when they change (#365).
+- **The transport row fits** (found while placing the 🎧): at the window's least width (1024) it
+  was wider than the deck. Eject was cut to "Ej", and the BPM, and four decks' ⋯ (the only way to
+  Eject there), were past the deck's edge. It's now a `FitRow`: Eject gives way first, then the
+  🎧, then the BPM; the tempo part fills what's left, up to the fader's own width (174, or 186
+  with the tempo beside it on four decks), and down to `FillMinWidth` (110 / 130) before the BPM
+  goes. Play, CUE and FADE OUT never do.
+- `FitRow.Overflow`: a part shown only once another has given way, with room kept for it then.
+  The deck's ⋯ is one on a full deck (set by a style: a local value would outrank the compact
+  deck's); four decks show it always. Its menu, the song's, has all that gives way, and the BPM's
+  value in its heading once the readout has gone.
+- `PitchFader` leaves out its −8…+8 numbers when squeezed (less than 22 px between them).
+- `DeckFitTests` (1024, 1280 and 1440 wide, two and four decks): nothing past the row's edge or
+  over its neighbor, ⋯ exactly when something gave way, and what did in its menu. At 1440 with
+  two decks nothing gives way; at 1366 everything still fits.
+- Not done: Up from the first song in the queue moving onto the next deck (#404). The queue is
+  the keyboard's last stop for now.
+
 ### Status: the dropout during a long .NET pause, looked into (#381, 1.8)
 
 - `MemoryPauseTests` (a deck on the real speakers while full compacting collections of a

@@ -46,9 +46,20 @@ New:
   ("Today 8:42 PM"), and a click on it puts the newest first (again: oldest first). It's when the
   file was copied, downloaded or unzipped there, not its modified date, which a copied file keeps
   from wherever it came from.
+- **Hear the song on a deck in the headphones, without moving the deck** (#378, thanks to a DJ
+  moving over from Mixxx). A deck with a song loaded and not playing has a 🎧 beside Eject (four
+  decks too), and **Ctrl+Alt+Shift+1 / 2** (Cmd+Option+Shift on a Mac): its
+  song plays in the preview from the start, while the deck stays exactly where it was. To compare
+  the next song with another, press Space on a song in the list or the queue, then 🎧 again to
+  come back. Pressing it again stops the preview.
 
 Better:
 
+- **A deck's buttons fit a narrow window** (#378). On a smaller laptop screen, or a window made
+  narrow, Eject was cut short and the BPM and four decks' ⋯ went off the deck's edge. Now what
+  doesn't fit moves into a ⋯ menu on the deck: Eject first, then the headphones, then the BPM
+  (shown in the menu instead), with the tempo fader narrowing before the BPM goes. Play, CUE,
+  FADE OUT and the tempo fader always stay. A full-size window looks as before.
 - **The Time column is next to Artist, and in the column menu** (#379). It was the last column,
   so on a laptop it was squeezed to nothing at the right edge, and since it can't be hidden it
   wasn't in the menu where you'd look for it. Now it's beside Artist; the menu lists Title,

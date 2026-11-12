@@ -217,16 +217,25 @@ public partial class DeckView : UserControl
         MarksMenu.FillRating(rating, vm.Owner, [track]);
         var energy = new MenuItem { Header = "Energy" };
         MarksMenu.FillEnergy(energy, vm.Owner, [track]);
-        var bpm = new MenuItem { Header = BpmMenu.Title };
+        // The BPM given way for lack of room (#378): its value here instead.
+        var bpm = new MenuItem { Header = TransportRow.IsDropped(BpmPanel) ? $"{BpmMenu.Title} {vm.BpmText}" : BpmMenu.Title };
         BpmMenu.Fill(bpm, vm.Owner, [track], deck: vm);
         var playlists = new MenuItem { Header = "Add to playlist" };
         PlaylistsMenu.Fill(playlists, vm.Owner, [track]);
         var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
+        var preview = new MenuItem
+        {
+            Header = vm.IsPreviewed ? "Stop the preview" : "Preview in headphones",
+            IsEnabled = vm.CanPreview || vm.IsPreviewed,
+            Command = vm.PreviewSongCommand,
+        };
         // The cue keys don't fit over a four-deck waveform: they're here instead.
         foreach (GZJam.Library.SongCue cue in vm.Cues)
             items.Add(new MenuItem { Header = $"Go to cue {cue.Number} ({Time(cue.At)})", Command = vm.GoToCueCommand, CommandParameter = cue.Number });
         if (vm.HasCues)
             items.Add(new Separator());
+        items.Add(preview);
+        items.Add(new Separator());
         items.Add(rating);
         items.Add(energy);
         items.Add(bpm);

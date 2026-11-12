@@ -158,6 +158,9 @@ each deck's ⋯ menu; the mixer keeps the meter, MAIN, PHONES and the crossfader
 but still applies). With four decks, compact decks also leave out the waveforms. GZJam remembers the
 choice.
 
+**In a narrow window** (a small laptop screen), a deck's row of buttons gives up what doesn't fit to
+a ⋯ menu at its end: Eject first, then the 🎧, then the BPM. Play, CUE, FADE OUT and tempo always stay.
+
 **Hidden decks**, for the most songs on screen (the switch's third key, or **Ctrl+Shift+D**,
 Cmd+Shift+D on a Mac), fold the decks and mixer away. They sit at the top of the queue instead, in
 the order the room will hear them: first the deck the room hears, with its play key (two taps on
@@ -194,6 +197,11 @@ the decks back.
   see at a glance how far in you are. It's full when the time left reaches 0:00 (where the music
   ends, not the file).
 - **Eject** empties a deck that isn't playing.
+- **🎧 beside Eject** plays the deck's song in the headphones' preview, from the start, without
+  touching the deck: to compare the next song with another one, then press Space on a song in the
+  list or the queue to switch to it, and 🎧 again to come back. The deck stays where it was, ready
+  to play. **Ctrl+Alt+Shift+1 / 2** does the same (Cmd+Option+Shift on a Mac). Not on a deck
+  that's playing: use CUE to hear that.
 - **One song per side:** with four decks, Decks 1 and 3 share the crossfader's left side and 2 and
   4 the right. GZJam won't start a deck the room would hear while the other deck on its side is on
   air ("Deck 1 is playing. Fade it out first").
@@ -1085,6 +1093,7 @@ it's where you are, with a blue bar at its edge and its name in blue.
 | **Ctrl+1 / Ctrl+2** (Cmd on Mac; 3 and 4 with four decks) | play or pause that deck (two presses on air, if you've chosen two taps) |
 | **Ctrl+Shift+1 / 2** | that deck's CUE (headphones) on or off |
 | **Ctrl+Alt+1 / 2** (Cmd+Option on Mac) | load the selected song onto that deck: from the queue if you're in it (it leaves the queue), otherwise from the library |
+| **Ctrl+Alt+Shift+1 / 2** (Cmd+Option+Shift on Mac) | that deck's song in the headphones' preview, from the start, or stop it; the deck stays where it is (not while it plays: use CUE) |
 | **Ctrl+← / Ctrl+→** | the crossfader glides to Deck 1 / Deck 2 (in the search box they move by word, as usual) |
 | **Ctrl+P** | auto-play on or off |
 | **Ctrl+↑ / Ctrl+↓** | MAIN volume up or down, a little each press |
