@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -187,7 +188,15 @@ public sealed class PlaylistAppTests
         var second = Grid(app).GetVisualDescendants().OfType<DataGridRow>().First(r => r.DataContext == rows[1]);
         Point target = second.TranslatePoint(new Point(200, 3), app.Window)!.Value;
         app.MouseDrag(RowPoint(app, rows[3]), target, over: () =>
-            Assert.True(app.Window.FindControl<Border>("PlaylistDropLine")!.IsVisible));
+        {
+            var line = app.Window.FindControl<Border>("PlaylistDropLine")!;
+            Assert.True(line.IsVisible);
+            // On the line between the first and second rows, where the song will go (#425): it was
+            // as far below as the search bar and the playlist bar are tall.
+            double lineY = line.TranslatePoint(new Point(0, 1), app.Window)!.Value.Y;
+            double between = second.TranslatePoint(default, app.Window)!.Value.Y;
+            Assert.InRange(lineY, between - 3, between + 3);
+        });
         AppHarness.Settle();
         Assert.Equal(new[] { songs[0], songs[3], songs[1], songs[2] }.Select(s => s.DisplayTitle), Shown(app));
         Assert.False(app.Window.FindControl<Border>("PlaylistDropLine")!.IsVisible);
@@ -203,6 +212,41 @@ public sealed class PlaylistAppTests
         app.Library.SearchText = songs[1].DisplayTitle;
         AppHarness.Settle(600);
         Assert.False(app.Library.CanReorderPlaylist);
+    }
+
+    /// <summary>A long playlist scrolls while a song is held near the song list's bottom edge, as the queue does (#425).</summary>
+    [AvaloniaFact]
+    public void Held_near_the_bottom_edge_a_long_open_playlist_scrolls()
+    {
+        using var app = new AppHarness();
+        var songs = app.Library.Results.ToList();
+        var playlist = Make(app, "Long", [.. songs, .. songs]);   // 30 rows, more than the list shows
+        app.Library.OpenPlaylist(playlist.Id);
+        AppHarness.Settle();
+        var rows = app.Library.Results.ToList();
+        Assert.Equal(30, rows.Count);
+        int LastInView() => Grid(app).GetVisualDescendants().OfType<DataGridRow>()
+            .Where(r => r.IsVisible && r.DataContext is Track && r.TranslatePoint(new Point(0, r.Bounds.Height), Grid(app))!.Value.Y <= Grid(app).Bounds.Height + 1)
+            .Max(r => ((Track)r.DataContext!).PlaylistNumber ?? 0);
+        int before = LastInView();
+        Assert.True(before < 30);
+
+        Point from = RowPoint(app, rows[0]);
+        Point edge = Grid(app).TranslatePoint(new Point(200, Grid(app).Bounds.Height - 10), app.Window)!.Value;
+        app.Window.MouseDown(from, MouseButton.Left, Avalonia.Input.RawInputModifiers.None);
+        for (int i = 1; i <= 8; i++)
+        {
+            app.Window.MouseMove(from + (edge - from) * (i / 8.0), Avalonia.Input.RawInputModifiers.LeftMouseButton);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        }
+        // Held there: it scrolls, a row at a time (as long as a slow machine takes for a few).
+        var until = DateTime.UtcNow.AddSeconds(8);
+        while (LastInView() <= before + 3 && DateTime.UtcNow < until)
+            AppHarness.Settle(50);
+
+        Assert.True(LastInView() > before + 3, $"the last row in view went from {before} to {LastInView()}");
+        app.Window.MouseUp(edge, MouseButton.Left, Avalonia.Input.RawInputModifiers.None);
+        AppHarness.Settle();
     }
 
     [AvaloniaFact]

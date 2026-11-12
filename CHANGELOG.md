@@ -151,6 +151,10 @@ Better:
 
 Fixed:
 
+- **Moving songs within an open playlist** (#425). The line showing where a dragged song would go
+  was below the songs it was between, by the height of the bars above the list. Now it's right
+  between them, and holding the song near the list's top or bottom edge scrolls it, as the queue
+  does, so a song can go anywhere in a long playlist.
 - **A playlist just sent to a server stays under it** (#427). If GZJam was reading the server's
   playlists while you sent one (just after adding the server, say), the read could finish with
   the list from before and drop the playlist just sent, until the next read.
