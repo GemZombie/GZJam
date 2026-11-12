@@ -19,7 +19,7 @@ internal static unsafe class NativeDsp
     private const string Library = "gzjam_dsp";
 
     /// <summary>The library's GZ_VERSION: the layouts below match it.</summary>
-    private const int Version = 2;
+    private const int Version = 3;
 
     private static readonly Lazy<Exports> Loaded = new(Load);
 
@@ -78,7 +78,31 @@ internal static unsafe class NativeDsp
         public float PeakLeft;
         public float PeakRight;
         public int Limited;
+        public IntPtr JoinClass;
+        public IntPtr ThreadPriority;
+        public IntPtr Task;
+        public uint TaskIndex;
+        public int Joined;
+        public IntPtr Clock;
+        public long Last;
+        public long LongestWait;
     }
+
+    /// <summary>
+    /// Windows' functions the bus's mixing thread joins the pro audio class with (#381), and its
+    /// clock; none elsewhere, or if Windows lacks them.
+    /// </summary>
+    private static readonly Lazy<(IntPtr Join, IntPtr Priority, IntPtr Task, IntPtr Clock)> s_windows = new(() =>
+    {
+        if (!OperatingSystem.IsWindows())
+            return default;
+        IntPtr kernel = NativeLibrary.Load("kernel32.dll");
+        IntPtr clock = NativeLibrary.GetExport(kernel, "QueryPerformanceCounter");
+        if (!NativeLibrary.TryLoad("avrt.dll", out IntPtr avrt)
+            || !NativeLibrary.TryGetExport(avrt, "AvSetMmThreadCharacteristicsW", out IntPtr join))
+            return (IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, clock);
+        return (join, NativeLibrary.GetExport(kernel, "GetThreadPriority"), Marshal.StringToHGlobalUni("Pro Audio"), clock);
+    });
 
     internal static Bus* NewBus(float ceiling, float noticeable, float release)
     {
@@ -89,6 +113,7 @@ internal static unsafe class NativeDsp
         bus->Noticeable = noticeable;
         bus->Release = release;
         bus->Gain = 1;
+        (bus->JoinClass, bus->ThreadPriority, bus->Task, bus->Clock) = s_windows.Value;
         return bus;
     }
 

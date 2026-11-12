@@ -480,6 +480,24 @@ is out of scope until it earns a place.
   and page-fault events during a failing run).
 - Tests: `DropoutWatchTests` (a held-up look is no dropout; a real gap is its own length, whatever
   a held-up look added).
+- **Followed up (2026-11-12).** BASS's mixing thread (the one calling the buses' DSPs, filling the
+  playback buffer) runs at `THREAD_PRIORITY_TIME_CRITICAL`, the top of the ordinary priorities
+  (15); the thread Windows' shared audio runs in GZJam's process is in MMCSS, at 21. Now the bus
+  DSP (`gz_bus_dsp`, gzjam_dsp version 3) joins MMCSS's "Pro Audio" task on its first block on a
+  time-critical thread (BASS's own, not the app's, on which BASS fills a starting output; the
+  exclusive output's BASSWASAPI thread is in MMCSS already). Windows' functions
+  (`AvSetMmThreadCharacteristicsW`, `GetThreadPriority`, `QueryPerformanceCounter`) are passed in
+  by the app, so the library still links to nothing; elsewhere they're null and nothing changes.
+  The DSP also times the longest wait between two blocks (the probe from before, kept):
+  `MixEngine.LongestMixingWait` over the last 3 s, and a dropout's log line says when GZJam's
+  mixing had waited 100 ms or more, and whether it was in MMCSS.
+- **Measured:** 40 runs of `MemoryPauseTests` with the whole suite looping beside it, alternating
+  with and without MMCSS: no gap, and the longest wait between mixing blocks was 21-22 ms every
+  time, either way, through .NET pauses of 290-390 ms. The stalls of 2026-11-11 (226-360 ms)
+  didn't come back, so this can't show MMCSS helps; it's what Windows does for its own audio, and
+  costs nothing. Still not known: what held the thread up then (paging was a guess: the laptop
+  has 32 GB). The log will say, if it happens at a gig.
+- Tests: `MemoryPauseTests.On_Windows_the_speakers_mixing_is_in_the_pro_audio_class_and_timed`.
 
 ### Status: first-time analysis, gently while music plays (#369, 1.8)
 

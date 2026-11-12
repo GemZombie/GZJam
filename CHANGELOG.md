@@ -63,6 +63,10 @@ New:
 
 Better:
 
+- **The sound is first in line on a busy Windows computer** (#381). GZJam's mixing for the
+  speakers now runs in Windows' class for pro audio, as Windows' own sound does, so other
+  programs keeping the computer busy can't hold it up for longer than the speakers hold. A
+  dropout in the log now also says whether GZJam's mixing had been kept waiting, and for how long.
 - **Sending a playlist to a server that has one by that name asks first** (#396, from Danny
   Cherry's fork). A playlist made in Navidrome's web page, another app or GZJam on another computer
   used to get a second one of the same name beside it. Now GZJam asks: **Replace it** (it keeps its

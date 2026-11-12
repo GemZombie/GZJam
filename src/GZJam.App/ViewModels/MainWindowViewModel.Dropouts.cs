@@ -60,6 +60,10 @@ public sealed partial class MainWindowViewModel
         string cause = tidying.TotalMilliseconds >= 50
             ? $"; GZJam had stopped for {tidying.TotalMilliseconds:0} ms to tidy its memory just before"
             : "";
+        // Whether GZJam's own mixing was held up (#381): longer than the output holds is a dropout.
+        if (Mix is { LongestMixingWait: { TotalMilliseconds: >= 100 } waited } mix)
+            cause += $"; GZJam's mixing for them had waited {waited.TotalMilliseconds:0} ms" +
+                     (mix.SpeakersMixInProAudio ? ", in Windows' class for pro audio" : "");
         string hint = _settings.SoundBuffer == GZJam.Audio.SoundBuffer.Highest ? ""
             : $"; Settings › Sound › Protection against crackles is {_settings.SoundBuffer}: higher may help";
         Log.Info($"Speakers: the sound stopped for {gap.TotalMilliseconds:0} ms (a dropout){cause}{hint}");

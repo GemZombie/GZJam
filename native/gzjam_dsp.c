@@ -19,6 +19,8 @@
 typedef int int32_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
+typedef long long int64_t;
+typedef unsigned short uint16_t;
 long _InterlockedCompareExchange(long volatile *destination, long exchange, long comparand);
 #pragma intrinsic(_InterlockedCompareExchange)
 int _fltused = 0;   /* floating point without the runtime */
@@ -35,8 +37,9 @@ int _fltused = 0;   /* floating point without the runtime */
 #endif
 
 /* Bumped whenever a layout below changes, so the app can tell an old library from a new one.
-   2: a deck's fade-out (gz_fade), started by the app or at a point in the song (#359). */
-#define GZ_VERSION 2
+   2: a deck's fade-out (gz_fade), started by the app or at a point in the song (#359).
+   3: an output's mixing thread joins Windows' pro audio class, and its longest wait (#381). */
+#define GZ_VERSION 3
 
 typedef union { float f; int32_t i; } bits;
 
@@ -81,7 +84,49 @@ typedef struct
     volatile float peak_left;   /* the loudest since the app last took them */
     volatile float peak_right;
     volatile int32_t limited;   /* the limiter turned things down noticeably since then */
+
+    /* Windows (#381): BASS mixes for its outputs on a thread of its own, at the top of the
+       ordinary priorities, where a computer busy enough can keep it waiting for longer than an
+       output holds. Windows' class for pro audio (MMCSS) schedules it ahead of all that, as
+       Windows' own audio is. The thread joins on its first block: Windows' functions, passed in
+       by the app (null elsewhere), so this library still links to nothing. */
+    void *(CALLBACK *join_class)(const uint16_t *task, uint32_t *index);   /* AvSetMmThreadCharacteristicsW */
+    int32_t (CALLBACK *thread_priority)(void *thread);                    /* GetThreadPriority */
+    const uint16_t *task;       /* L"Pro Audio" */
+    uint32_t task_index;
+    volatile int32_t joined;    /* 0 not yet, 1 joined, -1 Windows said no */
+
+    /* The longest wait between two blocks of mixing since the app last took it, in the clock's
+       ticks: what an output's buffer has to cover. */
+    int32_t (CALLBACK *clock)(int64_t *now);                              /* QueryPerformanceCounter */
+    int64_t last;
+    volatile int64_t longest_wait;
 } gz_bus;
+
+#define THREAD_PRIORITY_TIME_CRITICAL 15
+
+/* On the mixing thread: joins the pro audio class, once. Only BASS's own mixing thread, which
+   it runs at time-critical priority: not the app's, which BASS fills a starting output on. */
+static void join_class(gz_bus *bus)
+{
+    uint32_t index = 0;
+    if (bus->joined != 0 || bus->join_class == 0 || bus->thread_priority == 0)
+        return;
+    if (bus->thread_priority((void *)(int64_t)-2 /* GetCurrentThread() */) != THREAD_PRIORITY_TIME_CRITICAL)
+        return;
+    bus->joined = bus->join_class(bus->task, &index) != 0 ? 1 : -1;
+    bus->task_index = index;
+}
+
+static void time_block(gz_bus *bus)
+{
+    int64_t now = 0;
+    if (bus->clock == 0 || !bus->clock(&now))
+        return;
+    if (bus->last != 0 && now - bus->last > bus->longest_wait)
+        bus->longest_wait = now - bus->last;
+    bus->last = now;
+}
 
 EXPORT void CALLBACK gz_bus_dsp(uint32_t handle, uint32_t channel, void *buffer, uint32_t length, void *user)
 {
@@ -93,6 +138,8 @@ EXPORT void CALLBACK gz_bus_dsp(uint32_t handle, uint32_t channel, void *buffer,
     int mono = bus->mono != 0, limited = 0;
     (void)handle;
     (void)channel;
+    join_class(bus);
+    time_block(bus);
     for (uint32_t i = 0; i + 1 < count; i += 2)
     {
         float l = samples[i] * volume, r = samples[i + 1] * volume;
