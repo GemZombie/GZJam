@@ -130,6 +130,13 @@ Better:
   was held up for an instant just as it looked. Now it counts only sound that's still missing
   once things have settled, and leaves out a look it knows was held up.
 
+Fixed:
+
+- **Opening a folder by its arrow keeps the folder tree where it was** (#413). Scrolled up from
+  the folder you had chosen, opening another by its arrow jumped the tree back down to the chosen
+  one, and you had to scroll back to find where you were. Now the tree moves to a folder only
+  when you choose it.
+
 ## 1.7.0 (2026-11-11)
 
 The first release for everyone since 1.3.0, with everything from the 1.4, 1.5, 1.6 and 1.7 betas.

@@ -16,6 +16,22 @@ namespace GZJam.App.Controls;
 /// </summary>
 public class FolderList : ListBox
 {
+    /// <summary>
+    /// Scrolls to a folder when it's chosen, and only then (#413). A list box keeps its chosen
+    /// item in view whenever the item's place in the list changes too: opening a folder above it
+    /// by its arrow, scrolled away from it, jumped the tree back down to it, away from the folder
+    /// just opened.
+    /// </summary>
+    public FolderList()
+    {
+        AutoScrollToSelectedItem = false;
+        SelectionChanged += (_, e) =>
+        {
+            if (e.AddedItems.Count > 0 && e.AddedItems[^1] is { } chosen)
+                ScrollIntoView(chosen);
+        };
+    }
+
     protected override Type StyleKeyOverride => typeof(ListBox);
 
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey) => new FolderRow();

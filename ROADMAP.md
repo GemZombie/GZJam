@@ -218,6 +218,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   only if it has read its music since, and [sending a playlist](https://github.com/GemZombie/GZJam/issues/396)
   to a server that already has one by that name asks before replacing it
 - [Auto-play turns CUE off](https://github.com/GemZombie/GZJam/issues/412) on the deck it starts
+- [Opening a folder by its arrow](https://github.com/GemZombie/GZJam/issues/413) keeps the folder
+  tree where it was
 - [The sound first in line on a busy Windows computer](https://github.com/GemZombie/GZJam/issues/381):
   GZJam's mixing in Windows' class for pro audio, and a dropout's log line saying whether it was
   kept waiting

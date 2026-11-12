@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Input.Raw;
 using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
+using GZJam.Testing;
 
 namespace GZJam.App.Tests;
 
@@ -166,5 +167,38 @@ public sealed class FolderTreeTests
         AppHarness.Settle(100);
         Assert.Same(lindy, tree.SelectedItem);
         app.Screenshot("folder-rows-chosen");
+    }
+    /// <summary>
+    /// Opening a folder by its arrow, above the chosen folder (scrolled away from it), leaves the
+    /// tree where it was (#413): it used to jump to the chosen folder, whose place in the list the
+    /// new rows had moved.
+    /// </summary>
+    [AvaloniaFact]
+    public void Opening_a_folder_above_the_chosen_one_keeps_the_tree_where_it_was()
+    {
+        string music = Directory.CreateTempSubdirectory("gzjam-tree-").FullName;
+        for (int i = 1; i <= 40; i++)
+            TestMp3.Write(Path.Combine(music, $"Band {i:00}", "Album", "01 - Song.mp3"));
+        using var app = new AppHarness(musicFolder: music);
+        var tree = app.Window.FindControl<ListBox>("FolderTree")!;
+        var root = app.Library.Roots[0];
+        root.IsExpanded = true;
+        AppHarness.Settle(100);
+        app.Library.SelectedFolder = Folder(app, "Band 35");
+        AppHarness.Settle(200);
+        var scroller = tree.GetVisualDescendants().OfType<ScrollViewer>().First();
+        Assert.True(scroller.Offset.Y > 0);   // the chosen folder is far enough down to scroll to
+
+        scroller.Offset = default;
+        AppHarness.Settle(200);
+        var band = Folder(app, "Band 02");
+        double before = Row(app, band).TranslatePoint(default, tree)!.Value.Y;
+        Click(app, Arrow(app, band).TranslatePoint(new Point(3, 3), app.Window)!.Value);
+        AppHarness.Settle(200);
+
+        Assert.True(band.IsExpanded);
+        Assert.Same(Folder(app, "Band 35"), app.Library.SelectedFolder);
+        Assert.Equal(0, scroller.Offset.Y);
+        Assert.Equal(before, Row(app, band).TranslatePoint(default, tree)!.Value.Y);
     }
 }
