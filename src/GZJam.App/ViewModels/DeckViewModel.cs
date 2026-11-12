@@ -992,12 +992,16 @@ public sealed partial class DeckViewModel : ObservableObject
         Refresh();
     }
 
-    /// <summary>Starts the deck for auto-play.</summary>
+    /// <summary>
+    /// Starts the deck for auto-play. A deck the DJ had in the headphones (CUE) is the room's now,
+    /// so CUE goes off (#412): it isn't left playing in the headphones too.
+    /// </summary>
     internal void Start()
     {
         if (IsFinished)
             ResetListening();
         IsFinished = false;
+        IsCueOn = false;
         Deck.Play();
         Log.Info($"Deck {Label}: auto-play starts \"{Title}\"");
         Refresh();
