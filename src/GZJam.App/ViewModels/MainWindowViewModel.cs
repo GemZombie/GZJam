@@ -50,7 +50,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (audio is not null)
         {
             audio.Buffer = settings.SoundBuffer;
-            Analysis = new TrackAnalysisService(database, audio);
+            Analysis = new TrackAnalysisService(database, audio, songs: mix?.Songs);   // a deck's song decoded from memory (#369)
             Analysis.Analyzed += OnAnalyzed;
             Analysis.PropertyChanged += (_, _) => BackgroundChanged();
             Library.Scanned += Analysis.QueueLibrary;
@@ -1658,6 +1658,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    private bool AnyDeckPlaying()
+    {
+        foreach (DeckViewModel deck in Decks)
+        {
+            if (deck.IsPlaying)
+                return true;
+        }
+        return false;
+    }
+
     public void RefreshDecks()
     {
         foreach (DeckViewModel deck in Decks)
@@ -1684,6 +1694,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         AutoPlay?.Tick();
         foreach (DeckViewModel deck in Decks)
             deck.UpdateMeter();
+        if (Analysis is { } analysis)
+            analysis.MusicPlaying = Preview?.IsActive == true || AnyDeckPlaying();   // the library analyzed gently meanwhile (#369)
         RefreshDecks();
         AirLine?.Refresh();
         Preview?.Refresh();

@@ -50,6 +50,52 @@ public sealed class TrackAnalyzerTests : IDisposable
         Assert.InRange(Waveform.Decode(detail.Peak), 0.3, 0.7);   // a tone at half scale (its band, softly filtered)
     }
 
+    /// <summary>
+    /// A song loaded onto a deck before it's been analyzed needs its analysis and its close-up:
+    /// both come from one decode, the close-up the same as decoding it on its own (#369).
+    /// </summary>
+    [Fact]
+    public void The_close_up_can_come_from_the_analysis_own_decode()
+    {
+        string path = TestWav.WriteTone(File("both.wav"), TimeSpan.FromSeconds(3), silenceBefore: TimeSpan.FromSeconds(1));
+
+        TrackAnalysis both = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken, withDetail: true);
+        Waveform alone = _analyzer.Detail(path, TestContext.Current.CancellationToken);
+        TrackAnalysis plain = _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.NotNull(both.Detail);
+        Assert.Equal(alone.Loudness, both.Detail.Loudness);
+        Assert.Equal(alone.Low, both.Detail.Low);
+        Assert.Equal(alone.High, both.Detail.High);
+        Assert.Equal(plain.Waveform.Loudness, both.Waveform.Loudness);   // the overview as without it
+        Assert.Null(plain.Detail);
+    }
+
+    /// <summary>
+    /// A song already in memory (a deck's, or read ahead) is analyzed from there, not read from the
+    /// disk again (#369). Shown with the file garbled on disk after it was read, same size and date.
+    /// </summary>
+    [Fact]
+    public void A_song_in_memory_is_analyzed_from_there()
+    {
+        string path = TestWav.WriteTone(File("kept.wav"), TimeSpan.FromSeconds(3));
+        using var songs = new SongCache();
+        songs.ReadAhead([path]);
+        Assert.True(SpinWait.SpinUntil(() => songs.IsKept(path), 5000));
+        var info = new FileInfo(path);
+        DateTime written = info.LastWriteTimeUtc;
+        byte[] garbage = new byte[info.Length];
+        Array.Fill(garbage, (byte)0x5A);
+        System.IO.File.WriteAllBytes(path, garbage);
+        System.IO.File.SetLastWriteTimeUtc(path, written);
+
+        Assert.Throws<AudioException>(() => _analyzer.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken));
+        var fromMemory = new TrackAnalyzer(_engine) { Songs = songs };
+        TrackAnalysis result = fromMemory.Analyze(path, detectBpm: false, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal(3, result.Length.TotalSeconds, 0.01);
+        Assert.Equal(300, fromMemory.Detail(path, TestContext.Current.CancellationToken).Count);
+    }
+
     [Fact]
     public void A_quiet_ending_is_kept()
     {
