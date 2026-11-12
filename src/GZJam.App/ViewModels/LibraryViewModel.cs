@@ -665,6 +665,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             bool found = false;
             var progress = new Progress<ScanProgress>(p =>
             {
+                // Reported on the window's thread, a moment later: GZJam may have closed since,
+                // and its library with it (#419).
+                if (_disposed)
+                    return;
                 if (!p.Enumerating && !found)
                 {
                     found = true;
@@ -693,6 +697,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             });
 
             ScanResult result = await _scanner.ScanAsync(root, progress, readAllTags);
+            if (_disposed)
+                return;   // closed while it scanned (#419): nothing left to show it in
             Log.Info($"Scanned {root.Path} in {result.Elapsed.TotalSeconds:0.0} s: {Format.Count(result.Added)} added, " +
                      $"{Format.Count(result.Updated)} updated, {Format.Count(result.Removed)} removed, {Format.Count(result.Moved)} moved, " +
                      $"{Format.Count(result.Unchanged)} unchanged");
@@ -1117,8 +1123,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         AlsoOnText = found?.Text;
     }
 
+    /// <summary>GZJam has closed this library: a scan that finishes or reports later leaves it alone (#419).</summary>
+    private bool _disposed;
+
     public void Dispose()
     {
+        _disposed = true;
         _typingDelay?.Cancel();
         _searchCancel?.Cancel();
         _watcher.Dispose();
