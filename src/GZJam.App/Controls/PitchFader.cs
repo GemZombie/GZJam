@@ -99,7 +99,7 @@ public sealed class PitchFader : Control
             IBrush brush = center ? CenterTickBrush : major ? MajorTickBrush : TickBrush;
             context.DrawRectangle(brush, null, new Rect(x - 0.5, slotY - half, 1, half * 2));
         }
-        if (ShowLabels)
+        if (ShowLabels && TravelLength / 4 >= 22)   // squeezed (a narrow window, #378): the ticks only
         {
             var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold);
             for (int p = -range; p <= range; p += 4)

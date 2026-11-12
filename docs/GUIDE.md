@@ -158,6 +158,9 @@ each deck's ⋯ menu; the mixer keeps the meter, MAIN, PHONES and the crossfader
 but still applies). With four decks, compact decks also leave out the waveforms. GZJam remembers the
 choice.
 
+**In a narrow window** (a small laptop screen), a deck's row of buttons gives up what doesn't fit to
+a ⋯ menu at its end: Eject first, then the 🎧, then the BPM. Play, CUE, FADE OUT and tempo always stay.
+
 **Hidden decks**, for the most songs on screen (the switch's third key, or **Ctrl+Shift+D**,
 Cmd+Shift+D on a Mac), fold the decks and mixer away. They sit at the top of the queue instead, in
 the order the room will hear them: first the deck the room hears, with its play key (two taps on

@@ -16,6 +16,10 @@ namespace GZJam.App.Controls;
 /// reach each of its rows, and its column names, alike.
 /// </para>
 /// <para>
+/// A part marked <see cref="OverflowProperty"/> (a ⋯ button with the rest in its menu) is shown
+/// only once another part has given way, and room is kept for it then.
+/// </para>
+/// <para>
 /// Parts marked <see cref="DividedProperty"/> have a line beside them, on the filling part's side,
 /// drawn by a <see cref="FitRowLines"/> over the row: the column names' lines to drag (#198).
 /// </para>
@@ -54,12 +58,16 @@ public sealed class FitRow : Panel
     public static readonly AttachedProperty<bool> DividedProperty =
         AvaloniaProperty.RegisterAttached<FitRow, Control, bool>("Divided");
 
+    /// <summary>A part shown only once another has given way: a ⋯ to reach what did (#378).</summary>
+    public static readonly AttachedProperty<bool> OverflowProperty =
+        AvaloniaProperty.RegisterAttached<FitRow, Control, bool>("Overflow");
+
     private readonly HashSet<Control> _dropped = [];
 
     static FitRow()
     {
         AffectsMeasure<FitRow>(SpacingProperty, FillMinWidthProperty, OrderProperty, WidthsProperty);
-        AffectsParentMeasure<FitRow>(FillsProperty, DropOrderProperty, KeyProperty);
+        AffectsParentMeasure<FitRow>(FillsProperty, DropOrderProperty, KeyProperty, OverflowProperty);
         AffectsParentArrange<FitRow>(DividedProperty);
     }
 
@@ -77,13 +85,18 @@ public sealed class FitRow : Panel
     public static void SetKey(Control control, string? value) => control.SetValue(KeyProperty, value);
     public static bool GetDivided(Control control) => control.GetValue(DividedProperty);
     public static void SetDivided(Control control, bool value) => control.SetValue(DividedProperty, value);
+    public static bool GetOverflow(Control control) => control.GetValue(OverflowProperty);
+    public static void SetOverflow(Control control, bool value) => control.SetValue(OverflowProperty, value);
     public static IReadOnlyList<string>? GetOrder(Control control) => control.GetValue(OrderProperty);
     public static void SetOrder(Control control, IReadOnlyList<string>? value) => control.SetValue(OrderProperty, value);
     public static IReadOnlyDictionary<string, double>? GetWidths(Control control) => control.GetValue(WidthsProperty);
     public static void SetWidths(Control control, IReadOnlyDictionary<string, double>? value) => control.SetValue(WidthsProperty, value);
 
-    /// <summary>Whether a part has given way for lack of room (for the tests).</summary>
-    internal bool IsDropped(Control part) => _dropped.Contains(part);
+    /// <summary>Whether a part has given way for lack of room, or is an overflow part not needed yet.</summary>
+    internal bool IsDropped(Control part) => _dropped.Contains(part) || (GetOverflow(part) && _dropped.Count == 0);
+
+    /// <summary>Some part has given way for lack of room.</summary>
+    internal bool HasDropped => _dropped.Count > 0;
 
     /// <summary>
     /// The parts in the order they're laid out: the named ones <see cref="OrderProperty"/> names
@@ -126,7 +139,7 @@ public sealed class FitRow : Panel
     /// </summary>
     internal (double X, bool Left)? DividerOf(Control part)
     {
-        var shown = Ordered().Where(c => c.IsVisible && !_dropped.Contains(c)).ToList();
+        var shown = Ordered().Where(c => c.IsVisible && !IsDropped(c)).ToList();
         int at = shown.IndexOf(part);
         if (at < 0)
             return null;
@@ -143,7 +156,7 @@ public sealed class FitRow : Panel
     /// <summary>The room a part takes: its own, or the width set for it.</summary>
     private double PartWidth(Control part) => SetWidth(part) ?? part.DesiredSize.Width;
 
-    private IEnumerable<Control> Shown => Children.Where(c => c.IsVisible && !_dropped.Contains(c));
+    private IEnumerable<Control> Shown => Children.Where(c => c.IsVisible && !IsDropped(c));
     private Control? Fill => Children.FirstOrDefault(c => c.IsVisible && GetFills(c));
 
     /// <summary>The room the parts that don't fill take, with the spaces between all shown parts.</summary>
@@ -193,7 +206,7 @@ public sealed class FitRow : Panel
         {
             if (!child.IsVisible)
                 continue;
-            if (_dropped.Contains(child))
+            if (IsDropped(child))
             {
                 child.Arrange(new Rect(finalSize.Width, 0, PartWidth(child), finalSize.Height));
                 continue;

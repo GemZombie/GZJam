@@ -388,6 +388,20 @@ is out of scope until it earns a place.
   it with a number.
 - Comparing needs nothing new: Space previews the selected song instead, and the deck's key or
   button brings its song back. Both readouts are raised on the tick, only when they change (#365).
+- **The transport row fits** (found while placing the 🎧): at the window's least width (1024) it
+  was wider than the deck. Eject was cut to "Ej", and the BPM, and four decks' ⋯ (the only way to
+  Eject there), were past the deck's edge. It's now a `FitRow`: Eject gives way first, then the
+  🎧, then the BPM; the tempo part fills what's left, up to the fader's own width (174, or 186
+  with the tempo beside it on four decks), and down to `FillMinWidth` (110 / 130) before the BPM
+  goes. Play, CUE and FADE OUT never do.
+- `FitRow.Overflow`: a part shown only once another has given way, with room kept for it then.
+  The deck's ⋯ is one on a full deck (set by a style: a local value would outrank the compact
+  deck's); four decks show it always. Its menu, the song's, has all that gives way, and the BPM's
+  value in its heading once the readout has gone.
+- `PitchFader` leaves out its −8…+8 numbers when squeezed (less than 22 px between them).
+- `DeckFitTests` (1024, 1280 and 1440 wide, two and four decks): nothing past the row's edge or
+  over its neighbor, ⋯ exactly when something gave way, and what did in its menu. At 1440 with
+  two decks nothing gives way; at 1366 everything still fits.
 - Not done: Up from the first song in the queue moving onto the next deck (#404). The queue is
   the keyboard's last stop for now.
 

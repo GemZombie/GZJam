@@ -217,7 +217,8 @@ public partial class DeckView : UserControl
         MarksMenu.FillRating(rating, vm.Owner, [track]);
         var energy = new MenuItem { Header = "Energy" };
         MarksMenu.FillEnergy(energy, vm.Owner, [track]);
-        var bpm = new MenuItem { Header = BpmMenu.Title };
+        // The BPM given way for lack of room (#378): its value here instead.
+        var bpm = new MenuItem { Header = TransportRow.IsDropped(BpmPanel) ? $"{BpmMenu.Title} {vm.BpmText}" : BpmMenu.Title };
         BpmMenu.Fill(bpm, vm.Owner, [track], deck: vm);
         var playlists = new MenuItem { Header = "Add to playlist" };
         PlaylistsMenu.Fill(playlists, vm.Owner, [track]);
