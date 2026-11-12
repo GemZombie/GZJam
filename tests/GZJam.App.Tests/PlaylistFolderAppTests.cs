@@ -16,7 +16,11 @@ namespace GZJam.App.Tests;
 /// </summary>
 public sealed class PlaylistFolderAppTests
 {
-    private static ListBox List(AppHarness app) => app.Window.FindControl<ListBox>("PlaylistList")!;
+    private static ListBox List(AppHarness app)
+    {
+        PlaylistAppTests.ShowPlaylists(app);   // the Playlists source's column (#423)
+        return app.Window.FindControl<ListBox>("PlaylistList")!;
+    }
 
     /// <summary>The panel's rows as text: "▸ Folder (n)" or "▾ Folder (n)" for a folder, its name for a playlist, indented two spaces a level.</summary>
     private static List<string> Rows(AppHarness app) => app.Library.PlaylistRows.Select(r => r switch

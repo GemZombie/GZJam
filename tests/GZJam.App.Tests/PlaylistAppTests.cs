@@ -21,9 +21,19 @@ public sealed class PlaylistAppTests
 
     private static Point PlaylistPoint(AppHarness app, string name)
     {
+        ShowPlaylists(app);
         var list = app.Window.FindControl<ListBox>("PlaylistList")!;
         var item = list.GetVisualDescendants().OfType<ListBoxItem>().First(i => ((PlaylistInfo)i.DataContext!).Name == name);
         return item.TranslatePoint(new Point(40, item.Bounds.Height / 2), app.Window)!.Value;
+    }
+
+    /// <summary>The Playlists source's column (#423), the song list left as it is.</summary>
+    internal static void ShowPlaylists(AppHarness app)
+    {
+        if (app.Library.IsPlaylistsSource)
+            return;
+        app.Library.ShowPlaylistsColumn();
+        AppHarness.Settle(100);
     }
 
     private static PlaylistInfo Make(AppHarness app, string name, params Track[] songs)

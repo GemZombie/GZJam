@@ -373,6 +373,33 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: Playlists as a source (#423, 1.8)
+
+- **The source:** `LibrarySource.Playlists`, last in `LibraryViewModel.Sources`. Chosen, the
+  library column's row 1 is `PlaylistsSection` (its header with + New, and `PlaylistList`) in place
+  of `FolderTree` (`IsPlaylistsSource`). The column is `Auto,*` now.
+  - With nothing open, `RunSearch` takes the default path, so the song list is My music, and it
+    sorts as My music (`SortKey`).
+  - It's remembered as the other sources are (`AppSettings.LibrarySource`, by name).
+- **Switching to it:** opening a playlist of either kind switches `Source` to Playlists
+  (`OnSelectedPlaylistChanged`, `SelectedServerPlaylist`); choosing a folder switches it back
+  (`SourceOf`).
+- **Spring-open:** `MainWindow.PlaylistsSource` follows song and file drags (`UpdatePlaylistDrop`).
+  - Held over the Playlists source row for `SpringOpen` (600 ms; a `Task.Delay` posted back, as
+    `DragStarter`'s hold is timed), it calls `ShowPlaylistsColumn`.
+  - That sets the source without a search, so the dragged-from list stays.
+  - The row shows `drop-target` while waiting. `PlaylistItemAt` ignores the list while it's hidden.
+- **Gone:** the grip on the playlists' header and its saved height (`PlaylistsHeight`), and folding
+  the folders away (`AreFoldersFolded`, `FoldersFolded`, the arrow beside LIBRARY). Both existed
+  only to share the column (#163). Old settings files keep the two keys harmlessly; they're ignored.
+- **Tests:** `LibraryColumnTests`, rewritten:
+  - the source has the whole column, and My music's songs with none open;
+  - opening a playlist shows it, and a folder shows the tree again;
+  - remembered across a restart;
+  - a drag held over it opens it with the folder's songs still showing, and drops onto a playlist.
+  - Panel tests open the column first (`PlaylistAppTests.ShowPlaylists`), and the sources lists
+    expect Playlists.
+
 ### Status: servers' playlists in the Playlists panel (#355, 1.8)
 
 - **The panel:** `LibraryViewModel.PlaylistRows` carries, after the DJ's own rows, each server's

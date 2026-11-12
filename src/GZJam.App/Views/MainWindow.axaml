@@ -327,21 +327,14 @@
         </StackPanel>
       </Button>
 
-      <!-- Folder tree, and the playlists under it. Folded, the tree shows only the music folders
-           and the playlists take the rest; otherwise the playlists are as tall as the grip on their
-           header was dragged (MainWindow.Playlists, #163). -->
+      <!-- The sources, then the chosen one's tree with the whole column: its folders, or with
+           Playlists chosen the playlists (#423) -->
       <Border x:Name="LibraryPanel" Classes="panel">
-        <Grid x:Name="LibraryColumn" RowDefinitions="Auto,*,Auto">
+        <Grid x:Name="LibraryColumn" RowDefinitions="Auto,*">
           <StackPanel>
           <Border Classes="panel-header" Padding="14,0,6,0">
             <Grid ColumnDefinitions="*,Auto,Auto">
-              <Button x:Name="FoldFoldersButton" Classes="link" Margin="-6,0,0,0" HorizontalAlignment="Left"
-                      Command="{Binding Library.ToggleFoldFoldersCommand}" ToolTip.Tip="{Binding Library.FoldTip}">
-                <StackPanel Orientation="Horizontal" Spacing="7">
-                  <Path x:Name="FoldChevron" Classes="fold-chevron" Classes.folded="{Binding Library.AreFoldersFolded}" />
-                  <TextBlock Classes="label" Text="LIBRARY" />
-                </StackPanel>
-              </Button>
+              <TextBlock Classes="label" Text="LIBRARY" VerticalAlignment="Center" />
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
                 <Button x:Name="OrganizeButton" Classes="link" Content="Organize" Click="OnOrganizeClick"
                         ToolTip.Tip="Copy and move songs between your music, the computer's folders and USB sticks, with the decks still in view" />
@@ -369,6 +362,8 @@
                     <c:ShapeIcon Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
                           Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServers}" />
                     <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" IsVisible="{Binding IsFiles}" />
+                    <c:ShapeIcon Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                          Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsPlaylists}" />
                   </Panel>
                   <TextBlock Grid.Column="1" Classes="source-name" Classes.current="{Binding IsCurrent}" Text="{Binding Name}"
                              TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -382,7 +377,7 @@
           <!-- The folder tree as one list of rows, each indented for its place: rows only for the
                folders in view, a server having thousands in one folder (#290). See
                LibraryViewModel.FolderRows. -->
-          <c:FolderList x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6"
+          <c:FolderList x:Name="FolderTree" Grid.Row="1" Classes="folders" Margin="4,6" IsVisible="{Binding !Library.IsPlaylistsSource}"
                     ItemsSource="{Binding Library.FolderRows}"
                     SelectedItem="{Binding Library.SelectedFolderRow, Mode=TwoWay}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -461,8 +456,8 @@
               </DataTemplate>
             </c:FolderList.ItemTemplate>
           </c:FolderList>
-          <!-- Playlists: sets planned in order, under the folders -->
-          <DockPanel x:Name="PlaylistsSection" Grid.Row="2">
+          <!-- Playlists: sets planned in order, with the whole column when it's the source (#423) -->
+          <DockPanel x:Name="PlaylistsSection" Grid.Row="1" IsVisible="{Binding Library.IsPlaylistsSource}">
             <Border DockPanel.Dock="Top" Classes="panel-header playlists-header">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="label" Text="PLAYLISTS" />
@@ -617,12 +612,6 @@
               </ListBox.DataTemplates>
             </ListBox>
           </DockPanel>
-          <!-- Drag up for more playlists, down for more folders: on the playlists' top edge -->
-          <Border x:Name="PlaylistsGrip" Grid.Row="2" Classes="deck-grip playlists-grip"
-                  IsVisible="{Binding !Library.AreFoldersFolded}"
-                  ToolTip.Tip="Drag up for more playlists, down for more folders">
-            <Border Classes="deck-grip-bar" />
-          </Border>
         </Grid>
       </Border>
 

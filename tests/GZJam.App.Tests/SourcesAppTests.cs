@@ -71,7 +71,7 @@ public sealed class SourcesAppTests
     public void Without_a_server_there_is_My_music_and_Files()
     {
         using var app = new AppHarness();
-        Assert.Equal([LibrarySource.MyMusic, LibrarySource.Files], app.Library.Sources.Select(s => s.Kind));
+        Assert.Equal([LibrarySource.MyMusic, LibrarySource.Files, LibrarySource.Playlists], app.Library.Sources.Select(s => s.Kind));
         var source = app.Library.Sources[0];
         Assert.Equal("My music", source.Name);
         Assert.True(source.IsCurrent);
@@ -86,7 +86,7 @@ public sealed class SourcesAppTests
         using var _ = app;
         var library = app.Library;
 
-        Assert.Equal(["My music", "Servers", "Files"], library.Sources.Select(s => s.Name));
+        Assert.Equal(["My music", "Servers", "Files", "Playlists"], library.Sources.Select(s => s.Name));
         Assert.Equal("4", library.Sources[1].CountText);
         Assert.Equal(LibrarySource.MyMusic, library.Source);
         Assert.All(library.FolderRows, r => Assert.True(r.IsFolder));

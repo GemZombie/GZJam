@@ -220,6 +220,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Auto-play turns CUE off](https://github.com/GemZombie/GZJam/issues/412) on the deck it starts
 - [Opening a folder by its arrow](https://github.com/GemZombie/GZJam/issues/413) keeps the folder
   tree where it was
+- [Playlists as a source](https://github.com/GemZombie/GZJam/issues/423), with the whole library
+  column, rather than sharing it with the folder tree
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
   each under its server, in folders built from their names as Navidrome apps do, and sent back the
   same way

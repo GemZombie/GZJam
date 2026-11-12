@@ -87,7 +87,7 @@ public sealed class FilesAppTests
     {
         using var s = WithFiles();
         var library = s.Library;
-        Assert.Equal(["My music", "Files"], library.Sources.Select(x => x.Name));
+        Assert.Equal(["My music", "Files", "Playlists"], library.Sources.Select(x => x.Name));
 
         library.ChooseSource(LibrarySource.Files);
         AppHarness.Settle(150);

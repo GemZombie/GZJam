@@ -45,42 +45,6 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial FolderNodeViewModel? SelectedFolder { get; set; }
 
-    /// <summary>
-    /// The folder list folded down to the music folders themselves, so the playlists get the room
-    /// (#163). Opening a folder in the tree (or "Show in folder") unfolds it again.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FoldTip))]
-    public partial bool AreFoldersFolded { get; set; }
-
-    public string FoldTip => AreFoldersFolded ? "Show the folders" : "Fold the folders away, for more playlists";
-
-    [RelayCommand]
-    private void ToggleFoldFolders() => AreFoldersFolded = !AreFoldersFolded;
-
-    partial void OnAreFoldersFoldedChanged(bool value)
-    {
-        var nodes = Roots.SelectMany(r => r.SelfAndDescendants()).ToList();
-        HoldRows();
-        if (value)
-        {
-            foreach (var node in nodes)
-                node.IsExpanded = false;
-        }
-        else if (!nodes.Any(n => n.IsExpanded))
-        {
-            foreach (var root in Roots.Where(r => r.IsFolder))
-                root.IsExpanded = true;   // back as it opens the first time
-        }
-        ReleaseRows();
-    }
-
-    /// <summary>A folder in the tree was opened: with the folders folded, they unfold.</summary>
-    internal void FolderExpanded()
-    {
-        if (AreFoldersFolded)
-            AreFoldersFolded = false;
-    }
 
     [ObservableProperty]
     public partial string SearchText { get; set; } = "";
@@ -116,6 +80,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 _suppressSearch = true;
                 SelectedPlaylist = null;
                 SelectedFolder = null;
+                Source = LibrarySource.Playlists;   // its column shows it (#423)
                 _suppressSearch = suppressed;
             }
             OnPropertyChanged(nameof(SelectedPlaylistRow));
@@ -154,7 +119,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// Whose sort the song list shows (#376): each playlist its own, and My music, Servers and
     /// Files one each, shared by their folders.
     /// </summary>
-    public string SortKey => SelectedPlaylist is { } playlist ? PlaylistSortKey(playlist.Id) : Source.ToString();
+    public string SortKey => SelectedPlaylist is { } playlist ? PlaylistSortKey(playlist.Id)
+        // The Playlists source with none open shows My music (#423): My music's sort.
+        : Source == LibrarySource.Playlists ? nameof(LibrarySource.MyMusic) : Source.ToString();
 
     /// <summary>A playlist's <see cref="SortKey"/>.</summary>
     public static string PlaylistSortKey(long id) => $"playlist:{id}";
@@ -277,6 +244,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         if (value is not null)
         {
             _selectedServerPlaylist = null;   // one or the other (#355)
+            Source = LibrarySource.Playlists;   // its column shows it (#423)
             ShowPlaylistRow(value);   // in a folder that's closed: it opens (#354)
         }
         OnPropertyChanged(nameof(SelectedPlaylistRow));
@@ -856,8 +824,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             (vm.IsKeepingWhole, vm.IsKeepWholePaused) = ServerKeepWhole(id);
         }
         foreach (var n in vm.SelfAndDescendants())
-            n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && n.IsFolder && !AreFoldersFolded)
-                || (n.IsComputer && !_computerShown && !AreFoldersFolded);   // open the first time it shows, as the DJ left it after
+            n.IsExpanded = expanded.Contains(n.Key) || (firstBuild && n.IsRoot && n.IsFolder)
+                || (n.IsComputer && !_computerShown);   // open the first time it shows, as the DJ left it after
         _computerShown |= vm.IsComputer;
         return vm;
     }

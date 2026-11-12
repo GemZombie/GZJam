@@ -39,6 +39,7 @@ public sealed class FileDropTests
 
     private static Point PlaylistPoint(AppHarness app, string name)
     {
+        PlaylistAppTests.ShowPlaylists(app);
         var item = app.Window.FindControl<ListBox>("PlaylistList")!.GetVisualDescendants().OfType<ListBoxItem>()
             .First(i => ((PlaylistInfo)i.DataContext!).Name == name);
         return item.TranslatePoint(new Point(40, item.Bounds.Height / 2), app.Window)!.Value;

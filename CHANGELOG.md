@@ -77,6 +77,11 @@ New:
 
 Better:
 
+- **Playlists have the whole column** (#423). **Playlists** is a source now, beside My music, Servers
+  and Files: chosen, your playlists, in their folders, and your servers' take the whole library
+  column, rather than sharing it with the folder tree under a grip. With none open, the song list
+  is My music, to drop songs from onto them; songs dragged from a folder and held over
+  **Playlists** open it. The grip, and folding the folders away for more playlists, are gone.
 - **Auto-play turns CUE off on the deck it starts** (#412). Listening to the next song in the
   headphones, then letting auto-play start it, used to leave it in the headphones too, until you
   turned CUE off. Now it goes off as the song starts. Pressing play yourself leaves it as it is.

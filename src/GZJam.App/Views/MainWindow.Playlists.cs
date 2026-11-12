@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -17,93 +16,7 @@ namespace GZJam.App.Views;
 /// </summary>
 public partial class MainWindow
 {
-    private void InitializePlaylists()
-    {
-        DataContextChanged += (_, _) =>
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.Library.PropertyChanged += OnLibraryChangedForPlaylists;
-                ApplyLibraryColumn();
-            }
-        };
-        LibraryColumn.SizeChanged += (_, _) => ApplyLibraryColumn();
-        PlaylistsGrip.PointerPressed += OnPlaylistsGripPressed;
-        PlaylistsGrip.PointerMoved += OnPlaylistsGripMoved;
-        PlaylistsGrip.PointerReleased += OnPlaylistsGripReleased;
-        InitializePlaylistFolderDrags();
-    }
-
-    private void OnLibraryChangedForPlaylists(object? sender, PropertyChangedEventArgs e)
-    {
-        // A playlist's sort is its own (#376, MainWindow.Sorting.cs): none until the DJ sorts it.
-        if (e.PropertyName == nameof(LibraryViewModel.AreFoldersFolded))
-            ApplyLibraryColumn();
-    }
-
-    // ───────────── Sharing the column with the folders (#163) ─────────────
-
-    /// <summary>How tall the playlist list may grow until the DJ drags its grip (about eight rows).</summary>
-    internal const double DefaultPlaylistsHeight = 220;
-
-    /// <summary>The least the grip leaves either side: about two rows of playlists, or of folders.</summary>
-    private const double MinPlaylistsHeight = 60, MinFoldersHeight = 70;
-
-    private double _playlistsGripFrom, _playlistsHeightFrom;
-
-    /// <summary>
-    /// Folded, the folder list is only as tall as its music folders and the playlists take the
-    /// rest. Otherwise the folders take the room and the playlists grow up to the height dragged
-    /// (220 to start with), always leaving the folders a little.
-    /// </summary>
-    private void ApplyLibraryColumn()
-    {
-        if (DataContext is not MainWindowViewModel vm)
-            return;
-        bool folded = vm.Library.AreFoldersFolded;
-        LibraryColumn.RowDefinitions[1].Height = folded ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
-        LibraryColumn.RowDefinitions[2].Height = folded ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
-        PlaylistList.MaxHeight = folded ? double.PositiveInfinity : ClampPlaylistsHeight(vm.PlaylistsHeight ?? DefaultPlaylistsHeight);
-    }
-
-    private double ClampPlaylistsHeight(double height)
-    {
-        // What else the column holds: its header, the playlists' header and the margins around the lists.
-        double others = LibraryColumn.RowDefinitions[0].ActualHeight + PlaylistsSection.Bounds.Height - PlaylistList.Bounds.Height
-            + FolderTree.Margin.Top + FolderTree.Margin.Bottom;
-        double most = LibraryColumn.Bounds.Height - others - MinFoldersHeight;
-        if (LibraryColumn.Bounds.Height > 0 && most > MinPlaylistsHeight)
-            height = Math.Min(height, most);
-        return Math.Max(MinPlaylistsHeight, height);
-    }
-
-    internal double PlaylistsMaxHeight => PlaylistList.MaxHeight;
-
-    private void OnPlaylistsGripPressed(object? sender, PointerPressedEventArgs e)
-    {
-        _playlistsGripFrom = e.GetPosition(this).Y;
-        _playlistsHeightFrom = PlaylistList.Bounds.Height;
-        e.Pointer.Capture(PlaylistsGrip);
-        e.Handled = true;
-    }
-
-    /// <summary>Up: taller playlists, down: shorter, following the pointer.</summary>
-    private void OnPlaylistsGripMoved(object? sender, PointerEventArgs e)
-    {
-        if (e.Pointer.Captured != PlaylistsGrip)
-            return;
-        double height = ClampPlaylistsHeight(_playlistsHeightFrom - (e.GetPosition(this).Y - _playlistsGripFrom));
-        PlaylistList.MaxHeight = height;
-        Vm.PlaylistsHeight = height;
-    }
-
-    private void OnPlaylistsGripReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (e.Pointer.Captured != PlaylistsGrip)
-            return;
-        e.Pointer.Capture(null);
-        e.Handled = true;
-    }
+    private void InitializePlaylists() => InitializePlaylistFolderDrags();
 
     private void OnNewPlaylistClick(object? sender, RoutedEventArgs e) => _ = Vm.CreatePlaylistAsync();
 
@@ -250,7 +163,7 @@ public partial class MainWindow
     /// <summary>The playlist row under <paramref name="at"/> (window coordinates), if any.</summary>
     private ListBoxItem? PlaylistItemAt(Point at)
     {
-        if (!IsOver(PlaylistList, at))
+        if (!PlaylistList.IsEffectivelyVisible || !IsOver(PlaylistList, at))
             return null;
         return PlaylistList.GetVisualDescendants().OfType<ListBoxItem>().FirstOrDefault(item => IsOver(item, at));
     }
@@ -286,6 +199,7 @@ public partial class MainWindow
     /// <summary>Shows where a drag over the playlists or an open playlist would put the songs.</summary>
     private void UpdatePlaylistDrop(Point at)
     {
+        UpdateSpringOpen(at);   // held over the Playlists source, it opens (#423)
         ListBoxItem? over = PlaylistItemAt(at);
         foreach (ListBoxItem item in PlaylistList.GetVisualDescendants().OfType<ListBoxItem>())
             item.Classes.Set("drop-target", item == over);
@@ -302,6 +216,7 @@ public partial class MainWindow
 
     private void EndPlaylistDrop()
     {
+        StopSpringOpen();
         foreach (ListBoxItem item in PlaylistList.GetVisualDescendants().OfType<ListBoxItem>())
             item.Classes.Set("drop-target", false);
         PlaylistDropLine.IsVisible = false;

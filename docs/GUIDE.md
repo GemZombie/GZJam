@@ -529,8 +529,11 @@ to where it is). It keeps playing in the headphones all the while.
 
 ### Playlists
 
-Plan a set before the night. Under the folder tree, **+ New** makes a playlist; drag songs onto its
-name, or right-click songs › **Add to playlist**. Songs and folders dragged from your file manager
+Plan a set before the night. Click **Playlists** in the library's sources: your playlists take the
+whole column, and with none open the song list is My music, to search and drag songs from.
+**+ New** makes a playlist; drag songs onto its name, or right-click songs › **Add to playlist**
+(from anywhere). Dragging songs from a folder? Hold them over **Playlists** in the sources for a
+moment: it opens, the folder's songs staying in view, and you drop them onto a playlist. Songs and folders dragged from your file manager
 go onto a playlist too, **even from outside your music folders**: they
 join the playlist, not your library, so your collection stays as you've curated it. A song whose
 file has been moved or deleted stays in the playlist, grayed out as missing, and is left out when
@@ -559,11 +562,8 @@ Deleting a folder asks first, says how many playlists are in it, and deletes the
 songs stay in your library. An older GZJam still opens your library, showing the playlists in one
 list.
 
-**More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
-down for more folders. If you only ever play from all of My music or a playlist, click the arrow
-beside **LIBRARY** to fold the folders away: only your music folder shows, and the playlists take
-the rest of the column. Opening a folder, or the arrow
-again, brings the folders back. GZJam remembers both.
+Opening a playlist from anywhere (making one, say) shows the Playlists source; clicking a folder,
+or another source, shows its folders again. GZJam remembers which source you left open.
 
 ### Renamed and moved songs
 
@@ -669,7 +669,7 @@ in GZJam's settings or a backup. Add as many servers as you like, your own and a
 
 Click **Servers** in the library's sources: each server is in the folder tree, with its folders under it as they are
 on the server (or by artist and album, for a server that doesn't say). Its playlists are in the
-**Playlists** panel, below your own (see below). GZJam reads its song list when it's added and at most twice a day, only when the
+**Playlists** source, after your own (see below). GZJam reads its song list when it's added and at most twice a day, only when the
 server has read its music since (Navidrome says when; right-click it › *Read its song list again*
 after adding music there, once the server has read it: if it hasn't yet, only its playlists are read
 again, and GZJam says so), so it's searched as fast as your own folders,
@@ -683,7 +683,7 @@ it plays your own copy, so there's no need to add it.
 
 ### Your server's playlists
 
-Each server has a heading in the **Playlists** panel, after your own playlists, with its cloud and
+Each server has a heading in the **Playlists** source, after your own playlists, with its cloud and
 how many playlists it has. Click it (or its arrow) to fold it away; GZJam remembers. **↻** reads its
 playlists again, for one just made on the server. While the server can't be reached, its playlists
 show as last read, and the heading says *offline*.
