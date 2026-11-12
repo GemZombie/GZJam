@@ -132,6 +132,9 @@ Better:
 
 Fixed:
 
+- **Closing GZJam while it reads a new music folder** (#419) no longer ends in an error on the
+  way out: the reading's last reports, which came a moment later, looked for a library that had
+  closed.
 - **The waveform, the times and the meters go with the music** (#417). They ran ahead of it: the
   playhead reached a beat, and the meters and LIMIT light moved, before the room heard them, by
   almost half a second at the usual protection against crackles, and more at High or Highest. They
