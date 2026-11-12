@@ -9,6 +9,12 @@ namespace GZJam.Audio;
 /// stall of the audio thread against a 200 ms buffer left the position 222 ms behind.
 /// It works however late the ticks come: if the whole app was held up, the gap is still counted
 /// on the next tick, so a dropout can't slip by unseen as the old exclusive-only check could.
+/// <para>
+/// A gap is what's still missing once it has settled, not the most that seemed to be (#381): a
+/// look held up between reading the clock and the position (by a .NET pause another thread
+/// started, or a busy computer giving the core away) makes the position seem behind for one tick,
+/// then it catches up. Those looks are left out where they're taken, too (MixEngine).
+/// </para>
 /// </summary>
 internal sealed class DropoutWatch
 {
@@ -80,11 +86,14 @@ internal sealed class DropoutWatch
             }
             if (real - _lastRise < Settle)
                 return null;
-            var gap = TimeSpan.FromSeconds(_gapPeak - from);
+            // What's still missing once it's settled: a real gap leaves the position behind for
+            // good, by its length. A look held up between the clock and the position (#381) seemed
+            // behind for a tick and then caught up: nothing missing, no dropout.
+            double missing = _lag - from;
             _gapFrom = null;
             _recent.Clear();
             _recent.Enqueue((real, _lag));
-            return gap;
+            return missing >= Threshold.TotalSeconds ? TimeSpan.FromSeconds(missing) : null;
         }
 
         while (_recent.Count > 0 && real - _recent.Peek().At > Window)

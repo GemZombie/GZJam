@@ -68,6 +68,36 @@ public sealed class DropoutWatchTests
         Assert.InRange(gap.TotalMilliseconds, 215, 230);
     }
 
+    /// <summary>
+    /// A look held up between reading the clock and the position (a .NET pause another thread
+    /// started, or a busy computer): for one tick the position seems to have fallen behind, and on
+    /// the next it has caught up. The sound never stopped: a real gap leaves the position behind
+    /// for good (#381).
+    /// </summary>
+    [Fact]
+    public void A_look_held_up_while_the_sound_played_on_is_no_dropout()
+    {
+        Steady(30);
+        Step(33 + 140, 33);    // the clock read 140 ms after the position
+        Step(33, 33 + 140);    // the next look: all there
+        Steady(30);
+        Assert.Empty(_found);
+    }
+
+    /// <summary>A real gap with a held-up look on top of it: the gap, not the two together.</summary>
+    [Fact]
+    public void A_real_gap_is_its_own_length_whatever_a_held_up_look_added()
+    {
+        Steady(30);
+        for (int i = 0; i < 3; i++)
+            Step(33, 0);         // 99 ms of no sound
+        Step(33 + 100, 33);      // and a look held up 100 ms
+        Step(33, 33 + 100);
+        Steady(30);
+        TimeSpan gap = Assert.Single(_found);
+        Assert.InRange(gap.TotalMilliseconds, 95, 105);
+    }
+
     [Fact]
     public void A_gap_counted_late_because_the_whole_app_was_held_up_is_still_found()
     {

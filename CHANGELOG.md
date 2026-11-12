@@ -90,6 +90,10 @@ Better:
   before. A song loaded onto a deck is still analyzed at once. That song is now read from the
   copy the deck already holds in memory, not from the disk again, and its close-up waveform
   comes from the same pass. Analysis also makes far less garbage for the computer to tidy away.
+- **A dropout in the activity log is one the speakers really had** (#381). The watch that notes
+  the sound stopping for a moment (#345) could count one that never happened, when GZJam itself
+  was held up for an instant just as it looked. Now it counts only sound that's still missing
+  once things have settled, and leaves out a look it knows was held up.
 
 ## 1.7.0 (2026-11-11)
 

@@ -372,11 +372,28 @@ public sealed class MixEngine : IDisposable
     private void WatchForDropouts()
     {
         int handle = SpeakerOutput.Handle;
+        // The clock either side of the speakers' position: if this thread was held up between them
+        // (a .NET pause another thread started, or a busy computer giving the core to something
+        // else), the clock ran on while the position was the one from before, which looks just like
+        // the sound stopping for that long. Then this look can't tell, and is left out (#381).
+        TimeSpan before = _clock.Elapsed;
         long bytes = Bass.ChannelGetPosition(handle);
+        TimeSpan after = _clock.Elapsed;
+        if (after - before > UnsureRead)
+        {
+            UnsureReads++;
+            return;
+        }
         double played = bytes < 0 ? -1 : Bass.ChannelBytes2Seconds(handle, bytes);
-        if (_dropouts.Observe(_clock.Elapsed, played) is { } gap && !SpeakerOutput.IsLost)
+        if (_dropouts.Observe(after, played) is { } gap && !SpeakerOutput.IsLost)
             MainDropout?.Invoke(this, gap);
     }
+
+    /// <summary>The clock and the speakers' position read further apart than this: the look is left out.</summary>
+    internal static readonly TimeSpan UnsureRead = TimeSpan.FromMilliseconds(5);
+
+    /// <summary>Looks left out because this thread was held up while it looked (tests, and the log).</summary>
+    internal int UnsureReads { get; private set; }
 
     private OutputBus BusFor(TableOutput output) => output == TableOutput.Headphones ? Cue : Booth;
 
