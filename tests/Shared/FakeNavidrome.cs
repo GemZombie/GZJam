@@ -100,6 +100,12 @@ public sealed class FakeNavidrome : HttpMessageHandler
     /// <summary>While set, downloads wait for it: to see how many come down at once, and in what order.</summary>
     public TaskCompletionSource? Hold { get; set; }
 
+    /// <summary>
+    /// While set, the list of playlists is taken as it is when asked for, and answered once this is
+    /// done: a list read that something else happens during (#427).
+    /// </summary>
+    public TaskCompletionSource? PlaylistsHold { get; set; }
+
     private int _atOnce;
 
     /// <summary>The most downloads under way at once, while <see cref="Hold"/> held them.</summary>
@@ -238,6 +244,13 @@ public sealed class FakeNavidrome : HttpMessageHandler
                 Stars.Add($"{uri.AbsolutePath[6..^5]} {id}");
         if (uri.AbsolutePath == "/rest/download.view" && Hold is { } hold)
             return HeldAsync(request, hold, cancellationToken);
+        if (uri.AbsolutePath == "/rest/getPlaylists.view" && PlaylistsHold is { } playlistsHold)
+        {
+            PlaylistsHold = null;
+            string asked = Answer(uri);   // the list as it is now
+            return playlistsHold.Task.WaitAsync(cancellationToken)
+                .ContinueWith(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(asked, Encoding.UTF8, "application/json") }, TaskScheduler.Default);
+        }
         if (uri.AbsolutePath == "/rest/download.view" && DownloadDelay > TimeSpan.Zero)
             return DelayedAsync(request, cancellationToken);
         if (uri.AbsolutePath == "/rest/download.view")
@@ -252,7 +265,15 @@ public sealed class FakeNavidrome : HttpMessageHandler
         }
         if (uri.AbsolutePath == "/rest/createShare.view" && SharingOff)
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotImplemented) { Content = new StringContent("This endpoint is not implemented") });
-        string json = uri.AbsolutePath switch
+        string json = Answer(uri);
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });
+    }
+
+    /// <summary>What the server answers to a request of the Subsonic API (not a download or a picture).</summary>
+    private string Answer(Uri uri)
+    {
+        string id = System.Web.HttpUtility.ParseQueryString(uri.Query)["id"] ?? "";
+        return uri.AbsolutePath switch
         {
             "/rest/createPlaylist.view" => CreatePlaylist(uri),
             "/rest/updatePlaylist.view" => UpdatePlaylist(uri),
@@ -294,6 +315,5 @@ public sealed class FakeNavidrome : HttpMessageHandler
             "/rest/getArtist.view" => Ok(new { artist = new { id, album = Albums.Where(a => ArtistIds.GetValueOrDefault(a.Value.Artist) == id).Select(a => Album(a.Key)).ToArray() } }),
             _ => Ok(new { }),
         };
-        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });
     }
 }

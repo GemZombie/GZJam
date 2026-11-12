@@ -84,7 +84,7 @@ public sealed partial class ServersViewModel
                 live = await Task.Run(() => client.GetPlaylistSongsAsync(id, quick.Token), quick.Token);
                 copy = new ServerPlaylistCopy(id, copy?.Name ?? "", live.Select(s => s.Id).ToList());
                 if (copy.Name.Length > 0)
-                    _database.SaveServerPlaylist(item.Server.Id, copy);
+                    SavePlaylistCopy(item.Server.Id, copy);
             }
             catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
             {
@@ -118,13 +118,42 @@ public sealed partial class ServersViewModel
         return new(rows, Note: note);
     }
 
+    /// <summary>
+    /// Playlist copies saved for each server one at a time (a playlist sent, or opened and read):
+    /// counted, so a whole list read meanwhile knows it's older than they are (#427).
+    /// </summary>
+    private readonly Dictionary<long, int> _playlistCopiesSaved = [];
+
+    /// <summary>Each copy's count when it was saved, by server and playlist: which are newer than a list read.</summary>
+    private readonly Dictionary<(long Server, string Playlist), int> _playlistCopySavedAt = [];
+
+    /// <summary>Keeps one playlist of a server's as it is now, counted (see <see cref="_playlistCopiesSaved"/>).</summary>
+    private void SavePlaylistCopy(long serverId, ServerPlaylistCopy copy)
+    {
+        _database.SaveServerPlaylist(serverId, copy);
+        int count = _playlistCopiesSaved[serverId] = _playlistCopiesSaved.GetValueOrDefault(serverId) + 1;
+        _playlistCopySavedAt[(serverId, copy.Id)] = count;
+    }
+
     /// <summary>The server's playlists, read with its catalog. One that can't be read leaves those read before.</summary>
     /// <returns>Whether they were read (a server that doesn't answer is only logged).</returns>
     private async Task<bool> ReadPlaylistsAsync(ServerItemViewModel item, SubsonicClient client)
     {
         try
         {
+            long serverId = item.Server.Id;
+            int savedBefore = _playlistCopiesSaved.GetValueOrDefault(serverId);
             var playlists = await Task.Run(() => ServerCatalogReader.ReadPlaylistsAsync(client));
+            if (_playlistCopiesSaved.GetValueOrDefault(serverId) != savedBefore)
+            {
+                // One was sent (or read afresh) while the list was on its way: the list is older
+                // than it, so it's kept as saved, rather than dropped or put back as it was (#427).
+                var newer = _database.GetServerPlaylists(serverId)
+                    .Where(s => _playlistCopySavedAt.GetValueOrDefault((serverId, s.Id)) > savedBefore)
+                    .ToList();
+                playlists = [.. playlists.Where(p => newer.All(n => n.Id != p.Id)), .. newer];
+                Log.Info($"Servers: {item.Name}'s playlists were read while one was saved: kept as saved");
+            }
             await Task.Run(() => _database.ReplaceServerPlaylists(item.Server.Id, playlists));
             Log.Info($"Servers: read {item.Name}'s {Format.Count(playlists.Count)} playlists");
             return true;

@@ -201,6 +201,28 @@ public sealed class ServerSendPlaylistAppTests
         Assert.Contains("deleted there", s.App.ViewModel.Notice);
     }
 
+    /// <summary>
+    /// The server's playlists read while one is sent (#427): the list, from before the send, doesn't
+    /// drop the playlist just sent, nor put it back as it was.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task A_list_read_while_a_playlist_is_sent_keeps_the_one_just_sent()
+    {
+        using var s = await WithServer();
+        PlaylistInfo playlist = s.App.ViewModel.CreatePlaylist("Saturday", [s.First])!;
+        var hold = new TaskCompletionSource();
+        s.Server.PlaylistsHold = hold;
+
+        Task reading = s.Servers.ReadPlaylistsAgainAsync(s.Card.Server.Id);   // asks, and waits for the answer
+        AppHarness.WaitFor(() => s.Server.PlaylistsHold is null, TimeSpan.FromSeconds(10));
+        string id = Assert.IsType<string>(Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+        hold.SetResult();   // the list as it was before the send arrives now
+        Finish(reading.ContinueWith(_ => true));
+
+        Assert.Contains(s.App.Database.GetServerPlaylists(s.Card.Server.Id), p => p.Id == id && p.Name == "Saturday");
+        Assert.Contains(s.App.Database.GetServerPlaylists(s.Card.Server.Id), p => p.Name == "Friday");   // what the list had too
+    }
+
     [AvaloniaFact]
     public async Task Share_a_link_sends_the_playlist_if_needed_and_copies_the_link()
     {
