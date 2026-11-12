@@ -676,6 +676,13 @@ order, under its name, with the songs the server has; any it doesn't have are na
 out. Sending it again updates the same playlist. A playlist kept from the server doesn't offer this,
 as a sync already makes it the server's again.
 
+If the server already has a playlist of that name that GZJam didn't make (in Navidrome's web page,
+another app, or GZJam on another computer), GZJam asks first: **Replace it** puts your playlist's
+songs into that one, which keeps its place on the server, so links and other apps follow it (and
+later sends update it without asking); **Send it as another one** makes a second of the same name.
+Someone else's playlist on the server, or several of that name, can't be replaced: then it's only
+another one, or Cancel.
+
 **Share a link…** sends the playlist if it isn't there yet, makes a link anyone can open and listen
 to, and copies it, ready to paste into your post. Navidrome only makes links with sharing turned on
 (`ND_ENABLESHARING=true`, *EnableSharing* in its settings).

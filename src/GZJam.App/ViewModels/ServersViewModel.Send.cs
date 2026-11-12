@@ -35,15 +35,33 @@ public sealed partial class ServersViewModel
         try
         {
             string? known = _database.GetSentPlaylist(playlist.Id, serverId);
-            bool gone = known is not null && !await IsThereAsync(client, known);
-            string id = await client.SendPlaylistAsync(gone ? null : known, playlist.Name, ids);
+            IReadOnlyList<ServerPlaylist> there = await client.GetPlaylistsAsync();
+            bool gone = known is not null && !there.Any(p => p.Id == known);
+            string? target = gone ? null : known;
+            bool replaced = false;
+            if (target is null)
+            {
+                // Not sent here before: one of that name already there, made elsewhere (#396)?
+                switch (await SameNameAsync(item, playlist.Name, there))
+                {
+                    case null:
+                        return null;
+                    case { Length: > 0 } existing:
+                        target = existing;
+                        replaced = true;
+                        break;
+                }
+            }
+            string id = await client.SendPlaylistAsync(target, playlist.Name, ids);
             _database.SaveSentPlaylist(playlist.Id, serverId, id);
             _database.SaveServerPlaylist(serverId, new ServerPlaylistCopy(id, playlist.Name, ids));
             _owner.Library.RefreshServers();
             Log.Info($"Servers: {playlist.Name} sent to {item.Name} as {id}: {ids.Count} songs, {leftOut.Count} left out");
             string songs = ids.Count == 1 ? "1 song" : $"{Format.Count(ids.Count)} songs";
             string left = leftOut.Count > 0 ? $", {Format.Count(leftOut.Count)} left out" : "";
-            _owner.ShowNotice(gone
+            _owner.ShowNotice(replaced
+                ? $"{item.Name}'s {playlist.Name} has this playlist's songs now: {songs}{left}."
+                : gone
                 ? $"The {playlist.Name} GZJam made on {item.Name} had been deleted there, so it's been made again: {songs}{left}."
                 : $"{playlist.Name} is on {item.Name}: {songs}{left}.", seconds: 8);
             return id;
@@ -103,6 +121,35 @@ public sealed partial class ServersViewModel
             return client;
         _owner.ShowNotice($"GZJam doesn't have the password for {item.Name} on this computer: enter it in Settings › Servers.", seconds: 8);
         return null;
+    }
+
+    /// <summary>
+    /// A playlist GZJam hasn't sent to this server, whose name the server has already (#396): made
+    /// in its web page, another app, or by GZJam on another computer. Rather than a second one of
+    /// that name beside it, the DJ is asked. The answer: "" to send it as another one (also with
+    /// nothing of that name there), the ID of the one to replace, or null for Cancel. Another
+    /// user's playlist can't be changed, and of several, GZJam doesn't guess which: then only
+    /// another one, or Cancel.
+    /// </summary>
+    private async Task<string?> SameNameAsync(ServerItemViewModel item, string name, IReadOnlyList<ServerPlaylist> there)
+    {
+        var same = there.Where(p => string.Equals(p.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+        if (same.Count == 0)
+            return "";
+        ServerPlaylist first = same[0];
+        bool theirs = first.Owner is { Length: > 0 } owner && !string.Equals(owner, item.Server.UserName, StringComparison.OrdinalIgnoreCase);
+        bool canReplace = same.Count == 1 && !theirs;
+        string message = same.Count > 1
+            ? $"It has {same.Count} of them, so GZJam can't tell which one to replace. Send this as another one?"
+            : theirs
+            ? $"It's {first.Owner}'s, so GZJam can't change it. Send this as another one?"
+            : "Replace its songs with this playlist's, in this order: it keeps its place on the server, so links and other apps follow it, and later sends update it. Or send this as another one of the same name.";
+        string[] answers = canReplace ? ["Replace it", "Send it as another one"] : ["Send it as another one"];
+        if (_owner.ChooseAsync is null
+            || await _owner.ChooseAsync($"{item.Name} already has a playlist called {first.Name}.", message, answers) is not { } chosen)
+            return null;
+        Log.Info($"Servers: {name} on {item.Name} has the name of one there already: {(canReplace && chosen == 0 ? "replaced" : "sent as another one")}");
+        return canReplace && chosen == 0 ? first.Id : "";
     }
 
     private static async Task<bool> IsThereAsync(SubsonicClient client, string playlistId) =>

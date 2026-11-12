@@ -41,6 +41,36 @@ public sealed class ServerSendPlaylistAppTests
         return new Setup(app, fake, card, songs[0], songs[1], songs[2]);
     }
 
+    /// <summary>The DJ's answer to "already has a playlist called…" (#396), and what was asked.</summary>
+    private sealed class Asked
+    {
+        public int Times;
+        public string? Message;
+        public IReadOnlyList<string> Answers = [];
+    }
+
+    private static Asked Answer(Setup s, int? answer)
+    {
+        var asked = new Asked();
+        s.App.ViewModel.ChooseAsync = (_, message, answers) =>
+        {
+            asked.Times++;
+            (asked.Message, asked.Answers) = (message, answers);
+            return Task.FromResult(answer);
+        };
+        return asked;
+    }
+
+    /// <summary>A playlist on the server made elsewhere (its web page, another app): its ID.</summary>
+    private static string MadeThere(Setup s, string id, string name, string? owner = null)
+    {
+        s.Server.Playlists[id] = ["s3"];
+        s.Server.PlaylistNames[id] = name;
+        if (owner is not null)
+            s.Server.PlaylistOwners[id] = owner;
+        return id;
+    }
+
     private static T Finish<T>(Task<T> task)
     {
         AppHarness.WaitFor(() => task.IsCompleted, TimeSpan.FromSeconds(20));
@@ -65,6 +95,77 @@ public sealed class ServerSendPlaylistAppTests
         Assert.Equal(id, Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
         Assert.Equal(before, s.Server.Playlists.Count);
         Assert.Equal(3, s.Server.Playlists[id].Length);
+    }
+
+    /// <summary>
+    /// The server has a playlist of that name GZJam didn't make (#396): asked, Replace it puts this
+    /// one's songs in it, in order, and it's remembered, so the next send updates it unasked.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task A_playlist_of_the_same_name_made_elsewhere_can_be_replaced_and_is_then_updated_unasked()
+    {
+        using var s = await WithServer();
+        string theirs = MadeThere(s, "pl9", "Saturday");
+        PlaylistInfo playlist = s.App.ViewModel.CreatePlaylist("Saturday", [s.Second, s.First])!;
+        var asked = Answer(s, 0);
+        int before = s.Server.Playlists.Count;
+
+        Assert.Equal(theirs, Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+
+        Assert.Equal(["Replace it", "Send it as another one"], asked.Answers);
+        Assert.Equal(["s1", "s2"], s.Server.Playlists[theirs]);   // its songs, in this order, under its ID
+        Assert.Equal(before, s.Server.Playlists.Count);   // no second "Saturday"
+        Assert.Contains("has this playlist's songs now", s.App.ViewModel.Notice);
+
+        s.App.ViewModel.AddToPlaylist(playlist, [s.First]);
+        AppHarness.Settle(100);
+        Assert.Equal(theirs, Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+        Assert.Equal(1, asked.Times);   // GZJam's now: updated without asking
+        Assert.Equal(3, s.Server.Playlists[theirs].Length);
+    }
+
+    [AvaloniaFact]
+    public async Task Send_it_as_another_one_makes_a_second_and_Cancel_sends_nothing()
+    {
+        using var s = await WithServer();
+        string theirs = MadeThere(s, "pl9", "saturday");   // the same name, whatever the case
+        PlaylistInfo playlist = s.App.ViewModel.CreatePlaylist("Saturday", [s.First])!;
+        int before = s.Server.Playlists.Count;
+
+        Answer(s, null);
+        Assert.Null(Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+        Assert.Equal(before, s.Server.Playlists.Count);
+
+        Answer(s, 1);
+        string id = Assert.IsType<string>(Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+        Assert.NotEqual(theirs, id);
+        Assert.Equal(before + 1, s.Server.Playlists.Count);
+        Assert.Equal(["s3"], s.Server.Playlists[theirs]);   // theirs untouched
+    }
+
+    /// <summary>Another user's playlist can't be changed, and of several GZJam doesn't guess: only another one, or Cancel.</summary>
+    [AvaloniaFact]
+    public async Task Another_users_playlist_or_several_of_that_name_are_never_replaced()
+    {
+        using var s = await WithServer();
+        string sams = MadeThere(s, "pl9", "Saturday", owner: "sam");
+        PlaylistInfo playlist = s.App.ViewModel.CreatePlaylist("Saturday", [s.First])!;
+        var asked = Answer(s, 0);
+
+        string id = Assert.IsType<string>(Finish(s.Servers.SendPlaylistAsync(s.Card, playlist)));
+        Assert.Equal(["Send it as another one"], asked.Answers);
+        Assert.Contains("sam's", asked.Message);
+        Assert.NotEqual(sams, id);
+        Assert.Equal(["s3"], s.Server.Playlists[sams]);
+
+        PlaylistInfo other = s.App.ViewModel.CreatePlaylist("Sunday", [s.First])!;
+        MadeThere(s, "pl10", "Sunday");
+        MadeThere(s, "pl11", "Sunday");
+        Finish(s.Servers.SendPlaylistAsync(s.Card, other));
+        Assert.Equal(["Send it as another one"], asked.Answers);
+        Assert.Contains("can't tell which", asked.Message);
+        Assert.Equal(["s3"], s.Server.Playlists["pl10"]);
+        Assert.Equal(["s3"], s.Server.Playlists["pl11"]);
     }
 
     [AvaloniaFact]

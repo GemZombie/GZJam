@@ -38,6 +38,7 @@ public partial class MainWindow
             if (DataContext is not MainWindowViewModel vm)
                 return;
             vm.ConfirmAsync = (heading, message, confirm) => new ConfirmDialog(heading, message, confirm).ShowDialog<bool>(this);
+            vm.ChooseAsync = (heading, message, answers) => new ChoiceDialog(heading, message, answers).ShowDialog<int?>(this);
             vm.Servers.ChooseFolderAsync = ChooseFolderAsync;
             vm.ConfirmCloseAsync = playing => new ConfirmDialog("Stop the music and close GZJam?", playing, "Close GZJam",
                 cancelText: "Keep playing", cancelIsDefault: true).ShowDialog<bool>(this);
