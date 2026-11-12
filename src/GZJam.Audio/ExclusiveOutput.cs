@@ -60,6 +60,25 @@ internal sealed class ExclusiveOutput : IDisposable
         }
     }
 
+    /// <summary>The sound in the output's buffer, still to be played (#417).</summary>
+    public TimeSpan Buffered
+    {
+        get
+        {
+            if (_lost)
+                return TimeSpan.Zero;
+            lock (s_lock)
+            {
+                if (!s_open.ContainsKey(_device))
+                    return TimeSpan.Zero;
+                BassWasapi.CurrentDevice = _device;
+                int bytes = BassWasapi.GetData(IntPtr.Zero, (int)DataFlags.Available);
+                // BASSWASAPI's buffer holds floating-point samples.
+                return bytes <= 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(bytes / (double)(SampleRate * MixEngine.Channels * sizeof(float)));
+            }
+        }
+    }
+
     /// <summary>The decoding mixer the output plays: decks and the preview are added to it.</summary>
     public int Mixer { get; }
 
@@ -89,7 +108,8 @@ internal sealed class ExclusiveOutput : IDisposable
                 throw new AudioException($"{device.Name} doesn't take stereo at the usual rates", Errors.SampleFormat);
 
             engine.UseNoSoundDevice();
-            int mixer = BassMix.CreateMixerStream(rate, MixEngine.Channels, mixerFlags | BassFlags.Decode);
+            // Positions kept, so where each deck is heard can allow for this output's buffer (#417)
+            int mixer = BassMix.CreateMixerStream(rate, MixEngine.Channels, mixerFlags | BassFlags.Decode | BassFlags.MixerPositionEx);
             if (mixer == 0)
                 throw new AudioException("Could not create mixer", Bass.LastError);
 

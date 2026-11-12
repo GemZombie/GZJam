@@ -43,6 +43,8 @@ public sealed unsafe class OutputBus : IDisposable
         Handle = handle;
         Device = device;
         _exclusive = exclusive;
+        _playedByBass = device is not null && exclusive is null && Bass.ChannelGetInfo(handle, out ChannelInfo info)
+                        && !info.Flags.HasFlag(BassFlags.Decode);
         // How much of the gain reduction is left after each sample.
         float release = MathF.Exp(-1f / (ReleaseSeconds * sampleRate));
         _bus = NativeDsp.NewBus(Ceiling, Noticeable, release);
@@ -68,6 +70,44 @@ public sealed unsafe class OutputBus : IDisposable
 
     /// <summary>The device this bus plays on, or null when offline.</summary>
     public AudioDevice? Device { get; }
+
+    /// <summary>
+    /// How long sound mixed now takes to reach the output (#417): what's waiting in its buffers.
+    /// What's shown with the music (each deck's playhead, the meters) is held back by this much,
+    /// so it goes with what's heard rather than ahead of it. Measured by <see cref="MeasureLatency"/>.
+    /// </summary>
+    public TimeSpan Latency { get; private set; }
+
+    /// <summary>For a bus mixed into another output (the speakers and headphones on one, split): that output's latency.</summary>
+    internal TimeSpan HostLatency { get; set; }
+
+    /// <summary>A mixer BASS plays itself, which knows its own latency; otherwise a decoding one, pulled.</summary>
+    private readonly bool _playedByBass;
+
+    /// <summary>
+    /// Works out <see cref="Latency"/> (on every playback tick). A mixer BASS plays: what it has
+    /// mixed and not yet played. One GZJam has to itself (Windows' exclusive output): what's in
+    /// that output's buffer. One mixed into another output: that output's. BASSmix allows for it
+    /// in where each deck is heard (<see cref="Deck.HeardPosition"/>): by itself for a mixer BASS
+    /// plays, and told it for the others.
+    /// </summary>
+    internal void MeasureLatency()
+    {
+        if (_disposed || IsOffline)
+            return;
+        TimeSpan own = TimeSpan.Zero;
+        if (_exclusive is { } exclusive)
+            own = exclusive.Buffered;
+        else if (_playedByBass)
+        {
+            long decoded = Bass.ChannelGetPosition(Handle, PositionFlags.Decode), played = Bass.ChannelGetPosition(Handle);
+            if (decoded >= 0 && played >= 0 && decoded >= played)
+                own = TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(Handle, decoded - played));
+        }
+        Latency = own + HostLatency;
+        if (!_playedByBass)
+            Bass.ChannelSetAttribute(Handle, ChannelAttribute.MixerLatency, Latency.TotalSeconds);
+    }
 
     public bool IsOffline => Device is null;
 

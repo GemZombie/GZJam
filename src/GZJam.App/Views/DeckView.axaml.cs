@@ -259,7 +259,7 @@ public partial class DeckView : UserControl
             return;
         }
         Deck deck = vm.Deck;
-        TimeSpan playhead = deck.Position;
+        TimeSpan playhead = vm.Playhead;   // where it's heard (#417), what was listened for
         TimeSpan? here = _trimMenuAt is { } fraction ? deck.Length * fraction : null;
         var items = menu.Items;
         items.Clear();

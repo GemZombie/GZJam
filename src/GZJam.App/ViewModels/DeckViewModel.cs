@@ -1318,9 +1318,15 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial double Level { get; private set; }
 
+    /// <summary>The meter's readings, held back until the room hears them (#417).</summary>
+    private readonly MeterDelay _meterDelay = new();
+
     /// <summary>Reads the deck's level for its meter; called on every playback tick.</summary>
-    public void UpdateMeter() =>
-        Level = Math.Max(Controls.LevelMeter.FromPeak(Deck.TakePeak()), Level - Controls.LevelMeter.Fall);
+    public void UpdateMeter()
+    {
+        float peak = _meterDelay.Pass(Deck.TakePeak(), 0, false, Deck.MeterLatency).Left;
+        Level = Math.Max(Controls.LevelMeter.FromPeak(peak), Level - Controls.LevelMeter.Fall);
+    }
 
     /// <summary>Re-reads everything that changes as the track plays.</summary>
     public void Refresh()
@@ -1329,7 +1335,10 @@ public sealed partial class DeckViewModel : ObservableObject
         UpdateMatch();
         if ((IsPauseArmed || IsFadeArmed) && !PauseNeedsConfirm)
             Disarm();   // no longer on air (or the setting changed): a single tap pauses or fades again
-        _tick = (Deck.Position, Deck.Remaining);
+        // Where it's heard, not where it's been read to (#417): the output holds what's read for
+        // a moment before it's played, and the playhead and times went that far ahead.
+        TimeSpan heard = Deck.HeardPosition;
+        _tick = (heard, Deck.HeardRemaining(heard));
         try
         {
             Raise(ref _shown.IsPlaying, IsPlaying, nameof(IsPlaying));
@@ -1369,6 +1378,9 @@ public sealed partial class DeckViewModel : ObservableObject
     private (TimeSpan Position, TimeSpan Remaining)? _tick;
 
     private TimeSpan PlayedTo => _tick?.Position ?? Deck.Position;
+
+    /// <summary>Where the playhead shows the song: where it's heard (#417), for "at the playhead".</summary>
+    internal TimeSpan Playhead => PlayedTo;
     private TimeSpan TimeLeft => _tick?.Remaining ?? Deck.Remaining;
 
     /// <summary>What each readout showed when it was last raised.</summary>
