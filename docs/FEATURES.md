@@ -378,10 +378,10 @@ is out of scope until it earns a place.
 - `DeckViewModel.PreviewSongCommand` hands the deck's song to `PreviewViewModel.Toggle`, the same
   as a row's 🎧: from the start, or stopped if it's already the one previewing. The preview
   player isn't the deck, so the deck's place, play state and CUE are never touched.
-- Offered only on a loaded deck that isn't playing (`CanPreview`): a 🎧 beside Eject on a full
-  deck (otherwise disabled and see-through, its place kept so nothing moves when the deck
+- Offered only on a loaded deck that isn't playing (`CanPreview`): a 🎧 beside Eject, on a
+  compact deck too, where Eject is in **⋯** but the row is as wide (otherwise disabled and see-through, its place kept so nothing moves when the deck
   starts, as `LayoutStabilityTests` asks), lit (`IsPreviewed`) while it's the song in the headphones, and *Preview in headphones* /
-  *Stop the preview* in the song's menu (right-click, or **⋯** on four decks). On a playing deck
+  *Stop the preview* in the song's menu (right-click, and **⋯** on four decks). On a playing deck
   the key shows "Playing: use CUE to hear it"; a preview already going can still be stopped.
 - **Ctrl+Alt+Shift+1..4** (Cmd+Option+Shift on macOS), in `MainWindow.DeckKeys.cs`. Not in a text
   box, as Ctrl+Alt is AltGr there. Nothing on Windows, macOS or the usual Linux desktops uses

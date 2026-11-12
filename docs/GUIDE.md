@@ -197,8 +197,8 @@ the decks back.
 - **🎧 beside Eject** plays the deck's song in the headphones' preview, from the start, without
   touching the deck: to compare the next song with another one, then press Space on a song in the
   list or the queue to switch to it, and 🎧 again to come back. The deck stays where it was, ready
-  to play. **Ctrl+Alt+Shift+1 / 2** does the same (Cmd+Option+Shift on a Mac); with four decks
-  it's in the deck's **⋯** menu. Not on a deck that's playing: use CUE to hear that.
+  to play. **Ctrl+Alt+Shift+1 / 2** does the same (Cmd+Option+Shift on a Mac). Not on a deck
+  that's playing: use CUE to hear that.
 - **One song per side:** with four decks, Decks 1 and 3 share the crossfader's left side and 2 and
   4 the right. GZJam won't start a deck the room would hear while the other deck on its side is on
   air ("Deck 1 is playing. Fade it out first").

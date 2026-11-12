@@ -418,10 +418,13 @@
                 IsEnabled="{Binding IsPlaying}" ToolTip.Tip="Fade out and stop (length in Settings)">
           <TextBlock Text="FADE OUT" />
         </Button>
-        <StackPanel Grid.Column="3" Classes="full-only" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-          <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}"
-                  IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
-          <!-- The song in the headphones' preview, the deck left where it is (#378) -->
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+          <Panel Classes="full-only" VerticalAlignment="Center">   <!-- in ⋯ on a compact deck -->
+            <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}"
+                    IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
+          </Panel>
+          <!-- The song in the headphones' preview, the deck left where it is (#378). On a compact
+               deck too: it's as wide as a full one. -->
           <Button x:Name="PreviewButton" Classes="row-icon deck-preview" Classes.active="{Binding IsPreviewed}" Command="{Binding PreviewSongCommand}"
                   IsEnabled="{Binding CanPreview}" ToolTip.Tip="{Binding PreviewTip}" VerticalAlignment="Center">
             <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
 
@@ -155,6 +156,11 @@ public sealed class FourDeckTests
         var view = View(app, 3);
         var more = view.FindControl<Button>("MoreButton")!;
         Assert.True(more.IsEffectivelyVisible);
+        var preview = view.FindControl<Button>("PreviewButton")!;   // the headphones fit on the row (#378)
+        Assert.True(preview.IsEffectivelyVisible && preview.IsEffectivelyEnabled);
+        Assert.True(preview.Bounds.Width > 0);
+        Assert.DoesNotContain(view.GetVisualDescendants().OfType<Button>(), b => b.Content is "Eject" && b.IsEffectivelyVisible);   // in ⋯
+        app.Screenshot("four-decks-preview-button");
         Assert.False(View(app, 3).FindControl<Button>("RatingButton")!.IsEffectivelyVisible);
 
         more.Flyout!.ShowAt(more);

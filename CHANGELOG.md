@@ -47,8 +47,8 @@ New:
   file was copied, downloaded or unzipped there, not its modified date, which a copied file keeps
   from wherever it came from.
 - **Hear the song on a deck in the headphones, without moving the deck** (#378, thanks to a DJ
-  moving over from Mixxx). A deck with a song loaded and not playing has a 🎧 beside Eject (in
-  the **⋯** menu with four decks), and **Ctrl+Alt+Shift+1 / 2** (Cmd+Option+Shift on a Mac): its
+  moving over from Mixxx). A deck with a song loaded and not playing has a 🎧 beside Eject (four
+  decks too), and **Ctrl+Alt+Shift+1 / 2** (Cmd+Option+Shift on a Mac): its
   song plays in the preview from the start, while the deck stays exactly where it was. To compare
   the next song with another, press Space on a song in the list or the queue, then 🎧 again to
   come back. Pressing it again stops the preview.
