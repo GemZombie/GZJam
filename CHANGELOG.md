@@ -132,6 +132,12 @@ Better:
 
 Fixed:
 
+- **GZJam no longer piles up memory over a night** (#407). Each time the folder tree's rows were
+  made again, as folders opened, closed and scrolled by, the old ones were kept: their menus, their
+  arrows and their icons, about 300 MB over an hour and three quarters of a test night. More memory
+  to tidy made GZJam's pauses to tidy it longer, up to a third of a second, which showed as the
+  screen catching. The icons in the folder tree, the playlists, the song list, the queue, History
+  and Organize are drawn in a way that lets go of their row now.
 - **Opening a folder by its arrow keeps the folder tree where it was** (#413). Scrolled up from
   the folder you had chosen, opening another by its arrow jumped the tree back down to the chosen
   one, and you had to scroll back to find where you were. Now the tree moves to a folder only

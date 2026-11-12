@@ -364,11 +364,11 @@
               <DataTemplate DataType="vm:SourceViewModel">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" Background="Transparent">
                   <Panel Width="15">
-                    <Path Data="{StaticResource IconMyMusic}" Stroke="#8F9BB0" StrokeThickness="2" Stretch="Uniform"
+                    <c:ShapeIcon Data="{StaticResource IconMyMusic}" Stroke="#8F9BB0" StrokeThickness="2"
                           Width="13" Height="13" VerticalAlignment="Center" IsVisible="{Binding IsMyMusic}" />
-                    <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
+                    <c:ShapeIcon Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
                           Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServers}" />
-                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFiles}" />
+                    <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" IsVisible="{Binding IsFiles}" />
                   </Panel>
                   <TextBlock Grid.Column="1" Classes="source-name" Classes.current="{Binding IsCurrent}" Text="{Binding Name}"
                              TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -444,18 +444,19 @@
                     </ContextMenu>
                   </Grid.ContextMenu>
                   <Panel>
-                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding HasFolderIcon}" />
-                    <Path Data="{StaticResource IconComputer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" StrokeLineCap="Round"
-                          Stretch="Uniform" Width="14" Height="12" VerticalAlignment="Center" IsVisible="{Binding IsComputer}" />
-                    <Path x:Name="StickMark" Data="{StaticResource IconStick}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
-                          Stretch="Uniform" Width="10" Height="14" VerticalAlignment="Center" IsVisible="{Binding IsStick}" />
-                    <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round" Stretch="Uniform"
-                          Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServerPlaylist}" />
-                    <Path Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" Stretch="Uniform"
-                          Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsOnline}" />
-                    <Path x:Name="ServerOfflineMark" Data="{StaticResource IconServerOffline}" Stroke="{StaticResource Deck2Brush}" StrokeThickness="2"
-                          StrokeJoin="Round" StrokeLineCap="Round" Stretch="Uniform" Width="15" Height="12" VerticalAlignment="Center"
-                          IsVisible="{Binding IsOffline}" />
+                    <!-- ShapeIcon, not Path: a Path holds on to its shared shape, and the shape to the row (#407) -->
+                    <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" IsVisible="{Binding HasFolderIcon}" />
+                    <c:ShapeIcon Data="{StaticResource IconComputer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round" StrokeLineCap="Round"
+                                 Width="14" Height="12" VerticalAlignment="Center" IsVisible="{Binding IsComputer}" />
+                    <c:ShapeIcon x:Name="StickMark" Data="{StaticResource IconStick}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                                 Width="10" Height="14" VerticalAlignment="Center" IsVisible="{Binding IsStick}" />
+                    <c:ShapeIcon Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                                 Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsServerPlaylist}" />
+                    <c:ShapeIcon Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                                 Width="15" Height="11" VerticalAlignment="Center" IsVisible="{Binding IsOnline}" />
+                    <c:ShapeIcon x:Name="ServerOfflineMark" Data="{StaticResource IconServerOffline}" Stroke="{StaticResource Deck2Brush}" StrokeThickness="2"
+                                 StrokeJoin="Round" StrokeLineCap="Round" Width="15" Height="12" VerticalAlignment="Center"
+                                 IsVisible="{Binding IsOffline}" />
                   </Panel>
                   <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"
                              VerticalAlignment="Center" ToolTip.Tip="{Binding NameTip}" />
@@ -503,11 +504,11 @@
                       </ContextMenu>
                     </Grid.ContextMenu>
                     <Panel>
-                      <Path Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
-                            Stretch="Uniform" Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding !IsFromServer}" />
+                      <c:ShapeIcon Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                            Width="13" Height="11" VerticalAlignment="Center" IsVisible="{Binding !IsFromServer}" />
                       <!-- A server's playlist kept on the computer (#290): it follows the server -->
-                      <Path x:Name="FollowsServerMark" Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
-                            Stretch="Uniform" Width="14" Height="10" VerticalAlignment="Center" IsVisible="{Binding IsFromServer}" />
+                      <c:ShapeIcon x:Name="FollowsServerMark" Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                            Width="14" Height="10" VerticalAlignment="Center" IsVisible="{Binding IsFromServer}" />
                     </Panel>
                     <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                ToolTip.Tip="{Binding Tip}" />
@@ -623,8 +624,8 @@
           <!-- A playlist open in the song list: its name, how long, playing it (#259) and adding it to the queue -->
           <Border x:Name="PlaylistBar" Grid.Row="1" Classes="playlist-bar" IsVisible="{Binding Library.IsPlaylistOpen}">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10">
-              <Path Data="{StaticResource IconPlaylist}" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
-                    StrokeLineCap="Round" Stretch="Uniform" Width="15" Height="13" VerticalAlignment="Center" />
+              <c:ShapeIcon Data="{StaticResource IconPlaylist}" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                    StrokeLineCap="Round" Width="15" Height="13" VerticalAlignment="Center" />
               <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock x:Name="PlaylistNameText" Text="{Binding Library.PlaylistName}" FontSize="14"
                            FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
@@ -667,8 +668,8 @@
                   <DataTemplate DataType="lib:Track">
                     <Button Classes="row-icon" Click="OnPreviewTrackClick" ToolTip.Tip="Preview in headphones"
                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                      <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
-                            StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+                      <c:ShapeIcon Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                            StrokeThickness="2.2" Width="14" Height="13" />
                     </Button>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -712,20 +713,20 @@
                         <Panel DockPanel.Dock="Left" Classes="playlist-source" IsVisible="{Binding !IsOnServerOnly}">
                           <c:SourceIcon Classes="row-source" Track="{Binding}" />
                         </Panel>
-                        <Path DockPanel.Dock="Left" Classes="missing-mark" IsVisible="{Binding IsMissing}"
+                        <c:ShapeIcon DockPanel.Dock="Left" Classes="missing-mark" IsVisible="{Binding IsMissing}"
                               ToolTip.Tip="{Binding Path, StringFormat='Not found: {0}'}" />
-                        <Path DockPanel.Dock="Left" Classes="server-mark" IsVisible="{Binding IsOnReachableServer}"
+                        <c:ShapeIcon DockPanel.Dock="Left" Classes="server-mark" IsVisible="{Binding IsOnReachableServer}"
                               ToolTip.Tip="{Binding OnServerTip}" />
-                        <Path DockPanel.Dock="Left" Classes="server-mark offline" IsVisible="{Binding IsOnUnreachableServer}"
+                        <c:ShapeIcon DockPanel.Dock="Left" Classes="server-mark offline" IsVisible="{Binding IsOnUnreachableServer}"
                               ToolTip.Tip="{Binding OnServerTip}" />
-                        <Path DockPanel.Dock="Left" Classes="played-check" ToolTip.Tip="Played tonight">
-                          <Path.IsVisible>
+                        <c:ShapeIcon DockPanel.Dock="Left" Classes="played-check" ToolTip.Tip="Played tonight">
+                          <c:ShapeIcon.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                               <Binding Path="IsPlayedTonight" />
                               <Binding Path="!IsMissing" />
                             </MultiBinding>
-                          </Path.IsVisible>
-                        </Path>
+                          </c:ShapeIcon.IsVisible>
+                        </c:ShapeIcon>
                         <!-- Among a server's songs, one that's in My music too (#318) -->
                         <Border DockPanel.Dock="Right" Classes="in-my-music-tag" IsVisible="{Binding IsInMyMusic}"
                                 ToolTip.Tip="Plays your own copy, from My music. GZJam never removes it">
@@ -1078,8 +1079,8 @@
                     </StackPanel>
                     <Button Grid.Column="3" Classes="row-icon" Click="OnPreviewHistoryItemClick" ToolTip.Tip="Preview in headphones"
                             VerticalAlignment="Center">
-                      <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
-                            StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+                      <c:ShapeIcon Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                            StrokeThickness="2.2" Width="14" Height="13" />
                     </Button>
                   </Grid>
                 </DataTemplate>
@@ -1157,8 +1158,8 @@
                               Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}"
                               BorderBrush="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" VerticalAlignment="Center">
                         <Panel>
-                          <PathIcon Data="{StaticResource IconPlay}" Width="10" Height="10" IsVisible="{Binding !IsPlaying}" />
-                          <PathIcon Data="{StaticResource IconPause}" Width="9" Height="9" IsVisible="{Binding IsPlaying}" />
+                          <c:ShapeIcon Data="{StaticResource IconPlay}" Width="10" Height="10" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding !IsPlaying}" />
+                          <c:ShapeIcon Data="{StaticResource IconPause}" Width="9" Height="9" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding IsPlaying}" />
                         </Panel>
                       </Button>
                       <!-- At the very narrowest, after everything else: the play key keeps the deck's color -->
@@ -1233,7 +1234,7 @@
                         <DockPanel>
                           <!-- Where it's from (#318): the queue mixes sources -->
                           <c:SourceIcon x:Name="QueueSource" DockPanel.Dock="Left" Classes="row-source" Track="{Binding Track}" />
-                          <Path DockPanel.Dock="Left" Classes="played-check" IsVisible="{Binding Track.IsPlayedTonight}" ToolTip.Tip="Played tonight" />
+                          <c:ShapeIcon DockPanel.Dock="Left" Classes="played-check" IsVisible="{Binding Track.IsPlayedTonight}" ToolTip.Tip="Played tonight" />
                           <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
                         <!-- The artist, then the song's labels in what room is left -->
@@ -1272,8 +1273,8 @@
                                  TextAlignment="Right" VerticalAlignment="Center" />
                       <Button c:FitRow.DropOrder="10" Classes="row-icon q-preview" Click="OnPreviewQueueItemClick" ToolTip.Tip="Preview in headphones"
                               Width="24" VerticalAlignment="Center">
-                        <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
-                              StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+                        <c:ShapeIcon Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
+                              StrokeThickness="2.2" Width="14" Height="13" />
                       </Button>
                     </c:FitRow>
                   </Panel>

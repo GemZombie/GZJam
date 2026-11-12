@@ -236,17 +236,26 @@
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Background="Transparent">
+        <!-- Two arrows, each its own shape, one shown: a style's shape for the open one would be
+             one shape shared by every row, and hold on to them all (#407) -->
+        <Panel Background="Transparent">
           <Path x:Name="ChevronPath" Width="12" Height="12" Stretch="Uniform"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Fill="{DynamicResource TreeViewItemForeground}"
                 Data="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
-        </Border>
+          <Path x:Name="OpenChevronPath" Width="12" Height="12" Stretch="Uniform" IsVisible="False"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Fill="{DynamicResource TreeViewItemForeground}"
+                Data="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
+        </Panel>
       </ControlTemplate>
     </Setter>
   </Style>
   <Style Selector="ToggleButton.folder-arrow:checked /template/ Path#ChevronPath">
-    <Setter Property="Data" Value="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="ToggleButton.folder-arrow:checked /template/ Path#OpenChevronPath">
+    <Setter Property="IsVisible" Value="True" />
   </Style>
 
   <!-- Track list -->
@@ -306,41 +315,38 @@
     <Setter Property="Opacity" Value="{Binding IsDimmed, Converter={x:Static app:Converters.Dimmed}}" />
   </Style>
   <!-- A song still on a music server (#290): heard in the headphones, downloaded when it's wanted -->
-  <Style Selector="Path.server-mark.offline">
+  <Style Selector="c|ShapeIcon.server-mark.offline">
     <Setter Property="Data" Value="{StaticResource IconServerOffline}" />
     <Setter Property="Stroke" Value="{StaticResource Deck2Brush}" />
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="Height" Value="12" />
   </Style>
-  <Style Selector="Path.server-mark">
+  <Style Selector="c|ShapeIcon.server-mark">
     <Setter Property="Data" Value="{StaticResource IconServer}" />
     <Setter Property="Stroke" Value="{StaticResource TextBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
     <Setter Property="StrokeJoin" Value="Round" />
-    <Setter Property="Stretch" Value="Uniform" />
     <Setter Property="Width" Value="14" />
     <Setter Property="Height" Value="10" />
     <Setter Property="Margin" Value="0,0,6,0" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <Style Selector="Path.played-check">
+  <Style Selector="c|ShapeIcon.played-check">
     <Setter Property="Data" Value="{StaticResource IconPlayed}" />
     <Setter Property="Stroke" Value="{StaticResource OkBrush}" />
     <Setter Property="StrokeThickness" Value="2.6" />
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="StrokeJoin" Value="Round" />
-    <Setter Property="Stretch" Value="Uniform" />
     <Setter Property="Width" Value="10" />
     <Setter Property="Height" Value="10" />
     <Setter Property="Margin" Value="0,0,5,0" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <Style Selector="Path.missing-mark">
+  <Style Selector="c|ShapeIcon.missing-mark">
     <Setter Property="Data" Value="{StaticResource IconMissing}" />
     <Setter Property="Stroke" Value="{StaticResource TextBrush}" />
     <Setter Property="StrokeThickness" Value="2.2" />
     <Setter Property="StrokeLineCap" Value="Round" />
-    <Setter Property="Stretch" Value="Uniform" />
     <Setter Property="Width" Value="11" />
     <Setter Property="Height" Value="11" />
     <Setter Property="Margin" Value="0,0,5,0" />

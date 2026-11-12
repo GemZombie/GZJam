@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:GZJam.App.ViewModels"
              xmlns:app="using:GZJam.App"
+             xmlns:c="using:GZJam.App.Controls"
              x:Class="GZJam.App.Views.OrganizePaneView"
              x:DataType="vm:OrganizePane">
   <!-- One side of Organize music (#325): a source, and one list of the folder you're in, like the song list -->
@@ -139,10 +140,10 @@
             <DataTemplate DataType="vm:OrganizeItem">
               <Grid Classes="row" Classes.fresh="{Binding IsFresh}" Classes.drop="{Binding IsDropTarget}" ColumnDefinitions="30,*,120,44,48" Background="Transparent">
                 <Border Classes="fresh-edge" IsVisible="{Binding IsFresh}" />
-                <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#8F9BB0" IsVisible="{Binding IsFolder}" />
+                <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" IsVisible="{Binding IsFolder}" />
                 <Button Classes="row-icon" Click="OnPreviewClick" ToolTip.Tip="Preview in headphones" IsVisible="{Binding IsSong}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Padding="4">
-                  <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="2.2" Stretch="Uniform" Width="13" Height="12" />
+                  <c:ShapeIcon Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="2.2" Width="13" Height="12" />
                 </Button>
                 <DockPanel Grid.Column="1">
                   <Border DockPanel.Dock="Right" Classes="in-my-music-tag" IsVisible="{Binding IsLocked}" ToolTip.Tip="It can be copied, and moved once it's off the deck">
