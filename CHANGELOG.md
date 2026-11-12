@@ -132,6 +132,12 @@ Better:
 
 Fixed:
 
+- **The waveform, the times and the meters go with the music** (#417). They ran ahead of it: the
+  playhead reached a beat, and the meters and LIMIT light moved, before the room heard them, by
+  almost half a second at the usual protection against crackles, and more at High or Highest. They
+  showed what GZJam had read and mixed, which waits in the output's buffers before it's played.
+  Now they show what's being heard: on the speakers, on GZJam's own output, and on speakers and
+  headphones split from one. *At the playhead* in a waveform's menu marks the spot you heard.
 - **GZJam no longer piles up memory over a night** (#407). Each time the folder tree's rows were
   made again, as folders opened, closed and scrolled by, the old ones were kept: their menus, their
   arrows and their icons, about 300 MB over an hour and three quarters of a test night. More memory

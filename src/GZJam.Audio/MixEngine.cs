@@ -344,6 +344,7 @@ public sealed class MixEngine : IDisposable
     /// <summary>Runs time-based work: fade-outs, end-of-track detection. Raises events on the calling thread.</summary>
     public void Update()
     {
+        MeasureLatency();
         foreach (Deck deck in Decks)
             deck.Update();
         Preview.Update();
@@ -367,6 +368,27 @@ public sealed class MixEngine : IDisposable
         }
         WatchTableOutputs(now);
     }
+
+    /// <summary>Each output's latency (#417): the speakers and headphones split onto one output take that output's.</summary>
+    private void MeasureLatency()
+    {
+        if (_offline)
+            return;
+        if (_carrier is { } carrier)
+        {
+            carrier.MeasureLatency();
+            Main.HostLatency = Cue.HostLatency = carrier.Latency;
+        }
+        Main.MeasureLatency();
+        Cue.MeasureLatency();
+        Booth.MeasureLatency();
+    }
+
+    /// <summary>
+    /// How long the speakers are behind the mix (#417): the meters and the decks' playheads wait
+    /// this long, so they go with what the room hears.
+    /// </summary>
+    public TimeSpan SpeakerLatency => SpeakerOutput.Latency;
 
     /// <summary>
     /// A card being unplugged stops the sound a moment before Windows says it's gone: the watch
@@ -627,7 +649,9 @@ public sealed class MixEngine : IDisposable
     private int CreateMixer(BassFlags extra)
     {
         Engine.UseNoSoundDevice();
-        int mixer = BassMix.CreateMixerStream(SampleRate, Channels, MixerFlags | extra);
+        // Pulled by another output: it keeps a record of positions, so that where each deck is
+        // heard (Deck.HeardPosition) can allow for that output's latency (#417).
+        int mixer = BassMix.CreateMixerStream(SampleRate, Channels, MixerFlags | extra | BassFlags.MixerPositionEx);
         if (mixer == 0)
             throw new AudioException("Could not create mixer", Bass.LastError);
         return mixer;

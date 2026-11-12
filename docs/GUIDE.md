@@ -1049,7 +1049,7 @@ Never remove the ground pin from a power plug.
 
 - Set **Settings › Sound › Protection against crackles** higher: High, then Highest. Play and the
   crossfader are heard a little later (High 0.6 s, Highest 1 s), which hardly matters for social
-  dancing.
+  dancing. The waveforms, times and meters wait for the sound, so they still go with what you hear.
 - Use a wired output: Bluetooth speakers and headphones add delay and drop out.
 - Plug the sound card straight into the computer rather than through a hub or dock.
 - Keep the computer plugged in, at its best performance mode.

@@ -263,6 +263,41 @@ public sealed unsafe class Deck : IDisposable
         ? TimeSpan.Zero
         : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(_tempo, Bass.ChannelGetPosition(_tempo)));
 
+    /// <summary>
+    /// Where the song is being heard (#417), rather than where it has been read to
+    /// (<see cref="Position"/>): the outputs hold some of what's read before it's played, up to
+    /// half a second or more with more protection against crackles, so the playhead and the
+    /// times were that far ahead of the music. In the room, or in the headphones for a deck only
+    /// there. BASSmix keeps track: after a pause it runs on to where the deck stopped, and a seek
+    /// or jump shows as it's heard. Where it can't say (no output), where it's been read to.
+    /// </summary>
+    public TimeSpan HeardPosition
+    {
+        get
+        {
+            if (!IsLoaded)
+                return TimeSpan.Zero;
+            int split = !IsInRoom && Cue ? _splitCue : _splitMain;
+            long bytes = BassMix.ChannelGetPosition(split, PositionFlags.Bytes);
+            return bytes < 0 ? Position : TimeSpan.FromSeconds(Bass.ChannelBytes2Seconds(split, bytes));
+        }
+    }
+
+    /// <summary>
+    /// How long until the song is heard ending (#417), from where it's heard: <see cref="Remaining"/>
+    /// and what's still on its way to the output. A seek shows only once heard: until then what's
+    /// on its way is counted as at most the output's latency.
+    /// </summary>
+    public TimeSpan HeardRemaining(TimeSpan heard)
+    {
+        TimeSpan latency = !IsInRoom && Cue ? _mix.Cue.Latency : _mix.SpeakerLatency;
+        TimeSpan coming = (Position - heard) / (1 + _tempoPercent / 100);
+        return Remaining + (coming < TimeSpan.Zero ? TimeSpan.Zero : coming > latency ? latency : coming);
+    }
+
+    /// <summary>How long the deck's meter is ahead of the room (#417): it reads the speakers' feed as it's mixed.</summary>
+    public TimeSpan MeterLatency => _mix.SpeakerLatency;
+
     /// <summary>The song's length: read once, when it's loaded (#365), as it's asked for many times a frame.</summary>
     public TimeSpan Length => _length;
 

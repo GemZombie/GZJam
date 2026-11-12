@@ -161,9 +161,13 @@ public sealed partial class MixerViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsLimiting { get; private set; }
 
+    /// <summary>The meter's and the LIMIT light's readings, held back until the room hears them (#417).</summary>
+    private readonly MeterDelay _meterDelay = new();
+
     private void UpdateMeter()
     {
-        var (left, right, limited) = mix.Main.TakeLevels();
+        var (taken, takenRight, takenLimited) = mix.Main.TakeLevels();
+        var (left, right, limited) = _meterDelay.Pass(taken, takenRight, takenLimited, mix.SpeakerLatency);
         LevelLeft = Math.Max(Controls.LevelMeter.FromPeak(left), LevelLeft - Controls.LevelMeter.Fall);
         LevelRight = Math.Max(Controls.LevelMeter.FromPeak(right), LevelRight - Controls.LevelMeter.Fall);
         if (limited)
