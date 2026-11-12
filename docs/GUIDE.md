@@ -547,6 +547,18 @@ bar puts back the queue and that song. **Play shuffled** (in the same menus) pla
 order. Playing a playlist turns off *Repeat › This song*; *Repeat › The queue* stays on, so the
 playlist goes round.
 
+**Folders of playlists:** **+ New › Folder…** makes one, for setlists, practice lists or other
+DJs' lists. Right-click a folder for *New playlist here*, *New folder here*, *Rename* and *Delete*;
+folders go inside folders as deep as you like. Click a folder (or its arrow) to open or close it;
+GZJam remembers which are open, and each folder says how many playlists it holds. To move a
+playlist or folder, drag it onto a folder, or onto the PLAYLISTS header to put it back at the top;
+by touch, right-click (or hold) › **Move to**. Two playlists can have the same name in different
+folders. **+ New › Playlist…**, *Save queue as playlist* and the like put the new playlist in the
+folder you last clicked, or the open playlist's. *Add to playlist* shows each folder as a submenu.
+Deleting a folder asks first, says how many playlists are in it, and deletes them with it; their
+songs stay in your library. An older GZJam still opens your library, showing the playlists in one
+list.
+
 **More room for playlists:** drag the small grip on the PLAYLISTS header up for a longer list, or
 down for more folders. If you only ever play from all of My music or a playlist, click the arrow
 beside **LIBRARY** to fold the folders away: only your music folder shows, and the playlists take
@@ -574,7 +586,8 @@ come over first, only fills gaps (your GZJam marks stay), and never changes Mixx
   once is fine). Each becomes a playlist of the same name, in order. GZJam says first how many
   songs it found, and where the ones it didn't are (add that folder with **+ Folder**, then import
   again). A playlist GZJam already has by that name is left alone, so importing again adds
-  nothing twice.
+  nothing twice. **FOLDER…** imports a whole folder of `.m3u` and `.m3u8` files instead, and
+  keeps its folders as folders of playlists (a folder GZJam has of that name gets them).
   **Playlists from another computer** work too, even old ones where the music was on another
   drive (`D:\Music\Swing` then, `C:\Music\Swing` now): GZJam finds each song by its file name
   and the folder it's in, and says where it found them before importing. There's nothing to edit

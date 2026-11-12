@@ -211,7 +211,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 if (Playlists[i] != playlist)
                     Playlists[i] = playlist;
             }
-            // A changed row is a new one: the open playlist is selected again, as it is now.
+            // The panel's rows first, then the open playlist selected again, as it is now: a
+            // changed row is a new one, and the panel can only choose a row it has.
+            PlaylistFolders = _database.GetPlaylistFolders();
+            SyncPlaylistRows();
             SelectedPlaylist = playlists.FirstOrDefault(p => p.Id == open);
         }
         finally
@@ -239,6 +242,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedPlaylistChanged(PlaylistInfo? value)
     {
+        if (value is not null)
+            ShowPlaylistRow(value);   // in a folder that's closed: it opens (#354)
+        OnPropertyChanged(nameof(SelectedPlaylistRow));
         if (!_suppressSearch)
         {
             if (value is not null && SelectedFolder is not null)

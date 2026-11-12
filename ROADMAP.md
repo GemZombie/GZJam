@@ -220,6 +220,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [Auto-play turns CUE off](https://github.com/GemZombie/GZJam/issues/412) on the deck it starts
 - [Opening a folder by its arrow](https://github.com/GemZombie/GZJam/issues/413) keeps the folder
   tree where it was
+- [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
+  nested, folded away, and brought in from a folder of M3U files with its folders
 - [The waveform, times and meters go with the music](https://github.com/GemZombie/GZJam/issues/417),
   not ahead of it by what's in the output's buffers
 - [No memory piling up over a night](https://github.com/GemZombie/GZJam/issues/407): the folder
@@ -237,8 +239,6 @@ come as 1.7.1, 1.7.2 and so on. Found something? Say so in
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **1.8: quality of life,** with ideas from DJs and from Danny Cherry's fork:
-- [Playlist folders](https://github.com/GemZombie/GZJam/issues/354): your playlists in folders,
-  nested, folded away, and brought in from a folder of M3U files with its subfolders
 - [Your servers' playlists in the Playlists panel](https://github.com/GemZombie/GZJam/issues/355),
   each under its server, in folders built from their names, as Navidrome apps do, and sent back
   to the server the same way

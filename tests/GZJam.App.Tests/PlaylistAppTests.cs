@@ -41,7 +41,8 @@ public sealed class PlaylistAppTests
         using var app = new AppHarness();
         app.ViewModel.PromptAsync = (_, _, _, _) => Task.FromResult<string?>("Saturday Hot Jam");
 
-        app.Window.FindControl<Button>("NewPlaylistButton")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        // + New › Playlist… (+ New also makes folders, #354)
+        app.Window.FindControl<MenuItem>("NewPlaylistItem")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         AppHarness.Settle(300);
 
         Assert.Equal(["Saturday Hot Jam"], app.Library.Playlists.Select(p => p.Name));

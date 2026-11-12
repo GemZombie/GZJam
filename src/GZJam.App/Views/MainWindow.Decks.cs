@@ -29,6 +29,7 @@ public partial class MainWindow
         DeckGrip.PointerReleased += OnDeckGripReleased;
         SettingsPanel.MixxxImportRequested += (_, _) => ImportFromMixxx();
         SettingsPanel.PlaylistImportRequested += (_, _) => ImportPlaylists();
+        SettingsPanel.PlaylistFolderImportRequested += (_, _) => ImportPlaylistFolder();
         SettingsPanel.FileRatingsRequested += (_, _) => ImportFileRatings();
         // Touch mode's sizes are app-wide; take them away with the window (tests open many windows).
         Closed += (_, _) => GZJam.App.Styles.TouchStyles.Apply(false);
@@ -250,6 +251,14 @@ public partial class MainWindow
         });
         var paths = files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
         await Vm.ImportPlaylistsAsync(paths);
+    }
+
+    /// <summary>A folder of playlist files, its folders kept as folders of playlists (#354).</summary>
+    private async void ImportPlaylistFolder()
+    {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Import a folder of playlists" });
+        if (folders.FirstOrDefault()?.TryGetLocalPath() is { } folder)
+            await Vm.ImportPlaylistFolderAsync(folder);
     }
 
     private async void ImportFileRatings()

@@ -271,10 +271,14 @@
                   <StackPanel Spacing="2">
                     <TextBlock Classes="setting" Text="Import playlists" />
                     <TextBlock Classes="setting-help"
-                               Text="Playlists saved from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other players, as .m3u or .m3u8 files, or as text from iTunes. Each becomes a playlist of the same name, in order." />
+                               Text="Playlists saved from MediaMonkey, foobar2000, iTunes, VirtualDJ and most other players, as .m3u or .m3u8 files, or as text from iTunes. Each becomes a playlist of the same name, in order. A folder of them keeps its folders, as folders of playlists." />
                   </StackPanel>
-                  <Button x:Name="PlaylistImportButton" Grid.Column="1" Classes="hw" Content="IMPORT…" VerticalAlignment="Center"
-                          Click="OnPlaylistImportClick" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button x:Name="PlaylistImportButton" Classes="hw" Content="FILES…" Click="OnPlaylistImportClick"
+                            ToolTip.Tip="Pick playlist files: each becomes a playlist" />
+                    <Button x:Name="PlaylistFolderImportButton" Classes="hw" Content="FOLDER…" Click="OnPlaylistFolderImportClick"
+                            ToolTip.Tip="Pick a folder: every .m3u and .m3u8 in it and the folders in it, each folder a folder of playlists" />
+                  </StackPanel>
                 </Grid>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">

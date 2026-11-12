@@ -19,7 +19,30 @@ public partial class MainWindowViewModel
     {
         if (files.Count == 0)
             return;
-        PlaylistImport plan = await Task.Run(() => PlaylistImport.Plan(_database, files));
+        await ImportAsync(await Task.Run(() => PlaylistImport.Plan(_database, files)), $"{files.Count} M3U files");
+    }
+
+    /// <summary>
+    /// Settings › Import playlists › a folder (#354): every M3U file in it and the folders in it,
+    /// each subfolder a folder of playlists.
+    /// </summary>
+    public async Task ImportPlaylistFolderAsync(string folder)
+    {
+        PlaylistImport plan;
+        try
+        {
+            plan = await Task.Run(() => PlaylistImport.PlanFolder(_database, folder));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowNotice($"Couldn't read {folder}: {ex.Message}", seconds: 8);
+            return;
+        }
+        await ImportAsync(plan, $"the folder {folder}");
+    }
+
+    private async Task ImportAsync(PlaylistImport plan, string from)
+    {
         if (plan.Playlists.Count == 0)
         {
             ShowNotice(NothingToImport(plan), seconds: 8);
@@ -29,7 +52,7 @@ public partial class MainWindowViewModel
         if (ConfirmImportAsync is not null && !await ConfirmImportAsync(heading, PlaylistsMessage(plan), "Import"))
             return;
         int made = plan.Apply(_database);
-        Log.Info($"Imported {made} playlists from {files.Count} M3U files ({plan.SongCount} songs, {plan.FoundElsewhere} found elsewhere, {plan.OutsideSongs} outside the music folders, {plan.MissingSongs} not found)");
+        Log.Info($"Imported {made} playlists from {from} ({plan.SongCount} songs, {plan.FoundElsewhere} found elsewhere, {plan.OutsideSongs} outside the music folders, {plan.MissingSongs} not found)");
         Library.RefreshPlaylists();
         ShowNotice(made == 1 ? $"Imported the playlist \"{plan.Playlists[0].Name}\"." : $"Imported {made} playlists.");
     }

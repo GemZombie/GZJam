@@ -231,6 +231,10 @@
   <Style Selector="Panel.folder-arrow">
     <Setter Property="Width" Value="32" />
   </Style>
+  <!-- A playlist folder's arrow (#354): narrower, the panel being narrow -->
+  <Style Selector="Panel.playlist-folder-arrow">
+    <Setter Property="Width" Value="20" />
+  </Style>
   <Style Selector="ToggleButton.folder-arrow">
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="VerticalAlignment" Value="Stretch" />
