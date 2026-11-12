@@ -201,6 +201,12 @@ public sealed class SongCache : IDisposable
         return null;
     }
 
+    /// <summary>
+    /// A copy of <paramref name="path"/> already in memory (a deck's song, or one read ahead),
+    /// held for the caller, who releases it; null if there's none. Nothing is read (#369).
+    /// </summary>
+    internal SongMemory? Borrow(string path) => Find(path);
+
     internal bool IsKept(string path)
     {
         lock (_lock)

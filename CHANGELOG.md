@@ -83,6 +83,13 @@ Better:
   It was drawn again 30 times a second for each playing deck, though on a four-minute song the
   playhead moves a pixel or two a second. The speakers' meter, the cue numbers and the jump
   arrows are made once and kept rather than made again at each redraw.
+- **First-time analysis goes gently while music plays** (#369). A new DJ's first night is also
+  when GZJam first listens to their whole library, which can take hours. It used up to three of
+  the computer's cores for it the whole time, and the laptop ran hot. Now, while a deck or the
+  headphones play, the library is analyzed on one; with nothing playing it goes as fast as
+  before. A song loaded onto a deck is still analyzed at once. That song is now read from the
+  copy the deck already holds in memory, not from the disk again, and its close-up waveform
+  comes from the same pass. Analysis also makes far less garbage for the computer to tidy away.
 
 ## 1.7.0 (2026-11-11)
 

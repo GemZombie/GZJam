@@ -16,6 +16,9 @@ public sealed record TrackAnalysis(TimeSpan Length, TimeSpan AudibleStart, TimeS
 
     /// <summary>The tempos considered, best first (for tuning the detector).</summary>
     internal IReadOnlyList<(double Bpm, double Score)> TempoCandidates { get; init; } = [];
+
+    /// <summary>The close-up waveform too, when asked for (<see cref="TrackAnalyzer.Analyze"/>): from the same decode.</summary>
+    public Waveform? Detail { get; init; }
 }
 
 /// <summary>
@@ -63,43 +66,66 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     /// </summary>
     public const int MinBpm = 60, MaxBpm = 320;
 
+    /// <summary>
+    /// Songs already in memory (a deck's, or read ahead): a song there is decoded from there, not
+    /// read from the disk again (#369). Null: always from the disk.
+    /// </summary>
+    public SongCache? Songs { get; set; }
+
     /// <param name="bpmRange">
     /// Where the DJ says the tempo is (when automatic detection got it wrong): the strongest
     /// tempo inside it is chosen.
     /// </param>
-    public TrackAnalysis Analyze(string path, bool detectBpm = true, (int Min, int Max)? bpmRange = null, CancellationToken cancellationToken = default)
+    /// <param name="withDetail">
+    /// The close-up waveform too (<see cref="TrackAnalysis.Detail"/>), from the same decode: a song
+    /// loaded onto a deck before it's been analyzed needs both, and is decoded once (#369).
+    /// </param>
+    public TrackAnalysis Analyze(string path, bool detectBpm = true, (int Min, int Max)? bpmRange = null,
+        CancellationToken cancellationToken = default, bool withDetail = false)
     {
         // Decode-only work runs on BASS's "no sound" device so it never touches real outputs.
         engine.UseNoSoundDevice();
-        int stream = SongFile.Open(path);
-
+        SongMemory? memory = Songs?.Borrow(path);
         try
         {
-            ChannelInfo info = Bass.ChannelGetInfo(stream);
-            int channels = Math.Max(1, info.Channels);
-            int rate = info.Frequency;
-            long totalFrames = Bass.ChannelGetLength(stream) / (sizeof(float) * channels);
-            var length = TimeSpan.FromSeconds((double)totalFrames / rate);
-
-            var tempo = detectBpm ? new TempoDetector(rate) : null;
-            var loudness = new LoudnessMeter(channels, rate);
-            int slices = (int)Math.Clamp(totalFrames / 64, 1, WaveformSlices);
-            var (waveform, windows) = Decode(stream, channels, rate, totalFrames, slices, tempo, loudness, cancellationToken);
-            var (start, end) = FindAudible(windows, length);
-
-            var candidates = tempo?.Estimate(start, end, MinBpm, MaxBpm) ?? [];
-            return new TrackAnalysis(length, start, end, ChooseBpm(candidates, bpmRange) is { } bpm ? Math.Round(bpm) : null, waveform)
+            int stream = SongFile.Open(path, memory);
+            try
             {
-                TempoCandidates = candidates,
-                Lufs = loudness.IntegratedLufs is { } lufs ? Math.Round(lufs, 1) : null,
-                PeakDb = loudness.PeakDb is { } peak ? Math.Round(peak, 1) : null,
-            };
+                ChannelInfo info = Bass.ChannelGetInfo(stream);
+                int channels = Math.Max(1, info.Channels);
+                int rate = info.Frequency;
+                long totalFrames = Bass.ChannelGetLength(stream) / (sizeof(float) * channels);
+                var length = TimeSpan.FromSeconds((double)totalFrames / rate);
+
+                var tempo = detectBpm ? new TempoDetector(rate, length) : null;
+                var loudness = new LoudnessMeter(channels, rate);
+                int slices = (int)Math.Clamp(totalFrames / 64, 1, WaveformSlices);
+                int? detailSlices = withDetail ? DetailSlices(totalFrames, rate) : null;
+                var (waveform, detail, windows) = Decode(stream, channels, rate, totalFrames, slices, detailSlices, tempo, loudness, cancellationToken);
+                var (start, end) = FindAudible(windows, length);
+
+                var candidates = tempo?.Estimate(start, end, MinBpm, MaxBpm) ?? [];
+                return new TrackAnalysis(length, start, end, ChooseBpm(candidates, bpmRange) is { } bpm ? Math.Round(bpm) : null, waveform)
+                {
+                    TempoCandidates = candidates,
+                    Lufs = loudness.IntegratedLufs is { } lufs ? Math.Round(lufs, 1) : null,
+                    PeakDb = loudness.PeakDb is { } peak ? Math.Round(peak, 1) : null,
+                    Detail = detail,
+                };
+            }
+            finally
+            {
+                Bass.StreamFree(stream);
+            }
         }
         finally
         {
-            Bass.StreamFree(stream);
+            memory?.Release();
         }
     }
+
+    private static int DetailSlices(long totalFrames, int rate) =>
+        (int)Math.Max(1, Math.Ceiling((double)totalFrames * DetailSlicesPerSecond / rate));
 
     /// <summary>
     /// The detector's choice, or with a range, the best candidate inside it. If no candidate
@@ -143,33 +169,81 @@ public sealed class TrackAnalyzer(AudioEngine engine)
     public Waveform Detail(string path, CancellationToken cancellationToken = default)
     {
         engine.UseNoSoundDevice();
-        int stream = SongFile.Open(path);
+        SongMemory? memory = Songs?.Borrow(path);
         try
         {
-            ChannelInfo info = Bass.ChannelGetInfo(stream);
-            int channels = Math.Max(1, info.Channels);
-            int rate = info.Frequency;
-            long totalFrames = Bass.ChannelGetLength(stream) / (sizeof(float) * channels);
-            int slices = (int)Math.Max(1, Math.Ceiling((double)totalFrames * DetailSlicesPerSecond / rate));
-            return Decode(stream, channels, rate, totalFrames, slices, null, null, cancellationToken).Waveform;
+            int stream = SongFile.Open(path, memory);
+            try
+            {
+                ChannelInfo info = Bass.ChannelGetInfo(stream);
+                int channels = Math.Max(1, info.Channels);
+                int rate = info.Frequency;
+                long totalFrames = Bass.ChannelGetLength(stream) / (sizeof(float) * channels);
+                return Decode(stream, channels, rate, totalFrames, DetailSlices(totalFrames, rate), null, null, null, cancellationToken).Waveform;
+            }
+            finally
+            {
+                Bass.StreamFree(stream);
+            }
         }
         finally
         {
-            Bass.StreamFree(stream);
+            memory?.Release();
         }
     }
 
-    /// <summary>Reads every sample once: band peaks per waveform slice, and RMS per silence window.</summary>
-    private static (Waveform Waveform, List<float> Windows) Decode(int stream, int channels, int rate, long totalFrames, int slices,
-        TempoDetector? tempo, LoudnessMeter? meter, CancellationToken cancellationToken)
+    /// <summary>
+    /// The decoding buffer, one per analysis thread, kept between songs: 128 KB, made for each song
+    /// it was a large object, and their collections hitched the window all through a first-time
+    /// analysis (#369).
+    /// </summary>
+    [ThreadStatic]
+    private static float[]? _buffer;
+
+    /// <summary>A waveform's levels, slice by slice, as the samples go by.</summary>
+    private sealed class Slices(int count, long totalFrames)
     {
-        var low = new float[slices];
-        var energy = new double[slices];
-        var frameCount = new int[slices];
-        var mid = new float[slices];
-        var high = new float[slices];
-        var windows = new List<float>();
+        public readonly float[] Low = new float[count], Mid = new float[count], High = new float[count];
+        public readonly double[] Energy = new double[count];
+        public readonly int[] Frames = new int[count];
+        public readonly double PerFrame = (double)count / Math.Max(1, totalFrames);
+        public readonly int Last = count - 1;
+
+        public void Add(long frame, float m, float bass, float mids, float highs)
+        {
+            int s = Math.Min(Last, (int)(frame * PerFrame));
+            Low[s] = Math.Max(Low[s], Math.Abs(bass));
+            Energy[s] += m * m;
+            Frames[s]++;
+            Mid[s] = Math.Max(Mid[s], Math.Abs(mids));
+            High[s] = Math.Max(High[s], Math.Abs(highs));
+        }
+
+        public Waveform ToWaveform()
+        {
+            var (low, mid, high, loud) = (new byte[Low.Length], new byte[Low.Length], new byte[Low.Length], new byte[Low.Length]);
+            for (int s = 0; s < Low.Length; s++)
+            {
+                low[s] = Waveform.Encode(Low[s]);
+                mid[s] = Waveform.Encode(Mid[s]);
+                high[s] = Waveform.Encode(High[s]);
+                loud[s] = Waveform.Encode((float)Math.Sqrt(Energy[s] / Math.Max(1, Frames[s])));
+            }
+            return new Waveform(low, mid, high, loud);
+        }
+    }
+
+    /// <summary>
+    /// Reads every sample once: band peaks per waveform slice (and per close-up slice, if asked
+    /// for), and RMS per silence window.
+    /// </summary>
+    private static (Waveform Waveform, Waveform? Detail, List<float> Windows) Decode(int stream, int channels, int rate, long totalFrames,
+        int slices, int? detailSlices, TempoDetector? tempo, LoudnessMeter? meter, CancellationToken cancellationToken)
+    {
+        var overview = new Slices(slices, totalFrames);
+        var detail = detailSlices is { } d ? new Slices(d, totalFrames) : null;
         int windowFrames = Math.Max(1, (int)(rate * Window.TotalSeconds));
+        var windows = new List<float>((int)(totalFrames / windowFrames) + 2);
         double windowSum = 0;
         int windowCount = 0;
 
@@ -177,13 +251,13 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         float aLow = OnePole(BassBelowHz, rate), aHigh = OnePole(HighsAboveHz, rate);
         float low1 = 0, low2 = 0, high1 = 0, high2 = 0;
 
-        var buffer = new float[16384 * channels];
+        int wanted = 16384 * channels;
+        float[] buffer = _buffer is { } kept && kept.Length >= wanted ? kept : _buffer = new float[wanted];
         long frame = 0;
-        double slicesPerFrame = (double)slices / Math.Max(1, totalFrames);
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            int bytes = Bass.ChannelGetData(stream, buffer, buffer.Length * sizeof(float) | (int)DataFlags.Float);
+            int bytes = Bass.ChannelGetData(stream, buffer, wanted * sizeof(float) | (int)DataFlags.Float);
             if (bytes <= 0)
                 break;
             int frames = bytes / sizeof(float) / channels;
@@ -201,13 +275,8 @@ public sealed class TrackAnalyzer(AudioEngine engine)
                 high1 += aHigh * (m - high1);
                 high2 += aHigh * (high1 - high2);
                 float bass = low2, highs = m - high2, mids = high2 - low2;
-
-                int s = Math.Min(slices - 1, (int)(frame * slicesPerFrame));
-                low[s] = Math.Max(low[s], Math.Abs(bass));
-                energy[s] += m * m;
-                frameCount[s]++;
-                mid[s] = Math.Max(mid[s], Math.Abs(mids));
-                high[s] = Math.Max(high[s], Math.Abs(highs));
+                overview.Add(frame, m, bass, mids, highs);
+                detail?.Add(frame, m, bass, mids, highs);
 
                 windowSum += m * m;
                 if (++windowCount == windowFrames)
@@ -220,11 +289,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
         }
         if (windowCount > 0)
             windows.Add((float)Math.Sqrt(windowSum / windowCount));
-
-        var loudness = energy.Select((e, s) => (float)Math.Sqrt(e / Math.Max(1, frameCount[s]))).ToArray();
-        var waveform = new Waveform(low.Select(Waveform.Encode).ToArray(), mid.Select(Waveform.Encode).ToArray(),
-            high.Select(Waveform.Encode).ToArray(), loudness.Select(Waveform.Encode).ToArray());
-        return (waveform, windows);
+        return (overview.ToWaveform(), detail?.ToWaveform(), windows);
     }
 
     /// <summary>
@@ -238,7 +303,9 @@ public sealed class TrackAnalyzer(AudioEngine engine)
             return (TimeSpan.Zero, length);
 
         // "Loud" is the 95th percentile window, so one pop or click doesn't set the bar.
-        float loud = windows.Order().ElementAt((int)(windows.Count * 0.95));
+        float[] sorted = [.. windows];
+        Array.Sort(sorted);
+        float loud = sorted[(int)(sorted.Length * 0.95)];
         double threshold = Math.Max(SilenceFloor, loud * Math.Pow(10, -SilenceBelowLoudDb / 20));
 
         int first = -1, last = -1;

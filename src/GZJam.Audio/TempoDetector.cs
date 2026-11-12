@@ -20,16 +20,18 @@ internal sealed class TempoDetector
     private readonly float[] _im = new float[FftSize];
     private float[] _previous = new float[FftSize / 2];
     private float[] _current = new float[FftSize / 2];
-    private readonly List<float> _onsets = [];
+    private readonly List<float> _onsets;
     private float _sum;
     private int _summed;
     private int _filled;
     private int _sinceHop;
 
-    public TempoDetector(int sampleRate)
+    /// <param name="length">The song's length, if known: the onsets' list is made big enough at once (#369).</param>
+    public TempoDetector(int sampleRate, TimeSpan length = default)
     {
         _decimate = Math.Max(1, (int)Math.Round((double)sampleRate / TargetRate));
         FrameRate = (double)sampleRate / _decimate / Hop;
+        _onsets = new List<float>((int)Math.Min(int.MaxValue / 2, length.TotalSeconds * FrameRate + 16));
         for (int i = 0; i < FftSize; i++)
             _window[i] = (float)(0.5 - 0.5 * Math.Cos(2 * Math.PI * i / FftSize));
     }
@@ -91,13 +93,13 @@ internal sealed class TempoDetector
         int first = (int)(from.TotalSeconds * FrameRate), last = Math.Min(_onsets.Count, (int)(to.TotalSeconds * FrameRate));
         if (last - first < FrameRate * 10)
             return [];
-        return Candidates(_onsets.Skip(first).Take(last - first).ToArray(), FrameRate, minBpm, maxBpm);
+        return Candidates(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_onsets)[first..last], FrameRate, minBpm, maxBpm);
     }
 
     /// <summary>For tuning: autocorrelation of the whole onset envelope, normalized to 1 at lag 0.</summary>
     internal double[] Autocorrelation(int maxLag)
     {
-        float[] o = HighPass(_onsets.ToArray(), (int)FrameRate);
+        float[] o = HighPass(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_onsets), (int)FrameRate, new float[_onsets.Count]).ToArray();
         var ac = new double[maxLag + 1];
         for (int lag = 0; lag <= maxLag; lag++)
         {
@@ -112,11 +114,24 @@ internal sealed class TempoDetector
     internal static double Interpolate(double[] ac, double lag) => At(ac, lag);
 
     /// <summary>Tempo candidates, best first, with their scores (for tuning).</summary>
-    internal static List<(double Bpm, double Score)> Candidates(float[] onsets, double frameRate, int minBpm, int maxBpm)
+    internal static List<(double Bpm, double Score)> Candidates(ReadOnlySpan<float> onsets, double frameRate, int minBpm, int maxBpm)
     {
-        // Remove the slowly changing loudness so only the pulses remain.
-        float[] o = HighPass(onsets, (int)frameRate);
+        // Remove the slowly changing loudness so only the pulses remain. In a borrowed array: a
+        // song's onsets are a large object, made for every song of a first-time analysis (#369).
+        float[] pooled = System.Buffers.ArrayPool<float>.Shared.Rent(onsets.Length);
+        try
+        {
+            return FromPulses(HighPass(onsets, (int)frameRate, pooled.AsSpan(0, onsets.Length)), frameRate, minBpm, maxBpm);
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<float>.Shared.Return(pooled);
+        }
+    }
 
+    /// <summary>Tempo candidates from the pulses alone (the onsets, high-passed).</summary>
+    private static List<(double Bpm, double Score)> FromPulses(ReadOnlySpan<float> o, double frameRate, int minBpm, int maxBpm)
+    {
         // Autocorrelation out to four of the slowest beats.
         int maxLag = (int)Math.Ceiling(60 * frameRate / minBpm * 4) + 2;
         if (o.Length <= maxLag * 2)
@@ -183,9 +198,8 @@ internal sealed class TempoDetector
         return ac[i] * (1 - t) + ac[i + 1] * t;
     }
 
-    private static float[] HighPass(float[] x, int window)
+    private static Span<float> HighPass(ReadOnlySpan<float> x, int window, Span<float> y)
     {
-        var y = new float[x.Length];
         double sum = 0;
         int half = window / 2;
         int lo = 0, hi = 0;

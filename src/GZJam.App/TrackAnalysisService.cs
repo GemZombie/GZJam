@@ -24,6 +24,9 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         public FileVersion Version { get; } = version;
         public Priority Priority { get; set; } = priority;
         public TaskCompletionSource<TrackAnalysis?> Done { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>A deck wants its close-up too: worked out from the same decode (#369).</summary>
+        public bool WithDetail { get; set; }
     }
 
     private readonly LibraryDatabase _database;
@@ -39,19 +42,43 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     private bool _libraryUpdate;   // the library's being analyzed again, for a new analyzer
     private long _libraryStarted;  // when this run through the library began, for the time left
 
-    public TrackAnalysisService(LibraryDatabase database, AudioEngine audio, int? threads = null)
+    public TrackAnalysisService(LibraryDatabase database, AudioEngine audio, int? threads = null, SongCache? songs = null)
     {
         _database = database;
-        _analyzer = new TrackAnalyzer(audio);
+        _analyzer = new TrackAnalyzer(audio) { Songs = songs };
         int count = threads ?? Math.Clamp(Environment.ProcessorCount / 2, 1, 3);
         for (int i = 0; i < count; i++)
         {
             // Below normal: the audio thread and the UI always come first.
-            var worker = new Thread(Work) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = $"Track analysis {i + 1}" };
+            int index = i;
+            var worker = new Thread(() => Work(index)) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = $"Track analysis {i + 1}" };
             _workers.Add(worker);
             worker.Start();
         }
     }
+
+    /// <summary>
+    /// Music is playing (set by the window, each tick): the library is analyzed on one thread, not
+    /// all of them, so a new DJ's first night isn't spent with half the laptop's cores decoding,
+    /// the laptop hot and slowing down (#369). A song loaded onto a deck is still analyzed at once,
+    /// on any thread.
+    /// </summary>
+    public bool MusicPlaying
+    {
+        get => Volatile.Read(ref _musicPlaying);
+        set => Volatile.Write(ref _musicPlaying, value);
+    }
+
+    private bool _musicPlaying;
+
+    /// <summary>Threads analyzing the library or the queue now; a song for a deck isn't counted.</summary>
+    private int _busy;
+
+    /// <summary>The most threads that have analyzed the library or the queue at once (tests).</summary>
+    internal int MostAtOnce { get; private set; }
+
+    /// <summary>Close-ups worked out with a deck's analysis, until the deck takes them (#369). A few at the most.</summary>
+    private readonly Dictionary<string, Waveform> _details = new(StringComparer.Ordinal);
 
     /// <summary>Raised on the UI thread when a track has been analyzed (path, result).</summary>
     public event Action<string, TrackAnalysis>? Analyzed;
@@ -74,7 +101,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     /// The analysis of a file: from the database if it's been done, otherwise analyzed ahead of
     /// everything else. Null if the file can't be read.
     /// </summary>
-    public Task<TrackAnalysis?> GetAsync(string path) => Request(path, Priority.Deck);
+    public Task<TrackAnalysis?> GetAsync(string path) => Request(path, Priority.Deck, withDetail: true);
 
     /// <summary>
     /// Analyzes a file again, ahead of everything else, ignoring the saved result: e.g. the DJ
@@ -95,10 +122,21 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
     /// A close-up waveform of a file, for a deck's close-up (worked out now, not stored). Null if
     /// it can't be read or <paramref name="cancellationToken"/> fires first (another song loaded).
     /// </summary>
-    public Task<Waveform?> DetailAsync(string path, CancellationToken cancellationToken) => Task.Run(() =>
+    /// <remarks>
+    /// A song not analyzed yet is analyzed for the deck first (<see cref="GetAsync"/>), and its
+    /// close-up comes from that same decode (#369); otherwise it's decoded now, from the deck's
+    /// copy in memory.
+    /// </remarks>
+    public Task<Waveform?> DetailAsync(string path, CancellationToken cancellationToken) => Task.Run(async () =>
     {
         try
         {
+            await GetAsync(path).WaitAsync(cancellationToken);
+            lock (_lock)
+            {
+                if (_details.Remove(path, out Waveform? made))
+                    return made;
+            }
             return _analyzer.Detail(path, cancellationToken);
         }
         catch (Exception ex) when (ex is AudioException or OperationCanceledException)
@@ -146,12 +184,13 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         });
     }
 
-    private Task<TrackAnalysis?> Request(string path, Priority priority)
+    private Task<TrackAnalysis?> Request(string path, Priority priority, bool withDetail = false)
     {
         lock (_lock)
         {
             if (_jobs.TryGetValue(path, out Job? existing))
             {
+                existing.WithDetail |= withDetail;   // read when it starts: one already running doesn't make it
                 // Already waiting: move it up if this request is more urgent.
                 if (priority < existing.Priority && _waiting[(int)existing.Priority].Remove(existing))
                 {
@@ -174,8 +213,11 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             lock (_lock)
             {
                 if (_jobs.TryGetValue(path, out Job? raced))
+                {
+                    raced.WithDetail |= withDetail;
                     return raced.Done.Task;
-                var job = new Job(path, version, priority);
+                }
+                var job = new Job(path, version, priority) { WithDetail = withDetail };
                 Enqueue(job);
                 return job.Done.Task;
             }
@@ -202,7 +244,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         };
     }
 
-    private void Work()
+    private void Work(int index)
     {
         while (true)
         {
@@ -216,20 +258,50 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             }
 
             Job? job;
+            bool counted;
             lock (_lock)
             {
-                job = _waiting.Select(list => list.First?.Value).FirstOrDefault(j => j is not null);
+                job = _waiting[(int)Priority.Deck].First?.Value;
+                counted = job is null;
+                if (counted && (!MusicPlaying || _busy == 0))   // with music playing, one thread for the rest
+                    job = _waiting.Select(list => list.First?.Value).FirstOrDefault(j => j is not null);
                 if (job is null)
-                    continue;   // its slot was taken by a promotion; the count still matches
-                _waiting[(int)job.Priority].RemoveFirst();
+                {
+                    bool waiting = _waiting.Any(list => list.Count > 0);
+                    if (waiting)
+                        _available.Release();   // left for the thread that may take it
+                    if (!waiting)
+                        continue;   // its slot was taken by a promotion; the count still matches
+                }
+                else
+                {
+                    _waiting[(int)job.Priority].RemoveFirst();
+                    if (counted)
+                        MostAtOnce = Math.Max(MostAtOnce, ++_busy);
+                }
+            }
+            if (job is null)
+            {
+                // Music is playing and another thread has the library: wait a little, then look again.
+                if (_stop.Token.WaitHandle.WaitOne(250))
+                    return;
+                continue;
             }
 
             TrackAnalysis? result = Analyze(job);
             lock (_lock)
             {
                 _jobs.Remove(job.Key);
+                if (counted)
+                    _busy--;
                 if (job.Priority == Priority.Library)
                     _libraryDone++;
+                if (result?.Detail is { } detail)
+                {
+                    while (_details.Count >= 4)
+                        _details.Remove(_details.Keys.First());   // a deck that never asked: not kept for long
+                    _details[job.Path] = detail;
+                }
             }
             job.Done.TrySetResult(result);
             if (result is not null)
@@ -248,7 +320,8 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             if (!job.Redo && Load(job.Path, job.Version) is { } saved)
                 return saved;
             BpmRange? range = _database.GetBpmRange(job.Path);
-            TrackAnalysis result = _analyzer.Analyze(job.Path, bpmRange: range is { } r ? (r.Min, r.Max) : null, cancellationToken: _stop.Token);
+            TrackAnalysis result = _analyzer.Analyze(job.Path, bpmRange: range is { } r ? (r.Min, r.Max) : null, cancellationToken: _stop.Token,
+                withDetail: job.WithDetail && !job.Redo);
             if (_database.GetBpmRange(job.Path) != range)
                 return null;   // the DJ changed the range meanwhile; that request will redo it
             _database.SaveAnalysis(job.Path, job.Version, new StoredAnalysis(

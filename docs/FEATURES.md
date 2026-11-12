@@ -373,6 +373,30 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: first-time analysis, gently while music plays (#369, 1.8)
+
+- From the performance review of 2026-11-10: `TrackAnalysisService` ran up to three decoding
+  threads (`ProcessorCount / 2`, at most 3) nonstop; each song made large objects (the 128 KB
+  decoding buffer, the tempo detector's onsets and their copies, LINQ copies of the waveform);
+  and a song loaded before it was analyzed was read three times (into memory for the deck, then
+  `Analyze` and `Detail` each from the disk) and decoded twice.
+- **One thread while music plays** (`MusicPlaying`, set by the tick when a deck or the preview
+  plays): only one thread takes the library's or the queue's songs; the others wait (looking
+  again every 250 ms). A deck's song is taken by any thread at once, music or not, and isn't
+  counted. With nothing playing, all of them, as before.
+- **From memory:** `TrackAnalyzer.Songs` (the mix's `SongCache`) lends a song already in memory
+  (`SongCache.Borrow`: a deck's, or read ahead); it's decoded from there, the disk not read.
+- **One decode for both:** a deck's request (`GetAsync`) asks for the close-up too
+  (`WithDetail`); the analysis works out both slice sets in the same pass (`Slices`), and keeps
+  the close-up (a few at the most) until the deck's `DetailAsync`, which waits for the analysis
+  first, takes it. A song analyzed before decodes only its close-up, from memory.
+- **Less garbage:** the decoding buffer is kept per thread; the onsets' list is made its full
+  size at once; the tempo's high-passed copy is borrowed from `ArrayPool`; the waveform is
+  encoded without LINQ copies.
+- Tests: `GentleAnalysisTests` (eight songs analyzed while a deck plays: one at a time; with
+  nothing playing, several), `TrackAnalyzerTests` (the close-up from the analysis's decode is the
+  one decoded alone; a song in memory is analyzed from there, with the file garbled on disk).
+
 ### Status: drawn again only when it shows something new (#366, 1.8)
 
 - From the performance review of 2026-11-10, smaller than the close-up but adding up with four
