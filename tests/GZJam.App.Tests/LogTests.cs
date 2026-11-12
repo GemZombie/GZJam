@@ -21,7 +21,13 @@ public sealed class LogTests : IDisposable
         }
     }
 
-    private string Written() => File.ReadAllText(Directory.GetFiles(Path.Combine(_work, "logs"), "gzjam-*.log").Single());
+    /// <summary>What's in the log file, read alongside the log's own thread, which may be writing to it.</summary>
+    private string Written()
+    {
+        string path = Directory.GetFiles(Path.Combine(_work, "logs"), "gzjam-*.log").Single();
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        return new StreamReader(stream).ReadToEnd();
+    }
 
     [Fact]
     public void Lines_from_many_threads_all_arrive_each_threads_in_order()

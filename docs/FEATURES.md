@@ -373,6 +373,24 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: drawn again only when it shows something new (#366, 1.8)
+
+- From the performance review of 2026-11-10, smaller than the close-up but adding up with four
+  decks.
+- **Seek bar:** `Progress` is no longer in `AffectsRender`; it changes on every tick while the
+  deck plays (#365 raises it each tick, as the close-up's corrections need), and the whole
+  waveform (about 550-800 rectangles) was drawn again each time. Now it's drawn again only when
+  the playhead reaches another device pixel (`PlayheadPixel`, against `_drawnAt`): about 2 a
+  second on a 4-minute song, not 30. Seeking with the pointer still redraws at once.
+- **Made once and kept:** the speakers' meter's scale labels (were a `Typeface` and five
+  `FormattedText` at every redraw), each cue's number (`SeekBar.CueNumber`), a jump's arrow (one
+  shape each way, moved into place), the end's fade slope (made again only when its size
+  changes), and the line shown before a song is analyzed (was a new brush each render).
+- **Queue rows** (`FitRow`, `PriorityRow`): their clip is made again only when the row's size
+  changes, not at each arrange. Their measuring's LINQ is left: it runs only on scroll and resize.
+- The close-up's own markers went with it to the render thread (#364).
+- Test: `RedrawTests` (thirty reports over 2.5 px: drawn 2-4 times, not 30).
+
 ### Status: the decks' readouts, only what changed (#365, 1.8)
 
 - From the performance review of 2026-11-10: every 33 ms, `MainWindowViewModel.Tick` refreshed

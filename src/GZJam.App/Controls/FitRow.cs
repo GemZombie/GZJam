@@ -184,6 +184,8 @@ public sealed class FitRow : Panel
         return new Size(Math.Min(used, availableSize.Width), height);
     }
 
+    private Size _clipFor = new(-1, -1);
+
     protected override Size ArrangeOverride(Size finalSize)
     {
         double fillWidth = Math.Max(0, finalSize.Width - FixedWidth()), x = 0;
@@ -200,8 +202,13 @@ public sealed class FitRow : Panel
             child.Arrange(new Rect(x, 0, width, finalSize.Height));
             x += width + Spacing;
         }
-        // Cut off at the sides only: a chip a pixel taller than the line keeps its edges.
-        Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
+        // Cut off at the sides only: a chip a pixel taller than the line keeps its edges. Made
+        // again only when the row's size changes, not at each arrange (#366).
+        if (finalSize != _clipFor)
+        {
+            Clip = new RectangleGeometry(new Rect(0, -8, finalSize.Width, finalSize.Height + 16));
+            _clipFor = finalSize;
+        }
         Arranged?.Invoke(this, EventArgs.Empty);
         return finalSize;
     }
