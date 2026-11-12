@@ -373,6 +373,37 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: the dropout during a long .NET pause, looked into (#381, 1.8)
+
+- `MemoryPauseTests` (a deck on the real speakers while full compacting collections of a
+  12-million-object heap pause .NET for 250-400 ms) failed now and then: a gap of 36-312 ms,
+  rarely alone, more often with the whole suite running. 1.7 says nothing on the sound's way to
+  the speakers waits on .NET, so either that was wrong or the watch was.
+- **Checked:** no .NET runs on the way: the decks', buses' and fades' DSPs and syncs are all
+  native (gzjam_dsp, #344, #359); no `ChannelLock` or managed BASS callback anywhere on it (the
+  exclusive output's notify is for device events only).
+- **The watch could misjudge** (fixed): it read the speakers' position, then the clock; this
+  thread held up between the two (a .NET pause another thread started, or a busy computer
+  giving its core away) made the clock run on past a stale position, which looks exactly like a
+  gap. Now `MixEngine.WatchForDropouts` reads the clock either side and leaves out a look taken
+  over more than 5 ms (`UnsureReads`), and `DropoutWatch` reports what's still missing once a
+  gap has settled, not the most that seemed to be: a real gap leaves the position behind for
+  good, a held-up look catches up on the next tick.
+- **But the failures were real.** Measured with a probe in the native bus DSP (the processor's
+  clock between two blocks of the speakers' mixing, an experiment, not kept): normally 21-22 ms;
+  in the one failing run of 20 under the whole suite, 360 ms during the .NET pauses, with the
+  watch's gap matching (no look held up, nothing settled to nothing). In another run, 226 ms
+  outside any .NET pause, too short to empty the buffer. So it's BASS's own native mixing thread
+  being held up by Windows on a computer loaded to the limit (every core busy, memory under
+  pressure, made worse by the test's own giant compacting collection), not .NET code in the way.
+  20 runs with every core busy (`yes` processes, no memory pressure): no stall, no gap.
+- **What it means for a night:** not something GZJam's code does, and not seen without a test
+  suite running beside it. Left open in #381: whether Settings > Sound > Protection at High covers
+  it, and whether the mixing thread's memory being paged out is the cause (Windows' audio glitch
+  and page-fault events during a failing run).
+- Tests: `DropoutWatchTests` (a held-up look is no dropout; a real gap is its own length, whatever
+  a held-up look added).
+
 ### Status: first-time analysis, gently while music plays (#369, 1.8)
 
 - From the performance review of 2026-11-10: `TrackAnalysisService` ran up to three decoding

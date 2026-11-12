@@ -92,7 +92,7 @@ public sealed class MemoryPauseTests : IDisposable
             $"The longest memory pause was {longest.TotalMilliseconds:0} ms, within the speakers' buffer.");
         Assert.True(gaps.Count == 0,
             $"The sound stopped {gaps.Count} time(s) ({string.Join(", ", gaps.Select(g => $"{g.TotalMilliseconds:0} ms"))}) " +
-            $"while .NET paused for up to {longest.TotalMilliseconds:0} ms");
+            $"while .NET paused for up to {longest.TotalMilliseconds:0} ms ({_mix.UnsureReads} look(s) left out, held up while looking)");
         Assert.True(deck.IsPlaying);
     }
 }
