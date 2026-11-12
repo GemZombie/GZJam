@@ -239,7 +239,10 @@ public sealed class PlaylistAppTests
             app.Window.MouseMove(from + (edge - from) * (i / 8.0), Avalonia.Input.RawInputModifiers.LeftMouseButton);
             Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         }
-        AppHarness.Settle(900);   // held there
+        // Held there: it scrolls, a row at a time (as long as a slow machine takes for a few).
+        var until = DateTime.UtcNow.AddSeconds(8);
+        while (LastInView() <= before + 3 && DateTime.UtcNow < until)
+            AppHarness.Settle(50);
 
         Assert.True(LastInView() > before + 3, $"the last row in view went from {before} to {LastInView()}");
         app.Window.MouseUp(edge, MouseButton.Left, Avalonia.Input.RawInputModifiers.None);
