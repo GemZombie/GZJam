@@ -58,8 +58,8 @@ public sealed class PlayedAppTests
         Assert.All(Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(queueItem).OfType<Avalonia.Controls.Panel>(), p => Assert.Equal(1, p.Opacity));
     }
 
-    private static Avalonia.Controls.Shapes.Path Check(Avalonia.Visual row, string kind) =>
-        Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(row).OfType<Avalonia.Controls.Shapes.Path>().Single(p => p.Classes.Contains(kind));
+    private static GZJam.App.Controls.ShapeIcon Check(Avalonia.Visual row, string kind) =>
+        Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(row).OfType<GZJam.App.Controls.ShapeIcon>().Single(p => p.Classes.Contains(kind));
 
     [AvaloniaFact]
     public void A_song_played_tonight_is_marked_in_the_library_and_the_queue()

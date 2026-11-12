@@ -201,4 +201,60 @@ public sealed class FolderTreeTests
         Assert.Equal(0, scroller.Offset.Y);
         Assert.Equal(before, Row(app, band).TranslatePoint(default, tree)!.Value.Y);
     }
+    /// <summary>
+    /// The folder tree's rows let go of what they showed (#407). Each row's contents (its menu of
+    /// 25 items, its arrow, its icons) are made again as folders open, close and scroll by, and
+    /// the old ones must go: at Hot Jam's sort of night, 940 of them were kept, 300 MB in all,
+    /// held by the icons' shared shapes.
+    /// </summary>
+    [AvaloniaFact]
+    public void Rows_made_again_let_go_of_the_old_ones()
+    {
+        string music = Directory.CreateTempSubdirectory("gzjam-tree-").FullName;
+        for (int i = 1; i <= 40; i++)
+            TestMp3.Write(Path.Combine(music, $"Band {i:00}", "Album", "01 - Song.mp3"));
+        using var app = new AppHarness(musicFolder: music);
+        var tree = app.Window.FindControl<ListBox>("FolderTree")!;
+        var root = app.Library.Roots[0];
+        var seen = new List<WeakReference<Control>>();
+        var known = new HashSet<Control>(ReferenceEqualityComparer.Instance);
+        void Look()
+        {
+            foreach (var row in tree.GetVisualDescendants().OfType<ListBoxItem>())
+                if (row.Presenter?.Child is { } content && known.Add(content))
+                    seen.Add(new WeakReference<Control>(content));
+        }
+
+        var scroller = tree.GetVisualDescendants().OfType<ScrollViewer>().First();
+        for (int round = 0; round < 6; round++)
+        {
+            root.IsExpanded = true;
+            AppHarness.Settle(50);
+            foreach (var band in root.Children)
+                band.IsExpanded = true;
+            AppHarness.Settle(50);
+            Look();
+            scroller.Offset = new Vector(0, scroller.Extent.Height);
+            AppHarness.Settle(50);
+            Look();
+            scroller.Offset = default;
+            foreach (var band in root.Children)
+                band.IsExpanded = false;
+            root.IsExpanded = false;
+            AppHarness.Settle(50);
+            Look();
+        }
+        known.Clear();
+
+        for (int i = 0; i < 3; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            AppHarness.Settle(20);
+        }
+        int alive = seen.Count(w => w.TryGetTarget(out _));
+        int showing = tree.GetVisualDescendants().OfType<ListBoxItem>().Count();
+        Assert.True(seen.Count > 2 * showing, $"made {seen.Count} rows' contents, {showing} rows: nothing was made again");
+        Assert.True(alive <= showing + 10, $"{alive} of the {seen.Count} rows' contents made are still kept, with {showing} rows");
+    }
 }
