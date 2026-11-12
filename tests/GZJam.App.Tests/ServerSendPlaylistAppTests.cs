@@ -254,6 +254,7 @@ public sealed class ServerSendPlaylistAppTests
         using var s = await WithServer();
         s.App.ViewModel.CreatePlaylist("Saturday", [s.First]);
         AppHarness.Settle(150);
+        PlaylistAppTests.ShowPlaylists(s.App);
         s.App.Window.UpdateLayout();
 
         var row = s.App.Window.GetVisualDescendants().OfType<Grid>().First(g => g.DataContext is PlaylistInfo { Name: "Saturday" } && g.ContextMenu is not null);

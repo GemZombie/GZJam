@@ -30,7 +30,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Library = new LibraryViewModel(database)
         {
             NearBpm = settings.NearBpmPercent / 100,
-            AreFoldersFolded = settings.FoldersFolded,
             OpenPlaylistFolders = settings.OpenPlaylistFolders,
             FoldedServerPlaylists = settings.FoldedServerPlaylists,
             OpenServerPlaylistFolders = settings.OpenServerPlaylistFolders,
@@ -78,8 +77,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (e.PropertyName is nameof(LibraryViewModel.ScanStatus) or nameof(LibraryViewModel.ScanPercent))
                 BackgroundChanged();
-            else if (e.PropertyName == nameof(LibraryViewModel.AreFoldersFolded))
-                settings.FoldersFolded = Library.AreFoldersFolded;
         };
 
         if (mix is not null)
@@ -958,12 +955,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>How tall the playlist list may grow, as its grip was last dragged (#163); null: as it starts.</summary>
-    public double? PlaylistsHeight
-    {
-        get => _settings.PlaylistsHeight;
-        set => _settings.PlaylistsHeight = value;
-    }
+
 
     public string SettingsTip => $"Settings · keys: {Shortcuts.Command}+, or {Shortcuts.Command}+O";
 

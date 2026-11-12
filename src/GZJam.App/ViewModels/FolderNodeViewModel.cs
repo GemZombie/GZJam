@@ -167,8 +167,6 @@ public sealed partial class FolderNodeViewModel : ObservableObject
     {
         if (value && IsFiles && Node.Files != FilesKind.Computer)
             ListFolders();   // as it is now: a folder made or taken away since shows
-        if (value)
-            _owner.FolderExpanded();
         _owner.FolderToggled();
     }
 

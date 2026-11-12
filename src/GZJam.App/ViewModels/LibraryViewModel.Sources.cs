@@ -15,6 +15,12 @@ public enum LibrarySource
 
     /// <summary>The computer's files and any USB stick, as folders: never searched, a folder filtered by name.</summary>
     Files,
+
+    /// <summary>
+    /// The playlists (#423): the DJ's, in their folders, and each server's, with the whole column.
+    /// With none open, the song list is My music's, to drop songs from onto them.
+    /// </summary>
+    Playlists,
 }
 
 /// <summary>A source in the library column's list: its name and how many songs it has.</summary>
@@ -25,6 +31,7 @@ public sealed partial class SourceViewModel(LibrarySource kind, string name) : O
     public bool IsMyMusic => Kind == LibrarySource.MyMusic;
     public bool IsServers => Kind == LibrarySource.Servers;
     public bool IsFiles => Kind == LibrarySource.Files;
+    public bool IsPlaylists => Kind == LibrarySource.Playlists;
 
     [ObservableProperty]
     public partial string CountText { get; set; } = "";
@@ -41,8 +48,12 @@ public sealed partial class SourceViewModel(LibrarySource kind, string name) : O
 /// </summary>
 public sealed partial class LibraryViewModel
 {
-    /// <summary>My music, Servers once there's a server, and Files.</summary>
-    public ObservableCollection<SourceViewModel> Sources { get; } = [new(LibrarySource.MyMusic, "My music"), new(LibrarySource.Files, "Files")];
+    /// <summary>My music, Servers once there's a server, Files, and Playlists (#423).</summary>
+    public ObservableCollection<SourceViewModel> Sources { get; } =
+        [new(LibrarySource.MyMusic, "My music"), new(LibrarySource.Files, "Files"), new(LibrarySource.Playlists, "Playlists")];
+
+    /// <summary>The Playlists source is showing (#423): the column is the playlists', not the folder tree's.</summary>
+    public bool IsPlaylistsSource => Source == LibrarySource.Playlists;
 
     /// <summary>The source whose folders the tree shows, and which a search covers.</summary>
     [ObservableProperty]
@@ -80,7 +91,9 @@ public sealed partial class LibraryViewModel
     /// </summary>
     public SourceViewModel? SelectedSource
     {
-        get => SelectedPlaylist is null && SelectedFolder is null ? Sources.FirstOrDefault(s => s.Kind == Source) : null;
+        get => SelectedPlaylist is null && SelectedServerPlaylist is null && SelectedFolder is null
+            ? Sources.FirstOrDefault(s => s.Kind == Source)
+            : null;
         set
         {
             if (value is not null)
@@ -94,6 +107,7 @@ public sealed partial class LibraryViewModel
         bool suppressed = _suppressSearch;
         _suppressSearch = true;
         SelectedPlaylist = null;
+        SelectedServerPlaylist = null;
         SelectedFolder = null;
         Source = source;
         _suppressSearch = suppressed;
@@ -111,6 +125,18 @@ public sealed partial class LibraryViewModel
             RunSearch();   // all of the source showing: the other one's now
     }
 
+    /// <summary>
+    /// The column turns to the playlists (#423) without changing what the song list shows: songs
+    /// dragged from a folder and held over the Playlists source, to be dropped onto one.
+    /// </summary>
+    public void ShowPlaylistsColumn()
+    {
+        bool suppressed = _suppressSearch;
+        _suppressSearch = true;   // the songs being dragged stay in view
+        Source = LibrarySource.Playlists;
+        _suppressSearch = suppressed;
+    }
+
     /// <summary>The tree shows the source <paramref name="folder"/> is in, so it has a row (Show in folder tree).</summary>
     internal void ShowSourceOf(FolderNodeViewModel folder) =>
         Source = SourceOf(folder);
@@ -122,6 +148,7 @@ public sealed partial class LibraryViewModel
     {
         foreach (SourceViewModel source in Sources)
             source.IsCurrent = source.Kind == Source;
+        OnPropertyChanged(nameof(IsPlaylistsSource));
         OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(HasNoRoots));
         OnPropertyChanged(nameof(HasNoResults));

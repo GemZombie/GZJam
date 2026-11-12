@@ -128,11 +128,6 @@ public sealed class AppSettings
     /// </summary>
     public bool DecksHidden { get; set; }
 
-    /// <summary>
-    /// The folder list folded down to the music folders themselves, for more playlists (#163): for
-    /// a DJ who plays from the whole library or a playlist, never one album's folder.
-    /// </summary>
-    public bool FoldersFolded { get; set; }
 
     /// <summary>The folders of playlists left open in the Playlists panel (#354), by their ids in the library.</summary>
     public List<long> OpenPlaylistFolders { get; set; } = [];
@@ -143,8 +138,6 @@ public sealed class AppSettings
     /// <summary>The folders in servers' playlist names left open in the Playlists panel (#355).</summary>
     public List<string> OpenServerPlaylistFolders { get; set; } = [];
 
-    /// <summary>How tall the playlist list may grow, in pixels, dragged by the DJ (#163); null: 220.</summary>
-    public double? PlaylistsHeight { get; set; }
 
     /// <summary>The library and queue panels' widths, as their dividers were last dragged; null: as they start.</summary>
     public double? LibraryPanelWidth { get; set; }
