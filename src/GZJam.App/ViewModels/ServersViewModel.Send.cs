@@ -57,7 +57,7 @@ public sealed partial class ServersViewModel
             }
             string id = await client.SendPlaylistAsync(target, sentName, ids);
             _database.SaveSentPlaylist(playlist.Id, serverId, id);
-            _database.SaveServerPlaylist(serverId, new ServerPlaylistCopy(id, sentName, ids));
+            SavePlaylistCopy(serverId, new ServerPlaylistCopy(id, sentName, ids));
             _owner.Library.RefreshServers();
             Log.Info($"Servers: {playlist.Name} sent to {item.Name} as {id}: {ids.Count} songs, {leftOut.Count} left out");
             string songs = ids.Count == 1 ? "1 song" : $"{Format.Count(ids.Count)} songs";

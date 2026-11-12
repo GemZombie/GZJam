@@ -151,6 +151,9 @@ Better:
 
 Fixed:
 
+- **A playlist just sent to a server stays under it** (#427). If GZJam was reading the server's
+  playlists while you sent one (just after adding the server, say), the read could finish with
+  the list from before and drop the playlist just sent, until the next read.
 - **Closing GZJam while it reads a new music folder** (#419) no longer ends in an error on the
   way out: the reading's last reports, which came a moment later, looked for a library that had
   closed.
