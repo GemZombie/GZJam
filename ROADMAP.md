@@ -183,7 +183,7 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.8**, not in a release yet:
+**In 1.8,** to try now in [1.8.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.8.0-beta.1):
 
 - [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
   to Artist so it's in view on a laptop

@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+## 1.8.0-beta.1 (2026-11-12)
+
+The first beta of 1.8: quality of life. Playlists are a source of their own now, with the whole
+column, in folders, with your servers' playlists under their own headings, and a start time to plan
+a night from shows when each song in the queue plays. The waveforms, times and meters go with the
+music rather than ahead of it, and GZJam no longer piles up memory over a night. Your library gains
+playlist folders, and 1.7 still opens it afterwards. Like the others, GZJam's update notice doesn't
+offer it: you only get it from this page. It has everything in 1.7.0.
+
 New:
 
 - **Your servers' playlists in the Playlists panel** (#355, an idea from Danny Cherry's fork). Each
