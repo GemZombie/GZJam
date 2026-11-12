@@ -47,12 +47,24 @@ public sealed partial class PlannedStartViewModel(MainWindowViewModel owner, App
         OnPropertyChanged(nameof(PlannedStartTip));
     }
 
-    /// <summary>Drops a plan from long ago, and keeps "today" or a day's name in the button true as the clock moves on. Run with the queue's times.</summary>
+    /// <summary>The day the button's text was last made for.</summary>
+    private DateTime _shownDay;
+
+    /// <summary>
+    /// Drops a plan from long ago, and keeps "today" or a day's name in the button true as the clock
+    /// moves on. Run with the queue's times, every second, so it raises its texts only when the day
+    /// changes or the plan is dropped (#365).
+    /// </summary>
     internal void Refresh(DateTime now)
     {
-        if (PlannedStart is { } plan && plan < now.AddHours(-12))
+        bool dropped = PlannedStart is { } plan && plan < now.AddHours(-12);
+        if (dropped)
             settings.PlannedStart = null;
-        Changed();
+        if (dropped || now.Date != _shownDay)
+        {
+            _shownDay = now.Date;
+            Changed();
+        }
     }
 
     /// <summary>What the date and time pickers hold before Set is pressed.</summary>

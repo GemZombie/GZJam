@@ -373,6 +373,29 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: when each song plays, and a planned start (#297, 1.8)
+
+- Danny Cherry's `plays-at-column` branch (his two commits, kept as his), brought up to date with
+  main. `QueueEnd.Starts` gives each song to come its start, from the same sums as the queue's end
+  (#279): the live deck's `Remaining` (its fade-out, jumps, tempo and auto-play's fade included),
+  the ready decks' in auto-play's order, then each queued song's `PlayLength` (start to end, less
+  its jumps, plus the fade for a *Start fade-out here*), with auto-play's gap and *Fade after*; by
+  hand, none. Songs after *Stop at* or *Stop after this song* get no time; with Repeat, the first
+  round only. A wait after each song makes all but the next a guess ("~").
+- `PlannedStartViewModel` (`AppSettings.PlannedStart`): the clock in the queue's header, a date and
+  time picker (starting at the next half hour). While nothing plays to the room, the times count
+  from it, and **ENDS** shows from it; once a song is on air the real clock takes over. A plan more
+  than 12 hours past is dropped.
+- Not every row every second (the issue's ask, after #365): `UpdateQueueEnd` still runs each
+  second, but each row keeps what it shows (`ShownStart`: the minute, a guess, another day) and
+  makes and raises its text only when that changes, so once a minute at most. The plan's texts
+  are raised only when the day changes or the plan is dropped (they were raised every second).
+- *Plays at* is off to start with. Turned on, it gives way after the album art, ♥ and energy,
+  not before them: at the default queue width it showed nothing at all, which looked broken. The
+  queue's drop orders after the art moved up one to make room for it.
+- The fade-outs, checked by test: a queued song marked to fade out early moves the next song up by
+  what it leaves out, and a deck's song marked so counts to the end of its fade.
+
 ### Status: a deck's song in the headphones' preview (#378, 1.8)
 
 - `DeckViewModel.PreviewSongCommand` hands the deck's song to `PreviewViewModel.Toggle`, the same

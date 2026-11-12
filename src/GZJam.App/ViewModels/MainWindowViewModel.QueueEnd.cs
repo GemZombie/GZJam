@@ -136,15 +136,31 @@ public sealed partial class MainWindowViewModel
     private void ShowStarts(DeckViewModel? live, List<(DeckViewModel? Deck, QueueItem? Item, TimeSpan Length)> coming,
         IReadOnlyList<DateTime?> starts, DateTime now, bool guess, bool firstIsExact)
     {
+        // Each row's text is made only when what it shows changes (ShownStart): not every second.
         foreach (DeckViewModel deck in Decks)
-            deck.StartsText = deck == live ? "now" : "";
+        {
+            if (deck == live)
+                deck.ShowStart(null, false, now, playing: true);
+            else if (!Coming(deck))
+                deck.ShowStart(null, false, now);   // not to play: no time
+        }
         for (int i = 0; i < coming.Count; i++)
         {
-            string text = starts[i] is { } start ? (guess && !(i == 0 && firstIsExact) ? "~" : "") + PlannedStartViewModel.Clock(start, now) : "";
+            bool isGuess = guess && !(i == 0 && firstIsExact);
             if (coming[i].Deck is { } deck)
-                deck.StartsText = text;
+                deck.ShowStart(starts[i], isGuess, now);
             else
-                coming[i].Item!.StartsText = text;
+                coming[i].Item!.ShowStart(starts[i], isGuess, now);
+        }
+
+        bool Coming(DeckViewModel deck)
+        {
+            foreach (var c in coming)
+            {
+                if (c.Deck == deck)
+                    return true;
+            }
+            return false;
         }
     }
 

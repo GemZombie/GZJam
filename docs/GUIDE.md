@@ -817,9 +817,21 @@ The queue is tonight's list of songs to come.
   playing, wherever the crossfader is, and the song that was there goes back to the top of the queue,
   so it plays right after your new pick (the top bar says so, with **Undo** to take it out).
 - **What it shows:** right-click › *Show* ticks what the queue shows of each song, besides the title
-  and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM and
-  time. Album, genre, year and played start off; they fit best in a queue given the room with
-  **Ctrl+L**. GZJam remembers your choice.
+  and artist: album art, ♥, energy, labels, album, genre, year, when it was last played, BPM,
+  *Plays at* and time. Album, genre, year, played and *Plays at* start off; they fit best in a
+  queue given the room with **Ctrl+L**. GZJam remembers your choice.
+- **When each song plays:** turn on *Plays at* (right-click › *Show*) and each song says when it
+  will start, as a time of day: after what's left of the song playing, each song before it (from
+  where it starts to where it ends, with its fade-out and jumps) and, with auto-play on, the gaps
+  and *Fade after*. The songs waiting on the decks show theirs too, and the one playing says *now*.
+  With auto-play waiting for you after each song, the times are a guess (~). In a narrow queue it
+  takes the place of the album art, ♥ and energy rather than giving way itself.
+- **Planning a night ahead:** the clock in the queue's header sets when you mean to start (a date
+  and a time: say 8:30 PM tonight). Until the music starts, the *Plays at* times and **ENDS** at
+  the top are counted from then, so while you build a set in the afternoon you can see how far
+  into the evening it goes. The clock lights while a start is set; **CLEAR** goes back to now.
+  Once a song plays to the room the real time takes over, and a start time from a past night is
+  forgotten.
 
 ### Auto-play
 
@@ -831,7 +843,8 @@ and cue it in the headphones.
 - **The gap** (− and + beside it, 0 to 15 seconds) is real silence between songs, whatever silence
   each file starts or ends with.
 - **When the queue ends:** beside the clock at the top, **ENDS** says when the music queued runs
-  out, as a time of day, once a song plays to the room (before then it shows a dash). It counts
+  out, as a time of day, once a song plays to the room (before then it shows a dash, or the time
+  from the start you planned: see *Planning a night ahead* above). It counts
   what's left of the song playing, the songs ready on the decks and in the queue (each from where
   it starts to where it ends, with its fade and jumps) and, with auto-play on, the gaps. When *Stop
   at* or *Stop after this song* comes first, it's when auto-play stops instead (point at it: the

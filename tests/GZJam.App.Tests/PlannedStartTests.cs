@@ -279,7 +279,7 @@ public sealed class PlannedStartTests
     }
 
     [AvaloniaFact]
-    public void The_clock_is_there_at_the_default_width_and_the_plays_at_column_gives_way_before_the_rest()
+    public void The_clock_is_there_at_the_default_width_and_plays_at_turned_on_shows_there_too()
     {
         using var app = Night(auto: false);
         Queue(app, Song("a", 180), Song("b", 120));
@@ -290,10 +290,81 @@ public sealed class PlannedStartTests
         Assert.False(row.IsDropped(app.Window.FindControl<Button>("QueueStartButton")!));   // the DJ can always set a start time
         var song = app.Window.FindControl<ListBox>("QueueList")!.GetVisualDescendants().OfType<GZJam.App.Controls.FitRow>().First();
         bool Dropped(string part) => song.IsDropped(song.Children.First(c => c.Classes.Contains(part)));
-        // At the default width there is no room for it: it is the first thing to go, so the songs' art, rating and BPM are all still there.
-        Assert.True(Dropped("q-starts"));
+        // Turned on, it's what the DJ wants to see: at the default width the art, rating and energy
+        // give way for it (turned on and showing nothing, it would look broken). The BPM stays.
+        Assert.False(Dropped("q-starts"));
         Assert.False(Dropped("q-bpm"));
-        Assert.False(Dropped("q-art"));
+        Assert.True(Dropped("q-art"));
+        Assert.True(Dropped("q-rating"));
+    }
+
+    /// <summary>
+    /// A queued song marked to fade out early (*Start fade-out here*) plays to its mark and the fade,
+    /// not to its end: the songs after it move up by what it leaves out.
+    /// </summary>
+    [AvaloniaFact]
+    public void A_queued_song_marked_to_fade_out_early_moves_the_next_ones_up()
+    {
+        using var app = Night(auto: false);   // auto-play would take the queue onto a deck as the test waits
+        app.Settings.FadeOutSeconds = 5;
+        Track early = Song("early", 240);
+        Queue(app, early, Song("next", 120));
+        AppHarness.WaitFor(() => Starts(app)[1] == "7:04 PM");   // 7:00:10 + 4:00
+
+        app.ViewModel.SaveTrim(early.Path, new ManualTrim(null, TimeSpan.FromSeconds(100), FadeOut: true));
+
+        // Fading from 1:40 over 5 seconds: 7:00:10 + 1:45 = 7:01:55.
+        AppHarness.WaitFor(() => Starts(app)[1] == "7:01 PM");
+        Assert.Equal(["7:00 PM", "7:01 PM"], Starts(app));
+    }
+
+    /// <summary>A song waiting on a deck, marked to fade out early: the queue after it counts to its fade's end.</summary>
+    [AvaloniaFact]
+    public async Task A_deck_song_marked_to_fade_out_early_counts_to_the_end_of_its_fade()
+    {
+        using var app = Night();
+        app.Settings.FadeOutSeconds = 5;
+        Track song = app.ToneTrack("Fades early", seconds: 120);
+        app.ViewModel.SaveTrim(song.Path, new ManualTrim(null, TimeSpan.FromSeconds(30), FadeOut: true));
+        var deck = app.ViewModel.Deck1!;
+        Assert.True(await app.ViewModel.LoadToDeckAsync(deck, song));
+        Queue(app, Song("queued", 120));
+
+        Assert.Equal(35, deck.Deck.Remaining.TotalSeconds, 0.5);   // to the mark, and the fade
+        Assert.Equal(Clock(Evening + deck.Deck.Remaining + TimeSpan.FromSeconds(60)), Starts(app)[0]);
+    }
+
+    /// <summary>
+    /// The times are worked out every second, but a row is told only when the minute it shows
+    /// changes: nothing made or raised for every row every second (#365).
+    /// </summary>
+    [AvaloniaFact]
+    public void A_row_changes_only_when_its_minute_does()
+    {
+        using var app = new AppHarness();
+        DateTime clock = Evening;   // 7:00:10
+        app.ViewModel.Now = () => clock;
+        app.ViewModel.AutoPlay!.IsOn = true;
+        app.Settings.GapSeconds = 60;
+        Queue(app, Song("a", 180), Song("b", 120), Song("c", 240));
+        int raised = 0;
+        foreach (var item in app.ViewModel.Queue.Items)
+            item.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(QueueItem.StartsText) ? 1 : 0;
+        int planRaised = 0;
+        app.ViewModel.Plan.PropertyChanged += (_, _) => planRaised++;
+
+        for (int second = 1; second <= 45; second++)   // to 7:00:55: still the same minute for every row
+        {
+            clock = Evening.AddSeconds(second);
+            app.ViewModel.UpdateQueueEnd();
+        }
+        Assert.Equal(0, raised);
+        Assert.Equal(0, planRaised);
+
+        clock = Evening.AddSeconds(55);   // 7:01:05: every row a minute on
+        app.ViewModel.UpdateQueueEnd();
+        Assert.Equal(3, raised);
+        Assert.Equal(["7:01 PM", "7:05 PM", "7:08 PM"], Starts(app));
     }
 
     private static string Clock(DateTime time) => time.ToString("t", System.Globalization.CultureInfo.CurrentCulture);
