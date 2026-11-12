@@ -373,6 +373,16 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: *Read its song list again* asks the server first (#395, 1.8)
+
+- `ServersViewModel.ReadCatalogAgainAsync`, the menu's: as GZJam's start does (#313), it asks
+  `getScanStatus` first. If the server's mark (its lastScan and song count) is the one saved with
+  the song list, only its playlists are read again, with a notice; otherwise, if the server
+  doesn't say, or the list was read before its pictures were kept, the whole list is read.
+- No way to force a full read: Navidrome sees a change to its files only by reading its music
+  again, which changes its mark. A server that doesn't say (lastScan) is always read in full.
+- `ReadPlaylistsAsync` says whether it read them, so the notice never claims a read that failed.
+
 ### Status: when each song plays, and a planned start (#297, 1.8)
 
 - Danny Cherry's `plays-at-column` branch (his two commits, kept as his), brought up to date with
