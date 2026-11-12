@@ -314,6 +314,42 @@ public sealed partial class ServersViewModel
         await LinkOwnCopiesAsync();   // songs added to the library since
     }
 
+    /// <summary>
+    /// A server's right-click › <i>Read its song list again</i> (#395): asks the server first, as
+    /// GZJam's start does. If it hasn't read its music since its song list was read, nothing in the
+    /// list can have changed (Navidrome sees a change to its files only by reading its music again),
+    /// so only its playlists are read, and the DJ is told. Otherwise, or if it doesn't say, the
+    /// whole list is read.
+    /// </summary>
+    public async Task ReadCatalogAgainAsync(long serverId)
+    {
+        if (ItemFor(serverId) is not { } item || IsReadingCatalog(item))
+            return;
+        if (_database.GetServerCatalogTime(serverId) is not null && _database.ServerCatalogHasArt(serverId))
+        {
+            _readingCatalog.Add(serverId);
+            bool unchanged;
+            try
+            {
+                unchanged = await ScanMarkAsync(item) is { } mark && mark == _database.GetServerCatalogScan(serverId)
+                    && SignedIn(item) is { } client && await ReadPlaylistsAsync(item, client);
+            }
+            finally
+            {
+                _readingCatalog.Remove(serverId);
+            }
+            if (unchanged)
+            {
+                Log.Info($"Servers: {item.Name} hasn't read its music since its song list was read: only its playlists read again");
+                _owner.ShowNotice($"{item.Name} hasn't read its music since: its playlists were read again.", seconds: 6);
+                _owner.Library.RefreshServers();
+                _owner.Library.RefreshResults();
+                return;
+            }
+        }
+        await ReadCatalogAsync(serverId);
+    }
+
     /// <summary>What the server says of its last reading of its music now; null if it doesn't say, or can't be asked.</summary>
     private async Task<string?> ScanMarkAsync(ServerItemViewModel item)
     {

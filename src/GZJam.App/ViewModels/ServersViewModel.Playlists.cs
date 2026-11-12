@@ -118,17 +118,20 @@ public sealed partial class ServersViewModel
     }
 
     /// <summary>The server's playlists, read with its catalog. One that can't be read leaves those read before.</summary>
-    private async Task ReadPlaylistsAsync(ServerItemViewModel item, SubsonicClient client)
+    /// <returns>Whether they were read (a server that doesn't answer is only logged).</returns>
+    private async Task<bool> ReadPlaylistsAsync(ServerItemViewModel item, SubsonicClient client)
     {
         try
         {
             var playlists = await Task.Run(() => ServerCatalogReader.ReadPlaylistsAsync(client));
             await Task.Run(() => _database.ReplaceServerPlaylists(item.Server.Id, playlists));
             Log.Info($"Servers: read {item.Name}'s {Format.Count(playlists.Count)} playlists");
+            return true;
         }
         catch (ServerException e)
         {
             Log.Info($"Servers: couldn't read {item.Name}'s playlists: {e.Message}");
+            return false;
         }
     }
 }

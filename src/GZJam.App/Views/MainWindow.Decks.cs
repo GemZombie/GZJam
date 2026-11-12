@@ -586,7 +586,7 @@ public partial class MainWindow
     private async void OnReadServerCatalogClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is FolderNodeViewModel { Node.ServerId: long id })
-            await Vm.Servers.ReadCatalogAsync(id);
+            await Vm.Servers.ReadCatalogAgainAsync(id);   // only if the server has read its music since (#395)
     }
 
     private void OnRatingCellClick(object? sender, RoutedEventArgs e)

@@ -96,15 +96,48 @@ public sealed class ServerCatalogReadsAppTests
         Assert.True(Reads(fake) > reads);
     }
 
+    /// <summary>
+    /// Right-click › <i>Read its song list again</i> asks first too (#395): a server that hasn't read
+    /// its music since has only its playlists read, and the DJ is told.
+    /// </summary>
     [AvaloniaFact]
-    public async Task Read_its_song_list_again_always_reads_it()
+    public async Task Read_its_song_list_again_reads_only_the_playlists_of_a_server_that_hasnt_read_its_music_since()
+    {
+        var (app, fake, server) = await WithServer("2026-11-07T08:00:00Z");
+        using var _ = app;
+        int reads = Reads(fake), playlists = PlaylistReads(fake);
+
+        Finish(app.ViewModel.Servers.ReadCatalogAgainAsync(server.Server.Id));
+
+        Assert.Equal(reads, Reads(fake));
+        Assert.True(PlaylistReads(fake) > playlists);
+        Assert.Equal("synology hasn't read its music since: its playlists were read again.", app.ViewModel.Notice);
+    }
+
+    [AvaloniaFact]
+    public async Task Read_its_song_list_again_reads_it_all_once_the_server_has_read_its_music_since()
     {
         var (app, fake, server) = await WithServer("2026-11-07T08:00:00Z");
         using var _ = app;
         int reads = Reads(fake);
+        fake.LastScan = "2026-11-07T09:00:00Z";
 
-        Finish(app.ViewModel.Servers.ReadCatalogAsync(server.Server.Id));
+        Finish(app.ViewModel.Servers.ReadCatalogAgainAsync(server.Server.Id));
 
         Assert.True(Reads(fake) > reads);
+        Assert.Equal("2026-11-07T09:00:00Z|4", app.Database.GetServerCatalogScan(server.Server.Id));
+    }
+
+    [AvaloniaFact]
+    public async Task Read_its_song_list_again_reads_it_all_from_a_server_that_doesnt_say()
+    {
+        var (app, fake, server) = await WithServer(lastScan: null);
+        using var _ = app;
+        int reads = Reads(fake);
+
+        Finish(app.ViewModel.Servers.ReadCatalogAgainAsync(server.Server.Id));
+
+        Assert.True(Reads(fake) > reads);
+        Assert.DoesNotContain("hasn't read its music", app.ViewModel.Notice ?? "");
     }
 }

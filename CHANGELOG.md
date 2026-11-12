@@ -63,6 +63,10 @@ New:
 
 Better:
 
+- **Reading a server's song list again is quick when nothing has changed** (#395, from Danny
+  Cherry's fork). Right-click a server › *Read its song list again* now asks the server first, as
+  GZJam's start does: if it hasn't read its music since, only its playlists are read again (it says
+  so), rather than every song, which took 90 seconds for 18,000 songs over the internet.
 - **A deck's buttons fit a narrow window** (#378). On a smaller laptop screen, or a window made
   narrow, Eject was cut short and the BPM and four decks' ⋯ went off the deck's edge. Now what
   doesn't fit moves into a ⋯ menu on the deck: Eject first, then the headphones, then the BPM
