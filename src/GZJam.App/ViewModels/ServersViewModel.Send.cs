@@ -32,6 +32,9 @@ public sealed partial class ServersViewModel
         }
 
         long serverId = item.Server.Id;
+        // With the server's playlist folders in names (#355), one in the DJ's folders goes with
+        // them in its name ("WCS/Setlists/Nov 8"), and shows in the same folders in its apps.
+        string sentName = PlaylistNames.Join(_database.PlaylistFolderPath(playlist.FolderId), playlist.Name, item.Server.PlaylistSeparator);
         try
         {
             string? known = _database.GetSentPlaylist(playlist.Id, serverId);
@@ -42,7 +45,7 @@ public sealed partial class ServersViewModel
             if (target is null)
             {
                 // Not sent here before: one of that name already there, made elsewhere (#396)?
-                switch (await SameNameAsync(item, playlist.Name, there))
+                switch (await SameNameAsync(item, sentName, there))
                 {
                     case null:
                         return null;
@@ -52,9 +55,9 @@ public sealed partial class ServersViewModel
                         break;
                 }
             }
-            string id = await client.SendPlaylistAsync(target, playlist.Name, ids);
+            string id = await client.SendPlaylistAsync(target, sentName, ids);
             _database.SaveSentPlaylist(playlist.Id, serverId, id);
-            _database.SaveServerPlaylist(serverId, new ServerPlaylistCopy(id, playlist.Name, ids));
+            _database.SaveServerPlaylist(serverId, new ServerPlaylistCopy(id, sentName, ids));
             _owner.Library.RefreshServers();
             Log.Info($"Servers: {playlist.Name} sent to {item.Name} as {id}: {ids.Count} songs, {leftOut.Count} left out");
             string songs = ids.Count == 1 ? "1 song" : $"{Format.Count(ids.Count)} songs";

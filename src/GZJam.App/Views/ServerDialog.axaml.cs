@@ -35,6 +35,8 @@ public partial class ServerDialog : Window
             UserBox.Text = server.UserName;
             NameBox.Text = server.Name;
             PasswordBox.PlaceholderText = "Unchanged";
+            PlaylistFoldersBox.IsChecked = server.PlaylistSeparator is not null;
+            SeparatorBox.Text = server.PlaylistSeparator ?? "/";
         }
         OkButton.Content = _okText;
 
@@ -75,7 +77,8 @@ public partial class ServerDialog : Window
         Say("Signing in…", problem: false);
         try
         {
-            var edit = new ServerEdit(NameBox.Text ?? "", AddressBox.Text ?? "", UserBox.Text ?? "", PasswordBox.Text);
+            string? separator = PlaylistFoldersBox.IsChecked == true && !string.IsNullOrWhiteSpace(SeparatorBox.Text) ? SeparatorBox.Text : null;
+            var edit = new ServerEdit(NameBox.Text ?? "", AddressBox.Text ?? "", UserBox.Text ?? "", PasswordBox.Text, separator);
             ServerSaveResult result = await _servers.SaveAsync(_existing, edit, _saveAnyway, _cancel.Token);
             if (result.Saved)
             {

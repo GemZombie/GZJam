@@ -19,10 +19,16 @@ public sealed partial class ServersViewModel
 
     private string? _previewPath;
 
-    /// <summary>The servers' places in the library's folder tree, after the music folders, each with its folders from its catalog.</summary>
+    /// <summary>
+    /// The servers' places in the library's folder tree, after the music folders, each with its
+    /// folders from its catalog. Their playlists are in the Playlists panel (#355), not here.
+    /// </summary>
     public IReadOnlyList<FolderNode> TreeNodes =>
-        Items.Select(i => FolderTree.BuildServer(i.Server.Id, i.Name, _database.GetServerCatalogFolders(i.Server.Id),
-            _database.GetServerPlaylists(i.Server.Id).Select(p => (p.Id, p.Name, p.SongIds.Count)).ToList())).ToList();
+        Items.Select(i => FolderTree.BuildServer(i.Server.Id, i.Name, _database.GetServerCatalogFolders(i.Server.Id))).ToList();
+
+    /// <summary>The servers as the Playlists panel needs them (#355).</summary>
+    public IReadOnlyList<PlaylistServer> PlaylistServers =>
+        Items.Select(i => new PlaylistServer(i.Server.Id, i.Name, i.IsOffline, i.Server.PlaylistSeparator)).ToList();
 
     private ServerItemViewModel? ItemFor(long serverId) => Items.FirstOrDefault(i => i.Server.Id == serverId);
 

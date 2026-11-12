@@ -7,7 +7,8 @@ using GZJam.Library.Servers;
 namespace GZJam.App.ViewModels;
 
 /// <summary>What the DJ filled in to add or change a server.</summary>
-public sealed record ServerEdit(string Name, string Address, string UserName, string? Password);
+/// <param name="PlaylistSeparator">What its playlist names are split on for folders (#355); null: names as they are.</param>
+public sealed record ServerEdit(string Name, string Address, string UserName, string? Password, string? PlaylistSeparator = null);
 
 /// <summary>How adding or changing a server went: saved, or why not, and whether it may be saved anyway.</summary>
 public sealed record ServerSaveResult(bool Saved, string? Problem = null, bool CanSaveAnyway = false);
@@ -159,9 +160,12 @@ public sealed partial class ServersViewModel : ObservableObject
         if (oldKey is not null && oldKey != key)
             TryForget(oldKey);
         _database.SaveServerCheck(saved.Id, check, DateTime.UtcNow);
-        Log.Info($"Servers: {(existing is null ? "added" : "changed")} {name} ({user} at {address}): {check.Outcome}");
+        _database.SetServerPlaylistSeparator(saved.Id, edit.PlaylistSeparator);
+        Log.Info($"Servers: {(existing is null ? "added" : "changed")} {name} ({user} at {address}): {check.Outcome}" +
+                 (string.IsNullOrWhiteSpace(edit.PlaylistSeparator) ? "" : $", playlist folders in names, split on \"{edit.PlaylistSeparator.Trim()}\""));
 
         Refresh();
+        _owner.Library.RefreshServerPlaylists();   // folders in names, or not (#355)
         if (check.Connected && existing?.Server.Address != saved.Address)
             _ = ReadCatalogAsync(saved.Id, quiet: true);
         WatchNetwork();   // a new server, or one somewhere else: its songs

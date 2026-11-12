@@ -13,6 +13,10 @@ namespace GZJam.Library.Servers;
 /// <param name="ServerType">What the server said it is ("navidrome"), as last checked.</param>
 /// <param name="ServerVersion">Its version ("0.64.2"), as last checked.</param>
 /// <param name="CheckedUtc">When it was last reached.</param>
+/// <param name="PlaylistSeparator">
+/// What the DJ's other apps split this server's playlist names on to make folders (#355), "/" say;
+/// null: names are shown and sent as they are.
+/// </param>
 public sealed record MusicServer(
     long Id,
     string Name,
@@ -21,7 +25,8 @@ public sealed record MusicServer(
     bool? CanDownload = null,
     string? ServerType = null,
     string? ServerVersion = null,
-    DateTime? CheckedUtc = null)
+    DateTime? CheckedUtc = null,
+    string? PlaylistSeparator = null)
 {
     /// <summary>Where its password is kept in the keychain: the same server and account share one.</summary>
     public string PasswordKey => PasswordStore.KeyFor(Address, UserName);

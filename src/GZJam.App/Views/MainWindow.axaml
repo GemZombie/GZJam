@@ -429,12 +429,6 @@
                                 ToolTip.Tip="Download every song in this folder and the folders in it, and keep it up to date: songs added to it on the server come with each sync" />
                       <MenuItem Header="Add to my music…" IsVisible="{Binding IsServerFolder}" Click="OnKeepCopyClick"
                                 ToolTip.Tip="Copy these songs into My music, laid out as on the server: yours from then on, never removed by GZJam. Songs you have already are left as they are" />
-                      <MenuItem Header="Keep on this computer" IsVisible="{Binding CanKeep}" Click="OnKeepServerPlaylistClick"
-                                ToolTip.Tip="Download this playlist's songs now, keep it in your playlists, and keep it up to date with the server on every sync" />
-                      <MenuItem Header="Open in my playlists" IsVisible="{Binding IsKept}" Click="OnOpenKeptPlaylistClick"
-                                ToolTip.Tip="It's kept on this computer: open your copy of it, among your playlists" />
-                      <MenuItem Header="Stop keeping on this computer…" IsVisible="{Binding IsKept}" Click="OnStopKeepingServerPlaylistClick"
-                                ToolTip.Tip="No longer download it or keep it up to date (a sync running stops), then remove the songs downloaded for it if you like: they stay on the server" />
                       <MenuItem Header="Remove from this computer" IsVisible="{Binding IsServerFolder}" Click="OnRemoveFolderFromLaptopClick"
                                 ToolTip.Tip="Remove the songs downloaded from here from the computer: they stay on the server" />
                       <MenuItem Header="Read its song list again" IsVisible="{Binding IsServerItself}" Click="OnReadServerCatalogClick"
@@ -488,6 +482,70 @@
             <ListBox x:Name="PlaylistList" Classes="playlists" Margin="4,4,4,6"
                      ItemsSource="{Binding Library.PlaylistRows}" SelectedItem="{Binding Library.SelectedPlaylistRow, Mode=TwoWay}">
               <ListBox.DataTemplates>
+                <!-- A server's playlists (#355): its heading, folding like a folder, ↻ to read them again -->
+                <DataTemplate DataType="vm:ServerPlaylistsHeading">
+                  <DockPanel Background="Transparent" ToolTip.Tip="{Binding Tip}" Tapped="OnServerHeadingTapped" Margin="0,6,0,0">
+                    <Panel DockPanel.Dock="Left" Classes="playlist-folder-arrow">
+                      <ToggleButton Classes="folder-arrow" IsChecked="{Binding IsExpanded, Mode=TwoWay}" Focusable="False" />
+                    </Panel>
+                    <Button DockPanel.Dock="Right" Classes="row-icon" Content="↻" Padding="6,0" Click="OnReadServerPlaylistsClick"
+                            ToolTip.Tip="Read this server's playlists again" />
+                    <TextBlock DockPanel.Dock="Right" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,2,0" />
+                    <TextBlock DockPanel.Dock="Right" Classes="dim" Text="offline" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"
+                               IsVisible="{Binding IsOffline}" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
+                      <c:ShapeIcon Data="{StaticResource IconServer}" Stroke="#8F9BB0" StrokeThickness="2" StrokeJoin="Round"
+                                   Width="15" Height="11" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    </Grid>
+                  </DockPanel>
+                </DataTemplate>
+                <DataTemplate DataType="vm:ServerPlaylistFolderRow">
+                  <DockPanel Background="Transparent" ToolTip.Tip="{Binding Tip}" Tapped="OnServerFolderTapped">
+                    <Border DockPanel.Dock="Left" Width="{Binding Indent}" />
+                    <Panel DockPanel.Dock="Left" Classes="playlist-folder-arrow">
+                      <ToggleButton Classes="folder-arrow" IsChecked="{Binding IsExpanded, Mode=TwoWay}" Focusable="False" />
+                    </Panel>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                      <c:ShapeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Fill="#8F9BB0" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Classes="dim" Text="{Binding Count}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    </Grid>
+                  </DockPanel>
+                </DataTemplate>
+                <DataTemplate DataType="vm:ServerPlaylistRow">
+                  <DockPanel Background="Transparent" ToolTip.Tip="{Binding Tip}">
+                    <DockPanel.ContextMenu>
+                      <ContextMenu Opened="OnRowMenuOpened">
+                        <MenuItem Header="Play" Click="OnServerPlaylistPlayClick"
+                                  ToolTip.Tip="Play this playlist: it takes the queue's place and auto-play plays it. Songs not on this computer are fetched as they come" />
+                        <MenuItem Header="Play shuffled" Click="OnServerPlaylistPlayShuffledClick" />
+                        <Separator />
+                        <MenuItem Header="Add to queue" Click="OnServerPlaylistToQueueClick" />
+                        <MenuItem Header="Add to queue shuffled" Click="OnServerPlaylistToQueueShuffledClick" />
+                        <Separator />
+                        <MenuItem Header="Keep on this computer" Click="OnKeepPanelServerPlaylistClick" IsVisible="{Binding IsNotKept}"
+                                  ToolTip.Tip="Download this playlist's songs now, and keep it up to date with the server on every sync" />
+                        <MenuItem Header="Stop keeping on this computer…" Click="OnStopKeepingPanelServerPlaylistClick" IsVisible="{Binding IsKept}"
+                                  ToolTip.Tip="No longer download it or keep it up to date, then remove the songs downloaded for it if you like: they stay on the server" />
+                        <MenuItem Header="Stop following the server" Click="OnStopFollowingPanelServerPlaylistClick" IsVisible="{Binding IsKept}"
+                                  ToolTip.Tip="Make the copy on this computer a playlist of your own, as it is now: a sync no longer changes it, and it moves to your playlists" />
+                        <MenuItem Header="Copy to my playlists" Click="OnCopyServerPlaylistClick"
+                                  ToolTip.Tip="A playlist of your own with these songs, in this order: yours to change, never changed by a sync" />
+                      </ContextMenu>
+                    </DockPanel.ContextMenu>
+                    <Border DockPanel.Dock="Left" Width="{Binding Indent}" />
+                    <TextBlock DockPanel.Dock="Right" Classes="dim" Text="{Binding Songs}" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <!-- Kept on this computer: a mark, as a kept song has -->
+                    <TextBlock DockPanel.Dock="Right" Classes="dim" Text="kept" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"
+                               IsVisible="{Binding IsKept}" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
+                      <c:ShapeIcon Data="{StaticResource IconPlaylist}" Stroke="#8F9BB0" StrokeThickness="2" StrokeLineCap="Round"
+                                   Width="13" Height="11" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    </Grid>
+                  </DockPanel>
+                </DataTemplate>
                 <DataTemplate DataType="vm:PlaylistFolderRow">
                   <DockPanel Background="Transparent" ToolTip.Tip="{Binding Tip}" ContextRequested="OnPlaylistFolderMenuRequested"
                              Tapped="OnPlaylistFolderTapped">

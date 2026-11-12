@@ -533,26 +533,7 @@ public partial class MainWindow
             await Vm.Servers.DownloadFolderAsync(id, folder.Node.RelativePath, folder.Name);
     }
 
-    private async void OnKeepServerPlaylistClick(object? sender, RoutedEventArgs e)
-    {
-        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } })
-            await Vm.Servers.KeepPlaylistAsync(id, playlist);
-    }
-
-    private async void OnStopKeepingServerPlaylistClick(object? sender, RoutedEventArgs e)
-    {
-        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } })
-            await Vm.Servers.StopKeepingPlaylistAsync(id, playlist);
-    }
-
     private void OnBackgroundStopClick(object? sender, RoutedEventArgs e) => Vm.Servers.StopInBackground();
-
-    private void OnOpenKeptPlaylistClick(object? sender, RoutedEventArgs e)
-    {
-        if ((sender as Control)?.DataContext is FolderNodeViewModel { Node: { ServerId: long id, ServerPlaylistId: { } playlist } }
-            && Vm.Servers.KeptAs(id, playlist) is { } kept)
-            Vm.Library.OpenPlaylist(kept.Id);
-    }
 
     private async void OnRemoveFolderFromLaptopClick(object? sender, RoutedEventArgs e)
     {

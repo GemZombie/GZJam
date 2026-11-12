@@ -137,6 +137,12 @@ public sealed class AppSettings
     /// <summary>The folders of playlists left open in the Playlists panel (#354), by their ids in the library.</summary>
     public List<long> OpenPlaylistFolders { get; set; } = [];
 
+    /// <summary>The servers whose playlists are folded away in the Playlists panel (#355), by their ids.</summary>
+    public List<long> FoldedServerPlaylists { get; set; } = [];
+
+    /// <summary>The folders in servers' playlist names left open in the Playlists panel (#355).</summary>
+    public List<string> OpenServerPlaylistFolders { get; set; } = [];
+
     /// <summary>How tall the playlist list may grow, in pixels, dragged by the DJ (#163); null: 220.</summary>
     public double? PlaylistsHeight { get; set; }
 

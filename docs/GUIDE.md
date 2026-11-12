@@ -668,8 +668,8 @@ in GZJam's settings or a backup. Add as many servers as you like, your own and a
 ### Browsing
 
 Click **Servers** in the library's sources: each server is in the folder tree, with its folders under it as they are
-on the server (or by artist and album, for a server that doesn't say), and its playlists under
-*Playlists*. GZJam reads its song list when it's added and at most twice a day, only when the
+on the server (or by artist and album, for a server that doesn't say). Its playlists are in the
+**Playlists** panel, below your own (see below). GZJam reads its song list when it's added and at most twice a day, only when the
 server has read its music since (Navidrome says when; right-click it › *Read its song list again*
 after adding music there, once the server has read it: if it hasn't yet, only its playlists are read
 again, and GZJam says so), so it's searched as fast as your own folders,
@@ -680,6 +680,27 @@ the queue it waits in its place, *Downloading…*, then becomes the song. With n
 search covers every server. Under a search of My music, *Also: 12 on synology · Show* searches the
 server too. A song that's in My music as well (added to it, or yours already) says **in My music**:
 it plays your own copy, so there's no need to add it.
+
+### Your server's playlists
+
+Each server has a heading in the **Playlists** panel, after your own playlists, with its cloud and
+how many playlists it has. Click it (or its arrow) to fold it away; GZJam remembers. **↻** reads its
+playlists again, for one just made on the server. While the server can't be reached, its playlists
+show as last read, and the heading says *offline*.
+
+Click one to open it in the song list, in its order, with the songs not on this computer marked. Its
+right-click menu has **Play**, **Add to queue** (shuffled too), **Keep on this computer** (or *Stop
+keeping*), and **Copy to my playlists**, which makes a playlist of your own with the same songs, yours
+to change. One kept on this computer shows once, under its server, marked *kept*; *Stop following
+the server* in its menu makes your copy your own, and it moves to your playlists.
+
+**Folders in playlist names:** Navidrome has no playlist folders, but some of its apps (Feishin,
+Navibeat) make them from a separator in the name: *WCS/Setlists/Nov 8* is *Nov 8* in the folders
+*WCS › Setlists*. Turn on **Playlist folders in names** in the server's settings (Settings › Servers ›
+the server › CHANGE) to see them the same way, with the separator your apps use (`/` to start with).
+GZJam splits names exactly as Feishin does, spaces and all. With it on, a playlist you send from one
+of your own folders gets its folders in its name, and lands in the same folder in your other apps.
+It's off to start with, so a name like *AC/DC favorites* stays one name.
 
 ### Sending a playlist to your server
 

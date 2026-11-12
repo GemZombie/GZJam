@@ -15,6 +15,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 New:
 
+- **Your servers' playlists in the Playlists panel** (#355, an idea from Danny Cherry's fork). Each
+  server has a heading after your own playlists, folding away, with **↻** to read them again. Open
+  one, play it, add it to the queue, keep it on this computer, or **copy it to your playlists**. One
+  kept on this computer shows once, under its server. Turn on **Playlist folders in names** in a
+  server's settings and *WCS/Setlists/Nov 8* shows as folders, as Feishin and Navibeat show it; a
+  playlist you send from one of your folders gets its folders in its name. The Servers source's
+  tree no longer has *Playlists*: they're all in the panel.
 - **Folders for your playlists** (#354). **+ New › Folder…** makes one; folders go inside folders,
   fold away, and say how many playlists they hold. Drag a playlist or folder onto a folder to move
   it, or use **Move to** in its right-click menu (handy by touch). Two playlists can share a name

@@ -373,6 +373,48 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: servers' playlists in the Playlists panel (#355, 1.8)
+
+- **The panel:** `LibraryViewModel.PlaylistRows` carries, after the DJ's own rows, each server's
+  rows:
+  - a `ServerPlaylistsHeading` (name, count, offline), folded state in
+    `AppSettings.FoldedServerPlaylists`;
+  - its folders from names (`ServerPlaylistFolderRow`, open ones in `OpenServerPlaylistFolders`,
+    keyed by server and path);
+  - its playlists (`ServerPlaylistRow`: depth, kept-as).
+  - The servers come from `ServersViewModel.PlaylistServers`, through a `Func` on the library, and
+    the rows are refreshed on `RefreshServers`, on read again (↻), and on going offline or back.
+- **Open folders aren't forgotten too early:** they're pruned only after the folders have been
+  read. As GZJam starts, a server's playlists can be synced before them, and that pass used to
+  forget every open folder.
+- **Kept shows once:** a DJ playlist that's a kept copy (`server_choices`) of a listed server's
+  playlist is left out of the DJ's rows, and its server row says *kept*. *Stop following the
+  server* moves it back.
+- **Opening one:** `LibraryViewModel.SelectedServerPlaylist`, one of the three things open with
+  `SelectedPlaylist` and `SelectedFolder`. Its search is `RunServerSearchAsync` on
+  `FolderNode.ServerPlaylistPath`, as the tree's playlists were opened (latest from the server
+  within 4 s, else as last read).
+- **Its menu:** Play / Add to queue (shuffled too) use `ServersViewModel.SongsOfAsync` (the
+  browse's rows). Play goes through `MainWindowViewModel.PlaySongs`, the DJ's playlists' play step,
+  which now fetches songs still on a server in their place. Copy to my playlists makes a playlist
+  and adds the rows through `AddToPlaylist`, which fetches.
+- **The tree:** `ServersViewModel.TreeNodes` no longer passes playlists to
+  `FolderTree.BuildServer`, so the tree has no *Playlists*, and its keep and open menu items are
+  gone.
+- **Folders in names:** `servers.playlist_separator` (upgrade 35, only adds), set in the server
+  dialog (*Playlist folders in names, split on* `/`). `PlaylistNames.Split` matches Feishin's
+  `buildPlaylistTree` (read 2026-11-12):
+  - split on the separator, empty parts dropped, no trimming;
+  - a name of one part stays as it is.
+  - Sending (`SendPlaylistAsync`) names a playlist from the DJ's folders with `PlaylistNames.Join`
+    of its folder path, also for the same-name check (#396) and the copy kept.
+- **Tests:**
+  - `ServerPlaylistsAppTests`: the heading after the DJ's own; not in the tree; open in order;
+    folds and remembered; ↻ and offline; kept once and stop following; the latest, and offline as
+    last read; a search; copy; folders in names and a send with its path.
+  - `PlaylistNamesTests`.
+  - `ServerLibraryAppTests` expects no *Playlists* in the tree.
+
 ### Status: playlist folders (#354, 1.8)
 
 - **Library (upgrade 34):** a `playlist_folders` table (`id`, `parent_id` cascading, `name`), and

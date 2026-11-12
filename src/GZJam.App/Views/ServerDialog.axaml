@@ -31,6 +31,17 @@
       <TextBlock Classes="setting-help" Text="What GZJam calls it, such as Navidrome (mine) or Dave's server." />
     </StackPanel>
 
+    <!-- Folders in its playlist names (#355), as the DJ's other apps make them -->
+    <StackPanel Spacing="4">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <CheckBox x:Name="PlaylistFoldersBox" Content="Playlist folders in names, split on" VerticalAlignment="Center" />
+        <TextBox x:Name="SeparatorBox" Text="/" Width="44" MaxLength="3" HorizontalContentAlignment="Center" VerticalAlignment="Center"
+                 IsEnabled="{Binding #PlaylistFoldersBox.IsChecked}" />
+      </StackPanel>
+      <TextBlock Classes="setting-help"
+                 Text="For apps that make folders from playlist names, such as Feishin and Navibeat: WCS/Setlists/Nov 8 shows as Nov 8 in the folders WCS › Setlists, and a playlist sent from a folder of yours gets its folders in its name. Off: names as they are (AC/DC favorites stays one name)." />
+    </StackPanel>
+
     <TextBlock x:Name="Message" Classes="setting-help" FontSize="12" IsVisible="False" />
 
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
