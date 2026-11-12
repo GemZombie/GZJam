@@ -93,6 +93,7 @@ public sealed partial class ServersViewModel
             _owner.Art.ForgetMissingServerArt();   // its pictures can come now
         var library = _owner.Library;
         library.SetServerOffline(item.Server.Id, offline);
+        library.RefreshServerPlaylists();   // its heading in the Playlists panel says so (#355)
         bool showing = library.SelectedFolder is { IsServer: true, Node.ServerId: long id } && id == item.Server.Id;
         if (offline && showing && !library.OnlyHere)
         {

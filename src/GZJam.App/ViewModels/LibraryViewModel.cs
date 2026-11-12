@@ -94,6 +94,37 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     public bool IsPlaylistOpen => SelectedPlaylist is not null;
 
+    private ServerPlaylistRow? _selectedServerPlaylist;
+
+    /// <summary>
+    /// One of a server's playlists open in the song list (#355), chosen in the Playlists panel: its
+    /// songs in its order, those not on the computer marked. Null for none.
+    /// </summary>
+    public ServerPlaylistRow? SelectedServerPlaylist
+    {
+        get => _selectedServerPlaylist;
+        set
+        {
+            if (Equals(_selectedServerPlaylist, value))
+                return;
+            _selectedServerPlaylist = value;
+            OnPropertyChanged();
+            if (value is not null)
+            {
+                // One thing open at a time: not a playlist of the DJ's, nor a folder, too.
+                bool suppressed = _suppressSearch;
+                _suppressSearch = true;
+                SelectedPlaylist = null;
+                SelectedFolder = null;
+                _suppressSearch = suppressed;
+            }
+            OnPropertyChanged(nameof(SelectedPlaylistRow));
+            OnPlaylistShown();
+            if (!_suppressSearch)
+                RunSearch();
+        }
+    }
+
     /// <summary>The open playlist's name, for the bar above the song list ("" if none is open).</summary>
     public string PlaylistName => SelectedPlaylist?.Name ?? "";
 
@@ -214,6 +245,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
             // The panel's rows first, then the open playlist selected again, as it is now: a
             // changed row is a new one, and the panel can only choose a row it has.
             PlaylistFolders = _database.GetPlaylistFolders();
+            _playlistFoldersRead = true;
             SyncPlaylistRows();
             SelectedPlaylist = playlists.FirstOrDefault(p => p.Id == open);
         }
@@ -243,7 +275,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     partial void OnSelectedPlaylistChanged(PlaylistInfo? value)
     {
         if (value is not null)
+        {
+            _selectedServerPlaylist = null;   // one or the other (#355)
             ShowPlaylistRow(value);   // in a folder that's closed: it opens (#354)
+        }
         OnPropertyChanged(nameof(SelectedPlaylistRow));
         if (!_suppressSearch)
         {
@@ -295,8 +330,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     /// <summary>My music has no music folder yet: what to do first, in place of the song list.</summary>
     public bool HasNoRoots => HasLoaded && SelectedPlaylist is null && Source == LibrarySource.MyMusic && !Roots.Any(r => r.IsFolder);
     public bool HasNoResults => HasLoaded && !HasNoRoots && Results.Count == 0;
-    public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null;
+    public bool HasScope => SelectedFolder is not null || SelectedPlaylist is not null || SelectedServerPlaylist is not null;
     public string ScopeText => SelectedPlaylist is { } p ? $"in playlist {p.Name}"
+        : SelectedServerPlaylist is { } sp ? $"in {sp.FullName} on {sp.ServerName}: songs not on this computer are marked"
         : SelectedFolder is { IsServer: true } s ? $"on {s.DisplayPath}: songs not on this computer are marked"
         : SelectedFolder is { IsFiles: true } files ? $"in {files.DisplayPath}"
         : SelectedFolder is { } f ? $"in {f.DisplayPath} · all subfolders"
@@ -385,7 +421,15 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         }
         // A folder of the other source (a server's, from "Also:" or Show in folder tree): its tree.
         if (value is not null)
+        {
             Source = SourceOf(value);
+            if (_selectedServerPlaylist is not null)
+            {
+                _selectedServerPlaylist = null;   // a folder in place of a server's playlist (#355)
+                OnPropertyChanged(nameof(SelectedServerPlaylist));
+                OnPropertyChanged(nameof(SelectedPlaylistRow));
+            }
+        }
         OnPropertyChanged(nameof(HasScope));
         OnPropertyChanged(nameof(ScopeText));
         OnPropertyChanged(nameof(IsServerShowing));
@@ -873,7 +917,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     /// <summary>What the list shows: a list read again for the same one is the same list.</summary>
     private object ResultsKey() => (SelectedPlaylist?.Id, SelectedFolder?.Node.Scope, SelectedFolder?.Node.ServerId,
-        SelectedFolder?.Node.RelativePath, SearchText, OnlyHere, Source);
+        SelectedFolder?.Node.RelativePath, SearchText, OnlyHere, Source, (SelectedServerPlaylist?.ServerId, SelectedServerPlaylist?.PlaylistId));
 
     private void ShowResults(ReadyList ready, object key)
     {
@@ -910,6 +954,12 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         object key = ResultsKey();
         AlsoOnText = null;
         ServerNote = null;
+        if (SelectedServerPlaylist is { } serverPlaylist)
+        {
+            // A server's playlist from the Playlists panel (#355): as the server's tree opened one.
+            _ = RunServerSearchAsync(serverPlaylist.ServerId, FolderNode.ServerPlaylistPath(serverPlaylist.PlaylistId), text, version, key, cancel.Token);
+            return;
+        }
         if (SelectedPlaylist is null && SelectedFolder is { IsServer: true, Node.ServerId: long serverId })
         {
             _ = RunServerSearchAsync(serverId, SelectedFolder.Node.RelativePath, text, version, key, cancel.Token);
@@ -1078,6 +1128,7 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         var wasServers = _serversRoots;
         _serverNodes = null;   // read again: a scan only reads the music folders again
         RefreshTree(remake: true);
+        SyncPlaylistRows();   // their playlists in the Playlists panel too (#355)
         if ((showingServer && SelectedFolder is null) || !wasServers.SetEquals(_serversRoots))
             RunSearch();
     }

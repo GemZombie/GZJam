@@ -679,6 +679,12 @@ public sealed partial class LibraryDatabase
             ALTER TABLE playlists_rebuilt RENAME TO playlists;
             CREATE UNIQUE INDEX ux_playlists_name ON playlists(coalesce(folder_id, 0), name COLLATE NOCASE);
             """,
+
+        // 35: A server's playlist names as folders (#355): the separator its other apps split
+        // them on ("/"), as the DJ set it for that server; null: names as they are. Only adds.
+        """
+            ALTER TABLE servers ADD COLUMN playlist_separator TEXT;
+            """,
     ];
 
     /// <summary>

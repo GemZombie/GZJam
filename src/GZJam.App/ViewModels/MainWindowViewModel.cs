@@ -32,6 +32,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             NearBpm = settings.NearBpmPercent / 100,
             AreFoldersFolded = settings.FoldersFolded,
             OpenPlaylistFolders = settings.OpenPlaylistFolders,
+            FoldedServerPlaylists = settings.FoldedServerPlaylists,
+            OpenServerPlaylistFolders = settings.OpenServerPlaylistFolders,
         };
         Art = new AlbumArtCache(database, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(database.DatabasePath))!, "art"));
         Queue = new QueueViewModel();
@@ -142,6 +144,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ? $"{waiting[0].Title} is still downloading: auto-play played the next song, and it waits at the top."
             : $"{waiting.Count} songs are still downloading: auto-play played the next song, and they wait at the top.", seconds: 6);
         Library.BrowseServer = Servers.BrowseAsync;
+        Library.PlaylistServers = () => Servers.PlaylistServers;   // their playlists in the Playlists panel (#355)
         Library.AlsoOnServers = Servers.AlsoOnAsync;
         Library.IsServersRoot = Servers.IsDownloadsRoot;   // the servers' songs, apart from My music (#318)
         Library.ServerFolderOf = Servers.ServerFolderOf;
@@ -781,14 +784,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// touched: it finishes, and the playlist follows. Undo puts back the queue and those songs.
     /// Repeat this song turns off: playing a playlist is the opposite of it.
     /// </summary>
-    public void PlayPlaylist(PlaylistInfo playlist, bool shuffled = false)
+    public void PlayPlaylist(PlaylistInfo playlist, bool shuffled = false) => PlaySongs(playlist.Name, PlaylistSongs(playlist, null, shuffled), shuffled);
+
+    /// <summary>
+    /// Plays a playlist's songs, already in their order (shuffled if asked): the DJ's own, or a
+    /// server's (#355), whose songs not on the computer are fetched in their place in the queue.
+    /// </summary>
+    public void PlaySongs(string name, List<Track> songs, bool shuffled = false)
     {
         if (AutoPlay is not { } auto)
             return;
-        var songs = PlaylistSongs(playlist, null, shuffled);
         if (songs.Count == 0)
         {
-            ShowNotice($"\"{playlist.Name}\" has no songs to play");
+            ShowNotice($"\"{name}\" has no songs to play");
             return;
         }
         if (auto.Repeat == RepeatMode.Song)
@@ -796,12 +804,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         var queueBefore = Queue.Items.Select(i => i.Track).ToList();
         bool wasOn = auto.IsOn;
         Queue.Clear();
-        Queue.Add(songs);
+        foreach (QueueItem waiting in Queue.Add(songs).Where(i => i.IsWaiting))
+            Servers.FetchForQueue(waiting);   // still on a server: fetched in its place
         var held = auto.LineUpQueue();
         auto.IsOn = true;
-        Log.Info($"Playing playlist \"{playlist.Name}\"{(shuffled ? ", shuffled" : "")}: {songs.Count} songs, in place of {queueBefore.Count} queued");
+        Log.Info($"Playing playlist \"{name}\"{(shuffled ? ", shuffled" : "")}: {songs.Count} songs, in place of {queueBefore.Count} queued");
         string count = songs.Count == 1 ? "1 song" : $"{songs.Count} songs";
-        ShowNotice($"Playing \"{playlist.Name}\": {count}{(shuffled && songs.Count > 1 ? ", shuffled" : "")}", 8, undo: () =>
+        ShowNotice($"Playing \"{name}\": {count}{(shuffled && songs.Count > 1 ? ", shuffled" : "")}", 8, undo: () =>
         {
             Queue.Clear();
             Queue.Add(queueBefore);
@@ -825,7 +834,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
             if (!wasOn)
                 auto.IsOn = false;
-            Log.Info($"Playing \"{playlist.Name}\" undone: the queue and decks are back as they were");
+            Log.Info($"Playing \"{name}\" undone: the queue and decks are back as they were");
         });
     }
 

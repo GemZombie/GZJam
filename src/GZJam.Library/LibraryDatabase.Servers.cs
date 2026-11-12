@@ -13,7 +13,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT id, name, address, user_name, can_download, server_type, server_version, checked_utc
+            SELECT id, name, address, user_name, can_download, server_type, server_version, checked_utc, playlist_separator
             FROM servers ORDER BY name COLLATE NOCASE, id;
             """;
         using var r = cmd.ExecuteReader();
@@ -104,5 +104,20 @@ public sealed partial class LibraryDatabase
         r.IsDBNull(4) ? null : r.GetInt64(4) != 0,
         r.IsDBNull(5) ? null : r.GetString(5),
         r.IsDBNull(6) ? null : r.GetString(6),
-        r.IsDBNull(7) ? null : new DateTime(r.GetInt64(7), DateTimeKind.Utc));
+        r.IsDBNull(7) ? null : new DateTime(r.GetInt64(7), DateTimeKind.Utc),
+        r.IsDBNull(8) ? null : r.GetString(8));
+
+    /// <summary>
+    /// What a server's playlist names are split on for folders (#355), or null for names as they
+    /// are. Blank is null.
+    /// </summary>
+    public void SetServerPlaylistSeparator(long id, string? separator)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "UPDATE servers SET playlist_separator = $separator WHERE id = $id;";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.Parameters.AddWithValue("$separator", string.IsNullOrWhiteSpace(separator) ? DBNull.Value : separator.Trim());
+        cmd.ExecuteNonQuery();
+    }
 }
