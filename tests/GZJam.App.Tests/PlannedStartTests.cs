@@ -34,7 +34,10 @@ public sealed class PlannedStartTests
         return app;
     }
 
-    private static List<string> Starts(AppHarness app) => app.ViewModel.Queue.Items.Select(i => i.StartsText).ToList();
+    private static List<string> Starts(AppHarness app) => app.ViewModel.Queue.Items.Select(i => Spaced(i.StartsText)).ToList();
+
+    /// <summary>A time as the tests write it: Linux puts a narrow no-break space before "PM".</summary>
+    private static string Spaced(string text) => text.Replace((char)0x202F, ' ').Replace((char)0xA0, ' ');
 
     private static void Queue(AppHarness app, params Track[] songs)
     {
@@ -105,10 +108,10 @@ public sealed class PlannedStartTests
 
         var plan = app.ViewModel.Plan;
         Assert.Equal(new DateTime(2026, 11, 4, 21, 30, 0), plan.PlannedStart);
-        Assert.Equal("Start 9:30 PM", plan.PlannedStartText);
+        Assert.Equal("Start 9:30 PM", Spaced(plan.PlannedStartText));
         Assert.Equal(new DateTime(2026, 11, 4, 21, 30, 0), app.Settings.PlannedStart);   // kept with the settings
         Assert.Equal(["9:30 PM", "9:34 PM", "9:37 PM"], Starts(app));
-        Assert.Equal("9:41 PM", app.ViewModel.QueueEndText);   // 9:37 + 4:00
+        Assert.Equal("9:41 PM", Spaced(app.ViewModel.QueueEndText));   // 9:37 + 4:00
         Assert.Contains("if the music starts at 9:30 PM", app.ViewModel.QueueEndTip);
     }
 
@@ -201,7 +204,7 @@ public sealed class PlannedStartTests
         TimeSpan length = deck.Deck.Remaining;
 
         // Nothing plays yet: the deck's song is first, and the queue's follows it.
-        Assert.Equal(Clock(Evening), deck.StartsText);
+        Assert.Equal(Clock(Evening), Spaced(deck.StartsText));
         Assert.Equal(Clock(Evening + length + TimeSpan.FromSeconds(60)), Starts(app)[0]);
     }
 
@@ -251,7 +254,7 @@ public sealed class PlannedStartTests
         Assert.Contains("Starts", app.Settings.HiddenQueueColumns);   // off to start with, like the album and the year
         app.Window.SetQueueColumnShown("Starts", true);
         AppHarness.Settle(200);
-        Assert.Equal(["7:00 PM", "7:03 PM"], Shown().Select(t => t.Text));
+        Assert.Equal(["7:00 PM", "7:03 PM"], Shown().Select(t => Spaced(t.Text!)));
 
         app.Window.SetQueueColumnShown("Starts", false);
         AppHarness.Settle(200);
@@ -274,7 +277,7 @@ public sealed class PlannedStartTests
         AppHarness.Settle(100);
 
         Assert.True(time.IsVisible);
-        Assert.Equal("7:30 PM", time.Text);
+        Assert.Equal("7:30 PM", Spaced(time.Text!));
         Assert.Contains("planned", button.Classes);   // lit
     }
 
@@ -367,5 +370,5 @@ public sealed class PlannedStartTests
         Assert.Equal(["7:01 PM", "7:05 PM", "7:08 PM"], Starts(app));
     }
 
-    private static string Clock(DateTime time) => time.ToString("t", System.Globalization.CultureInfo.CurrentCulture);
+    private static string Clock(DateTime time) => Spaced(time.ToString("t", System.Globalization.CultureInfo.CurrentCulture));
 }

@@ -102,8 +102,10 @@ public sealed class QueueColumnsTests
         Assert.True(!first.Children.Any(c => c.IsVisible && first.IsDropped(c)), string.Join(",", first.Children.Where(c => c.IsVisible && first.IsDropped(c)).Select(c => FitRow.GetKey(c))) + " hidden=" + string.Join(",", plain.Settings.HiddenQueueColumns));
         foreach (string name in new[] { "AutoPlayRow", "QueueTabsRow" })
         {
-            var row = plain.Window.FindControl<FitRow>(name)!;   // the queue-start button and "ends" text are the first to give way, by design
-            Assert.False(row.Children.Any(c => c.IsVisible && row.IsDropped(c) && c.Name is not ("QueueEnds" or "QueueStartButton")), $"{name}, {row.Bounds.Width} px: "
+            // The "ends" text and the queue's summary are the first to give way, by design: with a font
+            // a little wider (Linux), the summary goes at the default width, so the buttons can stay.
+            var row = plain.Window.FindControl<FitRow>(name)!;
+            Assert.False(row.Children.Any(c => c.IsVisible && row.IsDropped(c) && c.Name is not ("QueueEnds" or "QueueSummary")), $"{name}, {row.Bounds.Width} px: "
                 + string.Join(", ", row.Children.Select(c => $"{c.GetType().Name}{(row.IsDropped(c) ? " (gone)" : "")} {c.DesiredSize.Width}")));
         }
     }
