@@ -63,6 +63,11 @@ New:
 
 Better:
 
+- **Sending a playlist to a server that has one by that name asks first** (#396, from Danny
+  Cherry's fork). A playlist made in Navidrome's web page, another app or GZJam on another computer
+  used to get a second one of the same name beside it. Now GZJam asks: **Replace it** (it keeps its
+  place, so links and other apps follow it), **Send it as another one**, or Cancel. Someone else's
+  playlist, or several of that name, are never replaced.
 - **Reading a server's song list again is quick when nothing has changed** (#395, from Danny
   Cherry's fork). Right-click a server › *Read its song list again* now asks the server first, as
   GZJam's start does: if it hasn't read its music since, only its playlists are read again (it says

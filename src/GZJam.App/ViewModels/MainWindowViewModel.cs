@@ -1434,6 +1434,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Asks a question with two harmless answers (heading, message, yes, no); the window supplies the dialog.</summary>
     public Func<string, string, string, string, Task<bool>>? AskAsync { get; set; }
 
+    /// <summary>
+    /// Asks a question with a few harmless answers and Cancel (heading, message, answers, the first
+    /// the default); the index of the one chosen, null for Cancel. The window supplies the dialog.
+    /// </summary>
+    public Func<string, string, IReadOnlyList<string>, Task<int?>>? ChooseAsync { get; set; }
+
     /// <summary>Asks for a folder (the picker's title); null if none was chosen. The window supplies the picker.</summary>
     public Func<string, Task<string?>>? PickFolderAsync { get; set; }
 

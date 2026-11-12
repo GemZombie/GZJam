@@ -42,6 +42,9 @@ public sealed class FakeNavidrome : HttpMessageHandler
 
     public Dictionary<string, string[]> Playlists { get; } = new() { ["pl1"] = ["s2", "s1", "s3"] };
     public Dictionary<string, string> PlaylistNames { get; } = new() { ["pl1"] = "Friday" };
+
+    /// <summary>Whose each playlist is, by its ID; one not here is the signed-in account's ("gzjam").</summary>
+    public Dictionary<string, string> PlaylistOwners { get; } = [];
     public Dictionary<string, long> Sizes { get; } = [];
     public string[] StarredSongs { get; set; } = [];
     public string[] StarredAlbums { get; set; } = [];
@@ -274,7 +277,7 @@ public sealed class FakeNavidrome : HttpMessageHandler
             {
                 playlists = new
                 {
-                    playlist = Playlists.Select(p => new { id = p.Key, name = PlaylistNames.GetValueOrDefault(p.Key, p.Key), songCount = p.Value.Length, duration = 180 * p.Value.Length, owner = "gzjam" }).ToArray(),
+                    playlist = Playlists.Select(p => new { id = p.Key, name = PlaylistNames.GetValueOrDefault(p.Key, p.Key), songCount = p.Value.Length, duration = 180 * p.Value.Length, owner = PlaylistOwners.GetValueOrDefault(p.Key, "gzjam") }).ToArray(),
                 },
             }),
             "/rest/getPlaylist.view" => Ok(new { playlist = new { id, entry = Playlists[id].Select(Song).ToArray() } }),

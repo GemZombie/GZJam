@@ -373,6 +373,18 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: sending a playlist the server has a name for already (#396, 1.8)
+
+- `ServersViewModel.SendPlaylistAsync`: a playlist GZJam hasn't sent to this server (or whose copy
+  was deleted there) is checked against the server's `getPlaylists` by name, trimmed, any case.
+  One of the DJ's own: **Replace it** sends to its ID (`createPlaylist` with `playlistId`
+  replaces its songs, keeping its ID) and remembers it as sent; **Send it as another one** is the
+  old behavior. Another user's (`owner`), or several of that name: only another one, or Cancel.
+- `MainWindowViewModel.ChooseAsync` and `ChoiceDialog`: a question with a few harmless answers
+  and Cancel, the first the default in the accent color. The playlists are read once per send
+  (they were read for the deleted check already).
+- `FakeNavidrome.PlaylistOwners`; tests in `ServerSendPlaylistAppTests`.
+
 ### Status: *Read its song list again* asks the server first (#395, 1.8)
 
 - `ServersViewModel.ReadCatalogAgainAsync`, the menu's: as GZJam's start does (#313), it asks
