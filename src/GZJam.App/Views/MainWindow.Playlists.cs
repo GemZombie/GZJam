@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using DataGridColumnHeadersPresenter = Avalonia.Controls.Primitives.DataGridColumnHeadersPresenter;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -184,7 +185,12 @@ public partial class MainWindow
             .OrderBy(r => r.Top)
             .ToList();
         double y = this.TranslatePoint(at, TrackGrid)?.Y ?? 0;
-        double gridTop = TrackGrid.TranslatePoint(default, (Visual)PlaylistDropLine.Parent!)?.Y ?? 0;
+        // From the top of the songs' row of the panel, where the line itself is placed (#425): not
+        // from the panel's top, which put it below by the search bar's and playlist bar's height.
+        var panel = (Grid)PlaylistDropLine.Parent!;
+        int lineRow = Grid.GetRow(PlaylistDropLine);
+        double rowTop = panel.RowDefinitions.Take(lineRow).Sum(r => r.ActualHeight);
+        double gridTop = (TrackGrid.TranslatePoint(default, panel)?.Y ?? 0) - rowTop;
         foreach (var (row, top) in rows)
         {
             if (y < top + row.Bounds.Height / 2)
@@ -199,6 +205,7 @@ public partial class MainWindow
     /// <summary>Shows where a drag over the playlists or an open playlist would put the songs.</summary>
     private void UpdatePlaylistDrop(Point at)
     {
+        _playlistDropAt = at;
         UpdateSpringOpen(at);   // held over the Playlists source, it opens (#423)
         ListBoxItem? over = PlaylistItemAt(at);
         foreach (ListBoxItem item in PlaylistList.GetVisualDescendants().OfType<ListBoxItem>())
@@ -207,16 +214,93 @@ public partial class MainWindow
         {
             PlaylistDropLine.Margin = new Thickness(8, drop.LineY - 1, 8, 0);
             PlaylistDropLine.IsVisible = true;
+            // Near the song list's top or bottom edge, it scrolls, as the queue does (#425).
+            double y = this.TranslatePoint(at, TrackGrid)?.Y ?? 0;
+            double top = TrackGrid.FindDescendantOfType<DataGridColumnHeadersPresenter>()?.Bounds.Height ?? 0;
+            SetSongListScroll(y < top + EdgeZone ? -1 : y > TrackGrid.Bounds.Height - EdgeZone ? 1 : 0);
         }
         else
         {
             PlaylistDropLine.IsVisible = false;
+            SetSongListScroll(0);
         }
+    }
+
+    // ───────────── Scrolling the open playlist under a drag (#425) ─────────────
+
+    private Point _playlistDropAt;
+    private int _songListScrollDirection;
+    private CancellationTokenSource? _songListScroll;
+
+    /// <summary>A row at a time, about ten a second, while a drag is held at the edge: as the queue scrolls.</summary>
+    private static readonly TimeSpan SongListScrollStep = TimeSpan.FromMilliseconds(90);
+
+    private void SetSongListScroll(int direction)
+    {
+        _songListScrollDirection = direction;
+        if (direction == 0)
+        {
+            _songListScroll?.Cancel();
+            _songListScroll = null;
+        }
+        else if (_songListScroll is null)
+        {
+            var scrolling = _songListScroll = new CancellationTokenSource();
+            _ = ScrollSongListAsync(scrolling.Token);
+        }
+    }
+
+    private async Task ScrollSongListAsync(CancellationToken stop)
+    {
+        try
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                await Task.Delay(SongListScrollStep, stop);
+                ScrollSongListStep();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    /// <summary>The row before the first in view, or after the last, scrolled into view; the line follows.</summary>
+    private void ScrollSongListStep()
+    {
+        if (_songListScrollDirection == 0 || Vm.Library.Results is not { Count: > 0 } results)
+            return;
+        double top = TrackGrid.FindDescendantOfType<DataGridColumnHeadersPresenter>()?.Bounds.Height ?? 0;
+        var inView = TrackGrid.GetVisualDescendants().OfType<DataGridRow>()
+            .Where(r => r.IsVisible && r.DataContext is Track)
+            .Select(r => (Track: (Track)r.DataContext!, Top: r.TranslatePoint(default, TrackGrid)?.Y ?? double.NaN, r.Bounds.Height))
+            .Where(r => r.Top >= top - 1 && r.Top + r.Height <= TrackGrid.Bounds.Height + 1)
+            .OrderBy(r => r.Top)
+            .ToList();
+        if (inView.Count == 0)
+            return;
+        Track edge = _songListScrollDirection < 0 ? inView[0].Track : inView[^1].Track;
+        int index = IndexIn(results, edge) + _songListScrollDirection;
+        if (index < 0 || index >= results.Count)
+            return;
+        TrackGrid.ScrollIntoView(results[index], null);
+        UpdatePlaylistDrop(_playlistDropAt);   // the line follows the songs moving under a still pointer
+    }
+
+    private static int IndexIn(IReadOnlyList<Track> list, Track track)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (ReferenceEquals(list[i], track))
+                return i;
+        }
+        return -1;
     }
 
     private void EndPlaylistDrop()
     {
         StopSpringOpen();
+        SetSongListScroll(0);
         foreach (ListBoxItem item in PlaylistList.GetVisualDescendants().OfType<ListBoxItem>())
             item.Classes.Set("drop-target", false);
         PlaylistDropLine.IsVisible = false;
