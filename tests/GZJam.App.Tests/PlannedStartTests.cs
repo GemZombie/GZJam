@@ -112,7 +112,7 @@ public sealed class PlannedStartTests
         Assert.Equal(new DateTime(2026, 11, 4, 21, 30, 0), app.Settings.PlannedStart);   // kept with the settings
         Assert.Equal(["9:30 PM", "9:34 PM", "9:37 PM"], Starts(app));
         Assert.Equal("9:41 PM", Spaced(app.ViewModel.QueueEndText));   // 9:37 + 4:00
-        Assert.Contains("if the music starts at 9:30 PM", app.ViewModel.QueueEndTip);
+        Assert.Contains("if the music starts at 9:30 PM", Spaced(app.ViewModel.QueueEndTip!));
     }
 
     [AvaloniaFact]
