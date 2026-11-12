@@ -846,7 +846,7 @@ The queue is tonight's list of songs to come.
 Turn **AUTO-PLAY** on and GZJam runs the night: when the song the room hears ends (or is faded
 out), it waits the **GAP**, starts the next song on the other deck and glides the crossfader over,
 then loads the one after. The next song is always waiting on a deck, so you can see what's coming,
-and cue it in the headphones.
+and cue it in the headphones. When its turn comes, its **CUE** goes off: it's the room's now.
 
 - **The gap** (− and + beside it, 0 to 15 seconds) is real silence between songs, whatever silence
   each file starts or ends with.

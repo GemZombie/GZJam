@@ -151,6 +151,23 @@ public sealed class AutoPlayTests
         Assert.Equal(0.5, mixer.Crossfader);   // left where the DJ put it; the song still starts
     }
 
+    /// <summary>The next deck was in the headphones (CUE): auto-play starting it turns CUE off (#412).</summary>
+    [AvaloniaFact]
+    public void Starting_a_deck_in_the_headphones_turns_its_cue_off()
+    {
+        var (app, auto, _) = Setup(queued: 3);
+        using var _ = app;
+        var (d1, d2) = (app.ViewModel.Deck1!, app.ViewModel.Deck2!);
+        auto.IsOn = true;
+        PlayUntil(app, () => d2.IsReady);
+        d2.IsCueOn = true;
+
+        PlayUntil(app, () => d2.IsPlaying);
+
+        Assert.False(d2.IsCueOn);
+        Assert.True(d2.IsOnAir);
+    }
+
     [AvaloniaFact]
     public void Turning_off_in_the_gap_stops_the_countdown()
     {

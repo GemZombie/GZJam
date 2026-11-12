@@ -63,6 +63,9 @@ New:
 
 Better:
 
+- **Auto-play turns CUE off on the deck it starts** (#412). Listening to the next song in the
+  headphones, then letting auto-play start it, used to leave it in the headphones too, until you
+  turned CUE off. Now it goes off as the song starts. Pressing play yourself leaves it as it is.
 - **The sound is first in line on a busy Windows computer** (#381). GZJam's mixing for the
   speakers now runs in Windows' class for pro audio, as Windows' own sound does, so other
   programs keeping the computer busy can't hold it up for longer than the speakers hold. A
