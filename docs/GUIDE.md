@@ -154,9 +154,10 @@ again for bigger (a tap on it switches compact). Settings › Decks › *Deck si
 Switch as often as you like during a night: nothing playing is affected.
 
 **Compact decks** keep the title, time, waveform, play, CUE, FADE OUT and tempo, with the rest in
-each deck's ⋯ menu; the mixer keeps the meter, MAIN, PHONES and the crossfader (PHONES MIX is hidden
-but still applies). With four decks, compact decks also leave out the waveforms. GZJam remembers the
-choice.
+each deck's ⋯ menu. In the mixer, MAIN and PHONES lie down, the width of the mixer, with the
+speakers' meter as a bar between them and the LIMIT light at the end of MAIN; the room EQ key sits
+at the end of PHONES, and the crossfader under them (PHONES MIX is hidden but still applies). With
+four decks, compact decks also leave out the waveforms. GZJam remembers the choice.
 
 **In a narrow window** (a small laptop screen), a deck's row of buttons gives up what doesn't fit to
 a ⋯ menu at its end: Eject first, then the 🎧, then the BPM. Play, CUE, FADE OUT and tempo always stay.
@@ -354,10 +355,9 @@ Every room sounds different. A hall with a hard floor booms; a low room with bar
 everything muddy; a packed room swallows the warmth. The room EQ fixes the room, for the speakers
 only, and remembers it for each venue, so next time you just choose where you are.
 
-1. Press the **room EQ key** (the graphic EQ between **1** and **2**): a panel rolls down under the
-   decks. Press it again (or **✕**) to put it away; the EQ stays on. The key is there with
-   full-size decks: beside compact ones the crossfader takes its place, so switch to full ones to
-   change the venue.
+1. Press the **room EQ key** (the graphic EQ between **1** and **2**; beside compact decks, at the
+   end of PHONES): a panel rolls down under the decks. Press it again (or **✕**) to put it away;
+   the EQ stays on.
 2. **New venue…**, and give it a name (*DC*, *The Grand Hall*). It starts flat.
 3. With music playing, set it while you listen in the room. It's heard at once, mid-song.
 

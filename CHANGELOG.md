@@ -19,12 +19,18 @@ New:
   a packed one that swallows the warmth. The **room EQ key** (a graphic EQ between the crossfader's
   1 and 2) rolls down a panel under the decks: make a venue, set its EQ while the music plays, and
   next time just choose where you are. While it's on, the key lights and the MAIN chip at the top
-  says which venue's.
-  Set it as three bands, as on a song (with starting points for a boomy or a padded room), or as a
-  10-band graphic EQ, with the curve the room gets beside it. It's on the speakers only, never
+  says which venue's. Set it as three bands, as on a song (with starting points for a boomy or a
+  padded room), or as a 10-band graphic EQ, with the curve the room gets beside it. It's on the speakers only, never
   your headphones or the booth, and GZJam says which venue is loaded when it opens. Thanks to Omar
   for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
   side keys' lights show the live side, and pointing at the crossfader says it in words.
+
+Changed:
+
+- **Beside compact decks, MAIN and PHONES lie down** (#441). They were stubs of faders about 40 px
+  tall, hard to set or to grab. Now they run the width of the mixer, with the speakers' meter as a
+  bar between them and the LIMIT light at the end of MAIN. The room EQ key goes at the end of
+  PHONES. Full-size decks keep their upright faders.
 
 ## 1.8.0 (2026-11-13)
 

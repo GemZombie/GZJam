@@ -203,6 +203,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 - [A room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): a key on the mixer,
   three bands or a 10-band graphic EQ, on the speakers only, remembered for each venue
+- [MAIN and PHONES lie down beside compact decks](https://github.com/GemZombie/GZJam/issues/441),
+  the width of the mixer rather than stubs of faders
 
 ## Planned next
 

@@ -10,7 +10,8 @@ namespace GZJam.App.Controls;
 /// column for a mono output), green, then amber near the top, red at the top segment, with a dB
 /// scale beside it and a peak marker that holds for a moment before falling. Levels are 0..1 up
 /// the meter (see <see cref="FromPeak"/>). Without the scale it's a single slim column, as on
-/// each deck.
+/// each deck. Lying down (<see cref="IsHorizontal"/>), it fills from left to right, a row for
+/// each side: beside compact decks, under the sideways MAIN fader (#441).
 /// </summary>
 public sealed class LevelMeter : Control
 {
@@ -35,6 +36,9 @@ public sealed class LevelMeter : Control
     public static readonly StyledProperty<bool> ShowScaleProperty =
         AvaloniaProperty.Register<LevelMeter, bool>(nameof(ShowScale), defaultValue: true);
 
+    public static readonly StyledProperty<bool> IsHorizontalProperty =
+        AvaloniaProperty.Register<LevelMeter, bool>(nameof(IsHorizontal));
+
     private static readonly IBrush Off = new ImmutableSolidColorBrush(Color.Parse("#1C2027"));
     private static readonly IBrush Green = new ImmutableSolidColorBrush(Color.Parse("#34D399"));
     private static readonly IBrush Amber = new ImmutableSolidColorBrush(Color.Parse("#F5C024"));
@@ -46,8 +50,8 @@ public sealed class LevelMeter : Control
 
     static LevelMeter()
     {
-        AffectsRender<LevelMeter>(LeftProperty, RightProperty, IsMonoProperty, ShowScaleProperty);
-        AffectsMeasure<LevelMeter>(ShowScaleProperty);
+        AffectsRender<LevelMeter>(LeftProperty, RightProperty, IsMonoProperty, ShowScaleProperty, IsHorizontalProperty);
+        AffectsMeasure<LevelMeter>(ShowScaleProperty, IsHorizontalProperty);
     }
 
     public double Left
@@ -76,15 +80,28 @@ public sealed class LevelMeter : Control
         set => SetValue(ShowScaleProperty, value);
     }
 
+    /// <summary>Lying down: filling from left to right, with no scale.</summary>
+    public bool IsHorizontal
+    {
+        get => GetValue(IsHorizontalProperty);
+        set => SetValue(IsHorizontalProperty, value);
+    }
+
     /// <summary>Converts a peak sample (0..1) to a position up the meter (0..1), in decibels.</summary>
     public static double FromPeak(double peak) =>
         peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + Range) / Range, 0, 1);
 
     // The slim deck meter takes the deck's height and asks for none of its own.
-    protected override Size MeasureOverride(Size availableSize) => ShowScale ? new(42, 100) : new(8, 0);
+    protected override Size MeasureOverride(Size availableSize) =>
+        IsHorizontal ? new(0, 5) : ShowScale ? new(42, 100) : new(8, 0);
 
     public override void Render(DrawingContext context)
     {
+        if (IsHorizontal)
+        {
+            RenderLyingDown(context);
+            return;
+        }
         double meterWidth = Bounds.Width - (ShowScale ? ScaleWidth : 0);
         int count = (int)((Bounds.Height + Gap) / (Segment + Gap));
         if (count <= 0 || meterWidth < 2)
@@ -119,6 +136,38 @@ public sealed class LevelMeter : Control
                 : Green;
             double y = Bounds.Height - (i + 1) * (height + Gap) + Gap;
             context.FillRectangle(brush, new Rect(x, y, width, height), 0.5f);
+        }
+    }
+
+    private void RenderLyingDown(DrawingContext context)
+    {
+        int count = (int)((Bounds.Width + Gap) / (Segment + Gap));
+        if (count <= 0 || Bounds.Height < 1)
+            return;
+        double width = (Bounds.Width + Gap) / count - Gap;
+        if (IsMono)
+        {
+            DrawRow(context, 0, Math.Max(Left, Right), 0, Bounds.Height, count, width);
+            return;
+        }
+        double row = Math.Max(1, (Bounds.Height - 1) / 2);
+        DrawRow(context, 0, Left, 0, row, count, width);
+        DrawRow(context, 1, Right, Bounds.Height - row, row, count, width);
+    }
+
+    private void DrawRow(DrawingContext context, int channel, double level, double y, double height, int count, double width)
+    {
+        int lit = (int)Math.Round(level * count);
+        int peak = PeakSegment(channel, lit);
+        for (int i = 0; i < count; i++)
+        {
+            double right = (i + 1.0) / count;
+            bool on = i < lit || (i == peak - 1 && peak > 0);
+            IBrush brush = !on ? Off
+                : i == count - 1 ? Red
+                : right > 1 - 7 / Range ? Amber
+                : Green;
+            context.FillRectangle(brush, new Rect(i * (width + Gap), y, width, height), 0.5f);
         }
     }
 
