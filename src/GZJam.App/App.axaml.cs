@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GZJam.App.ViewModels;
 using GZJam.App.Views;
@@ -45,9 +46,10 @@ public partial class App : Application
             else
             {
                 var viewModel = CreateViewModel(settings);
-                CreateMainWindow(desktop, settings, viewModel);
+                var window = CreateMainWindow(desktop, settings, viewModel);
                 viewModel.Start();
                 AfterStart(viewModel);
+                OpenWith(desktop, window, viewModel);
                 viewModel.LatestRelease = UpdateCheck.LatestAsync;
                 _ = viewModel.CheckForNewVersionAsync();
             }
@@ -122,6 +124,47 @@ public partial class App : Application
                 + (info.Moved is { Count: > 0 } moved ? $" Its music is in {string.Join(", ", moved)}." : ""), seconds: 15);
     }
 
+    /// <summary>
+    /// GZJam as the player for music files (#336): the song it was started with, songs handed to
+    /// it by a second GZJam (<see cref="SingleInstance"/>), and on a Mac, songs Finder sends it.
+    /// A second GZJam started with nothing brings this one forward.
+    /// </summary>
+    private static void OpenWith(IClassicDesktopStyleApplicationLifetime desktop, MainWindow window, MainWindowViewModel viewModel)
+    {
+        void Open(IReadOnlyList<string> files, bool started)
+        {
+            if (files.Count == 0)
+            {
+                if (!started)
+                    BringForward(window);   // GZJam started again while it's open: this one, at the front
+                return;
+            }
+            _ = OpenAsync();
+            async Task OpenAsync()
+            {
+                if (await viewModel.OpenFromFileManagerAsync(files) == OpenedTo.Deck && !started)
+                    BringForward(window);   // on a deck: here it is; in the headphones, the window stays where it was
+            }
+        }
+
+        Open(SingleInstance.Files(desktop.Args ?? []), started: true);
+        SingleInstance.Listen(args => Dispatcher.UIThread.Post(() => Open(SingleInstance.Files(args), started: false)));
+        // A Mac's Finder sends a file opened with GZJam as an event, not on the command line.
+        if (Current?.TryGetFeature<IActivatableLifetime>() is { } activatable)
+            activatable.Activated += (_, e) =>
+            {
+                if (e is FileActivatedEventArgs opened)
+                    Open(opened.Files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList(), started: false);
+            };
+    }
+
+    private static void BringForward(Window window)
+    {
+        if (window.WindowState == WindowState.Minimized)
+            window.WindowState = WindowState.Normal;
+        window.Activate();
+    }
+
     /// <summary>Opens GZJam again, once this one has closed (to start over, or restore a backup).</summary>
     private static void Relaunch(bool startOver)
     {
@@ -130,7 +173,8 @@ public partial class App : Application
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();   // let go of the library before the next one moves it
             if (startOver)
                 LibraryReset.Request(AppPaths.DataDirectory);
-            Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false });
+            // It waits for this one to close (#336): otherwise it would hand itself over to it.
+            Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, ArgumentList = { SingleInstance.AfterCloseArgument } });
             Log.Info(startOver ? "Opening GZJam again, to start over with an empty library" : "Opening GZJam again, to restore a backup");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
@@ -165,6 +209,7 @@ public partial class App : Application
             await NextFrame(window);   // laid out and drawn, out of sight
             viewModel.Start();   // opens the outputs
             AfterStart(viewModel);
+            OpenWith(desktop, window, viewModel);
             viewModel.LatestRelease = UpdateCheck.LatestAsync;
             _ = viewModel.CheckForNewVersionAsync();   // in the background
 

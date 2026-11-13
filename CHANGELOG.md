@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **Double-click a song in your file manager to play it in GZJam** (#336). Make GZJam the player
+  for your song files (right-click a song › *Open with*), and a song double-clicked in Explorer,
+  Finder or a Linux file manager plays on a deck when the room is quiet, or, with a song on air,
+  in your headphones only, so a double-click never touches the room. A song outside your music
+  folders plays as it is, without joining your library. Only one GZJam opens at a time now:
+  opening it again while it's open brings it to the front.
+
 ## 1.8.0-beta.1 (2026-11-12)
 
 The first beta of 1.8: quality of life. Playlists are a source of their own now, with the whole

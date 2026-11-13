@@ -527,6 +527,30 @@ onto the queue (at any place), a deck or a playlist, or right-click the bar (or 
 *Play next*, *Load to Deck*, *Add to playlist*, *Song info* and *Show in folder tree* (to go back
 to where it is). It keeps playing in the headphones all the while.
 
+### Songs opened from your file manager
+
+GZJam can be the player for your song files, so a song double-clicked in Explorer, Finder or your
+Linux file manager plays in GZJam:
+
+- **With nothing playing to the room,** it plays on a deck: the one a double-click in the library
+  would pick (with auto-play on, the deck that plays next). GZJam opens first if it isn't open.
+- **With a song on air,** it plays in your headphones only, and the room hears no change. Your
+  window stays where it is, with a note saying what's playing. Opening it again starts it again.
+- **Songs outside your music folders** play as they are, without joining your library.
+- **Several songs at once:** the first plays, and GZJam says the rest were left.
+
+To make GZJam the player for a kind of song file:
+
+- **Windows:** right-click a song › *Open with* › *Choose another app* › **GZJam**, with *Always*
+  ticked. Or Settings › Apps › Default apps. GZJam's installer adds it to *Open with* for every
+  kind of song it plays, but never takes over the default: Windows leaves that to you.
+- **Mac:** select a song in Finder › File › Get Info › *Open with* › **GZJam** › *Change All…*.
+- **Linux:** right-click a song › *Open With* (or Properties › *Open With*) › **GZJam**, and set it
+  as the default.
+
+Only one GZJam opens at a time on your library: opening GZJam again while it's open brings it to
+the front.
+
 ### Playlists
 
 Plan a set before the night. Click **Playlists** in the library's sources: your playlists take the
