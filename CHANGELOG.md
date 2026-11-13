@@ -13,62 +13,19 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-### Fixed
+Nothing yet since 1.8.0.
 
-- Mac: with two taps chosen to pause on air, the Dock icon's menu couldn't pause or fade out the
-  song the room hears. It asked for a second click, but the menu closes after each one. One click
-  in the menu now does it: opening the menu is the first. The Windows taskbar buttons still take
-  two. (#435)
-- Closing GZJam while it scans a music folder stops the scan. It used to read on and write the
-  rest of the folder's songs into a library that had already closed. (#350)
+## 1.8.0 (2026-11-13)
 
-## 1.8.0-beta.2 (2026-11-13)
-
-The second beta of 1.8. Make GZJam the player for your song files, and a song double-clicked in
-your file manager plays on a deck, or only in your headphones while a song is on air. Up from the
-queue's first song previews the song waiting on the next deck, several queue songs drag together,
-and the song list keeps its column widths. Your library is unchanged since beta.1, so 1.7 and
-beta.1 still open it. Like the other betas, GZJam's update notice doesn't offer it: you only get it
-from this page. It has everything in beta.1.
-
-New:
-
-- **Double-click a song in your file manager to play it in GZJam** (#336). Make GZJam the player
-  for your song files (right-click a song › *Open with*), and a song double-clicked in Explorer,
-  Finder or a Linux file manager plays on a deck when the room is quiet, or, with a song on air,
-  in your headphones only, so a double-click never touches the room. A song outside your music
-  folders plays as it is, without joining your library. Only one GZJam opens at a time now:
-  opening it again while it's open brings it to the front.
-- **Up from the queue's first song goes to the next deck** (#404). The deck that plays next is
-  shown in the selection's blue, and Space previews its song in the headphones, as on a queued
-  song. Hear the song waiting on the deck and the queue's songs one after another, all from the
-  keyboard. Down goes back into the queue.
-
-Changed:
-
-- **The song list remembers its column widths** (#390), as the queue does. Drag a column wider or
-  narrower and it stays that way the next time GZJam opens, in My music, playlists, Servers and
-  Files, and for the tag columns you've added. Right-click a column header › *Widths as they came*
-  puts them back.
-
-Fixed:
-
-- **Moving the folder for server downloads no longer leaves behind a song that just downloaded**
-  (#431). GZJam reads a new song for its waveform straight away, and the move used to skip a
-  song it found still open. Now it waits a moment for it.
-- **Several songs selected in the queue now drag together** (#409). Dragging them onto a playlist
-  added only the one you grabbed, because pressing it let go of the others. Now they all go, in
-  queue order, onto a playlist, to a folder or to a new place in the queue. Shift-click selects a
-  run of songs in the queue, as in the song list.
-
-## 1.8.0-beta.1 (2026-11-12)
-
-The first beta of 1.8: quality of life. Playlists are a source of their own now, with the whole
-column, in folders, with your servers' playlists under their own headings, and a start time to plan
-a night from shows when each song in the queue plays. The waveforms, times and meters go with the
-music rather than ahead of it, and GZJam no longer piles up memory over a night. Your library gains
-playlist folders, and 1.7 still opens it afterwards. Like the others, GZJam's update notice doesn't
-offer it: you only get it from this page. It has everything in 1.7.0.
+Quality of life, with ideas from DJs and from Danny Cherry's fork, and everything from the 1.8
+betas. **Playlists** are a source of their own, with the whole column, in folders, and your
+servers' playlists under their own headings. A start time to plan a night from shows **when each
+song in the queue plays**. **Double-click a song in your file manager** and it plays in GZJam, on a
+deck, or only in your headphones while a song is on air. The song list keeps its sort and its
+column widths, there's one clear selection, and the song waiting on a deck can be heard in the
+headphones. The waveforms, times and meters go with the music rather than ahead of it, and GZJam
+no longer piles up memory over a night. Your library gains playlist folders, and 1.7 still opens
+it, so you can go back at any time.
 
 New:
 
@@ -123,7 +80,6 @@ New:
   song plays in the preview from the start, while the deck stays exactly where it was. To compare
   the next song with another, press Space on a song in the list or the queue, then 🎧 again to
   come back. Pressing it again stops the preview.
-
 - **When each song in the queue plays, and a start time to plan a night from** (#297, thanks to
   Danny Cherry, who built it in his fork). Turn on the queue's *Plays at* column (right-click ›
   *Show*) and each song says when it will start: after the song playing, the songs before it with
@@ -131,6 +87,16 @@ New:
   and the one playing says *now*. The new clock in the queue's header sets when you mean to start
   ("8:30 PM tonight"): until the music starts, the times, and **ENDS** at the top, count from then,
   so a set built in the afternoon shows how far into the evening it goes.
+- **Double-click a song in your file manager to play it in GZJam** (#336). Make GZJam the player
+  for your song files (right-click a song › *Open with*), and a song double-clicked in Explorer,
+  Finder or a Linux file manager plays on a deck when the room is quiet, or, with a song on air,
+  in your headphones only, so a double-click never touches the room. A song outside your music
+  folders plays as it is, without joining your library. Only one GZJam opens at a time now:
+  opening it again while it's open brings it to the front.
+- **Up from the queue's first song goes to the next deck** (#404). The deck that plays next is
+  shown in the selection's blue, and Space previews its song in the headphones, as on a queued
+  song. Hear the song waiting on the deck and the queue's songs one after another, all from the
+  keyboard. Down goes back into the queue.
 
 Better:
 
@@ -205,9 +171,24 @@ Better:
   the sound stopping for a moment (#345) could count one that never happened, when GZJam itself
   was held up for an instant just as it looked. Now it counts only sound that's still missing
   once things have settled, and leaves out a look it knows was held up.
+- **The song list remembers its column widths** (#390), as the queue does. Drag a column wider or
+  narrower and it stays that way the next time GZJam opens, in My music, playlists, Servers and
+  Files, and for the tag columns you've added. Right-click a column header › *Widths as they came*
+  puts them back.
 
 Fixed:
 
+- **The Mac Dock menu pauses and fades out on one click** (#435). With two taps chosen to pause
+  on air, the Dock icon's menu asked for a second click, but the menu closes after each one, so it
+  couldn't pause or fade out the song the room hears at all. Opening the menu is the first click
+  now. The Windows taskbar buttons still take two.
+- **Moving the folder for server downloads no longer leaves behind a song that just downloaded**
+  (#431). GZJam reads a new song for its waveform straight away, and the move used to skip a
+  song it found still open. Now it waits a moment for it.
+- **Several songs selected in the queue now drag together** (#409). Dragging them onto a playlist
+  added only the one you grabbed, because pressing it let go of the others. Now they all go, in
+  queue order, onto a playlist, to a folder or to a new place in the queue. Shift-click selects a
+  run of songs in the queue, as in the song list.
 - **Moving songs within an open playlist** (#425). The line showing where a dragged song would go
   was below the songs it was between, by the height of the bars above the list. Now it's right
   between them, and holding the song near the list's top or bottom edge scrolls it, as the queue
@@ -215,9 +196,9 @@ Fixed:
 - **A playlist just sent to a server stays under it** (#427). If GZJam was reading the server's
   playlists while you sent one (just after adding the server, say), the read could finish with
   the list from before and drop the playlist just sent, until the next read.
-- **Closing GZJam while it reads a new music folder** (#419) no longer ends in an error on the
-  way out: the reading's last reports, which came a moment later, looked for a library that had
-  closed.
+- **Closing GZJam while it reads a music folder** (#419, #350) no longer ends in an error on the
+  way out, and stops the reading: it used to read on and write the rest of the folder's songs
+  into a library that had already closed.
 - **The waveform, the times and the meters go with the music** (#417). They ran ahead of it: the
   playhead reached a beat, and the meters and LIMIT light moved, before the room heard them, by
   almost half a second at the usual protection against crackles, and more at High or Highest. They
