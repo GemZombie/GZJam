@@ -618,6 +618,13 @@ public sealed partial class DeckViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsFadeArmed { get; private set; }
 
+    /// <summary>
+    /// The keys are on this deck (#404): ↑ from the queue's first song came here, to the deck that
+    /// plays next. Shown in the selection's blue; Space previews its song.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsKeySelected { get; set; }
+
     public bool HasTrack => Track is not null;
 
     /// <summary>The track played to its end or was faded out; it's done for this set.</summary>

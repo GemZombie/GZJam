@@ -1236,7 +1236,7 @@
                         IsVisible="{Binding DecksInQueue}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:DeckViewModel">
-                <Border Classes="deck-row" Classes.air="{Binding IsOnAir}" Classes.empty="{Binding !HasTrack}" ClipToBounds="True">
+                <Border Classes="deck-row" Classes.air="{Binding IsOnAir}" Classes.empty="{Binding !HasTrack}" Classes.key-selected="{Binding IsKeySelected}" ClipToBounds="True">
                   <Panel>
                     <!-- What the queue shows of a song (its menu › Show, #131) shows here too (#189), giving
                          way in the queue's order when there's no room; the time left is the deck's own -->
