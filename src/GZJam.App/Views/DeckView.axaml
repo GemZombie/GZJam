@@ -197,7 +197,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}">
+  <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}" Classes.key-selected="{Binding IsKeySelected}">
     <Panel>
     <c:LevelMeter x:Name="DeckMeter" Classes="deck-meter" IsMono="True" ShowScale="False" Left="{Binding Level}" Right="{Binding Level}"
                   ToolTip.Tip="This deck's level, before the crossfader: it shows even when the room can't hear the deck. The top light: as loud as the speakers go." />

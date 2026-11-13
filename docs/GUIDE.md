@@ -880,6 +880,10 @@ The queue is tonight's list of songs to come.
   a playlist, or to a folder. A click without a drag picks that one song alone.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
+- **Comparing with the next deck:** ↑ from the first song in the queue goes on up to the deck that
+  plays next, shown in the selection's blue. **Space** there previews the deck's song, so you can
+  hear it and the queue's songs one after another; ↓ goes back into the queue. Enter and Delete do
+  nothing on the deck.
 - **Loading from it:** drag a queued song onto a deck, or double-click it; it leaves the queue
   (with *Repeat: The queue*, it goes to the end).
 - **Changing the very next song:** with auto-play on, load another song onto a deck that isn't

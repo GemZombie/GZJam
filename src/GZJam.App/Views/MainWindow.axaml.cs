@@ -33,6 +33,7 @@ public partial class MainWindow : Window
         QueueList.AddHandler(KeyDownEvent, OnQueueKeyDown, RoutingStrategies.Tunnel);
         QueueList.AddHandler(PointerReleasedEvent, OnQueuePointerReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         _queueDrag = new DragStarter(this, QueueList, item => DragFromQueue((QueueItem)item), QueueMenu);
+        SetUpQueueDeckStop();
 
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
         // Ahead of the lists and the search box, which would take Ctrl+arrows for themselves.
@@ -391,8 +392,15 @@ public partial class MainWindow : Window
 
     private void OnQueueKeyDown(object? sender, KeyEventArgs e)
     {
+        if (OnKeyDeckKeyDown(e))
+        {
+            e.Handled = true;
+            return;
+        }
         switch (e.Key)
         {
+            case Key.Up when e.KeyModifiers == KeyModifiers.None && TryKeysToDeck():   // on up to the next deck (#404)
+                break;
             case Key.Delete or Key.Back:
                 RemoveSelectedFromQueue();
                 break;

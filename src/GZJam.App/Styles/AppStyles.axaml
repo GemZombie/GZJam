@@ -671,6 +671,10 @@
     <Setter Property="BorderThickness" Value="0,0,0,2" />
     <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
   </Style>
+  <!-- The keys on it: ↑ from the queue's first song (#404), in the selection's blue -->
+  <Style Selector="Border.deck-row.key-selected">
+    <Setter Property="Background" Value="{StaticResource SelectionActiveBrush}" />
+  </Style>
   <Style Selector="Border.deck-row.drop-ok">
     <Setter Property="Background" Value="#3322C55E" />
   </Style>
@@ -770,6 +774,11 @@
         <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
       </Transitions>
     </Setter>
+  </Style>
+  <!-- The keys on it: ↑ from the queue's first song (#404), edged in the selection's blue -->
+  <Style Selector="Border.deck.key-selected">
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="2" />
   </Style>
   <Style Selector="Border.deck.drop-ok">
     <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />

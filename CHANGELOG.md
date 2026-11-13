@@ -21,6 +21,10 @@ New:
   in your headphones only, so a double-click never touches the room. A song outside your music
   folders plays as it is, without joining your library. Only one GZJam opens at a time now:
   opening it again while it's open brings it to the front.
+- **Up from the queue's first song goes to the next deck** (#404). The deck that plays next is
+  shown in the selection's blue, and Space previews its song in the headphones, as on a queued
+  song. Hear the song waiting on the deck and the queue's songs one after another, all from the
+  keyboard. Down goes back into the queue.
 
 Fixed:
 
