@@ -500,6 +500,9 @@ they're in as well. *+ New folder* makes one inside the folder selected.
   remembers them all for next time. A sorted playlist can't be reordered by dragging: click the
   header until its arrow goes. Long text is cut off with "…"; point at it (or hold a finger on
   it) for the whole text.
+- **Column widths:** drag the line after a column's name to make it wider or narrower. GZJam
+  remembers each column's width for next time, in My music, playlists, Servers and Files alike,
+  tag columns too. Right-click a header › *Widths as they came* puts them all back.
 
 ### Marking songs
 

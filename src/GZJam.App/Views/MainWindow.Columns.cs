@@ -28,6 +28,7 @@ public partial class MainWindow
 
     private void InitializeColumns()
     {
+        InitializeColumnWidths();
         // Before the row menu sees it: a right-click on a header is about columns, not tracks.
         TrackGrid.AddHandler(ContextRequestedEvent, OnGridContextRequested, RoutingStrategies.Tunnel);
         TrackGrid.Sorting += OnGridSorting;
@@ -35,6 +36,7 @@ public partial class MainWindow
         {
             ApplyHiddenColumns();
             ApplyTagColumns();
+            ApplyColumnWidths();   // after the tag columns, which have theirs too (#390)
             if (DataContext is MainWindowViewModel vm)
             {
                 vm.Library.PropertyChanged -= OnLibraryChangedForColumns;
@@ -131,6 +133,12 @@ public partial class MainWindow
             _columnsMenu.Items.Add(item);
         }
         AddTagItems(_columnsMenu);
+        _columnsMenu.Items.Add(new Separator());
+        var widths = new MenuItem { Header = "Widths as they came", IsEnabled = HasChosenColumnWidths };
+        ToolTip.SetTip(widths, "Put every column back to its first width (#390)");
+        ToolTip.SetShowOnDisabled(widths, true);
+        widths.Click += (_, _) => ResetColumnWidths();
+        _columnsMenu.Items.Add(widths);
         return _columnsMenu;
     }
 
@@ -244,6 +252,7 @@ public partial class MainWindow
         };
         int year = TrackGrid.Columns.IndexOf(TrackGrid.Columns.FirstOrDefault(c => (string?)c.Header == "Year") ?? TrackGrid.Columns[^1]);
         TrackGrid.Columns.Insert(year < 0 ? TrackGrid.Columns.Count : year, column);
+        ApplyColumnWidth(column);   // as the DJ last dragged it (#390)
     }
 
     /// <summary>A tag's value in a row, cut off with "…", the whole of it in the tooltip, as Grouping and Comment are.</summary>

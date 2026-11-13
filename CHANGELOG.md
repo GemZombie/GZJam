@@ -26,6 +26,13 @@ New:
   song. Hear the song waiting on the deck and the queue's songs one after another, all from the
   keyboard. Down goes back into the queue.
 
+Changed:
+
+- **The song list remembers its column widths** (#390), as the queue does. Drag a column wider or
+  narrower and it stays that way the next time GZJam opens, in My music, playlists, Servers and
+  Files, and for the tag columns you've added. Right-click a column header › *Widths as they came*
+  puts them back.
+
 Fixed:
 
 - **Several songs selected in the queue now drag together** (#409). Dragging them onto a playlist

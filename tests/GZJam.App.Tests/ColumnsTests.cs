@@ -42,7 +42,7 @@ public sealed class ColumnsTests
         Assert.False(app.Window.FindControl<ContextMenu>("TrackMenu")!.IsOpen);   // not the track menu
         var items = menu.Items.OfType<MenuItem>().Skip(1).ToList();
         // In the list's order, with the columns that always show listed too (#379)
-        Assert.Equal(["♥ Rating", "Album art", "Title", "Artist", "Time", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played"],
+        Assert.Equal(["♥ Rating", "Album art", "Title", "Artist", "Time", "Album", "Genre", "Grouping", "Comment", "Year", "BPM", "Energy", "Played", "Widths as they came"],
             items.Select(i => (string)i.Header!));
         Assert.False(items.Single(i => (string)i.Header! == "Genre").IsChecked);
         foreach (string always in new[] { "Title", "Artist", "Time" })

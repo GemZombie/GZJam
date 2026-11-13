@@ -11,7 +11,7 @@ namespace GZJam.App.Tests;
 public sealed class TagColumnsTests
 {
     /// <summary>A harness whose songs have a Dance tag (TXXX), two a Composer (TCOM), before the first scan.</summary>
-    private static AppHarness Tagged()
+    internal static AppHarness Tagged()
     {
         var app = new AppHarness(start: false);
         var files = Directory.GetFiles(app.MusicPath, "*.mp3", SearchOption.AllDirectories).Order().ToList();
@@ -41,7 +41,7 @@ public sealed class TagColumnsTests
         using var app = Tagged();
         var menu = app.Window.ColumnsMenu();
         var items = menu.Items.OfType<MenuItem>().Select(i => (string)i.Header!).ToList();
-        Assert.Equal(["Tags in your songs", "Dance", "Composer"], items[^3..]);   // most songs first
+        Assert.Equal(["Tags in your songs", "Dance", "Composer", "Widths as they came"], items[^4..]);   // most songs first
 
         Click(menu.Items.OfType<MenuItem>().Single(i => (string)i.Header! == "Dance"));
         menu.Close();
