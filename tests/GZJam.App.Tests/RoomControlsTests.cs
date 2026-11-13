@@ -66,6 +66,39 @@ public sealed class RoomControlsTests
     }
 
     [AvaloniaFact]
+    public void From_the_Dock_menu_one_click_pauses_or_fades_even_with_two_taps_chosen()
+    {
+        // The menu closes after each click: a second can't be made in time (#435). Opening it was the first.
+        using var app = new AppHarness();
+        app.Settings.OnAirPause = OnAirPause.TapTwice;
+        RoomControls room = app.ViewModel.Room;
+        DeckViewModel deck = app.ViewModel.Deck1!;
+        Assert.True(AppHarness.Await(app.ViewModel.LoadToDeckAsync(deck, app.ToneTrack("Moten Swing", seconds: 30))));
+        app.Play(0.05);
+        Assert.Equal("Play \"Moten Swing\"", room.Current.PlayPauseMenu);
+
+        room.PlayPause(atOnce: true);
+        app.Play(0.2);
+        Assert.True(deck.IsOnAir);
+        Assert.Equal("Pause \"Moten Swing\"", room.Current.PlayPauseMenu);   // no "(two clicks)" in the menu
+        Assert.Equal("Fade out \"Moten Swing\"", room.Current.FadeOutMenu);
+        Assert.Equal("Pause \"Moten Swing\" (two clicks)", room.Current.PlayPauseTip);   // the taskbar's still says so
+
+        room.PlayPause(atOnce: true);
+        app.Play(0.05);
+        Assert.False(deck.IsPlaying);
+        Assert.False(deck.IsPauseArmed);
+
+        room.PlayPause(atOnce: true);   // plays on, from the menu as from anywhere
+        app.Play(0.2);
+        Assert.True(deck.IsPlaying);
+        room.FadeOut(atOnce: true);
+        app.Play(0.05);
+        Assert.True(deck.Deck.IsFading);
+        Assert.False(deck.IsFadeArmed);
+    }
+
+    [AvaloniaFact]
     public void Fade_out_with_auto_play_on_is_the_next_song_and_auto_play_turns_on_and_off()
     {
         using var app = new AppHarness();

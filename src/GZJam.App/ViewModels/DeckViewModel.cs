@@ -894,6 +894,18 @@ public sealed partial class DeckViewModel : ObservableObject
         Refresh();
     }
 
+    /// <summary>
+    /// Pauses with no second tap, even on air with two taps chosen: for a menu, where opening it
+    /// was the deliberate first step (the Mac Dock's, #435).
+    /// </summary>
+    public void PauseAtOnce(string how)
+    {
+        if (!IsPlaying)
+            return;
+        Pause(how);
+        Refresh();
+    }
+
     private void Pause(string how)
     {
         Disarm();
@@ -948,6 +960,14 @@ public sealed partial class DeckViewModel : ObservableObject
             Log.Info($"Deck {Label}: fade out armed (needs a second tap)");
             return;
         }
+        FadeOutAtOnce();
+    }
+
+    /// <summary>FADE OUT with no second tap, as <see cref="PauseAtOnce"/> pauses (#435).</summary>
+    public void FadeOutAtOnce()
+    {
+        if (!IsPlaying)
+            return;
         Disarm();
         Deck.FadeOut(TimeSpan.FromSeconds(_settings.FadeOutSeconds));
         Log.Info($"Deck {Label}: fade out over {_settings.FadeOutSeconds:0} s");

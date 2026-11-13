@@ -5,17 +5,23 @@ namespace GZJam.App.ViewModels;
 /// out (with auto-play on: the next song), and auto-play on or off. Windows puts these under the
 /// taskbar button's preview, a Mac in the Dock icon's menu. They act as the deck's own keys do,
 /// two clicks on air included when Settings asks for two taps, so a stray click can't stop the
-/// room. There's no stop: pause and fade out are GZJam's stop.
+/// room. A menu (the Dock's) takes one: opening it is the first click, and a second can't be
+/// made in time once it has closed (#435). There's no stop: pause and fade out are GZJam's stop.
 /// </summary>
 public sealed class RoomControls(MainWindowViewModel owner)
 {
-    /// <summary>What the buttons show: enabled, which icon, and the tooltip that says what a click does.</summary>
+    /// <summary>
+    /// What the buttons show: enabled, which icon, and the tooltip that says what a click does; and
+    /// what a menu's items say, a click there being one (<see cref="PlayPause"/>'s atOnce).
+    /// </summary>
     public sealed record State(
         bool CanPlayPause, bool IsPlaying, string PlayPauseTip,
         bool CanFadeOut, string FadeOutTip,
-        bool CanToggleAutoPlay, bool IsAutoPlayOn, string AutoPlayTip);
+        bool CanToggleAutoPlay, bool IsAutoPlayOn, string AutoPlayTip,
+        string PlayPauseMenu, string FadeOutMenu);
 
-    public State Current { get; private set; } = new(false, false, "Nothing to play", false, "Nothing playing", false, false, "Auto-play");
+    public State Current { get; private set; } =
+        new(false, false, "Nothing to play", false, "Nothing playing", false, false, "Auto-play", "Nothing to play", "Nothing playing");
 
     /// <summary>Raised on the UI thread when <see cref="Current"/> changes.</summary>
     public event Action? Changed;
@@ -54,42 +60,55 @@ public sealed class RoomControls(MainWindowViewModel owner)
         bool playing = deck is { IsPlaying: true };
         string song = deck is null ? "" : $"\"{deck.Title}\"";
 
-        string playTip = deck is null ? "Nothing to play"
-            : !playing ? $"Play {song}"
-            : deck.IsPauseArmed ? "Click again to pause"
-            : deck.PauseNeedsConfirm ? $"Pause {song} (two clicks)"
-            : $"Pause {song}";
-        string fadeTip = !playing ? "Nothing playing to fade out"
-            : deck!.IsFadeArmed ? "Click again to fade out"
-            : (autoPlay?.IsOn == true ? $"Fade out {song}; then the next song" : $"Fade out {song}")
-                + (deck.PauseNeedsConfirm ? " (two clicks)" : "");
+        string playMenu = deck is null ? "Nothing to play" : playing ? $"Pause {song}" : $"Play {song}";
+        string playTip = playing && deck!.IsPauseArmed ? "Click again to pause"
+            : playing && deck!.PauseNeedsConfirm ? $"{playMenu} (two clicks)"
+            : playMenu;
+        string fadeMenu = !playing ? "Nothing playing to fade out"
+            : autoPlay?.IsOn == true ? $"Fade out {song}; then the next song" : $"Fade out {song}";
+        string fadeTip = playing && deck!.IsFadeArmed ? "Click again to fade out"
+            : playing && deck!.PauseNeedsConfirm ? $"{fadeMenu} (two clicks)"
+            : fadeMenu;
         string autoTip = autoPlay is null ? "Auto-play"
             : autoPlay.IsOn ? "Auto-play is on: click to turn it off"
             : autoPlay.CanToggle ? "Turn auto-play on"
             : "Auto-play: add songs to the queue first";
 
         return new State(deck is not null, playing, playTip, playing, fadeTip,
-            autoPlay is not null && (autoPlay.IsOn || autoPlay.CanToggle), autoPlay?.IsOn == true, autoTip);
+            autoPlay is not null && (autoPlay.IsOn || autoPlay.CanToggle), autoPlay?.IsOn == true, autoTip,
+            playMenu, fadeMenu);
     }
 
-    /// <summary>Play or pause the song the room hears, as its deck's play key does.</summary>
-    public void PlayPause()
+    /// <summary>
+    /// Play or pause the song the room hears, as its deck's play key does. <paramref name="atOnce"/>:
+    /// from a menu, pausing with one click even with two taps chosen (#435).
+    /// </summary>
+    public void PlayPause(bool atOnce = false)
     {
         if (Deck is { } deck)
         {
-            Log.Info($"Room controls: play/pause on Deck {deck.Label}");
-            deck.TogglePlayCommand.Execute(null);
+            Log.Info($"Room controls: play/pause on Deck {deck.Label}{(atOnce ? " (menu)" : "")}");
+            if (atOnce && deck.IsPlaying)
+                deck.PauseAtOnce("menu");
+            else
+                deck.TogglePlayCommand.Execute(null);
         }
         Refresh();
     }
 
-    /// <summary>Fade out the song the room hears, as its FADE OUT does; with auto-play on, the next song follows.</summary>
-    public void FadeOut()
+    /// <summary>
+    /// Fade out the song the room hears, as its FADE OUT does; with auto-play on, the next song
+    /// follows. <paramref name="atOnce"/> as for <see cref="PlayPause"/>.
+    /// </summary>
+    public void FadeOut(bool atOnce = false)
     {
         if (Deck is { IsPlaying: true } deck)
         {
-            Log.Info($"Room controls: fade out on Deck {deck.Label}");
-            deck.FadeOutCommand.Execute(null);
+            Log.Info($"Room controls: fade out on Deck {deck.Label}{(atOnce ? " (menu)" : "")}");
+            if (atOnce)
+                deck.FadeOutAtOnce();
+            else
+                deck.FadeOutCommand.Execute(null);
         }
         Refresh();
     }
