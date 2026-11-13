@@ -199,7 +199,10 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 1.8.0.
+**In 1.9**, not in a release yet:
+
+- [A room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): a key on the mixer,
+  three bands or a 10-band graphic EQ, on the speakers only, remembered for each venue
 
 ## Planned next
 
@@ -209,10 +212,7 @@ in your file manager plays in GZJam. Fixes come as 1.8.1, 1.8.2 and so on. Found
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**1.9: the room's sound,** started:
-- [A room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): less boom for a big
-  hall or a muddy room, more warmth for a packed one, on the speakers only, saved by venue and
-  loaded when you arrive. Three bands, as on a song, or a 10-band graphic EQ for DJs who want more.
+**1.9: the room's sound,** started: the room EQ for each venue is in (see above).
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

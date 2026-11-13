@@ -171,6 +171,17 @@ public sealed class AppSettings
     /// </summary>
     public double LoudnessTarget { get; set; } = LoudnessMatch.TargetLufs;
 
+    /// <summary>
+    /// The venues a DJ plays, each with its room EQ for the speakers (#272), and the one loaded
+    /// (its name; none: the speakers get the music flat). Not the volume or the outputs: loading a
+    /// venue must never make the room louder, or move the music to another output.
+    /// </summary>
+    public List<Venue> Venues { get; set; } = [];
+    public string? Venue { get; set; }
+
+    /// <summary>The room EQ panel is rolled down under the decks.</summary>
+    public bool RoomEqShown { get; set; }
+
     /// <summary>Speaker, headphone and booth volume, 0-100.</summary>
     public double MainVolume { get; set; } = 100;
     public double CueVolume { get; set; } = 100;
@@ -421,4 +432,11 @@ public sealed class AppSettings
             System.Diagnostics.Trace.WriteLine($"Could not save settings: {ex.Message}");
         }
     }
+}
+
+/// <summary>A place a DJ plays, and its room EQ (#272).</summary>
+public sealed class Venue
+{
+    public string Name { get; set; } = "";
+    public GZJam.Audio.RoomEq Eq { get; set; } = GZJam.Audio.RoomEq.Flat;
 }

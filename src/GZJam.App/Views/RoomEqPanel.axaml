@@ -1,0 +1,228 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GZJam.App.ViewModels"
+             xmlns:c="using:GZJam.App.Controls"
+             x:Class="GZJam.App.Views.RoomEqPanel"
+             x:DataType="vm:RoomEqViewModel">
+  <!-- The room EQ (#272), rolled down under the decks by the key under MAIN: the venue you're at,
+       and its EQ on the speakers, as three bands (as a song's) or a 10-band graphic EQ, with the
+       curve the room gets. -->
+  <UserControl.Styles>
+    <Style Selector="c|Fader.eq">
+      <Setter Property="Step" Value="0.5" />
+      <Setter Property="Origin" Value="0" />
+      <Setter Property="ResetValue" Value="0" />
+      <Setter Property="Lines" Value="-12,-9,-6,-3,0,3,6" />
+      <Setter Property="Accent" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.eq-value">
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.eq-band">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1" />
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.eq-hz">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.eq-hz.moved">
+      <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.hz-step">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="3,1" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.hz-step:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="Button.eq-action">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{StaticResource Line2Brush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.eq-action:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#14FFFFFF" />
+      <Setter Property="BorderBrush" Value="{StaticResource MutedBrush}" />
+    </Style>
+    <!-- The view on show: lit, as a hardware key -->
+    <Style Selector="Button.eq-action.on /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="panel" Padding="14,10,10,10">
+    <Grid ColumnDefinitions="214,Auto,*" ColumnSpacing="16">
+
+      <!-- The venue, and how its EQ is seen -->
+      <StackPanel Spacing="8">
+        <StackPanel Spacing="1">
+          <TextBlock Classes="label" Text="ROOM EQ" />
+          <TextBlock Classes="muted" FontSize="11" Text="On the speakers only, never your headphones" TextWrapping="Wrap" />
+        </StackPanel>
+        <ComboBox x:Name="VenueBox" HorizontalAlignment="Stretch" ItemsSource="{Binding VenueChoices}" SelectedItem="{Binding SelectedVenue}"
+                  ToolTip.Tip="The venue you're at: its room EQ is heard at once, even mid-song" />
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button x:Name="NewVenueButton" Classes="link" Content="New venue…" Click="OnNewVenueClick"
+                  ToolTip.Tip="A venue of its own, starting flat, for the room you're in" />
+          <Button x:Name="RenameVenueButton" Classes="link" Content="Rename…" Click="OnRenameVenueClick" IsVisible="{Binding HasVenue}" />
+          <Button x:Name="DeleteVenueButton" Classes="link" Content="Delete…" Click="OnDeleteVenueClick" IsVisible="{Binding HasVenue}" />
+        </StackPanel>
+        <Grid ColumnDefinitions="*,6,*" IsEnabled="{Binding HasVenue}">
+          <Button x:Name="SimpleViewButton" Classes="eq-action" Classes.on="{Binding IsSimpleShown}" HorizontalAlignment="Stretch"
+                  Command="{Binding ShowSimpleCommand}" Content="Simple"
+                  ToolTip.Tip="Three bands, as on a song: low, mid (its frequency movable) and high" />
+          <Button x:Name="AdvancedViewButton" Grid.Column="2" Classes="eq-action" Classes.on="{Binding IsAdvancedShown}" HorizontalAlignment="Stretch"
+                  Command="{Binding ShowAdvancedCommand}" Content="Advanced"
+                  ToolTip.Tip="A 10-band graphic EQ, one band per octave. It starts shaped like the three bands, so nothing heard changes." />
+        </Grid>
+        <Button x:Name="RoomFlatButton" Classes="eq-action" HorizontalAlignment="Stretch" Command="{Binding FlatCommand}" Content="Flat"
+                IsEnabled="{Binding HasVenue}" ToolTip.Tip="Every band back to 0 dB" />
+      </StackPanel>
+
+      <!-- The faders, in a recessed well -->
+      <Panel Grid.Column="1">
+        <Border Background="{StaticResource WellBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="6,8,10,6" IsEnabled="{Binding HasVenue}">
+          <Panel>
+            <!-- Simple: three bands, as the song EQ -->
+            <StackPanel Spacing="6" IsVisible="{Binding ShowsSimpleFaders}">
+              <Grid ColumnDefinitions="28,52,64,52" RowDefinitions="120,Auto,Auto">
+                <c:EqScale Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" />
+                <c:Fader Classes="eq" x:Name="RoomLowFader" Grid.Column="1" Value="{Binding Low}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}"
+                         ToolTip.Tip="Bass, below about 150 Hz: down for a room that booms. Double-tap for 0 dB." />
+                <c:Fader Classes="eq" x:Name="RoomMidFader" Grid.Column="2" Value="{Binding Mid}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}"
+                         ToolTip.Tip="The middle, around the frequency under it: about 250 Hz is where a muddy room builds up. Double-tap for 0 dB." />
+                <c:Fader Classes="eq" x:Name="RoomHighFader" Grid.Column="3" Value="{Binding High}" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}"
+                         ToolTip.Tip="Treble, above about 5 kHz: up a little for a packed room that swallows it. Double-tap for 0 dB." />
+                <Button Grid.Row="1" Grid.Column="1" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
+                        Command="{Binding FlatBandCommand}" CommandParameter="low" ToolTip.Tip="Tap for 0 dB">
+                  <TextBlock Classes="eq-value" Text="{Binding LowText}" />
+                </Button>
+                <Button Grid.Row="1" Grid.Column="2" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
+                        Command="{Binding FlatBandCommand}" CommandParameter="mid" ToolTip.Tip="Tap for 0 dB">
+                  <TextBlock Classes="eq-value" Text="{Binding MidText}" />
+                </Button>
+                <Button Grid.Row="1" Grid.Column="3" Classes="link" Padding="2,4,2,2" HorizontalAlignment="Center"
+                        Command="{Binding FlatBandCommand}" CommandParameter="high" ToolTip.Tip="Tap for 0 dB">
+                  <TextBlock Classes="eq-value" Text="{Binding HighText}" />
+                </Button>
+                <StackPanel Grid.Row="2" Grid.Column="1">
+                  <TextBlock Classes="eq-band" Text="LOW" />
+                  <TextBlock Classes="eq-hz" Text="150 Hz" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="2">
+                  <TextBlock Classes="eq-band" Text="MID" />
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="RoomMidDownButton" Classes="hz-step" Command="{Binding MoveMidCommand}" CommandParameter="down"
+                            ToolTip.Tip="Move the mid band lower" Content="◀" />
+                    <Button Classes="link" Padding="1,0" Command="{Binding FlatBandCommand}" CommandParameter="midhz"
+                            ToolTip.Tip="Where the mid band sits. Tap for 1 kHz.">
+                      <TextBlock x:Name="RoomMidHzText" Classes="eq-hz" Classes.moved="{Binding IsMidMoved}" Text="{Binding MidHzText}" />
+                    </Button>
+                    <Button x:Name="RoomMidUpButton" Classes="hz-step" Command="{Binding MoveMidCommand}" CommandParameter="up"
+                            ToolTip.Tip="Move the mid band higher" Content="▶" />
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="3">
+                  <TextBlock Classes="eq-band" Text="HIGH" />
+                  <TextBlock Classes="eq-hz" Text="5 kHz" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+
+            <!-- Simple on show, but the room hears a 10-band setting three bands can't show -->
+            <StackPanel x:Name="SetInAdvanced" Width="196" Spacing="10" VerticalAlignment="Center" IsVisible="{Binding IsSetInAdvanced}">
+              <TextBlock Classes="eq-band" Text="SET IN ADVANCED" HorizontalAlignment="Left" />
+              <TextBlock Classes="muted" FontSize="11.5" TextWrapping="Wrap"
+                         Text="This venue uses the 10-band EQ." />
+              <Button x:Name="UseThreeBandsButton" Classes="eq-action" HorizontalAlignment="Center"
+                      Command="{Binding UseThreeBandsCommand}" Content="Switch to 3 bands"
+                      ToolTip.Tip="Go back to the 3-band settings you had before" />
+            </StackPanel>
+
+            <!-- Advanced: a graphic EQ, one fader per octave -->
+            <Grid ColumnDefinitions="28,Auto" IsVisible="{Binding IsAdvancedShown}">
+              <c:EqScale Height="120" VerticalAlignment="Top" Minimum="{Binding MinDb}" Maximum="{Binding MaxDb}" />
+              <ItemsControl x:Name="RoomBands" Grid.Column="1" ItemsSource="{Binding Bands}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RoomEqBand">
+                    <StackPanel Width="34">
+                      <c:Fader Classes="eq" Height="120" Value="{Binding Value}" Minimum="-12" Maximum="6"
+                               ToolTip.Tip="{Binding Label, StringFormat='The octave around {0} Hz. Double-tap for 0 dB.'}" />
+                      <Button Classes="link" Padding="1,4,1,2" HorizontalAlignment="Center" Command="{Binding ToFlatCommand}" ToolTip.Tip="Tap for 0 dB">
+                        <TextBlock Classes="eq-value" Text="{Binding ValueText}" />
+                      </Button>
+                      <TextBlock Classes="eq-hz" Text="{Binding Label}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </Panel>
+        </Border>
+      </Panel>
+
+      <!-- The curve the room gets, and starting points for the room -->
+      <Grid Grid.Column="2" RowDefinitions="*,Auto" RowSpacing="8">
+        <Border Background="{StaticResource WellBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="4"
+                Padding="4" ClipToBounds="True">
+          <Panel>
+            <c:RoomEqCurve x:Name="RoomCurve" Eq="{Binding Eq}" />
+            <TextBlock Classes="muted" FontSize="11.5" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                       TextWrapping="Wrap" MaxWidth="260" IsVisible="{Binding !HasVenue}"
+                       Text="Choose the venue you're at, or make a new one, to set its room EQ." />
+          </Panel>
+        </Border>
+        <WrapPanel Grid.Row="1" IsVisible="{Binding IsSimpleShown}" IsEnabled="{Binding HasVenue}">
+          <WrapPanel.Styles>
+            <Style Selector="Button.eq-action">
+              <Setter Property="Margin" Value="0,0,6,0" />
+            </Style>
+          </WrapPanel.Styles>
+          <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="boomy2" Content="Boomy 2"
+                  ToolTip.Tip="A reverberant hall or a muddy room: the bass and low mids well down" />
+          <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="boomy1" Content="Boomy 1"
+                  ToolTip.Tip="A room with a little boom: the bass and low mids a little down" />
+          <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="neutral" Content="Neutral"
+                  ToolTip.Tip="Flat: the music as it is" />
+          <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="padded1" Content="Padded 1"
+                  ToolTip.Tip="A damped room: a little more warmth and air" />
+          <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="padded2" Content="Padded 2"
+                  ToolTip.Tip="A packed room that swallows the sound: more warmth and air" />
+        </WrapPanel>
+      </Grid>
+
+      <!-- Rolled back up -->
+      <Button x:Name="RoomEqCloseButton" Grid.Column="2" Classes="icon-button" HorizontalAlignment="Right" VerticalAlignment="Top"
+              Margin="0,2,2,0" Command="{Binding ToggleCommand}" ToolTip.Tip="Put the room EQ away (it stays on the speakers)" Content="✕" />
+    </Grid>
+  </Border>
+</UserControl>

@@ -48,7 +48,7 @@ public sealed class RoomEqTests : IDisposable
     {
         Assert.True(RoomEq.Flat.IsFlat);
         Assert.Equal(RoomEq.FilterCount, RoomEq.Flat.Filters.Count);
-        Assert.True(new RoomEq { Low = -3 }.WithAdvancedFromSimple().Bands.Any(b => b != 0));
+        Assert.Contains(new RoomEq { Low = -3 }.WithAdvancedFromSimple().Bands, b => b != 0);
 
         var extreme = new RoomEq { Low = -30, High = 20 };
         Assert.Equal(RoomEq.MinDb, extreme.Filters[0].GainDb);

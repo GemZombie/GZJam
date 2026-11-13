@@ -13,7 +13,18 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.8.0.
+New:
+
+- **A room EQ for each venue** (#272). Every room sounds different: a hall that booms, a muddy room,
+  a packed one that swallows the warmth. The **room EQ key** (a graphic EQ between the crossfader's
+  1 and 2) rolls down a panel under the decks: make a venue, set its EQ while the music plays, and
+  next time just choose where you are. While it's on, the key lights and the MAIN chip at the top
+  says which venue's.
+  Set it as three bands, as on a song (with starting points for a boomy or a padded room), or as a
+  10-band graphic EQ, with the curve the room gets beside it. It's on the speakers only, never
+  your headphones or the booth, and GZJam says which venue is loaded when it opens. Thanks to Omar
+  for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
+  side keys' lights show the live side, and pointing at the crossfader says it in words.
 
 ## 1.8.0 (2026-11-13)
 

@@ -19,7 +19,7 @@ public sealed class LayoutStabilityTests
     /// and the time the queue ends, inside its window beside the clock (#279), which itself stays put.
     /// </summary>
     private static readonly string[] AllowedToChange =
-        ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#LiveLabel", "#BackgroundStatusPanel", "#QueueEndText"];
+        ["#PlayButton/", "#StatusLine/", "#CompactStatusLine/", "#BackgroundStatusPanel", "#QueueEndText"];
 
     /// <summary>Where every visible control is, by its place in the visual tree.</summary>
     private static Dictionary<string, Rect> Layout(AppHarness app)
