@@ -22,6 +22,13 @@ New:
   folders plays as it is, without joining your library. Only one GZJam opens at a time now:
   opening it again while it's open brings it to the front.
 
+Fixed:
+
+- **Several songs selected in the queue now drag together** (#409). Dragging them onto a playlist
+  added only the one you grabbed, because pressing it let go of the others. Now they all go, in
+  queue order, onto a playlist, to a folder or to a new place in the queue. Shift-click selects a
+  run of songs in the queue, as in the song list.
+
 ## 1.8.0-beta.1 (2026-11-12)
 
 The first beta of 1.8: quality of life. Playlists are a source of their own now, with the whole

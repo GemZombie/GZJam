@@ -875,6 +875,9 @@ The queue is tonight's list of songs to come.
   goes for a playlist.
 - **Reordering:** drag a row by its ⋮⋮ grip. Right-click › *Move to top*, *Remove*, *Clear queue*.
   *Shuffle queue* puts it in a random order, with **Undo** in the top bar to put it back.
+- **Several songs at once:** Ctrl-click (⌘-click on a Mac) picks songs one by one, Shift-click a
+  run of them. Drag any of them and they all go, in queue order: to a new place in the queue, onto
+  a playlist, or to a folder. A click without a drag picks that one song alone.
 - **Keys:** ↑ ↓ move through it; **Space** previews the selected song in the headphones (again:
   stops); **Delete** takes it out and selects the next, so you can keep going.
 - **Loading from it:** drag a queued song onto a deck, or double-click it; it leaves the queue
