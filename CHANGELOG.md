@@ -24,6 +24,10 @@ New:
   your headphones or the booth, and GZJam says which venue is loaded when it opens. Thanks to Omar
   for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
   side keys' lights show the live side, and pointing at the crossfader says it in words.
+- **A venue keeps its mono and loudness target too** (#440). Change **Mono** or the **Loudness
+  target** (Settings › Sound) with a venue loaded and it's saved for that venue: a lower target
+  where the mixer clips easily, stereo where it suits the room. They come back with the venue, and
+  with no venue they're as Settings had them. Volume and outputs never change with a venue.
 
 Changed:
 

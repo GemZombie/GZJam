@@ -1008,6 +1008,16 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
   can be changed while the room is listening.
 - Not a performance EQ: no permanent knobs, since it's set once per recording.
 
+### Status: a venue's mono and loudness target (2026-11-13, #440)
+
+- `Venue.Mono` and `Venue.LoudnessTarget`, null until changed with that venue loaded.
+  `AppSettings.MonoNow` / `LoudnessTargetNow` read the venue's, else the plain settings (the
+  no-venue values), and set the venue's while one is loaded; the mixer, the loudness matching and
+  Settings use them. Loading a venue (`RoomEqViewModel.Load`) applies both at once
+  (`MainWindowViewModel.VenueChanged`: mono on all three outputs, the decks and preview matched
+  again). A venue's target is snapped to the choices like the plain one (`Migrate`).
+- Settings › Sound shows *Mono and Loudness target are saved for <venue>.* above them.
+
 ### Status: MAIN and PHONES lying down beside compact decks (2026-11-13, #441)
 
 - Beside compact decks the upright faders (`UprightFaders`) give way to `CompactFaders`: MAIN and

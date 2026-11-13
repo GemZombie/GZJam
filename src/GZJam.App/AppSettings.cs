@@ -179,6 +179,44 @@ public sealed class AppSettings
     public List<Venue> Venues { get; set; } = [];
     public string? Venue { get; set; }
 
+    /// <summary>The venue loaded (<see cref="Venue"/>), if any.</summary>
+    [JsonIgnore]
+    public Venue? LoadedVenue => Venue is { } name
+        ? Venues.FirstOrDefault(v => string.Equals(v.Name, name, StringComparison.CurrentCultureIgnoreCase))
+        : null;
+
+    /// <summary>
+    /// Mono now (#440): the venue's own, once it's been set with that venue loaded; otherwise
+    /// <see cref="Mono"/>, which is what it is with no venue. Set: for the venue loaded, or with
+    /// none, <see cref="Mono"/>.
+    /// </summary>
+    [JsonIgnore]
+    public bool MonoNow
+    {
+        get => LoadedVenue?.Mono ?? Mono;
+        set
+        {
+            if (LoadedVenue is { } venue)
+                venue.Mono = value;
+            else
+                Mono = value;
+        }
+    }
+
+    /// <summary>The loudness target now, as <see cref="MonoNow"/> (#440).</summary>
+    [JsonIgnore]
+    public double LoudnessTargetNow
+    {
+        get => LoadedVenue?.LoudnessTarget ?? LoudnessTarget;
+        set
+        {
+            if (LoadedVenue is { } venue)
+                venue.LoudnessTarget = value;
+            else
+                LoudnessTarget = value;
+        }
+    }
+
     /// <summary>The room EQ panel is rolled down under the decks.</summary>
     public bool RoomEqShown { get; set; }
 
@@ -399,6 +437,8 @@ public sealed class AppSettings
         settings.ExtraBufferingBefore17 = null;
         // A hand-edited target that isn't one of the choices: the nearest one.
         settings.LoudnessTarget = LoudnessMatch.Targets.MinBy(t => Math.Abs(t - settings.LoudnessTarget));
+        foreach (Venue venue in settings.Venues.Where(v => v.LoudnessTarget is not null))
+            venue.LoudnessTarget = LoudnessMatch.Targets.MinBy(t => Math.Abs(t - venue.LoudnessTarget!.Value));
         settings.SeenColumns ??= [];
         foreach (string column in NewHiddenColumns.Except(settings.SeenColumns).ToList())
         {
@@ -434,9 +474,15 @@ public sealed class AppSettings
     }
 }
 
-/// <summary>A place a DJ plays, and its room EQ (#272).</summary>
+/// <summary>
+/// A place a DJ plays: its room EQ (#272), and the rest of its sound system's settings (#440),
+/// mono and the loudness target, each its own once set with the venue loaded (null: as with no
+/// venue).
+/// </summary>
 public sealed class Venue
 {
     public string Name { get; set; } = "";
     public GZJam.Audio.RoomEq Eq { get; set; } = GZJam.Audio.RoomEq.Flat;
+    public bool? Mono { get; set; }
+    public double? LoudnessTarget { get; set; }
 }
