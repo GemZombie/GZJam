@@ -189,6 +189,12 @@ and coming in beta.2:
 - [GZJam as the player for song files](https://github.com/GemZombie/GZJam/issues/336) (beta.2):
   double-click a song in your file manager, and it plays on a deck, or in the headphones while a
   song is on air
+- [Several queue songs dragged together](https://github.com/GemZombie/GZJam/issues/409) (beta.2):
+  onto a playlist, a folder or a new place in the queue, in queue order
+- [Up from the queue to the next deck](https://github.com/GemZombie/GZJam/issues/404) (beta.2):
+  Space previews the song waiting there, to compare it with the queue's from the keyboard
+- [The song list remembers its column widths](https://github.com/GemZombie/GZJam/issues/390)
+  (beta.2), as the queue does
 
 - [The Time column](https://github.com/GemZombie/GZJam/issues/379) in the column menu, and next
   to Artist so it's in view on a laptop
@@ -273,8 +279,6 @@ to one you'd use.
 **Library**
 - [File songs by their tags](https://github.com/GemZombie/GZJam/issues/332): choose a pattern like
   Artist / Album / Title, see every new path first, and undo it if you don't like it
-- [Smooth with very large libraries](https://github.com/GemZombie/GZJam/issues/73) of several
-  hundred thousand songs or more
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
 - [A recording's condition at a glance](https://github.com/GemZombie/GZJam/issues/274): a grade
