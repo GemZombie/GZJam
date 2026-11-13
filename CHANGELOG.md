@@ -19,6 +19,8 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
   song the room hears. It asked for a second click, but the menu closes after each one. One click
   in the menu now does it: opening the menu is the first. The Windows taskbar buttons still take
   two. (#435)
+- Closing GZJam while it scans a music folder stops the scan. It used to read on and write the
+  rest of the folder's songs into a library that had already closed. (#350)
 
 ## 1.8.0-beta.2 (2026-11-13)
 

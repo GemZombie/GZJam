@@ -15,6 +15,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     private readonly LibraryScanner _scanner;
     private readonly LibraryWatcher _watcher = new();
     private readonly SemaphoreSlim _scanLock = new(1, 1);
+    /// <summary>Canceled as GZJam closes: a scan stops between songs, writing no more (#350).</summary>
+    private readonly CancellationTokenSource _closing = new();
+    /// <summary>The scan reading files and writing to the library, if one is: closing waits for it to stop.</summary>
+    private Task? _scanning;
     private CancellationTokenSource? _typingDelay;
     private CancellationTokenSource? _searchCancel;
     private double _nearBpm = LibraryDatabase.DefaultNearBpm;
@@ -676,6 +680,8 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
         await _scanLock.WaitAsync();
         try
         {
+            if (_disposed)
+                return;   // waited behind a scan that closing stopped (#350)
             bool firstImport = _database.GetFolderCounts().All(c => c.RootId != root.Id);
             Log.Info($"Scanning {root.Path}" + (firstImport ? " (first time)" : "") + (readAllTags ? ", reading every song's tags again" : ""));
             DateTime lastRefresh = DateTime.UtcNow;
@@ -714,7 +720,9 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                 }
             });
 
-            ScanResult result = await _scanner.ScanAsync(root, progress, readAllTags);
+            Task<ScanResult> scanning = _scanner.ScanAsync(root, progress, readAllTags, _closing.Token);
+            _scanning = scanning;
+            ScanResult result = await scanning;
             if (_disposed)
                 return;   // closed while it scanned (#419): nothing left to show it in
             Log.Info($"Scanned {root.Path} in {result.Elapsed.TotalSeconds:0.0} s: {Format.Count(result.Added)} added, " +
@@ -730,6 +738,10 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
                     SongsMoved?.Invoke(result.Moves);
                 Scanned?.Invoke();
             }
+        }
+        catch (OperationCanceledException) when (_closing.IsCancellationRequested)
+        {
+            Log.Info($"Scan of {root.Path} stopped: GZJam is closing");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -1153,9 +1165,32 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+            return;
         _disposed = true;
         _typingDelay?.Cancel();
         _searchCancel?.Cancel();
         _watcher.Dispose();
+        StopScanning();
     }
+
+    /// <summary>
+    /// Stops a scan under way and waits for it, so it writes nothing to the library once it's
+    /// closed (#350). It stops between songs, or at the latest after a batch's tags are read and
+    /// written; a scan stuck on a slow drive is left after a few seconds rather than keep GZJam open.
+    /// </summary>
+    private void StopScanning()
+    {
+        _closing.Cancel();
+        if (_scanning is not { IsCompleted: false } scanning)
+            return;
+        try
+        {
+            if (!scanning.Wait(ScanStopWait))
+                Log.Info($"The library scan didn't stop within {ScanStopWait.TotalSeconds:0} s of closing");
+        }
+        catch (AggregateException) { /* stopped, or failed: either way it's done */ }
+    }
+
+    private static readonly TimeSpan ScanStopWait = TimeSpan.FromSeconds(5);
 }
