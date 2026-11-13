@@ -13,6 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+## 1.8.0-beta.2 (2026-11-13)
+
+The second beta of 1.8. Make GZJam the player for your song files, and a song double-clicked in
+your file manager plays on a deck, or only in your headphones while a song is on air. Up from the
+queue's first song previews the song waiting on the next deck, several queue songs drag together,
+and the song list keeps its column widths. Your library is unchanged since beta.1, so 1.7 and
+beta.1 still open it. Like the other betas, GZJam's update notice doesn't offer it: you only get it
+from this page. It has everything in beta.1.
+
 New:
 
 - **Double-click a song in your file manager to play it in GZJam** (#336). Make GZJam the player
