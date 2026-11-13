@@ -1008,6 +1008,24 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
   can be changed while the room is listening.
 - Not a performance EQ: no permanent knobs, since it's set once per recording.
 
+### Status: room EQ for each venue built (2026-11-13, #272)
+
+- The room EQ key on the mixer, between the crossfader's side keys where *1 · LIVE* was (a toggle:
+  a graphic-EQ icon and an LED lit while the EQ isn't flat; the venue in its tip) rolls a panel
+  down under the decks (`RoomEqPanel`, a row of its own in the main grid). Hidden beside compact
+  decks, where the crossfader takes that place. While the EQ is on, the MAIN output chip adds
+  *ROOM EQ <venue>*. A key under MAIN was tried first: it made the decks 38 px taller.
+- Venues in the settings (`Venues`, `Venue`), each a name and a `RoomEq`. Not the volume or the
+  outputs. Choosing one applies it at once; *No venue* is flat. A notice at startup names the venue.
+- `RoomEq` (GZJam.Audio): one EQ, two views. Simple: low shelf 150 Hz, a mid bell (Q 0.7) movable in
+  third-octave steps, high shelf 5 kHz, as the song EQ. Advanced: ten one-octave bells (Q 1.41),
+  31.5 Hz to 16 kHz. -12 to +6 dB. Simple → Advanced fits the ten bands to the three bands' curve;
+  Advanced → Simple only while the bands are still that shape, else *Set in Advanced*.
+- On the speakers' output only (`OutputBus.RoomEq`): BASS_FX BQF effects on the main mixer, above the
+  native volume/mono/limiter DSP, so the limiter still catches a boost. None while flat. Copied
+  when the output is made again. The headphones and booth are fed from the decks separately.
+- The curve (`RoomEqCurve`) is worked out from RBJ's cookbook formulas, which BASS's BQF uses.
+
 ### Look: controls drawn like hardware, pass 1 of 3 (2026-10-21)
 
 The UI read as generic ("AI-looking"): stock sliders and switches beside drawn controls, purple on

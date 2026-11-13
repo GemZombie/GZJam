@@ -102,6 +102,13 @@
             <Border Classes="led red on" IsVisible="{Binding !HasMainOutput}" />
             <TextBlock Classes="fader-label" Text="MAIN" VerticalAlignment="Center" />
             <TextBlock Text="{Binding MainOutputName}" FontSize="12" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" />
+            <!-- The room EQ on the speakers (#272): which venue's, always in view while one is on -->
+            <StackPanel x:Name="MainChipRoom" Orientation="Horizontal" Spacing="7" IsVisible="{Binding RoomEq.IsOn, FallbackValue=False}">
+              <TextBlock Classes="muted" Text="·" VerticalAlignment="Center" />
+              <TextBlock Classes="fader-label" Text="ROOM EQ" VerticalAlignment="Center" />
+              <TextBlock x:Name="MainChipVenue" Text="{Binding RoomEq.VenueName}" FontSize="12" FontWeight="SemiBold" MaxWidth="140"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
           </StackPanel>
         </Button>
         <Button Grid.Column="5" Classes="output-chip" Click="OnOutputChipClick" ToolTip.Tip="Headphone output (click to change)">
@@ -157,7 +164,7 @@
       </DockPanel>
     </Border>
 
-  <Grid RowDefinitions="Auto,Auto,*" Margin="16,4,16,16" RowSpacing="12">
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16,4,16,16" RowSpacing="12">
 
     <!-- Audio failed to load: say so plainly; the library still works -->
     <Border Grid.Row="0" Classes="hint" BorderBrush="{StaticResource OnAirBrush}"
@@ -259,7 +266,7 @@
                row, the keys either side of the crossfader (MainWindow.ApplyDeckLayout). -->
           <Grid x:Name="CrossfaderRows" Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" RowSpacing="6">
             <c:CrossfaderControl x:Name="Crossfader" Grid.ColumnSpan="3" Height="{DynamicResource CrossfaderHeight}" Value="{Binding Crossfader}"
-                                 ToolTip.Tip="Crossfader: fades the room between the left deck(s) and the right" />
+                                 ToolTip.Tip="{Binding CrossfaderTip}" />
             <!-- The side the room hears has its light on. With four decks each carries both of that side's numbers. -->
             <Button x:Name="LeftSideButton" Grid.Row="1" Classes="hw side" Command="{Binding SnapTo1Command}" ToolTip.Tip="{Binding LeftTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -268,8 +275,18 @@
                 <TextBlock Text="3" Foreground="{StaticResource Deck3Brush}" IsVisible="{Binding IsFourDecks}" />
               </StackPanel>
             </Button>
-            <TextBlock x:Name="LiveLabel" Grid.Row="1" Grid.Column="1" Classes="fader-label" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Text="{Binding LiveText}" />
+            <!-- The room EQ (#272), between the side keys: a graphic EQ, lit while the speakers get
+                 one (the venue's name is on the MAIN chip, and in its tip); rolls the panel down -->
+            <ToggleButton x:Name="RoomEqKey" Grid.Row="1" Grid.Column="1" Classes="hw" Margin="6,0" Padding="4,0" MinHeight="0"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                          IsChecked="{Binding RoomEq.IsShown, FallbackValue=False}" ToolTip.Tip="{Binding RoomEq.KeyTip}">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Classes="led green" Classes.on="{Binding RoomEq.IsOn, FallbackValue=False}" VerticalAlignment="Center" />
+                <Path Data="{StaticResource IconRoomEq}" Stroke="{Binding $parent[ToggleButton].Foreground}"
+                      Fill="{Binding $parent[ToggleButton].Foreground}" StrokeThickness="1.4" StrokeLineCap="Round"
+                      Stretch="Uniform" Width="15" Height="15" VerticalAlignment="Center" />
+              </StackPanel>
+            </ToggleButton>
             <Button x:Name="RightSideButton" Grid.Row="1" Grid.Column="2" Classes="hw side" Command="{Binding SnapTo2Command}" ToolTip.Tip="{Binding RightTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Border Classes="led red" Classes.on="{Binding IsDeck2Live}" />
@@ -295,13 +312,18 @@
       <Border Classes="deck-grip-bar" />
     </Border>
 
+    <!-- The room EQ (#272), rolled down under the decks by the key under MAIN, and put away again -->
+    <Panel x:Name="RoomEqRow" Grid.Row="2" IsVisible="{Binding RoomEq.IsShown, FallbackValue=False}">
+      <v:RoomEqPanel x:Name="RoomEqPanel" DataContext="{Binding RoomEq}" />
+    </Panel>
+
     <!-- Organize music (#325) stands in for the library, songs and queue; the decks stay above it -->
-    <ContentControl x:Name="OrganizeHost" Grid.Row="2" IsVisible="{Binding IsOrganizeOpen}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+    <ContentControl x:Name="OrganizeHost" Grid.Row="3" IsVisible="{Binding IsOrganizeOpen}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
 
     <!-- ───────────── Library ───────────── -->
     <!-- The side panels can be dragged wider or narrower, or folded into a strip that a tap opens
          again (MainWindow.Panes) -->
-    <Grid x:Name="PanesGrid" Grid.Row="2" ColumnDefinitions="260,12,*,12,320" IsVisible="{Binding !IsOrganizeOpen}">
+    <Grid x:Name="PanesGrid" Grid.Row="3" ColumnDefinitions="260,12,*,12,320" IsVisible="{Binding !IsOrganizeOpen}">
       <Button x:Name="LibraryStrip" Classes="fold-strip" IsVisible="False" Click="OnLibraryStripClick"
               ToolTip.Tip="Show the library">
         <StackPanel Spacing="12" HorizontalAlignment="Center">

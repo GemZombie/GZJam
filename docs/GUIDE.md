@@ -295,7 +295,8 @@ uneven transfer. *Less hiss* turns the treble down 6 dB to start with; *Flat* re
 lights when a song has EQ. The room and the headphones hear it alike.
 
 It's for the recording, not the room: a song's EQ goes with it to every venue. A muddy or boomy
-room is fixed on the venue's mixer or sound system, so the songs still sound right in the next one.
+room is fixed with the **room EQ** (under *The mixer*) or on the venue's mixer, so the songs still
+sound right in the next one.
 
 ### Fade out
 
@@ -343,6 +344,42 @@ out are GZJam's stop. Linux desktops have no such place, so there's nothing ther
   headphones are set per deck with **CUE**.
 - **Each deck's own meter** (the slim column beside it) shows its level before the crossfader, so a
   deck the room can't hear shows its level too.
+- **The room EQ key** (a graphic EQ, between **1** and **2** under the crossfader): the venue
+  you're at, and its EQ on the speakers (below). Its light is on while the speakers get one, and
+  the **MAIN** chip at the top then says which venue's (*MAIN Speakers · ROOM EQ Hot Jam*).
+
+### Room EQ for each venue
+
+Every room sounds different. A hall with a hard floor booms; a low room with bare walls turns
+everything muddy; a packed room swallows the warmth. The room EQ fixes the room, for the speakers
+only, and remembers it for each venue, so next time you just choose where you are.
+
+1. Press the **room EQ key** (the graphic EQ between **1** and **2**): a panel rolls down under the
+   decks. Press it again (or **✕**) to put it away; the EQ stays on. The key is there with
+   full-size decks: beside compact ones the crossfader takes its place, so switch to full ones to
+   change the venue.
+2. **New venue…**, and give it a name (*DC*, *The Grand Hall*). It starts flat.
+3. With music playing, set it while you listen in the room. It's heard at once, mid-song.
+
+Two ways to set it, one EQ:
+
+- **Simple:** **low**, **mid** (◀ ▶ moves its frequency) and **high**, as on a song. The starting
+  points are here: **Boomy 1** and **2** take the bass and low mids down, for a hall that booms or
+  a muddy room (the mid at 250 Hz, where the mud builds up); **Padded 1** and **2** add a little
+  warmth and air, for a damped room full of people; **Neutral** is flat.
+- **Advanced:** a 10-band graphic EQ, one fader per octave from 31 Hz to 16 kHz, as on a venue's
+  rack. It starts shaped like the three bands, so switching changes nothing you hear.
+
+The curve beside the faders shows what the room gets, in either view. Cuts go to -12 dB and boosts
+to +6: a boost lights LIMIT sooner, and taking away what's too much usually works better than
+adding. Once you've changed the bands in Advanced, Simple says *Set in Advanced*; **Switch to 3
+bands** goes back to the 3-band settings you had before.
+
+Choose another venue in the list and its EQ is heard straight away; **No venue** is flat. GZJam
+opens with the venue you had and says which at startup; while its EQ is on, the key's light is on
+and the MAIN chip shows its name, so last week's room never follows you into a new one unnoticed. The room EQ is never in your headphones or the
+booth: cueing still sounds like the song. Volume and outputs aren't part of a venue, so choosing
+one never makes the room louder.
 
 ---
 

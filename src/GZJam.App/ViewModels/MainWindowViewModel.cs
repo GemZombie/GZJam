@@ -89,6 +89,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
             Mixer = new MixerViewModel(this, mix, settings);
+            RoomEq = new RoomEqViewModel(this, mix, settings);
             AirLine = new AirLineViewModel(this, mix, Queue);
             Preview = new PreviewViewModel(this, mix.Preview);
             AutoPlay = new AutoPlayViewModel(this, mix, Queue, settings);
@@ -1099,6 +1100,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         d != deck && d.IsOnAir && Crossfade.Side(d.Deck.Index) == Crossfade.Side(deck.Deck.Index));
     public MixerViewModel? Mixer { get; }
 
+    /// <summary>The venue and its room EQ on the speakers (#272); null without audio.</summary>
+    public RoomEqViewModel? RoomEq { get; }
+
     /// <summary>What the room hears and what's next, in place of hidden decks (#164).</summary>
     public AirLineViewModel? AirLine { get; }
     public PreviewViewModel? Preview { get; }
@@ -1166,6 +1170,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _nightBack = RestoreNightAsync();
         Startup = StartLibraryAsync();
         Files.Start();
+        RoomEq?.Announce();
     }
 
     /// <summary>The library's startup, from the first scan to the servers' sync: done when GZJam has settled in (tests wait for it).</summary>

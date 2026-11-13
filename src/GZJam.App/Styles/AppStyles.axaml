@@ -965,10 +965,11 @@
     <Setter Property="MinHeight" Value="30" />
   </Style>
 
+  <!-- Narrow enough to leave the ROOM EQ key between them room for a venue's name (#272) -->
   <Style Selector="Button.side">
-    <Setter Property="MinWidth" Value="52" />
+    <Setter Property="MinWidth" Value="44" />
     <Setter Property="MinHeight" Value="30" />
-    <Setter Property="Padding" Value="9,0" />
+    <Setter Property="Padding" Value="8,0" />
     <Setter Property="FontSize" Value="13" />
   </Style>
   <!-- Compact decks: the side keys either side of the crossfader, narrow, so it keeps its width -->

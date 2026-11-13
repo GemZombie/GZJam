@@ -145,6 +145,8 @@ public sealed class LevelMeter : Control
         double below = double.NegativeInfinity;   // where the last label drawn ends
         foreach (var (db, label) in Labels.Value)
         {
+            if (Bounds.Height < label.Height)
+                return;   // squeezed shorter than a label: no scale rather than a crash
             double y = Bounds.Height * (-db / Range);
             y = Math.Clamp(y - label.Height / 2, 0, Bounds.Height - label.Height);
             if (y < below)

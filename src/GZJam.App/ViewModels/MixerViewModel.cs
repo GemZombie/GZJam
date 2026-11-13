@@ -220,6 +220,9 @@ public sealed partial class MixerViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>The crossfader's tip: what it does, and what the room hears now (<see cref="LiveText"/>).</summary>
+    public string CrossfaderTip => $"Crossfader: fades the room between the left deck(s) and the right. Now: {LiveText}";
+
     /// <summary>
     /// "1 · LIVE", "2 · LIVE", or "BLEND" when the room hears some of both. With four decks, the
     /// deck playing on the live side, or both of that side's decks ("1 / 3 · LIVE") if neither is.
@@ -243,6 +246,9 @@ public sealed partial class MixerViewModel : ObservableObject
     /// <summary>Decks 3 and 4 are on screen, so the side buttons show them too.</summary>
     public bool IsFourDecks => owner.FourDecks;
 
+    /// <summary>The room EQ's key under MAIN (#272).</summary>
+    public RoomEqViewModel? RoomEq => owner.RoomEq;
+
     public string LeftTip => (owner.FourDecks ? "Switch the room to the left: Decks 1 and 3" : "Switch the room to Deck 1") + $" · key: {Shortcuts.Command}+←";
     public string RightTip => (owner.FourDecks ? "Switch the room to the right: Decks 2 and 4" : "Switch the room to Deck 2") + $" · key: {Shortcuts.Command}+→";
 
@@ -252,6 +258,7 @@ public sealed partial class MixerViewModel : ObservableObject
         OnPropertyChanged(nameof(LeftTip));
         OnPropertyChanged(nameof(RightTip));
         OnPropertyChanged(nameof(LiveText));
+        OnPropertyChanged(nameof(CrossfaderTip));
     }
 
     /// <summary>Glides the fader fully to the left (Deck 1): a quick, click-free switch that's easy to hit on a touchscreen.</summary>
@@ -275,6 +282,7 @@ public sealed partial class MixerViewModel : ObservableObject
         {
             _liveText = LiveText;   // with four decks it follows which deck is playing, too
             OnPropertyChanged(nameof(LiveText));
+            OnPropertyChanged(nameof(CrossfaderTip));
         }
         if (_snapTarget is not { } target)
             return;
@@ -296,6 +304,7 @@ public sealed partial class MixerViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(Crossfader));
         OnPropertyChanged(nameof(LiveText));
+        OnPropertyChanged(nameof(CrossfaderTip));
         OnPropertyChanged(nameof(IsDeck1Live));
         OnPropertyChanged(nameof(IsDeck2Live));
         owner.RefreshDecks();
