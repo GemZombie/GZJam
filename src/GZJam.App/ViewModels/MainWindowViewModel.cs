@@ -1633,18 +1633,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// hearing (with nothing playing, the one it will hear). A song from the queue leaves it, as
     /// dragging it would. Returns whether it was loaded onto a deck.
     /// </summary>
-    public async Task<bool> PlaySongAsync(Track track, QueueItem? queued = null)
+    public async Task<bool> PlaySongAsync(Track track, QueueItem? queued = null) => await LoadForPlayAsync(track, queued) is not null;
+
+    /// <summary>As <see cref="PlaySongAsync"/>: the deck the song went onto, or null.</summary>
+    private async Task<DeckViewModel?> LoadForPlayAsync(Track track, QueueItem? queued = null)
     {
         if (track.IsOnServerOnly)
         {
             if (await Servers.BringHereAsync(track, "For a deck") is not { } here)
-                return false;
+                return null;
             track = here;
         }
         if (Files.IsOnStick(track))
         {
             if (await Files.ReadInAsync([track]) is not [var read])
-                return false;
+                return null;
             track = read;
         }
         DeckViewModel? deck;
@@ -1659,7 +1662,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     Queue.PlayNext([track]);
                 Log.Info($"\"{track.DisplayTitle}\" first in the queue (double-click; the next deck is busy)");
                 ShowNotice($"\"{track.DisplayTitle}\" is first in the queue");
-                return false;
+                return null;
             }
         }
         else if (AutoPlay?.DeckForNextSong() is { } next)
@@ -1668,18 +1671,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         else
         {
-            return false;
+            return null;
         }
         if (!CanLoad(deck))
         {
             ShowNotice($"Deck {deck.Label} is on air. Pause it, or crossfade away from it, to load a new track.");
-            return false;
+            return null;
         }
         if (!await LoadToDeckAsync(deck, track))
-            return false;
+            return null;
         if (queued is not null)
             Queue.Loaded([queued]);
-        return true;
+        return deck;
     }
 
     private bool AnyDeckPlaying()

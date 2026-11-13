@@ -39,7 +39,7 @@ pkg="$stage/pkg"
 mkdir -p "$pkg"
 cp -R "$publish"/. "$pkg/app/"
 chmod +x "$pkg/app/GZJam"
-sed "s|^Exec=.*|Exec=/usr/bin/gzjam|" "$here/gzjam.desktop" > "$pkg/gzjam.desktop"
+sed "s|^Exec=.*|Exec=/usr/bin/gzjam %F|" "$here/gzjam.desktop" > "$pkg/gzjam.desktop"
 cp "$root/src/GZJam.App/Assets/gzjam.png" "$pkg/"
 cp "$root/LICENSE" "$pkg/"
 

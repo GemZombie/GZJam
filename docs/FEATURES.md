@@ -373,6 +373,42 @@ is out of scope until it earns a place.
 - The preview player (headphone icon on every library and queue row, or Space) has its own seek
   bar; a second tap on the same track stops it.
 
+### Status: GZJam as the player for song files (#336, 1.8.0-beta.2)
+
+- **One GZJam per data folder:** `SingleInstance` (`Program.Main`, before Avalonia).
+  - A named mutex, `GZJam-` and a hash of the data folder (`Local\` on Windows; case-insensitive
+    on Windows and macOS), so a `GZJAM_DATA_DIR` test copy runs beside the real one.
+  - The first copy listens on a named pipe of the same name. A second copy sends its arguments,
+    one per line, and exits: 86 ms in a hand-test.
+  - If the first copy doesn't answer within 3 s, the second runs anyway.
+  - `--after-close` (from `Relaunch`: restoring a backup, starting over) waits up to 30 s for the
+    old copy's lock instead of handing over. The lock is released when GZJam closes.
+- **Opening:** `App.OpenWith` handles the arguments GZJam started with, anything handed over (a
+  copy started with no song brings this one forward), and macOS's `FileActivatedEventArgs` (Finder
+  sends an event, not arguments). `MainWindowViewModel.OpenFromFileManagerAsync`:
+  - waits for `_nightBack`;
+  - checks the file exists and `LibraryScanner.IsAudioFile`;
+  - reads it with `TrackForFile` (outside the library: not added);
+  - with a deck on air: `Preview.PlayFromStart` (a restart, not `Toggle`), or the headphone-output
+    notice, never the speakers;
+  - else `LoadForPlayAsync` (the deck #260 picks; `PlaySongAsync` now wraps it) and plays it.
+  - It returns `OpenedTo`, so the window comes forward only for a deck. Of several files, the first
+    plays, and a notice says the rest were left.
+- **Registering:**
+  - Windows: the installer's `[Registry]` under `HKA`, per user or everyone as installed. A
+    `GZJam.Song` ProgID, `Applications\GZJam.exe` with `SupportedTypes`, and `OpenWithProgids`
+    for each of `LibraryScanner.AudioExtensions`, plus `ChangesAssociations`. No default is taken.
+  - Linux: `MimeType=` and `Exec=… %F` in `gzjam.desktop`, kept by the three scripts that rewrite
+    `Exec`.
+  - macOS: `CFBundleDocumentTypes` for audio, `LSHandlerRank` Alternate.
+- **Tests:** `OpenWithAppTests`:
+  - a quiet room plays on a deck without joining the library;
+  - with a song on air, the headphones, no deck touched, and opening it again restarts it;
+  - files that can't play, or are gone, and several opened at once;
+  - the pipe hand-off, and switches that aren't songs;
+  - names per data folder.
+  - Hand-tested with two processes on a scratch data folder.
+
 ### Status: Playlists as a source (#423, 1.8)
 
 - **The source:** `LibrarySource.Playlists`, last in `LibraryViewModel.Sources`. Chosen, the

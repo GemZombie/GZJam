@@ -34,6 +34,17 @@ public sealed partial class PreviewViewModel(MainWindowViewModel owner, PreviewP
     public double Progress => player.Length > TimeSpan.Zero ? player.Position / player.Length : 0;
     public string TimeText => $"{Format.Duration(player.Position)} / {Format.Duration(player.Length)}";
 
+    /// <summary>
+    /// Starts previewing, from the top even if it's already previewing (a song opened from the file
+    /// manager, #336): a second double-click starts it again rather than stopping it.
+    /// </summary>
+    public void PlayFromStart(Track track)
+    {
+        if (Track?.Path == track.Path)
+            Stop();
+        Toggle(track);
+    }
+
     /// <summary>Starts previewing, or stops if this track is already previewing (a second tap stops it).</summary>
     public void Toggle(Track track)
     {

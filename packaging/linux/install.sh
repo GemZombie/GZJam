@@ -33,7 +33,7 @@ mkdir -p "$dest" "$(dirname "$bin")" "$(dirname "$desktop")" "$(dirname "$icon")
 cp -R "$here"/. "$dest/"
 ln -sf "$dest/GZJam" "$bin"
 cp "$here/gzjam.png" "$icon"
-sed "s|^Exec=.*|Exec=$dest/GZJam|" "$here/gzjam.desktop" > "$desktop"
+sed "s|^Exec=.*|Exec=$dest/GZJam %F|" "$here/gzjam.desktop" > "$desktop"
 command -v update-desktop-database > /dev/null && update-desktop-database "$(dirname "$desktop")" || true
 
 echo "GZJam installed in $dest."
