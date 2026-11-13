@@ -454,7 +454,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>What loudness matching does to a song: 0 if it's off or the song isn't measured yet.</summary>
     internal double MatchDb(double? lufs, double? peakDb) =>
-        _settings.MatchLoudness && lufs is { } measured ? LoudnessMatch.GainDb(measured, peakDb, _settings.LoudnessTarget) : 0;
+        _settings.MatchLoudness && lufs is { } measured ? LoudnessMatch.GainDb(measured, peakDb, _settings.LoudnessTargetNow) : 0;
 
     /// <summary>"−14.2 LUFS · matching −2 dB", for the EQ panel.</summary>
     internal string LevelText(double? lufs, double? peakDb, bool measuring = false)
@@ -1102,6 +1102,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>The venue and its room EQ on the speakers (#272); null without audio.</summary>
     public RoomEqViewModel? RoomEq { get; }
+
+    /// <summary>
+    /// Another venue is loaded (#440): mono and the loudness target follow it, the decks and the
+    /// preview matched again at once if the target changed.
+    /// </summary>
+    internal void VenueChanged(double targetBefore)
+    {
+        Mixer?.FollowMono();
+        if (_settings.LoudnessTargetNow == targetBefore)
+            return;
+        Log.Info($"Loudness target {_settings.LoudnessTargetNow:0} LUFS, for the venue");
+        foreach (DeckViewModel deck in Decks)
+            deck.LoudnessSettingChanged();
+        Preview?.LoudnessSettingChanged();
+    }
 
     /// <summary>What the room hears and what's next, in place of hidden decks (#164).</summary>
     public AirLineViewModel? AirLine { get; }

@@ -128,6 +128,9 @@
             </Border>
 
             <TextBlock Classes="settings-group" Text="PLAYBACK" />
+            <!-- A venue loaded (#440): these two are its own -->
+            <TextBlock x:Name="VenueNote" Classes="setting-help" Foreground="{StaticResource AccentBrush}" Margin="2,0,0,6"
+                       Text="{Binding VenueNote}" IsVisible="{Binding VenueNote, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <Border Classes="settings-card">
               <StackPanel>
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">

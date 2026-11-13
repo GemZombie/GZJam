@@ -131,13 +131,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Speakers, booth and headphones play mono.</summary>
     public bool Mono
     {
-        get => _owner.Mixer?.IsMono ?? _settings.Mono;
+        get => _owner.Mixer?.IsMono ?? _settings.MonoNow;
         set
         {
             if (_owner.Mixer is { } mixer)
                 mixer.IsMono = value;
             else
-                _settings.Mono = value;
+                _settings.MonoNow = value;
             OnPropertyChanged();
         }
     }
@@ -204,6 +204,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>With a venue loaded (#440): mono and the loudness target are that venue's.</summary>
+    public string? VenueNote => _settings.LoadedVenue is { } venue ? $"Mono and Loudness target are saved for {venue.Name}." : null;
+
     public IReadOnlyList<Choice<double>> LoudnessTargetChoices { get; } = LoudnessMatch.Targets
         .Select(t => new Choice<double>(t, $"−{-t:0} LUFS" + (t == LoudnessMatch.TargetLufs ? " (usual)" : t == LoudnessMatch.Targets[^1] ? " (most headroom)" : "")))
         .ToList();
@@ -211,12 +214,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>What matching aims at (see <see cref="AppSettings.LoudnessTarget"/>).</summary>
     public Choice<double> LoudnessTargetChoice
     {
-        get => LoudnessTargetChoices.FirstOrDefault(c => c.Value == _settings.LoudnessTarget) ?? LoudnessTargetChoices[0];
+        get => LoudnessTargetChoices.FirstOrDefault(c => c.Value == _settings.LoudnessTargetNow) ?? LoudnessTargetChoices[0];
         set
         {
-            if (value is null || value.Value == _settings.LoudnessTarget)
+            if (value is null || value.Value == _settings.LoudnessTargetNow)
                 return;
-            _settings.LoudnessTarget = value.Value;
+            _settings.LoudnessTargetNow = value.Value;
             Log.Info($"Loudness target {value.Value:0} LUFS");
             foreach (DeckViewModel deck in _owner.Decks)
                 deck.LoudnessSettingChanged();

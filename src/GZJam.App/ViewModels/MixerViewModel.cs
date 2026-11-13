@@ -31,7 +31,7 @@ public sealed partial class MixerViewModel : ObservableObject
         this.owner = owner;
         this.mix = mix;
         _settings = settings;
-        mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = settings.Mono;
+        mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = settings.MonoNow;
         mix.Main.Volume = Gain(settings.MainVolume);
         mix.Cue.Volume = Gain(settings.CueVolume);
         mix.Booth.Volume = Gain(settings.BoothVolume);
@@ -160,10 +160,21 @@ public sealed partial class MixerViewModel : ObservableObject
             if (value == mix.Main.Mono)
                 return;
             mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = value;
-            _settings.Mono = value;
+            _settings.MonoNow = value;
             Log.Info($"Speakers, booth and headphones: {(value ? "mono" : "stereo")}");
             OnPropertyChanged();
         }
+    }
+
+    /// <summary>Another venue is loaded (#440): mono as it has it.</summary>
+    internal void FollowMono()
+    {
+        bool mono = _settings.MonoNow;
+        if (mono == mix.Main.Mono)
+            return;
+        mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = mono;
+        Log.Info($"Speakers, booth and headphones: {(mono ? "mono" : "stereo")}, for the venue");
+        OnPropertyChanged(nameof(IsMono));
     }
 
     /// <summary>The speakers' level, 0..1 along the meter, falling back smoothly.</summary>

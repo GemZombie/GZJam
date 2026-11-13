@@ -77,10 +77,8 @@ public sealed partial class RoomEqViewModel : ObservableObject
             Venue? venue = value == NoVenue ? null : Find(value);
             if (venue?.Name == Current?.Name)
                 return;
-            _settings.Venue = venue?.Name;
             Log.Info(venue is null ? "Room EQ: no venue (flat)" : $"Room EQ: venue \"{venue.Name}\"");
-            ShownView = Eq.View;
-            Apply();
+            Load(venue);
         }
     }
 
@@ -100,11 +98,10 @@ public sealed partial class RoomEqViewModel : ObservableObject
             SayTaken(name);
             return null;
         }
-        _settings.Venues.Add(new Venue { Name = name });
-        _settings.Venue = name;
+        var venue = new Venue { Name = name };
+        _settings.Venues.Add(venue);
         Log.Info($"Room EQ: new venue \"{name}\"");
-        ShownView = RoomEqView.Simple;
-        Apply();
+        Load(venue);
         return name;
     }
 
@@ -129,10 +126,23 @@ public sealed partial class RoomEqViewModel : ObservableObject
     {
         if (Current is not { } venue)
             return;
+        Load(null);
         _settings.Venues.Remove(venue);
-        _settings.Venue = null;
         Log.Info($"Room EQ: venue \"{venue.Name}\" deleted");
         Apply();
+    }
+
+    /// <summary>
+    /// Loads a venue (or none): its room EQ, and its mono and loudness target where it has its own
+    /// (#440), all heard at once.
+    /// </summary>
+    private void Load(Venue? venue)
+    {
+        double targetBefore = _settings.LoudnessTargetNow;
+        _settings.Venue = venue?.Name;
+        ShownView = Eq.View;
+        Apply();
+        _owner.VenueChanged(targetBefore);
     }
 
     private void SayTaken(string name)

@@ -377,9 +377,15 @@ bands** goes back to the 3-band settings you had before.
 
 Choose another venue in the list and its EQ is heard straight away; **No venue** is flat. GZJam
 opens with the venue you had and says which at startup; while its EQ is on, the key's light is on
-and the MAIN chip shows its name, so last week's room never follows you into a new one unnoticed. The room EQ is never in your headphones or the
-booth: cueing still sounds like the song. Volume and outputs aren't part of a venue, so choosing
-one never makes the room louder.
+and the MAIN chip shows its name, so last week's room never follows you into a new one unnoticed.
+The room EQ is never in your headphones or the booth: cueing still sounds like the song.
+
+A venue also keeps **Mono** and the **Loudness target** (Settings › Sound): change either with the
+venue loaded and it's saved for that venue (Settings says so above them). A lower target for a
+venue whose mixer clips easily, stereo for one with a single pair of speakers close together: they
+come back with the venue. Until you change them for a venue, and with **No venue**, they're as
+Settings had them. Volume and outputs aren't part of a venue, so choosing one never makes the room
+louder or moves the music to other speakers.
 
 ---
 
