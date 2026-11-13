@@ -155,8 +155,8 @@
 
             <!-- Simple on show, but the room hears a 10-band setting three bands can't show -->
             <StackPanel x:Name="SetInAdvanced" Width="196" Spacing="10" VerticalAlignment="Center" IsVisible="{Binding IsSetInAdvanced}">
-              <TextBlock Classes="eq-band" Text="SET IN ADVANCED" HorizontalAlignment="Left" />
-              <TextBlock Classes="muted" FontSize="11.5" TextWrapping="Wrap"
+              <TextBlock Classes="eq-band" Text="SET IN ADVANCED" HorizontalAlignment="Center" />
+              <TextBlock Classes="muted" FontSize="11.5" TextWrapping="Wrap" TextAlignment="Center"
                          Text="This venue uses the 10-band EQ." />
               <Button x:Name="UseThreeBandsButton" Classes="eq-action" HorizontalAlignment="Center"
                       Command="{Binding UseThreeBandsCommand}" Content="Switch to 3 bands"
