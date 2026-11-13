@@ -6,8 +6,8 @@ namespace GZJam.Audio;
 /// A mixer feeding one output (main speakers or cue headphones). Normally it plays on an audio
 /// device; with no device it's "offline" and only produces audio when <see cref="Render"/> pulls
 /// it, which is how tests check what each output would sound like.
-/// Everything leaving the bus goes through its volume, optional mono fold-down and a safety
-/// limiter, and is metered. That runs in native code (native/gzjam_dsp.c, #344), not .NET, so
+/// Everything leaving the bus goes through its room EQ (the speakers', #272), volume, optional
+/// mono fold-down and a safety limiter, and is metered. That runs in native code (native/gzjam_dsp.c, #344), not .NET, so
 /// nothing GZJam does, its garbage collections included, can hold up the sound.
 /// </summary>
 public sealed unsafe class OutputBus : IDisposable
@@ -36,6 +36,8 @@ public sealed unsafe class OutputBus : IDisposable
     // replacing it (MixEngine.SetOutputs, Reopen), after its native state is freed.
     private float _volume = 1;
     private bool _mono;
+    private RoomEq _roomEq = RoomEq.Flat;
+    private readonly int[] _roomFx = new int[RoomEq.FilterCount];   // BASS's filters, while the room EQ isn't flat
 
     /// <param name="exclusive">The output GZJam has to itself (Windows), freed with the bus.</param>
     internal OutputBus(int handle, AudioDevice? device, int sampleRate = MixEngine.SampleRate, ExclusiveOutput? exclusive = null)
@@ -152,6 +154,67 @@ public sealed unsafe class OutputBus : IDisposable
     }
 
     /// <summary>
+    /// The room's EQ (#272), for the speakers: BASS's own filters (native code, as the limiter),
+    /// ahead of the volume and the limiter, so the limiter still catches a boost. Flat, there are
+    /// none: GZJam without a venue sounds exactly as before. A change is heard at once, mid-song.
+    /// </summary>
+    public RoomEq RoomEq
+    {
+        get => _roomEq;
+        set
+        {
+            _roomEq = value ?? RoomEq.Flat;
+            if (!_disposed)
+                ApplyRoomEq();
+        }
+    }
+
+    private void ApplyRoomEq()
+    {
+        if (_roomEq.IsFlat)
+        {
+            // Flat filters pass the sound as it is, so taking them out changes nothing heard.
+            for (int i = 0; i < _roomFx.Length; i++)
+            {
+                if (_roomFx[i] != 0)
+                    Bass.ChannelRemoveFX(Handle, _roomFx[i]);
+                _roomFx[i] = 0;
+            }
+            return;
+        }
+        IReadOnlyList<RoomFilter> filters = _roomEq.Filters;
+        for (int i = 0; i < filters.Count; i++)
+        {
+            if (_roomFx[i] == 0)
+            {
+                // Above the volume and limiter's priority (0): BASS runs higher priorities first.
+                _roomFx[i] = Bass.ChannelSetFX(Handle, EffectType.BQF, RoomEq.FilterCount - i);
+                if (_roomFx[i] == 0)
+                    throw new AudioException("Could not add the room EQ", Bass.LastError);
+            }
+            RoomFilter f = filters[i];
+            bool shelf = f.Kind != RoomFilterKind.Peak;
+            var parameters = new ManagedBass.Fx.BQFParameters
+            {
+                lFilter = f.Kind switch
+                {
+                    RoomFilterKind.LowShelf => ManagedBass.Fx.BQFType.LowShelf,
+                    RoomFilterKind.HighShelf => ManagedBass.Fx.BQFType.HighShelf,
+                    _ => ManagedBass.Fx.BQFType.PeakingEQ,
+                },
+                fCenter = (float)f.Hz,
+                fGain = (float)f.GainDb,
+                fBandwidth = 0,
+                fQ = shelf ? 0 : (float)f.Width,
+                fS = shelf ? (float)f.Width : 0,
+                lChannel = FXChannelFlags.All,
+            };
+            if (!Bass.FXSetParameters(_roomFx[i], parameters))
+                throw new AudioException("Could not set the room EQ", Bass.LastError);
+        }
+    }
+
+    /// <summary>
     /// The loudest left and right samples since the last call (0 to 1), and whether the limiter
     /// had to hold the level down. For meters: call it regularly.
     /// </summary>
@@ -167,6 +230,7 @@ public sealed unsafe class OutputBus : IDisposable
     {
         Volume = other.Volume;
         Mono = other.Mono;
+        RoomEq = other.RoomEq;
     }
 
     /// <summary>
