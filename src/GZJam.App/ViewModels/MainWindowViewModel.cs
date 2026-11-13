@@ -1164,9 +1164,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (Mix is not null)
             _playbackTimer.Start();
         _nightBack = RestoreNightAsync();
-        _ = StartLibraryAsync();
+        Startup = StartLibraryAsync();
         Files.Start();
     }
+
+    /// <summary>The library's startup, from the first scan to the servers' sync: done when GZJam has settled in (tests wait for it).</summary>
+    internal Task Startup { get; private set; } = Task.CompletedTask;
 
     /// <summary>The queue and decks brought back at startup: what the downloads' tidying waits for.</summary>
     private Task _nightBack = Task.CompletedTask;

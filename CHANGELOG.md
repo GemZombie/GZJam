@@ -35,6 +35,9 @@ Changed:
 
 Fixed:
 
+- **Moving the folder for server downloads no longer leaves behind a song that just downloaded**
+  (#431). GZJam reads a new song for its waveform straight away, and the move used to skip a
+  song it found still open. Now it waits a moment for it.
 - **Several songs selected in the queue now drag together** (#409). Dragging them onto a playlist
   added only the one you grabbed, because pressing it let go of the others. Now they all go, in
   queue order, onto a playlist, to a folder or to a new place in the queue. Shift-click selects a

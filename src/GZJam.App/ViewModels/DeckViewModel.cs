@@ -78,6 +78,9 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>For the close-up: the song in detail (10 ms a slice) once it's worked out, the overview until then.</summary>
     public Waveform? CloseUpWaveform => _detail ?? Waveform;
 
+    /// <summary>The close-up worked out for the loaded song has arrived (tests wait for it).</summary>
+    internal bool HasCloseUp => _detail is not null;
+
     /// <summary>The song's length in seconds.</summary>
     public double LengthSeconds => Deck.Length.TotalSeconds;
 

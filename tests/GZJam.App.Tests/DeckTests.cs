@@ -56,12 +56,22 @@ public sealed class DeckTests
         vm.Mixer!.Crossfader = 1;   // Deck 1 off air, so nothing stops it here
         playing.TogglePlayCommand.Execute(null);
         app.Play(0.1);
+        // Both songs analyzed first: their waveforms arriving aren't ticks (on a busy machine, #431).
+        AppHarness.WaitFor(() => playing.HasCloseUp && paused.HasCloseUp && !playing.IsAnalyzing && !paused.IsAnalyzing,
+            TimeSpan.FromSeconds(20));
+        app.Play(0.1);
 
         var raised = new Dictionary<DeckViewModel, List<string>> { [playing] = [], [paused] = [], [empty] = [] };
         foreach (var (deck, names) in raised)
             deck.PropertyChanged += (_, e) => names.Add(e.PropertyName!);
+        string pausedStarts = paused.StartsText;
         for (int i = 0; i < 60; i++)   // two seconds of ticks
             app.Play(1.0 / 30);
+        // When the paused deck's song plays is now plus what's left of the other's. The ticks play
+        // faster than the clock runs, so that time drifts a second or two, and its text changes
+        // if that crosses a minute (#431): a real change, not a needless one.
+        if (paused.StartsText != pausedStarts)
+            raised[paused].RemoveAll(n => n == nameof(DeckViewModel.StartsText));
 
         Assert.Empty(raised[empty]);
         Assert.Empty(raised[paused]);
