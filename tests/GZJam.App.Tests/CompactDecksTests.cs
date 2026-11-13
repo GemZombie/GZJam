@@ -117,4 +117,45 @@ public sealed class CompactDecksTests
         Assert.Equal(HeightOf(app, "Deck1View"), HeightOf(app, "MixerPanel"), 0);
         Assert.Equal(40, HeightOf(app, "Crossfader"), 0);
     }
+
+    [AvaloniaFact]
+    public void Beside_compact_decks_MAIN_and_PHONES_lie_down_with_room_to_move()
+    {
+        // Upright, a compact mixer's faders were stubs about 40 px tall (#441).
+        using var app = new AppHarness();
+        var mixer = app.ViewModel.Mixer!;
+        var upright = app.Window.FindControl<Control>("UprightFaders")!;
+        var lyingDown = app.Window.FindControl<Control>("CompactFaders")!;
+        Assert.True(upright.IsVisible);
+        Assert.False(lyingDown.IsVisible);
+
+        app.ViewModel.CompactDecks = true;
+        AppHarness.Settle(150);
+        Assert.False(upright.IsVisible);
+        Assert.True(lyingDown.IsVisible);
+        var main = app.Window.FindControl<GZJam.App.Controls.CrossfaderControl>("CompactMainFader")!;
+        var phones = app.Window.FindControl<GZJam.App.Controls.CrossfaderControl>("CompactCueFader")!;
+        Assert.True(main.Bounds.Width > 80, $"MAIN has {main.Bounds.Width:0} px");
+        Assert.True(app.Window.FindControl<Control>("CompactMeter")!.Bounds.Width > 80);
+
+        // The same volumes as the upright faders, either way round.
+        main.Value = 0.5;
+        Assert.Equal(50, mixer.MainVolume);
+        mixer.CueVolume = 30;
+        Assert.Equal(0.3, phones.Value, 3);
+
+        // The room EQ key (#272) has a place here: the crossfader is between 1 and 2.
+        var key = app.Window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RoomEqCompactKey")!;
+        Assert.True(key.IsVisible);
+        Assert.False(app.Window.FindControl<Control>("RoomEqKey")!.IsVisible);
+        key.IsChecked = true;
+        AppHarness.Settle(150);
+        Assert.True(app.ViewModel.RoomEq!.IsShown);
+        app.Screenshot("compact-room-eq");
+
+        app.ViewModel.CompactDecks = false;
+        AppHarness.Settle(150);
+        Assert.True(upright.IsVisible);
+        Assert.Equal(50, app.Window.FindControl<GZJam.App.Controls.Fader>("MainVolumeFader")!.Value);
+    }
 }

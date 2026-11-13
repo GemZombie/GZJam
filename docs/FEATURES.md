@@ -1008,12 +1008,20 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
   can be changed while the room is listening.
 - Not a performance EQ: no permanent knobs, since it's set once per recording.
 
+### Status: MAIN and PHONES lying down beside compact decks (2026-11-13, #441)
+
+- Beside compact decks the upright faders (`UprightFaders`) give way to `CompactFaders`: MAIN and
+  PHONES as `CrossfaderControl`s (5 ticks) bound to `MixerViewModel.MainFader`/`CueFader` (the
+  volumes as 0-1), the speakers' `LevelMeter` lying down (`IsHorizontal`: a row per side, no
+  scale) between them, the LIMIT LED at the end of MAIN and the room EQ key at the end of PHONES.
+  `CompactFaderHeight`: 22, or 32 in touch mode. Full-size decks keep the upright faders.
+
 ### Status: room EQ for each venue built (2026-11-13, #272)
 
 - The room EQ key on the mixer, between the crossfader's side keys where *1 · LIVE* was (a toggle:
   a graphic-EQ icon and an LED lit while the EQ isn't flat; the venue in its tip) rolls a panel
-  down under the decks (`RoomEqPanel`, a row of its own in the main grid). Hidden beside compact
-  decks, where the crossfader takes that place. While the EQ is on, the MAIN output chip adds
+  down under the decks (`RoomEqPanel`, a row of its own in the main grid). Beside compact decks,
+  where the crossfader takes that place, a second key at the end of PHONES (#441). While the EQ is on, the MAIN output chip adds
   *ROOM EQ <venue>*. A key under MAIN was tried first: it made the decks 38 px taller.
 - Venues in the settings (`Venues`, `Venue`), each a name and a `RoomEq`. Not the volume or the
   outputs. Choosing one applies it at once; *No venue* is flat. A notice at startup names the venue.

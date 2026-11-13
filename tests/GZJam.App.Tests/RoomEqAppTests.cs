@@ -144,18 +144,22 @@ public sealed class RoomEqAppTests
     }
 
     [AvaloniaFact]
-    public void Beside_compact_decks_the_key_gives_way_to_the_crossfader()
+    public void Beside_compact_decks_the_key_moves_to_the_end_of_PHONES()
     {
         using var app = new AppHarness();
         var key = app.Window.FindControl<ToggleButton>("RoomEqKey")!;
+        var compactKey = app.Window.FindControl<ToggleButton>("RoomEqCompactKey")!;
         Assert.True(key.IsVisible);
+        Assert.False(compactKey.IsVisible);
 
         app.ViewModel.CompactDecks = true;
         AppHarness.Settle(150);
         Assert.False(key.IsVisible);   // the crossfader sits between 1 and 2 there
+        Assert.True(compactKey.IsVisible);
 
         app.ViewModel.CompactDecks = false;
         AppHarness.Settle(150);
         Assert.True(key.IsVisible);
+        Assert.False(compactKey.IsVisible);
     }
 }

@@ -151,9 +151,12 @@ public partial class MainWindow
         }
         MixerPanel.Padding = compact ? new Thickness(12, 8) : new Thickness(14, 12);
         PhonesMixRow.IsVisible = !compact;
-        // Between the side keys, where the crossfader goes beside compact decks (#272): the
-        // venue's EQ stays on the speakers there, and the panel, if it's out, stays out.
+        // Beside compact decks, MAIN and PHONES lie down (#441), and the room EQ key (#272) moves
+        // from between 1 and 2, where the crossfader goes, to the end of PHONES.
+        UprightFaders.IsVisible = !compact;
+        CompactFaders.IsVisible = compact;
         RoomEqKey.IsVisible = !compact && Vm.RoomEq is not null;
+        RoomEqCompactKey.IsVisible = compact && Vm.RoomEq is not null;
         Grid.SetRow(Crossfader, compact ? 1 : 0);
         Grid.SetColumn(Crossfader, compact ? 1 : 0);
         Grid.SetColumnSpan(Crossfader, compact ? 1 : 3);

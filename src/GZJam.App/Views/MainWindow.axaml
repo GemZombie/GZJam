@@ -234,7 +234,7 @@
            mix, the crossfader -->
       <Border x:Name="MixerPanel" Grid.Column="1" Classes="panel" Padding="14,12">
         <Grid RowDefinitions="*,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
-          <Grid ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
+          <Grid x:Name="UprightFaders" ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
             <c:LevelMeter x:Name="MainMeter" IsMono="{Binding IsMono}" Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
                           Margin="0,6,0,6"
                           ToolTip.Tip="What the speakers are playing. One column: mono (change in Settings)." />
@@ -250,6 +250,34 @@
             </StackPanel>
             <TextBlock Grid.Row="1" Grid.Column="1" Classes="fader-label" Text="MAIN" HorizontalAlignment="Center" />
             <TextBlock Grid.Row="1" Grid.Column="2" Classes="fader-label" Text="PHONES" HorizontalAlignment="Center" />
+          </Grid>
+
+          <!-- Beside compact decks (#441): MAIN and PHONES lying down, the width of the mixer rather
+               than a stub of a fader, the speakers' meter as a bar under MAIN, and the room EQ key
+               at the end of PHONES (the crossfader takes its place between 1 and 2 there). -->
+          <Grid x:Name="CompactFaders" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="2"
+                VerticalAlignment="Center" IsVisible="False">
+            <TextBlock Classes="fader-label" Text="MAIN" VerticalAlignment="Center" />
+            <c:CrossfaderControl x:Name="CompactMainFader" Grid.Column="1" TickCount="5" Height="{DynamicResource CompactFaderHeight}"
+                                 Value="{Binding MainFader}" ToolTip.Tip="{Binding MainVolumeTip}" />
+            <Border x:Name="CompactLimitLed" Grid.Column="2" Classes="led red" Classes.on="{Binding IsLimiting}" Width="6" Height="6"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    ToolTip.Tip="LIMIT: lights when the speakers are too loud and the limiter is holding them down. Turn down a deck or the main volume." />
+            <c:LevelMeter x:Name="CompactMeter" Grid.Row="1" Grid.Column="1" IsHorizontal="True" IsMono="{Binding IsMono}"
+                          Left="{Binding LevelLeft}" Right="{Binding LevelRight}" Height="5" Margin="4,0"
+                          ToolTip.Tip="What the speakers are playing. One bar: mono (change in Settings)." />
+            <TextBlock Grid.Row="2" Classes="fader-label" Text="PHONES" VerticalAlignment="Center" />
+            <c:CrossfaderControl x:Name="CompactCueFader" Grid.Row="2" Grid.Column="1" TickCount="5" Height="{DynamicResource CompactFaderHeight}"
+                                 IndexBrush="{StaticResource Deck2Brush}" Value="{Binding CueFader}" ToolTip.Tip="{Binding CueVolumeTip}" />
+            <ToggleButton x:Name="RoomEqCompactKey" Grid.Row="2" Grid.Column="2" Classes="hw" MinHeight="0" MinWidth="0" Padding="5,2"
+                          VerticalAlignment="Center" IsChecked="{Binding RoomEq.IsShown, FallbackValue=False}" ToolTip.Tip="{Binding RoomEq.KeyTip}">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <Border Classes="led green" Classes.on="{Binding RoomEq.IsOn, FallbackValue=False}" Width="5" Height="5" VerticalAlignment="Center" />
+                <Path Data="{StaticResource IconRoomEq}" Stroke="{Binding $parent[ToggleButton].Foreground}"
+                      Fill="{Binding $parent[ToggleButton].Foreground}" StrokeThickness="1.4" StrokeLineCap="Round"
+                      Stretch="Uniform" Width="13" Height="13" VerticalAlignment="Center" />
+              </StackPanel>
+            </ToggleButton>
           </Grid>
 
           <!-- The phones mix: what the headphones hear, from what's cued to what the room hears -->

@@ -53,9 +53,24 @@ public sealed partial class MixerViewModel : ObservableObject
             _settings.MainVolume = value;
             mix.Main.Volume = Gain(value);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(MainFader));
             OnPropertyChanged(nameof(MainVolumeText));
             OnPropertyChanged(nameof(MainVolumeTip));
         }
+    }
+
+    /// <summary>MAIN as 0-1, for the sideways fader beside compact decks (#441).</summary>
+    public double MainFader
+    {
+        get => MainVolume / 100;
+        set => MainVolume = value * 100;
+    }
+
+    /// <summary>PHONES as 0-1, for the sideways fader beside compact decks (#441).</summary>
+    public double CueFader
+    {
+        get => CueVolume / 100;
+        set => CueVolume = value * 100;
     }
 
     /// <summary>Headphone volume, 0-100.</summary>
@@ -70,6 +85,7 @@ public sealed partial class MixerViewModel : ObservableObject
             _settings.CueVolume = value;
             mix.Cue.Volume = Gain(value);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(CueFader));
             OnPropertyChanged(nameof(CueVolumeText));
             OnPropertyChanged(nameof(CueVolumeTip));
         }
