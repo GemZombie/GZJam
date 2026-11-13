@@ -294,6 +294,9 @@ loudness matching; and **EVEN**, which brings quiet passages up and loud ones do
 uneven transfer. *Less hiss* turns the treble down 6 dB to start with; *Flat* resets it all. The chip
 lights when a song has EQ. The room and the headphones hear it alike.
 
+It's for the recording, not the room: a song's EQ goes with it to every venue. A muddy or boomy
+room is fixed on the venue's mixer or sound system, so the songs still sound right in the next one.
+
 ### Fade out
 
 **FADE OUT** fades the deck out over 5 seconds (Settings › Decks › *Fade-out length*). It counts as
