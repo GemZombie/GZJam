@@ -228,6 +228,13 @@ public sealed class AppSettings
     /// </summary>
     public List<string> TagColumns { get; set; } = [];
 
+    /// <summary>
+    /// Widths the DJ gave the song list's columns by dragging (#390), by column name, or
+    /// <c>tag:</c> and the tag's key for a tag column: pixels ("120"), or a share of the room
+    /// left for Title, Artist and Album ("2.66*"). A column not here has its default width.
+    /// </summary>
+    public Dictionary<string, string> SongColumnWidths { get; set; } = [];
+
     /// <summary>A song's info also shows the tags only other programs use (#129): MusicBrainz IDs, ReplayGain, the encoder.</summary>
     public bool ShowAllTags { get; set; }
 

@@ -33,6 +33,13 @@ Fixed:
   queue order, onto a playlist, to a folder or to a new place in the queue. Shift-click selects a
   run of songs in the queue, as in the song list.
 
+Changed:
+
+- **The song list remembers its column widths** (#390), as the queue does. Drag a column wider or
+  narrower and it stays that way the next time GZJam opens, in My music, playlists, Servers and
+  Files, and for the tag columns you've added. Right-click a column header › *Widths as they came*
+  puts them back.
+
 ## 1.8.0-beta.1 (2026-11-12)
 
 The first beta of 1.8: quality of life. Playlists are a source of their own now, with the whole
