@@ -31,6 +31,7 @@ public partial class MainWindow : Window
 
         QueueList.AddHandler(PointerPressedEvent, OnQueuePointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         QueueList.AddHandler(KeyDownEvent, OnQueueKeyDown, RoutingStrategies.Tunnel);
+        QueueList.AddHandler(PointerReleasedEvent, OnQueuePointerReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
         _queueDrag = new DragStarter(this, QueueList, item => DragFromQueue((QueueItem)item), QueueMenu);
 
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
@@ -343,13 +344,42 @@ public partial class MainWindow : Window
         {
             bool onHandle = (e.Source as Control)?.FindAncestorOfType<Border>(includeSelf: true) is { } border && border.Classes.Contains("grip");
             _queueDrag.Pressed(e, item, onHandle);
+            // A plain press on one of several selected songs may be the start of dragging them all
+            // (#409): the list would narrow the selection to that song on the press, so it waits
+            // for the release instead, as a file manager does, and a drag takes them all. (A finger
+            // or pen selects on lifting anyway, and its press is left alone for touch scrolling.)
+            _queuePressedInSelection = null;
+            if (e.Pointer.Type == PointerType.Mouse && e.KeyModifiers == KeyModifiers.None && QueueList.SelectedItems is { Count: > 1 } selected && selected.Contains(item)
+                && (e.Source as Visual)?.FindAncestorOfType<ListBoxItem>(includeSelf: true) is { } row)
+            {
+                _queuePressedInSelection = item;
+                row.Focus(NavigationMethod.Pointer);
+                e.Handled = true;
+            }
+        }
+    }
+
+    /// <summary>A song pressed among several selected (#409): it alone is selected when let go, unless the press became a drag.</summary>
+    private QueueItem? _queuePressedInSelection;
+
+    private void OnQueuePointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_queuePressedInSelection is not { } item)
+            return;
+        _queuePressedInSelection = null;
+        if (e.InitialPressMouseButton == MouseButton.Left && Vm.Queue.Items.Contains(item))
+        {
+            QueueList.SelectedItems?.Clear();
+            QueueList.SelectedItem = item;
         }
     }
 
     /// <summary>Dragging a queue row drags the selection if the row is in it, else that row alone.</summary>
     private TrackDrag DragFromQueue(QueueItem pressed)
     {
-        var items = SelectedQueueItems();
+        _queuePressedInSelection = null;   // a drag, not a click: the selection stays
+        // In queue order, not the order they were clicked in (#409).
+        var items = SelectedQueueItems().OrderBy(Vm.Queue.Items.IndexOf).ToList();
         if (!items.Contains(pressed))
         {
             QueueList.SelectedItems?.Clear();
