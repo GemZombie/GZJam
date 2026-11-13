@@ -6,9 +6,9 @@
 // The app's tests drive one window on Avalonia's single UI thread, so in one process they can only
 // run one at a time; most of their time is each test starting GZJam. Here they're shared out, by
 // class, between a few processes (GZJAM_TEST_SHARDS or --shards; by default one fewer than the
-// CPUs, 2 to 4, leaving room for the rest), alongside the library and audio tests. Each process
-// uses its own temporary folders, as every test already does. `dotnet test` still runs them all
-// too, one at a time.
+// CPUs, or two fewer from 8 up, 2 to 6, leaving room for the rest), alongside the library and
+// audio tests. Each process uses its own temporary folders, as every test already does.
+// `dotnet test` still runs them all too, one at a time.
 //
 // Some UI tests time what they do (a double-click, a hint that shows for a few seconds), and a
 // machine with every CPU busy can make one miss. So a test that fails is run again afterwards, on
@@ -23,7 +23,7 @@ using System.Xml.Linq;
 
 string configuration = "Release";
 int shards = int.TryParse(Environment.GetEnvironmentVariable("GZJAM_TEST_SHARDS"), out int fromEnv) ? fromEnv
-    : Math.Clamp(Environment.ProcessorCount - 1, 2, 4);
+    : Math.Clamp(Environment.ProcessorCount >= 8 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1, 2, 6);
 for (int i = 0; i < args.Length; i++)
 {
     if (args[i] is "--shards" && i + 1 < args.Length && int.TryParse(args[++i], out int n))

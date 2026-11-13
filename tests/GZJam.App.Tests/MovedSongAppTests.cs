@@ -7,6 +7,28 @@ namespace GZJam.App.Tests;
 /// <summary>A song renamed or moved on disk while it's queued or on a deck (#87): they follow it.</summary>
 public sealed class MovedSongAppTests
 {
+    /// <summary>
+    /// Renames a file as a DJ would in their file manager, once GZJam has let go of it: on a busy
+    /// machine it may still be reading a song just loaded (its close-up), and Windows won't rename
+    /// a file that's open (#431).
+    /// </summary>
+    private static void Rename(string from, string to)
+    {
+        var until = DateTime.UtcNow.AddSeconds(10);
+        while (true)
+        {
+            try
+            {
+                File.Move(from, to);
+                return;
+            }
+            catch (IOException) when (DateTime.UtcNow < until)
+            {
+                AppHarness.Settle(50);
+            }
+        }
+    }
+
     [AvaloniaFact]
     public async Task The_queue_and_a_playing_deck_follow_a_renamed_song()
     {
@@ -23,8 +45,8 @@ public sealed class MovedSongAppTests
         app.Play(0.2);
 
         string queued = songs[0].Path.Replace(".mp3", " (renamed).mp3"), onDeck = songs[1].Path.Replace(".wav", " (renamed).wav");
-        File.Move(songs[0].Path, queued);
-        File.Move(songs[1].Path, onDeck);
+        Rename(songs[0].Path, queued);
+        Rename(songs[1].Path, onDeck);
         app.ViewModel.Library.RescanRoot(root);
         AppHarness.WaitFor(() => app.ViewModel.Queue.Items[0].Track.Path == queued, TimeSpan.FromSeconds(10));
 
@@ -48,7 +70,7 @@ public sealed class MovedSongAppTests
         AppHarness.Await(app.ViewModel.Library.AddRootAsync(otherFolder));
 
         string moved = Path.Combine(otherFolder, Path.GetFileName(song.Path));
-        File.Move(song.Path, moved);
+        Rename(song.Path, moved);
         foreach (LibraryRoot root in app.Database.GetRoots())
             app.ViewModel.Library.RescanRoot(root.Id);
         try

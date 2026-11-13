@@ -46,7 +46,12 @@ public sealed class AppHarness : IDisposable
         _ownsWork = workDirectory is null;
         _work = workDirectory ?? Directory.CreateTempSubdirectory("gzjam-app-test-").FullName;
         MusicPath = musicFolder ?? Path.Combine(_work, "Music");
-        Database = new LibraryDatabase(Path.Combine(_work, "library.db"));
+        string databasePath = Path.Combine(_work, "library.db");
+        // The test music already scanned (#431): a copy of it and its library, so GZJam's scan at
+        // startup finds every song as it was instead of reading them all again.
+        if (musicFolder is null && !Directory.Exists(MusicPath) && !File.Exists(databasePath))
+            Template.CopyTo(_work);
+        Database = new LibraryDatabase(databasePath);
         // Loudness matching off unless a test asks for it: level checks expect tones at their own level.
         // Pausing on air with one tap unless a test asks otherwise: most tests pause the deck the
         // room hears and aren't about the second tap (tests of the defaults pass their own settings).
@@ -104,9 +109,30 @@ public sealed class AppHarness : IDisposable
     public void Start()
     {
         ViewModel.Start();
-        WaitFor(() => Library.HasLoaded && Library.ScanStatus is null && Library.Roots.Count > 0 && Library.Results.Count > 0,
-            TimeSpan.FromSeconds(60));
-        Settle();
+        WaitFor(() => Library.HasLoaded && Library.ScanStatus is null && Library.Roots.Count > 0 && Library.Results.Count > 0
+            && ViewModel.Startup.IsCompleted, TimeSpan.FromSeconds(60));
+        SettleIdle();
+    }
+
+    /// <summary>
+    /// Runs the UI until it has had nothing to do for a few passes in a row, and no library search
+    /// is on its way (#431): what a fixed wait was for, without waiting longer than it takes.
+    /// Timers (a debounce, a hint's few seconds) still need <see cref="Settle"/> with their time.
+    /// </summary>
+    public static void SettleIdle(int leastMilliseconds = 30)
+    {
+        var start = DateTime.UtcNow;
+        var latest = start.AddSeconds(10);
+        int quiet = 0;
+        while (DateTime.UtcNow < latest)
+        {
+            Dispatcher.UIThread.RunJobs();
+            bool busy = _current?.Library.IsSearching == true;
+            quiet = busy ? 0 : quiet + 1;
+            if (quiet >= 3 && (DateTime.UtcNow - start).TotalMilliseconds >= leastMilliseconds)
+                return;
+            Thread.Sleep(10);
+        }
     }
 
     /// <summary>
@@ -194,6 +220,58 @@ public sealed class AppHarness : IDisposable
         using var frame = Window.CaptureRenderedFrame();
         frame?.Save(path, new PngBitmapEncoderOptions());
         return path;
+    }
+
+    /// <summary>
+    /// The generated music and a library that has scanned and analyzed it, made once for all the
+    /// tests in this process (#431). Each test gets a copy, with the library's paths moved to its
+    /// own folder. Reading the songs' tags took half a second a test, and analyzing them kept
+    /// threads busy beside it in every test; copying them takes a few milliseconds.
+    /// </summary>
+    private static class Template
+    {
+        private static readonly Lazy<string> s_folder = new(Make);
+
+        private static string Make()
+        {
+            string folder = Directory.CreateTempSubdirectory("gzjam-app-template-").FullName;
+            string music = Path.Combine(folder, "Music");
+            GenerateMusic(music);
+            var database = new LibraryDatabase(Path.Combine(folder, "library.db"));
+            LibraryRoot root = database.AddRoot(music);
+            new LibraryScanner(database).Scan(root);
+            using (var audio = new AudioEngine())
+            using (var analysis = new TrackAnalysisService(database, audio))
+            {
+                var pending = database.GetPendingAnalysis(TrackAnalyzer.Version);
+                Await(Task.WhenAll(pending.Select(p => analysis.GetAsync(p.Path))));
+            }
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();   // all written to the file itself
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                try { Directory.Delete(folder, recursive: true); }
+                catch (IOException) { /* best effort */ }
+            };
+            return folder;
+        }
+
+        /// <summary>Copies the music and its library into <paramref name="work"/>, the library's paths moved there.</summary>
+        public static void CopyTo(string work)
+        {
+            string folder = s_folder.Value;
+            string from = Path.Combine(folder, "Music"), to = Path.Combine(work, "Music");
+            foreach (string file in Directory.EnumerateFiles(from, "*", SearchOption.AllDirectories))
+            {
+                string copy = Path.Combine(to, Path.GetRelativePath(from, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(copy)!);
+                File.Copy(file, copy);
+                // A song counts as unchanged only with the very same size and modified time.
+                File.SetLastWriteTimeUtc(copy, File.GetLastWriteTimeUtc(file));
+            }
+            foreach (string file in Directory.EnumerateFiles(folder, "library.db*"))
+                File.Copy(file, Path.Combine(work, Path.GetFileName(file)));
+            LibraryDatabase.MoveMusicFolders(Path.Combine(work, "library.db"), [(from, to)]);
+        }
     }
 
     /// <summary>A small library in the genre / style / artist / album layout.</summary>

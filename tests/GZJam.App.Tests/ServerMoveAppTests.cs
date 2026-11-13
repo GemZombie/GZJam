@@ -76,7 +76,9 @@ public sealed class ServerMoveAppTests
         string movedBoogie = Path.Combine(bigger, Path.GetRelativePath(old, boogie));
         Assert.Equal(movedBoogie, PathOf(app, server, "s1"));
         Assert.True(File.Exists(movedBoogie));
-        Assert.False(Directory.Exists(old));   // emptied, and gone
+        // Emptied, and gone: on Windows once the watcher let go of it, a moment later on a busy
+        // machine (#431).
+        AppHarness.WaitFor(() => !Directory.Exists(old), TimeSpan.FromSeconds(10));
         Assert.Equal(bigger, servers.DownloadsFolder);
         Assert.Equal(Rating.Loved, app.Database.GetMarks(movedBoogie).Rating);
         PlaylistInfo friday = Assert.Single(app.Database.GetPlaylists(), p => p.Name == "Friday");
@@ -153,16 +155,15 @@ public sealed class ServerMoveAppTests
         WaitFor(() => fake.Started.Count == 1, "Li'l Darlin' coming down");
 
         Task move = servers.ChangeDownloadsFolderAsync(bigger);
-        AppHarness.Settle(300);
+        WaitFor(() => servers.SyncStatus == "Waiting for a song still downloading…", "the move waiting");
         Assert.False(move.IsCompleted);
-        Assert.Equal("Waiting for a song still downloading…", servers.SyncStatus);
 
         fake.Hold.SetResult();
         Finish(move);
-        Assert.True(coming.IsCompleted);
+        WaitFor(() => coming.IsCompleted, "the download finished");
         Assert.StartsWith(bigger, PathOf(app, server, "s4"));   // moved with the rest
         Assert.All(app.Database.GetServerDownloads(server.Server.Id), d => Assert.StartsWith(bigger, d.Path));
-        Assert.False(Directory.Exists(old));
+        AppHarness.WaitFor(() => !Directory.Exists(old), TimeSpan.FromSeconds(10));   // once the watcher let go (#431)
     }
 
     [AvaloniaFact]

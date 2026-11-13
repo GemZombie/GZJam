@@ -125,8 +125,10 @@ dotnet run tools/test.cs
 ```
 
 UI tests run headless. `tools/test.cs` runs them in a few processes at once (`--shards N` to
-choose how many), alongside the library and audio tests, and prints what failed; `dotnet test`
-runs everything too, one UI test at a time, which takes about four times as long. Set
+choose how many), alongside the library and audio tests, and prints what failed: about four and
+a half minutes on an 8-core laptop. `dotnet test` runs everything too, one UI test at a time,
+which takes several times as long. Each UI test starts from a copy of a test library scanned and
+analyzed once per process (`AppHarness.Template`), not a new one. Set
 `GZJAM_SCREENSHOT_MUSIC` to a real music folder (`C:\music`, say) and `ScreenshotTests` also
 renders the window over it, saving PNGs to `%TEMP%\gzjam-screenshots`. The
 picture at the top of this page is its `readme-main-screen.png`, copied to `docs/images/main-screen.png`.

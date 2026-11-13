@@ -170,7 +170,7 @@ public sealed partial class ServersViewModel
                 string target = Untaken(LibraryDatabase.MovedPath(path, from, to)!);
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 DateTime modified = File.GetLastWriteTimeUtc(path);
-                File.Move(path, target);
+                MoveWhenFree(path, target);
                 File.SetLastWriteTimeUtc(target, modified);   // a copy to another drive is a new file
                 _database.MoveSongFiles([(path, target)]);
                 moves.Add((path, target));
@@ -194,6 +194,27 @@ public sealed partial class ServersViewModel
             Log.Info($"Servers: couldn't remove the empty folder {from}: {e.Message}");
         }
         return (moves, failed);
+    }
+
+    /// <summary>
+    /// Moves a file, trying again for a moment while it's in use: a song just downloaded is read
+    /// for its waveform straight away, and on Windows a file that's open can't move. One that stays
+    /// in use (on a deck in another program, say) throws as before.
+    /// </summary>
+    private static void MoveWhenFree(string path, string target)
+    {
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(path, target);
+                return;
+            }
+            catch (IOException) when (attempt < 20 && File.Exists(path) && !File.Exists(target))
+            {
+                Thread.Sleep(100);   // on the move's own worker thread
+            }
+        }
     }
 
     /// <summary>The folder and those in it, where they hold nothing (or only an album's picture), from the bottom up.</summary>

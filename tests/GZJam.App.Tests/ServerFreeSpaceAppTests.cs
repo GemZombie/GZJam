@@ -132,8 +132,9 @@ public sealed class ServerFreeSpaceAppTests
         var basie = servers.DownloadsInFolder(server.Server.Id, "Jazz & Swing/Count Basie");
         Assert.Equal("s1", Assert.Single(basie).SongId);
         Finish(servers.RemoveFromLaptopAsync(basie));
-        Assert.False(File.Exists(boogie));
-        Assert.False(Directory.Exists(Path.GetDirectoryName(boogie)));   // the empty folder went too
+        // Gone, with its emptied folder: on Windows once nothing has them open any more, a moment
+        // later on a busy machine (the song just downloaded may still be read for its waveform, #431).
+        AppHarness.WaitFor(() => !File.Exists(boogie) && !Directory.Exists(Path.GetDirectoryName(boogie)), TimeSpan.FromSeconds(10));
 
         var library = app.ViewModel.Library;
         library.SelectedFolder = Assert.Single(library.Roots, r => r.IsServerItself);
