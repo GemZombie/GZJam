@@ -6,8 +6,9 @@ namespace GZJam.App.Views;
 
 /// <summary>
 /// Mac: play/pause, fade out and auto-play in the menu of GZJam's Dock icon (right-click or
-/// Control-click it, #262), following <see cref="RoomControls"/>. A first click on air that needs
-/// a second (Settings' two taps) arms it; the menu then says to click again.
+/// Control-click it, #262), following <see cref="RoomControls"/>. One click pauses or fades out,
+/// even with two taps chosen in Settings: opening the menu was the first, and once it has closed a
+/// second can't be made in time (#435).
 /// </summary>
 internal sealed class DockMenu
 {
@@ -17,8 +18,8 @@ internal sealed class DockMenu
     private DockMenu(RoomControls room)
     {
         _room = room;
-        _playPause.Click += (_, _) => _room.PlayPause();
-        _fadeOut.Click += (_, _) => _room.FadeOut();
+        _playPause.Click += (_, _) => _room.PlayPause(atOnce: true);
+        _fadeOut.Click += (_, _) => _room.FadeOut(atOnce: true);
         _autoPlay.Click += (_, _) => _room.ToggleAutoPlay();
     }
 
@@ -38,9 +39,9 @@ internal sealed class DockMenu
     private void Update()
     {
         RoomControls.State state = _room.Current;
-        _playPause.Header = state.PlayPauseTip;
+        _playPause.Header = state.PlayPauseMenu;
         _playPause.IsEnabled = state.CanPlayPause;
-        _fadeOut.Header = state.FadeOutTip;
+        _fadeOut.Header = state.FadeOutMenu;
         _fadeOut.IsEnabled = state.CanFadeOut;
         _autoPlay.Header = state.IsAutoPlayOn ? "Auto-play" : state.AutoPlayTip;
         _autoPlay.IsChecked = state.IsAutoPlayOn;

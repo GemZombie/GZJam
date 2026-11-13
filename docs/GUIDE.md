@@ -318,8 +318,9 @@ still be paused or faded without switching to GZJam:
 - **Mac:** right-click (or Control-click) GZJam's icon in the Dock: the same three are in its menu.
 
 They act on the deck the room hears (or, with nothing playing, the one ready on the crossfader's
-side), as its own keys do: with two taps to pause on air, they take two clicks too, and the
-button's tip (or the menu) says *Click again to pause*. With auto-play on, fade out is the next
+side), as its own keys do. With two taps to pause on air, the taskbar's buttons take two clicks
+too, and the button's tip says *Click again to pause*. The Dock menu takes one: opening it is
+already the first click, and a stray click on the icon only opens it. With auto-play on, fade out is the next
 song: the song fades, the gap, and the next one starts. There's no stop button: pause and fade
 out are GZJam's stop. Linux desktops have no such place, so there's nothing there.
 

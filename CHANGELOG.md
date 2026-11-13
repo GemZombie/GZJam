@@ -13,6 +13,13 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+### Fixed
+
+- Mac: with two taps chosen to pause on air, the Dock icon's menu couldn't pause or fade out the
+  song the room hears. It asked for a second click, but the menu closes after each one. One click
+  in the menu now does it: opening the menu is the first. The Windows taskbar buttons still take
+  two. (#435)
+
 ## 1.8.0-beta.2 (2026-11-13)
 
 The second beta of 1.8. Make GZJam the player for your song files, and a song double-clicked in
