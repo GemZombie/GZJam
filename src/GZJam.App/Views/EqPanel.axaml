@@ -160,6 +160,14 @@
       </Grid>
     </Border>
     <TextBlock x:Name="LevelInfo" Classes="eq-hz" HorizontalAlignment="Left" Text="{Binding LevelText}" Margin="2,-4,0,0" />
+    <!-- An uneven recording (#271): EVEN suggested, never set by itself -->
+    <Grid x:Name="EvenSuggestion" ColumnDefinitions="*,Auto" Margin="2,-4,0,0" IsVisible="{Binding HasSuggestion}">
+      <TextBlock x:Name="EvenSuggestionText" FontSize="11" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"
+                 Text="{Binding SuggestionText}" TextWrapping="Wrap" />
+      <Button x:Name="UseEvenButton" Grid.Column="1" Classes="eq-action" HorizontalAlignment="Right" Padding="10,3"
+              Command="{Binding UseSuggestionCommand}" Content="Use it"
+              ToolTip.Tip="Its quiet passages drop far below its loud ones: EVEN brings them closer. Breaks and stop-time stay silent." />
+    </Grid>
 
     <Grid ColumnDefinitions="*,8,*">
       <Button x:Name="LessHissButton" Classes="eq-action" Command="{Binding LessHissCommand}"

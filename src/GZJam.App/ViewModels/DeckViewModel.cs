@@ -38,7 +38,10 @@ public sealed partial class DeckViewModel : ObservableObject
         _settings = settings;
         Deck = deck;
         Eq = new EqEditor(() => $"DECK {Label} · EQ", () => Title, () => LevelText, ApplyEq,
-            eq => { if (Track is not null) _owner.SaveEq(Track.Path, eq, this); });
+            eq => { if (Track is not null) _owner.SaveEq(Track.Path, eq, this); })
+        {
+            LoudnessRange = () => _loudnessRange,
+        };
         PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(Title) or nameof(LevelText))
@@ -180,7 +183,7 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>How fast matching may change the level of a song the room is hearing (dB per second).</summary>
     private const double OnAirRampDbPerSecond = 3;
 
-    private double? _lufs, _peakDb;
+    private double? _lufs, _peakDb, _loudnessRange;
     private double _matchDb;         // what matching applies now (eases toward the target on air)
     private long _matchMovedAt;
 
@@ -988,7 +991,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = default;
         OnTrimChanged();
-        _lufs = _peakDb = null;
+        _lufs = _peakDb = _loudnessRange = null;
         _matchDb = 0;
         Eq.Set(TrackEq.Flat, save: false);
         _jumpFrom = null;
@@ -1130,7 +1133,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = _autoEnd = null;
         _manualTrim = prepared.Trim;
         ApplyTrim();
-        _lufs = _peakDb = null;
+        _lufs = _peakDb = _loudnessRange = null;
         _matchDb = 0;
         Eq.Set(prepared.Eq, save: false);
         _jumpFrom = null;
@@ -1199,6 +1202,7 @@ public sealed partial class DeckViewModel : ObservableObject
         _autoStart = analysis.AudibleStart;
         _autoEnd = analysis.AudibleEnd;
         (_lufs, _peakDb) = (analysis.Lufs, analysis.PeakDb);
+        _loudnessRange = analysis.LoudnessRange;
         UpdateMatch();
         ApplyEven();
         OnPropertyChanged(nameof(LevelText));

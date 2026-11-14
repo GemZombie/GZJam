@@ -51,6 +51,7 @@ internal static class AnalyzeBench
             Console.WriteLine($"Per track: median {Median(ok.Select(r => r.Took.TotalSeconds)):0.00} s, slowest {ok.Max(r => r.Took.TotalSeconds):0.00} s");
             Console.WriteLine($"Estimate for the whole library: {TimeSpan.FromSeconds(total.Elapsed.TotalSeconds / results.Count * all.Count):h\\:mm}");
             ReportLoudness(ok.Select(r => r.Result!).ToList());
+            ReportRange(ok.Select(r => (r.Track, r.Result!)).ToList());
             foreach (var r in results.Where(r => r.Error is not null))
                 Console.WriteLine($"  FAILED {r.Track.Path}: {r.Error}");
 
@@ -170,6 +171,26 @@ internal static class AnalyzeBench
     }
 
     /// <summary>How loud the library is, and what loudness matching would do to it.</summary>
+    /// <summary>Loudness range (#271): how uneven songs are inside, and the most uneven, to listen to.</summary>
+    private static void ReportRange(IReadOnlyList<(Track Track, TrackAnalysis Result)> results)
+    {
+        var measured = results.Where(r => r.Result.LoudnessRange is not null).OrderBy(r => r.Result.LoudnessRange).ToList();
+        if (measured.Count == 0)
+            return;
+        double P(double p) => measured[(int)Math.Round(p * (measured.Count - 1))].Result.LoudnessRange!.Value;
+        Console.WriteLine();
+        Console.WriteLine($"Loudness range of {measured.Count} tracks (LU): min {P(0):0.0}  10% {P(0.1):0.0}  25% {P(0.25):0.0}  " +
+            $"median {P(0.5):0.0}  75% {P(0.75):0.0}  90% {P(0.9):0.0}  95% {P(0.95):0.0}  max {P(1):0.0}");
+        foreach (double over in new[] { 8.0, 10, 12, 14, 16, 20 })
+            Console.WriteLine($"  over {over,2:0} LU: {measured.Count(r => r.Result.LoudnessRange > over),4}");
+        Console.WriteLine("  Most uneven:");
+        foreach (var (track, result) in measured.AsEnumerable().Reverse().Take(25))
+            Console.WriteLine($"    {result.LoudnessRange,5:0.0} LU  {result.Lufs,6:0.0} LUFS  {track.Artist} - {track.Title}  ({Path.GetFileName(track.Path)})");
+        Console.WriteLine("  Most even:");
+        foreach (var (track, result) in measured.Take(5))
+            Console.WriteLine($"    {result.LoudnessRange,5:0.0} LU  {track.Artist} - {track.Title}");
+    }
+
     private static void ReportLoudness(IReadOnlyList<TrackAnalysis> results)
     {
         var measured = results.Where(r => r.Lufs is not null).ToList();

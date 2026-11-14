@@ -1008,6 +1008,20 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
   can be changed while the room is listening.
 - Not a performance EQ: no permanent knobs, since it's set once per recording.
 
+### Status: EVEN suggested for an uneven recording (2026-11-13, #271)
+
+- `LoudnessMeter.LoudnessRange`: EBU Tech 3342's loudness range from the 100 ms sub-blocks already
+  kept for integrated loudness: 3 s short-term loudness every 100 ms, absolute gate -70 LUFS,
+  relative gate 20 LU under, then the 95th percentile less the 10th. Silence is gated out, so
+  breaks and stop-time barely count (a 1 s break every 8 s: under 6 LU).
+- Stored with the analysis (`analysis.loudness_range`, upgrade 36, only adds); analyzer version 3,
+  so the library is analyzed again in the background.
+- On 428 songs of a 12,740-song swing library: median 6 LU, 90% under 10, 15 over 12 (Moten
+  Swing 17.9, Shiny Stockings 16.0). `EvenSuggestion.For`: none up to 12 LU, then 30 rising to 70
+  at 22 LU, in steps of 10.
+- The EQ panel (deck or library) shows *Uneven recording: EVEN n suggested* with **Use it** while
+  the song's EVEN is off. Never set by itself.
+
 ### Status: a venue's mono and loudness target (2026-11-13, #440)
 
 - `Venue.Mono` and `Venue.LoudnessTarget`: null is *As in Settings*. Set in the room EQ panel

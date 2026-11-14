@@ -29,6 +29,13 @@ New:
   where it suits the room. Each starts *As in Settings*: Settings › Sound has the defaults, for no
   venue and every venue that doesn't set its own. Volume and outputs never change with a venue.
 
+- **EVEN suggested for an uneven recording** (#271). As GZJam analyzes a song, it measures how far
+  its quiet passages drop below its loud ones. For the few far more uneven than most (about one in
+  thirty in a swing library: a quiet piano chorus, then the band), the EQ panel suggests an EVEN
+  setting, and **Use it** sets it. Nothing changes unless you choose it, and breaks and stop-time
+  never count. GZJam analyzes your library again in the background to measure it, gently while
+  music plays.
+
 Changed:
 
 - **Beside compact decks, MAIN and PHONES lie down** (#441). They were stubs of faders about 40 px

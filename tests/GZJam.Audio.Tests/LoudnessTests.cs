@@ -104,4 +104,55 @@ public sealed class LoudnessTests : IDisposable
         Assert.Equal(-12.0, analysis.Lufs!.Value, 0.2);
         Assert.Equal(-12.0, analysis.PeakDb!.Value, 0.1);
     }
+
+    /// <summary>Measures a tone whose level follows <paramref name="level"/> (0..1 of full scale) second by second.</summary>
+    private static LoudnessMeter MeasureShaped(double seconds, Func<double, double> level)
+    {
+        var meter = new LoudnessMeter(2, Rate);
+        int frames = (int)(Rate * seconds);
+        var buffer = new float[4096 * 2];
+        for (int done = 0; done < frames;)
+        {
+            int n = Math.Min(4096, frames - done);
+            for (int f = 0; f < n; f++)
+            {
+                int i = done + f;
+                float s = (float)(level((double)i / Rate) * Math.Sin(2 * Math.PI * 440 * i / Rate));
+                buffer[f * 2] = buffer[f * 2 + 1] = s;
+            }
+            meter.Push(buffer, n);
+            done += n;
+        }
+        return meter;
+    }
+
+    [Fact]
+    public void A_steady_recording_has_almost_no_loudness_range()
+    {
+        Assert.InRange(MeasureShaped(60, _ => 0.5).LoudnessRange!.Value, 0, 0.5);
+    }
+
+    [Fact]
+    public void Loud_and_quiet_passages_make_the_loudness_range()
+    {
+        // The band for 30 s, then a solo 15 dB quieter for 30 s (#271).
+        double quiet = 0.5 * Math.Pow(10, -15 / 20.0);
+        double range = MeasureShaped(60, t => t < 30 ? 0.5 : quiet).LoudnessRange!.Value;
+        Assert.InRange(range, 14, 16);
+    }
+
+    [Fact]
+    public void Breaks_and_stop_time_hardly_count()
+    {
+        // A one-second break every eight seconds: silence, which the range leaves out (#271).
+        double range = MeasureShaped(64, t => t % 8 < 7 ? 0.5 : 0).LoudnessRange!.Value;
+        Assert.InRange(range, 0, 6);
+    }
+
+    [Fact]
+    public void Too_short_to_tell_has_no_loudness_range()
+    {
+        Assert.Null(MeasureShaped(2, _ => 0.5).LoudnessRange);
+        Assert.Null(MeasureShaped(20, _ => 0).LoudnessRange);
+    }
 }

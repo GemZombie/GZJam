@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
+using GZJam.App.ViewModels;
 using GZJam.App.Views;
 using GZJam.Library;
 
@@ -311,5 +312,53 @@ public sealed class EqAppTests
         AppHarness.Settle(100);
         Assert.False(app.Window.FindControl<MenuItem>("TrackEqItem")!.IsEnabled);   // one song at a time
         menu.Close();
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(6.0, null)]      // most songs
+    [InlineData(12.0, null)]
+    [InlineData(12.5, 30.0)]
+    [InlineData(17.9, 50.0)]     // Moten Swing's piano, then the band
+    [InlineData(22.0, 70.0)]
+    [InlineData(35.0, 70.0)]     // never more: a suggestion, to hear and adjust
+    public void EVEN_is_suggested_for_an_uneven_recording_and_more_the_more_uneven(double? range, double? even) =>
+        Assert.Equal(even, EvenSuggestion.For(range));
+
+    [AvaloniaFact]
+    public void An_uneven_recording_gets_EVEN_suggested_and_one_click_sets_it()
+    {
+        using var app = new AppHarness();
+        var vm = app.ViewModel;
+        // Thirty seconds of band, then thirty of a solo 20 dB quieter (#271).
+        string path = GZJam.Testing.TestWav.WriteSections(Path.Combine(app.WorkDirectory, "solo.wav"),
+            [(TimeSpan.FromSeconds(30), 0.5), (TimeSpan.FromSeconds(30), 0.05)]);
+        var song = new Track { Path = path, Folder = "", FileName = "solo.wav", Title = "Solo" };
+        var deck = vm.Deck1!;
+        AppHarness.Await(vm.LoadToDeckAsync(deck, song));
+        AppHarness.WaitFor(() => deck.LevelText.Contains("LUFS"), TimeSpan.FromSeconds(30));
+
+        Assert.True(deck.Eq.HasSuggestion);
+        Assert.Equal(60, deck.Eq.SuggestedEven);
+        Assert.Equal("Uneven recording: EVEN 60 suggested", deck.Eq.SuggestionText);
+        Assert.Equal("Off", deck.Eq.EvenText);   // suggested only: nothing set by itself
+        Assert.Equal(0, deck.Deck.Even.Amount);
+
+        deck.Eq.UseSuggestionCommand.Execute(null);
+        Assert.Equal(60, deck.Eq.Even);
+        Assert.Equal(0.6, deck.Deck.Even.Amount, 3);
+        Assert.False(deck.Eq.HasSuggestion);   // set: the DJ's now, to adjust
+        Assert.Equal(60, app.Database.GetEq(path).Even);
+
+        // In the library's EQ panel too, before the night, once it's analyzed; not once set.
+        deck.Eq.Even = 0;
+        EqEditor fromLibrary = vm.EqFor(song);
+        Assert.Equal(60, fromLibrary.SuggestedEven);
+
+        // An even recording: nothing suggested.
+        var steady = app.ToneTrack("Steady", seconds: 60);
+        AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, steady));
+        AppHarness.WaitFor(() => vm.Deck2!.LevelText.Contains("LUFS"), TimeSpan.FromSeconds(30));
+        Assert.False(vm.Deck2!.Eq.HasSuggestion);
     }
 }

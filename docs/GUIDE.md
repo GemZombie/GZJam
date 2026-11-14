@@ -295,6 +295,13 @@ loudness matching; and **EVEN**, which brings quiet passages up and loud ones do
 uneven transfer. *Less hiss* turns the treble down 6 dB to start with; *Flat* resets it all. The chip
 lights when a song has EQ. The room and the headphones hear it alike.
 
+GZJam finds the uneven songs for you. As it analyzes a song, it measures how far its quiet
+passages drop below its loud ones (a quiet piano chorus before the band comes in, say). For one far
+more uneven than most, about one song in thirty, the EQ panel says *Uneven recording: EVEN 50
+suggested*: **Use it** sets EVEN to that, to hear and adjust. It's only a suggestion: nothing
+changes until you choose it, and a song whose EVEN you've set keeps yours. Breaks and stop-time are
+silence, so they never make a song look uneven, and EVEN leaves them silent.
+
 It's for the recording, not the room: a song's EQ goes with it to every venue. A muddy or boomy
 room is fixed with the **room EQ** (under *The mixer*) or on the venue's mixer, so the songs still
 sound right in the next one.

@@ -32,12 +32,38 @@ public sealed partial class EqEditor(Func<string> heading, Func<string> title, F
     /// <summary>The song's measured loudness and what matching does to it.</summary>
     public string LevelText => level();
 
-    /// <summary>The heading, title or loudness may have changed.</summary>
+    /// <summary>How far the song's quiet passages are from its loud ones, in LU, once analyzed (#271).</summary>
+    public Func<double?>? LoudnessRange { get; init; }
+
+    /// <summary>
+    /// The EVEN this song could do with (#271), suggested only: never set by itself. Null for a
+    /// song even enough, one not yet analyzed, or one whose EVEN is already set.
+    /// </summary>
+    public double? SuggestedEven => _eq.Even == 0 ? EvenSuggestion.For(LoudnessRange?.Invoke()) : null;
+
+    public bool HasSuggestion => SuggestedEven is not null;
+
+    public string SuggestionText => SuggestedEven is { } even
+        ? $"Uneven recording: EVEN {even.ToString("0", CultureInfo.CurrentCulture)} suggested"
+        : "";
+
+    /// <summary>The suggestion, taken: EVEN set as suggested (hear it, and change it as for any).</summary>
+    [RelayCommand]
+    private void UseSuggestion()
+    {
+        if (SuggestedEven is { } even)
+            Set(_eq with { Even = even });
+    }
+
+    /// <summary>The heading, title, loudness or loudness range may have changed.</summary>
     public void Refresh()
     {
         OnPropertyChanged(nameof(Heading));
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(LevelText));
+        OnPropertyChanged(nameof(SuggestedEven));
+        OnPropertyChanged(nameof(HasSuggestion));
+        OnPropertyChanged(nameof(SuggestionText));
     }
 
     /// <summary>EQ in dB, 0 = flat.</summary>
@@ -183,5 +209,29 @@ public sealed partial class EqEditor(Func<string> heading, Func<string> title, F
                      nameof(MidText), nameof(HighText), nameof(GainText), nameof(EvenText), nameof(MidHzText), nameof(IsMidMoved),
                      nameof(IsSet), nameof(LevelText), nameof(Value) })
             OnPropertyChanged(name);
+    }
+}
+
+/// <summary>
+/// The EVEN to suggest for a song from its loudness range (#271): none for a song even enough;
+/// more the further its quiet passages drop below its loud ones, in steps of 10, never the most
+/// (a suggestion, to hear and adjust).
+/// </summary>
+public static class EvenSuggestion
+{
+    /// <summary>A song more uneven than this (in LU) gets a suggestion.</summary>
+    public const double UnevenAbove = 12;
+
+    /// <summary>The range at which the suggestion reaches its highest.</summary>
+    private const double MostAt = 22;
+
+    private const double Least = 30, Most = 70;
+
+    public static double? For(double? loudnessRange)
+    {
+        if (loudnessRange is not { } range || range <= UnevenAbove)
+            return null;
+        double share = Math.Clamp((range - UnevenAbove) / (MostAt - UnevenAbove), 0, 1);
+        return Math.Round((Least + share * (Most - Least)) / 10) * 10;
     }
 }
