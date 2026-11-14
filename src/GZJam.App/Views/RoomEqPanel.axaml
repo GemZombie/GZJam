@@ -201,7 +201,8 @@
                        Text="Choose the venue you're at, or make a new one, to set its room EQ." />
           </Panel>
         </Border>
-        <WrapPanel Grid.Row="1" IsVisible="{Binding IsSimpleShown}" IsEnabled="{Binding HasVenue}">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+        <WrapPanel IsVisible="{Binding IsSimpleShown}" IsEnabled="{Binding HasVenue}">
           <WrapPanel.Styles>
             <Style Selector="Button.eq-action">
               <Setter Property="Margin" Value="0,0,6,0" />
@@ -218,6 +219,28 @@
           <Button Classes="eq-action" Command="{Binding PresetCommand}" CommandParameter="padded2" Content="Padded 2"
                   ToolTip.Tip="A packed room that swallows the sound: more warmth and air" />
         </WrapPanel>
+        <!-- The venue's own mono and loudness target (#440); Settings has the defaults -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsEnabled="{Binding HasVenue}">
+          <TextBlock Classes="eq-band" Text="MONO" VerticalAlignment="Center" />
+          <ComboBox x:Name="VenueMonoBox" ItemsSource="{Binding MonoChoices}" SelectedItem="{Binding MonoChoice}" MinWidth="150"
+                    ToolTip.Tip="This venue's mono setting. As in Settings: the default in Settings › Sound.">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:VenueChoice">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="eq-band" Text="LOUDNESS" VerticalAlignment="Center" Margin="6,0,0,0" />
+          <ComboBox x:Name="VenueTargetBox" ItemsSource="{Binding TargetChoices}" SelectedItem="{Binding TargetChoice}" MinWidth="170"
+                    ToolTip.Tip="This venue's loudness target: lower for a mixer or PA that clips easily. As in Settings: the default in Settings › Sound.">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:VenueChoice">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+        </Grid>
       </Grid>
 
       <!-- Rolled back up -->

@@ -1104,15 +1104,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public RoomEqViewModel? RoomEq { get; }
 
     /// <summary>
-    /// Another venue is loaded (#440): mono and the loudness target follow it, the decks and the
-    /// preview matched again at once if the target changed.
+    /// Mono or the loudness target may have changed (#440): another venue loaded, one of its own
+    /// set, or a default in Settings. Heard at once: mono on the outputs, and the decks and the
+    /// preview matched again if the target heard changed.
     /// </summary>
-    internal void VenueChanged(double targetBefore)
+    internal void SoundSettingsChanged(double targetBefore)
     {
         Mixer?.FollowMono();
+        RoomEq?.RefreshSound();
         if (_settings.LoudnessTargetNow == targetBefore)
             return;
-        Log.Info($"Loudness target {_settings.LoudnessTargetNow:0} LUFS, for the venue");
+        Log.Info($"Loudness target {_settings.LoudnessTargetNow:0} LUFS");
         foreach (DeckViewModel deck in Decks)
             deck.LoudnessSettingChanged();
         Preview?.LoudnessSettingChanged();

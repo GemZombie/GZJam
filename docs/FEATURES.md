@@ -1010,13 +1010,15 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
 
 ### Status: a venue's mono and loudness target (2026-11-13, #440)
 
-- `Venue.Mono` and `Venue.LoudnessTarget`, null until changed with that venue loaded.
-  `AppSettings.MonoNow` / `LoudnessTargetNow` read the venue's, else the plain settings (the
-  no-venue values), and set the venue's while one is loaded; the mixer, the loudness matching and
-  Settings use them. Loading a venue (`RoomEqViewModel.Load`) applies both at once
-  (`MainWindowViewModel.VenueChanged`: mono on all three outputs, the decks and preview matched
-  again). A venue's target is snapped to the choices like the plain one (`Migrate`).
-- Settings › Sound shows *Mono and Loudness target are saved for <venue>.* above them.
+- `Venue.Mono` and `Venue.LoudnessTarget`: null is *As in Settings*. Set in the room EQ panel
+  (MONO and LOUDNESS on the row under the curve; `RoomEqViewModel.MonoChoice` / `TargetChoice`,
+  the first choice's label naming the default). Settings › Sound sets only the defaults
+  (`AppSettings.Mono` / `LoudnessTarget`), and says so when the venue loaded has its own.
+- `AppSettings.MonoNow` / `LoudnessTargetNow`: the venue's, else the default; the mixer and the
+  loudness matching use them. Any change (a venue loaded, its own set, a default) goes through
+  `MainWindowViewModel.SoundSettingsChanged`: mono on all three outputs, the decks and preview
+  matched again if the target heard changed. A venue's target is snapped to the choices in
+  `Migrate`, like the default.
 
 ### Status: MAIN and PHONES lying down beside compact decks (2026-11-13, #441)
 

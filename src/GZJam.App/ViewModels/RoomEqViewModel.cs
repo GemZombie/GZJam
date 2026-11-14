@@ -31,6 +31,7 @@ public sealed partial class RoomEqViewModel : ObservableObject
         Bands = [.. RoomEq.BandHz.Select((hz, i) => new RoomEqBand(this, i, hz))];
         _shownView = Eq.View;
         Apply();
+        RefreshSound();
     }
 
     // ───────────── The venue ─────────────
@@ -142,7 +143,54 @@ public sealed partial class RoomEqViewModel : ObservableObject
         _settings.Venue = venue?.Name;
         ShownView = Eq.View;
         Apply();
-        _owner.VenueChanged(targetBefore);
+        _owner.SoundSettingsChanged(targetBefore);
+    }
+
+    // ───────────── The venue's mono and loudness target (#440) ─────────────
+
+    /// <summary>The venue's mono: as in Settings (the default, named), mono, or stereo.</summary>
+    public IReadOnlyList<VenueChoice> MonoChoices { get; } =
+        [new(null), new(true, "Mono"), new(false, "Stereo")];
+
+    /// <summary>The venue's loudness target: as in Settings (the default, named), or one of its own.</summary>
+    public IReadOnlyList<VenueChoice> TargetChoices { get; } =
+        [new(null), .. LoudnessMatch.Targets.Select(t => new VenueChoice(t, $"−{-t:0} LUFS"))];
+
+    public VenueChoice MonoChoice
+    {
+        get => MonoChoices.First(c => Equals(c.Value, Current?.Mono));
+        set
+        {
+            if (value is null || Current is not { } venue || Equals(venue.Mono, value.Value))
+                return;
+            double target = _settings.LoudnessTargetNow;
+            venue.Mono = (bool?)value.Value;
+            Log.Info($"Venue \"{venue.Name}\": {(venue.Mono is { } mono ? mono ? "mono" : "stereo" : "mono as in Settings")}");
+            _owner.SoundSettingsChanged(target);
+        }
+    }
+
+    public VenueChoice TargetChoice
+    {
+        get => TargetChoices.First(c => Equals(c.Value, Current?.LoudnessTarget));
+        set
+        {
+            if (value is null || Current is not { } venue || Equals(venue.LoudnessTarget, value.Value))
+                return;
+            double target = _settings.LoudnessTargetNow;
+            venue.LoudnessTarget = (double?)value.Value;
+            Log.Info($"Venue \"{venue.Name}\": loudness target {(venue.LoudnessTarget is { } own ? $"{own:0} LUFS" : "as in Settings")}");
+            _owner.SoundSettingsChanged(target);
+        }
+    }
+
+    /// <summary>The choices as Settings has the defaults now, and the venue's as chosen.</summary>
+    internal void RefreshSound()
+    {
+        MonoChoices[0].Label = $"As in Settings: {(_settings.Mono ? "mono" : "stereo")}";
+        TargetChoices[0].Label = $"As in Settings: −{-_settings.LoudnessTarget:0} LUFS";
+        OnPropertyChanged(nameof(MonoChoice));
+        OnPropertyChanged(nameof(TargetChoice));
     }
 
     private void SayTaken(string name)
@@ -387,4 +435,14 @@ public sealed partial class RoomEqBand(RoomEqViewModel owner, int index, double 
         OnPropertyChanged(nameof(Value));
         OnPropertyChanged(nameof(ValueText));
     }
+}
+
+/// <summary>A choice for a venue's own setting (#440): null is "as in Settings", its label naming the default.</summary>
+public sealed partial class VenueChoice(object? value, string label = "") : ObservableObject
+{
+    /// <summary>A bool or a double, or null: as in Settings.</summary>
+    public object? Value => value;
+
+    [ObservableProperty]
+    public partial string Label { get; set; } = label;
 }
