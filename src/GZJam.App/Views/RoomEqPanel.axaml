@@ -230,9 +230,9 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <TextBlock Classes="eq-band" Text="LOUDNESS" VerticalAlignment="Center" Margin="6,0,0,0" />
+          <TextBlock Classes="eq-band" Text="LEVEL" VerticalAlignment="Center" Margin="6,0,0,0" />
           <ComboBox x:Name="VenueTargetBox" ItemsSource="{Binding TargetChoices}" SelectedItem="{Binding TargetChoice}" MinWidth="170"
-                    ToolTip.Tip="This venue's loudness target: lower for a mixer or PA that clips easily. As in Settings: the default in Settings › Sound.">
+                    ToolTip.Tip="This venue's matched level: lower for a mixer or PA that clips easily (turn its channel up to make up for it). As in Settings: the default in Settings › Sound.">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueChoice">
                 <TextBlock Text="{Binding Label}" />

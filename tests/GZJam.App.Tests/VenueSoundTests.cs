@@ -33,7 +33,7 @@ public sealed class VenueSoundTests
         room.NewVenue("Grand Hall");
         Assert.Same(room.MonoChoices[0], room.MonoChoice);
         Assert.Equal("As in Settings: mono", room.MonoChoice.Label);
-        Assert.Equal("As in Settings: −16 LUFS", room.TargetChoice.Label);
+        Assert.Equal("As in Settings: usual", room.TargetChoice.Label);
         Assert.Null(settings.VenueNote);
 
         // Its own, set in its panel: heard at once.
@@ -43,14 +43,14 @@ public sealed class VenueSoundTests
         Assert.False(app.Mix.Cue.Mono);
         Assert.False(app.ViewModel.Mixer!.IsMono);
         Assert.Equal(usual - 4, deck.Deck.GainDb, 1);
-        Assert.Equal("Grand Hall has its own mono and loudness target (in its room EQ panel). These are the defaults.", settings.VenueNote);
+        Assert.Equal("Grand Hall has its own mono and matched level (in its room EQ panel). These are the defaults.", settings.VenueNote);
 
         // Settings keeps the defaults, untouched; changing one the venue has its own of isn't heard.
         Assert.True(settings.Mono);
         Assert.Equal(-16, settings.LoudnessTargetChoice.Value);
         settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -18);
         Assert.Equal(usual - 4, deck.Deck.GainDb, 1);
-        Assert.Equal("As in Settings: −18 LUFS", room.TargetChoices[0].Label);
+        Assert.Equal("As in Settings: 2 dB lower", room.TargetChoices[0].Label);
 
         // No venue: the defaults, heard at once.
         room.SelectedVenue = RoomEqViewModel.NoVenue;
@@ -92,7 +92,7 @@ public sealed class VenueSoundTests
         Assert.False(app.Mix.Main.Mono);
         Assert.False(app.ViewModel.Mixer!.IsMono);
         Assert.Equal("Stereo", room.MonoChoice.Label);
-        Assert.Equal("−20 LUFS", room.TargetChoice.Label);
+        Assert.Equal("4 dB lower", room.TargetChoice.Label);
         Assert.True(app.ViewModel.Settings.Mono);                           // the defaults, as they were
         Assert.Equal(-16, app.ViewModel.Settings.LoudnessTargetChoice.Value);
         Assert.Equal(-6, app.Mix.Main.RoomEq.Low);

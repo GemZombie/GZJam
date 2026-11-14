@@ -171,7 +171,7 @@ public sealed class EqAppTests
         var song = new Track { Path = path, Folder = "", FileName = "wide.wav", Title = "Wide" };
         var deck = vm.Deck1!;
         AppHarness.Await(vm.LoadToDeckAsync(deck, song));
-        AppHarness.WaitFor(() => deck.LevelText.Contains("LUFS"));   // measured, so evening works around it
+        AppHarness.WaitFor(() => deck.Waveform is not null, TimeSpan.FromSeconds(30));   // measured, so evening works around it
         vm.Mixer!.Crossfader = 0;
 
         double Spread()

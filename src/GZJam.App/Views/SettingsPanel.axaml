@@ -153,9 +153,9 @@
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto" IsEnabled="{Binding MatchLoudness}">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Classes="setting" Text="Loudness target" />
+                    <TextBlock Classes="setting" Text="Matched level" />
                     <TextBlock Classes="setting-help"
-                               Text="What matching aims at. Lower leaves more headroom, for a mixer or PA that clips easily: turn the mixer's channel up to make up for it." />
+                               Text="How loud songs come out once matched. Lower leaves more headroom, for a mixer or PA that clips easily: turn the mixer's channel up to make up for it." />
                   </StackPanel>
                   <ComboBox x:Name="LoudnessTargetBox" Grid.Column="1" ItemsSource="{Binding LoudnessTargetChoices}" SelectedItem="{Binding LoudnessTargetChoice}" />
                 </Grid>

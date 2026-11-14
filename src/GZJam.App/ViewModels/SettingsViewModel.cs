@@ -211,16 +211,16 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// </summary>
     public string? VenueNote => _settings.LoadedVenue is { } venue && (venue.Mono, venue.LoudnessTarget) switch
     {
-        (not null, not null) => "mono and loudness target",
+        (not null, not null) => "mono and matched level",
         (not null, null) => "mono setting",
-        (null, not null) => "loudness target",
+        (null, not null) => "matched level",
         _ => null,
     } is { } own
         ? $"{venue.Name} has its own {own} (in its room EQ panel). These are the defaults."
         : null;
 
     public IReadOnlyList<Choice<double>> LoudnessTargetChoices { get; } = LoudnessMatch.Targets
-        .Select(t => new Choice<double>(t, $"−{-t:0} LUFS" + (t == LoudnessMatch.TargetLufs ? " (usual)" : t == LoudnessMatch.Targets[^1] ? " (most headroom)" : "")))
+        .Select(t => new Choice<double>(t, LoudnessMatch.TargetName(t) + (t == LoudnessMatch.Targets[^1] ? " (most headroom)" : "")))
         .ToList();
 
     /// <summary>What matching aims at (see <see cref="AppSettings.LoudnessTarget"/>).</summary>

@@ -26,7 +26,8 @@ public sealed class LoudnessAppTests
 
         Assert.InRange(loud.Deck.GainDb, -10, -8.5);
         Assert.Equal(LoudnessMatch.MaxBoostDb, quiet.Deck.GainDb, 1);
-        Assert.Matches(@"^−6\.\d LUFS · matching −9\.\d dB$", loud.LevelText);
+        Assert.Matches(@"^Loud recording: turned down 9\.\d dB$", loud.LevelText);   // no LUFS on screen
+        Assert.Equal("Quiet recording: turned up 9 dB, the most GZJam turns a song up", quiet.LevelText);
     }
 
     [AvaloniaFact]
@@ -70,7 +71,7 @@ public sealed class LoudnessAppTests
             Thread.Sleep(30);
         }
         Assert.Equal(0, deck.Deck.GainDb, 2);
-        Assert.EndsWith("loudness matching off", deck.LevelText);
+        Assert.Equal("Loudness matching off", deck.LevelText);
         Assert.False(app.Settings.MatchLoudness);
     }
 
@@ -81,13 +82,13 @@ public sealed class LoudnessAppTests
         var settings = app.ViewModel.Settings;
         var deck = LoadAndMeasure(app, app.ViewModel.Deck2!, app.ToneTrack("Loud remaster"));
         double usual = deck.Deck.GainDb;
-        Assert.Equal("−16 LUFS (usual)", settings.LoudnessTargetChoice.Label);
+        Assert.Equal("Usual", settings.LoudnessTargetChoice.Label);
 
         settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -20);
 
         Assert.Equal(usual - 4, deck.Deck.GainDb, 1);   // off air: at once
         Assert.Equal(-20, app.Settings.LoudnessTarget);
-        Assert.Equal(["−16 LUFS (usual)", "−18 LUFS", "−20 LUFS", "−23 LUFS (most headroom)"],
+        Assert.Equal(["Usual", "2 dB lower", "4 dB lower", "7 dB lower (most headroom)"],
             settings.LoudnessTargetChoices.Select(c => c.Label));
     }
 

@@ -154,7 +154,7 @@ public sealed partial class RoomEqViewModel : ObservableObject
 
     /// <summary>The venue's loudness target: as in Settings (the default, named), or one of its own.</summary>
     public IReadOnlyList<VenueChoice> TargetChoices { get; } =
-        [new(null), .. LoudnessMatch.Targets.Select(t => new VenueChoice(t, $"−{-t:0} LUFS"))];
+        [new(null), .. LoudnessMatch.Targets.Select(t => new VenueChoice(t, LoudnessMatch.TargetName(t)))];
 
     public VenueChoice MonoChoice
     {
@@ -188,7 +188,7 @@ public sealed partial class RoomEqViewModel : ObservableObject
     internal void RefreshSound()
     {
         MonoChoices[0].Label = $"As in Settings: {(_settings.Mono ? "mono" : "stereo")}";
-        TargetChoices[0].Label = $"As in Settings: −{-_settings.LoudnessTarget:0} LUFS";
+        TargetChoices[0].Label = $"As in Settings: {(LoudnessMatch.TargetName(_settings.LoudnessTarget) is "Usual" ? "usual" : LoudnessMatch.TargetName(_settings.LoudnessTarget))}";
         OnPropertyChanged(nameof(MonoChoice));
         OnPropertyChanged(nameof(TargetChoice));
     }

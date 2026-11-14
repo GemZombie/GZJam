@@ -165,6 +165,13 @@ public static class LoudnessMatch
     /// </summary>
     public const double PeakAllowanceDb = 1.5;
 
+    /// <summary>
+    /// A target as a DJ reads it (no LUFS on screen): "Usual", or how much lower everything comes
+    /// out than usual, "2 dB lower".
+    /// </summary>
+    public static string TargetName(double targetLufs) =>
+        Math.Abs(targetLufs - TargetLufs) < 0.05 ? "Usual" : $"{TargetLufs - targetLufs:0} dB lower";
+
     /// <summary>The gain, in dB, that brings a track of this loudness and peak to the target.</summary>
     public static double GainDb(double lufs, double? peakDb, double targetLufs = TargetLufs)
     {
