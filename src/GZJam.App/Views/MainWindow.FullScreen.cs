@@ -34,17 +34,6 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>F11, or Ctrl+Cmd+F on a Mac: from anywhere, the search box too, as they type nothing.</summary>
-    private void OnFullScreenKeyDown(object? sender, KeyEventArgs e)
-    {
-        bool f11 = e.Key == Key.F11 && e.KeyModifiers == KeyModifiers.None;
-        bool macKeys = OperatingSystem.IsMacOS() && e.Key == Key.F && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Meta);
-        if (!f11 && !macKeys)
-            return;
-        ToggleFullScreen();
-        e.Handled = true;
-    }
-
     private void OnExitFullScreenClick(object? sender, RoutedEventArgs e)
     {
         if (IsFullScreen)

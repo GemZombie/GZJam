@@ -1247,6 +1247,10 @@
     <Setter Property="Width" Value="270" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
+  <!-- Settings › Keys (#135): an action with no key reads dimmer, until it's waiting for one -->
+  <Style Selector="Button.key-choice.none:not(.armed) TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+  </Style>
 
   <!-- Small icon buttons in list rows (preview) -->
   <Style Selector="Button.row-icon">

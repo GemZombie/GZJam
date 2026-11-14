@@ -1051,6 +1051,7 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.
+- **Keys:** your own keyboard shortcuts. See [Choosing your own keys](#choosing-your-own-keys).
 - **Library:** *Songs you add go to* (where *Add to my music* copies songs, from a server or Files), *Import from Mixxx*, *Import playlists*, *Ratings in the song files*, **Back up my library**, **Restore a backup**, *Start over with
   an empty library*, and *Near a BPM* (how far `~bpm:` reaches).
 - **Servers:** your music servers (ADD A SERVER…, TEST, EDIT…, REMOVE…, *Send my hearts*), and
@@ -1223,8 +1224,9 @@ attach the activity log. It's in GZJam's data folder under `logs/`:
 
 ## Keys and gestures
 
-The keys that start with Ctrl (Cmd on a Mac) work from anywhere, most of them from the search box too. FADE OUT has
-no key on purpose: one keypress ending the song the room hears is too easy to hit by mistake.
+The keys that start with Ctrl (Cmd on a Mac) work from anywhere, most of them from the search box too.
+These are GZJam's own; you can choose your own in Settings › Keys (below). FADE OUT has no key at
+first, on purpose: one keypress ending the song the room hears is too easy to hit by mistake.
 
 **What the keys act on** is the one selection shown strongly, in blue: the song list's, unless
 you've clicked into the queue, History, the folders or the playlists. The other lists keep their
@@ -1256,6 +1258,19 @@ it's where you are, with a blue bar at its edge and its name in blue.
 | **Right-click**, or **press and hold** | a song's, a deck's or a waveform's menu |
 | **Mouse wheel** or **pinch** on a waveform | zoom |
 | **Double-tap** the tempo or an EQ fader | back to 0 |
+
+### Choosing your own keys
+
+**Settings › Keys** lists everything with a key that works from anywhere: each deck's play, CUE,
+load, preview and fade out, the crossfader, auto-play, MAIN and PHONES, and the screen's keys.
+Click an action's key, then press the new one. If another action had that key, it moves, and the
+page says which lost it. **Delete** leaves an action with no key; **Escape** keeps the one it had.
+**RESET TO THE DEFAULTS** puts every key back.
+
+A key needs Ctrl with it (Cmd on a Mac), or must be a function key (F1 to F12), so nothing can
+happen while you type in the search box. Ctrl+C, V, X, A, Z and Y stay for editing text. Enter,
+Space and Delete in the lists, and Escape, stay as they are. Tooltips show your keys. Your keys are
+kept with your Settings, so a backup carries them, even to a computer with another system.
 
 **By touch:** everything works by finger. In the song list, swipe sideways (toward the queue and
 decks) to drag a song, up and down to scroll; press and hold to pick one up and drag it anywhere,

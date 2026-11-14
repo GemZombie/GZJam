@@ -13,7 +13,15 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.9.0-beta.1.
+New:
+
+- **Your own keyboard shortcuts** (#135). Settings › Keys lists everything with a key that works
+  from anywhere: each deck's play, CUE, load and preview, the crossfader, auto-play, MAIN and
+  PHONES, search, full screen and the rest. Click one, press the new key; one another action had
+  moves, and the page says so. Delete for no key, and a way back to the defaults. Each deck's FADE
+  OUT can have a key now too, if you want one: it has none at first. Keys need Ctrl (Cmd on a Mac)
+  or are function keys, so nothing fires while you type. Tooltips show your keys, and a backup
+  carries them. Thanks to the DJs who asked.
 
 ## 1.9.0-beta.1 (2026-11-13)
 

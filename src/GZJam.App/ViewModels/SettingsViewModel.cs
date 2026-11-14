@@ -30,8 +30,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         _owner = owner;
         _settings = settings;
+        Keys = new KeysViewModel(owner);
         RefreshDevices();
     }
+
+    /// <summary>Settings › Keys (#135).</summary>
+    public KeysViewModel Keys { get; }
 
     /// <summary>Settings › Servers.</summary>
     public ServersViewModel Servers => _owner.Servers;

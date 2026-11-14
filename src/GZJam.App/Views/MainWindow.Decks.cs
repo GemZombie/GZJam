@@ -638,6 +638,7 @@ public partial class MainWindow
     public void CloseSettings()
     {
         SettingsOverlay.IsVisible = false;
+        SettingsPanel.Closed();
         SettingsButton.Focus();
     }
 

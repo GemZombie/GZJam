@@ -18,9 +18,10 @@ public partial class MainWindow
     /// <summary>The song info window open now, if one is.</summary>
     internal SongInfoWindow? SongInfo => _songInfo;
 
-    private void SetUpSongInfo()
+    /// <summary>The Song info menu items show its key (#135): the first, if the DJ gave it several.</summary>
+    private void ShowSongInfoKey()
     {
-        var gesture = new KeyGesture(Key.I, CommandModifier);
+        KeyGesture? gesture = Vm.Keys.KeysFor(new(KeyCommand.SongInfo)) is [var first, ..] ? first.ToGesture() : null;
         TrackInfoItem.InputGesture = gesture;
         QueueInfoItem.InputGesture = gesture;
         HistoryInfoItem.InputGesture = gesture;

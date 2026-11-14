@@ -109,10 +109,12 @@ public partial class MainWindow
         songs.MinWidth = wide ? LeastSongListWidth : 0;
         songs.Width = wide ? new GridLength(Math.Max(settings.WideSongListWidth ?? DefaultWideSongListWidth, LeastSongListWidth)) : GridLength.Star;
         QueueWideButton.Classes.Set("wide", wide);
-        ToolTip.SetTip(QueueWideButton, wide
-            ? $"Give the song list the room ({Shortcuts.Command}+L)"
-            : $"Give the queue the room, for a long queue ({Shortcuts.Command}+L)");
+        ShowQueueWideTip();
     }
+
+    private void ShowQueueWideTip() =>
+        ToolTip.SetTip(QueueWideButton, (QueueWideButton.Classes.Contains("wide") ? "Give the song list the room" : "Give the queue the room, for a long queue")
+            + Vm.Keys.Tip(new(KeyCommand.QueueWide)));
 
     private void ApplyPane(int column, Control panel, Control strip, Control splitter, Control grip, bool folded, double width, bool stretch = false)
     {

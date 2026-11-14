@@ -1042,6 +1042,41 @@ The reviewing DJ runs 4 decks in Mixxx. They fit in the space of two, so the lib
   scale) between them, the LIMIT LED at the end of MAIN and the room EQ key at the end of PHONES.
   `CompactFaderHeight`: 22, or 32 in touch mode. Full-size decks keep the upright faders.
 
+### Status: your own keyboard shortcuts (2026-11-14, #135)
+
+- **Settings › Keys**, between Screen and Library: each action that works from anywhere, under
+  DECK 1 to DECK 4 (3 and 4 only with four decks), MIXER and SCREEN, with its key on a button.
+  Click the button (it lights, *PRESS A KEY…*), press the new key. Delete: no key. Escape: keep the
+  one it had; so does clicking away or closing Settings. A line above the list says what happened:
+  a key taken from another action names it, and whether that action has a key left. A changed
+  action's help names GZJam's own key. **RESET TO THE DEFAULTS** puts them all back.
+- `KeyMap` (KeyMap.cs) holds GZJam's defaults (`KeyMap.Defaults`, the keys of #132, #155, #164,
+  #166, #178 and #129) and the DJ's choices over them, `AppSettings.Keys`: only changed actions,
+  by id (`AutoPlay`, `Deck1.PlayPause`), each a list of keys saved the same on every computer
+  (`Cmd+Shift+D1`: Cmd is Ctrl off a Mac; `MacCtrl` is the Mac's Control). So a backup moves
+  between Windows and a Mac, and a later version's new defaults reach everyone who hasn't chosen
+  otherwise; a choice keeps its key from a new default. Entries from a later version are left in the file.
+- One key per action once changed; GZJam's own may be two (Settings: Ctrl+, and Ctrl+O; full
+  screen on a Mac: F11 and Ctrl+Cmd+F). Taking one of two leaves the other.
+- **What a key may be** (`KeyChord.Refusal`): Ctrl (Cmd) with it, or a function key, so nothing can
+  fire while typing; not Ctrl+A/C/V/X/Z/Y (editing text), Escape or Tab, Alt+F4, or on a Mac
+  Cmd+Q/H/M/W. The Windows (Super) key is the system's. The list keys (Enter, Space, Delete),
+  Escape and the arrows in the lists and search box stay fixed.
+- **Fade out** is listed for each deck with no key at first (one press ending the song the room
+  hears is too easy to hit, #132); a DJ can give it one, and it takes two presses on air like the
+  button when two taps are chosen.
+- One tunneling handler (`MainWindow.Keys.cs`) replaced the deck, volume, full-screen and Ctrl+D/L/,/I/F
+  handlers: the key's action from the map, and in a text box only keys that mean nothing there
+  (`KeyChord.WorksWhileTyping`: not Ctrl+Alt, AltGr there; not Ctrl with ← → Home End Backspace
+  Delete). A keypad digit does what its number-row twin does. While a row waits for its key, the
+  handler stands aside and the Keys page takes every key (a tunneling handler on the page, and the
+  key's release, so Space doesn't press the button again).
+- Every tooltip naming a key reads it from the map, and is read again when a key changes; the
+  song info menu items show its key. An action with no key has none in its tooltip.
+- Tests: `KeyMapTests` (defaults, moving a key, saving only changes, refusals, saved form),
+  `KeysSettingsTests` (choosing on the page, the new key acting and the old one not, Escape,
+  refusals, Delete, reset, decks 3 and 4, the menu's key); the #132 key tests still pass.
+
 ### Status: room EQ for each venue built (2026-11-13, #272)
 
 - The room EQ key on the mixer, between the crossfader's side keys where *1 · LIVE* was (a toggle:
