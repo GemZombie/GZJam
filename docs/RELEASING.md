@@ -62,9 +62,11 @@ before everyone gets it.
    (`A_build_made_here_is_ahead_of_the_newest_release` fails until it's raised.)
 6. Commit those to main, then tag and push: `git tag -a v1.1.0 -m "GZJam 1.1.0"`,
    `git push origin v1.1.0`.
-7. When the release workflow is done, check the draft has all five packages, then publish it as
+7. When the release workflow is done, check the draft has all eight packages, then publish it as
    the latest release. Installed GZJams say so at their next start.
 8. A post for the Facebook group (`branding/social/`).
+9. The website (`site/index.html`, published by itself once merged): a minor release's headline
+   features get their line in *What it does*, by pull request. The download button needs nothing.
 
 ## Working on the next release while a beta is tried
 
