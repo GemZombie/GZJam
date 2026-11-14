@@ -28,7 +28,9 @@ public sealed class ScreenshotTests
         var overridden = new List<TextBlock>();
         for (int i = 0; i < names.Length; i++)
         {
-            var name = chips[i].GetVisualDescendants().OfType<TextBlock>().Last();
+            // The output's name: the first text that isn't a label (MAIN, ROOM EQ) or a separator.
+            var name = chips[i].GetVisualDescendants().OfType<TextBlock>()
+                .First(t => !t.Classes.Contains("fader-label") && !t.Classes.Contains("muted"));
             name.SetValue(TextBlock.TextProperty, names[i], Avalonia.Data.BindingPriority.Animation);
             overridden.Add(name);
         }
