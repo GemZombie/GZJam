@@ -13,27 +13,18 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-New:
+Nothing yet since 1.9.0.
 
-- **Your own keyboard shortcuts** (#135). Settings › Keys lists everything with a key that works
-  from anywhere: each deck's play, CUE, load and preview, the crossfader, auto-play, MAIN and
-  PHONES, search, full screen and the rest. Click one, press the new key; one another action had
-  moves, and the page says so. Delete for no key, and a way back to the defaults. Each deck's FADE
-  OUT can have a key now too, if you want one: it has none at first. Keys need Ctrl (Cmd on a Mac)
-  or are function keys, so nothing fires while you type. Tooltips show your keys, and a backup
-  carries them. Thanks to the DJs who asked.
+## 1.9.0 (2026-11-14)
 
-## 1.9.0-beta.1 (2026-11-13)
-
-The first beta of 1.9: the room's sound. A **room EQ for each venue**, on the speakers only, set as
+The room's sound, and your own keys. A **room EQ for each venue**, on the speakers only, set as
 three bands or ten while the music plays, with the venue's own mono and level beside it. GZJam
 **suggests EVEN** for the few recordings whose quiet passages drop far below their loud ones, and
-says what loudness matching does in plain words rather than LUFS. Beside compact decks, MAIN and
-PHONES lie down. The first time it opens, GZJam analyzes your library again in the background to
-find the uneven songs: about 40 minutes for 12,000 songs with nothing playing, longer while music
-plays, and a song loaded onto a deck is done at once. Your library gains one column, and 1.8 still
-opens it. Like the other betas, GZJam's update notice doesn't offer it: you only get it from this
-page. It has everything in 1.8.0.
+says what loudness matching does in plain words rather than LUFS. **Your own keyboard shortcuts**,
+chosen in Settings › Keys. Beside compact decks, MAIN and PHONES lie down. The first time it opens,
+GZJam analyzes your library again in the background to find the uneven songs: about 40 minutes for
+12,000 songs with nothing playing, longer while music plays, and a song loaded onto a deck is done
+at once. Your library gains one column, and 1.8 still opens it.
 
 New:
 
@@ -56,6 +47,13 @@ New:
   setting, and **Use it** sets it. Nothing changes unless you choose it, and breaks and stop-time
   never count. GZJam analyzes your library again in the background to measure it, gently while
   music plays.
+- **Your own keyboard shortcuts** (#135). Settings › Keys lists everything with a key that works
+  from anywhere: each deck's play, CUE, load and preview, the crossfader, auto-play, MAIN and
+  PHONES, search, full screen and the rest. Click one, press the new key; one another action had
+  moves, and the page says so. Delete for no key, and a way back to the defaults. Each deck's FADE
+  OUT can have a key now too, if you want one: it has none at first. Keys need Ctrl (Cmd on a Mac)
+  or are function keys, so nothing fires while you type. Tooltips show your keys, and a backup
+  carries them. Thanks to the DJs who asked.
 
 Changed:
 

@@ -6,7 +6,7 @@ without the clutter. This page is the big picture: what
 GZJam can do today, what's coming, and what's being considered. It's brought up to date after each
 release.
 
-**Up to date as of 1.8.0** (13 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
+**Up to date as of 1.9.0** (14 November 2026). [Download the latest release](https://github.com/GemZombie/GZJam/releases/latest) ·
 [what changed in each release](CHANGELOG.md) · [ideas and questions](https://github.com/GemZombie/GZJam/discussions) ·
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/)
 
@@ -98,14 +98,15 @@ release.
   will hear them, the song it hears now with its play key and time left, and what you've chosen
   the queue shows of each song, lined up with it. A switch in the top bar
   picks full, compact or hidden in one click (or a key, or the grip under the decks), as often as
-  you like during a night.
+  you like during a night. Beside compact decks, MAIN and PHONES lie down, the width of the mixer.
 - The deck the room hears has a red on-air bar that fills as the song plays.
 - Tempo with key lock, a waveform of the whole song, one-button fade-out.
 - A song with a long or repetitive outro fades out where you set it (*Song ends › Start fade-out
   here*), rather than stopping dead, with auto-play or playing by hand.
 - Per-song EQ, with a movable mid band, and EVEN to bring an old recording's quiet and loud
   passages closer together: on a deck, or for any song from its right-click menu while preparing
-  a set.
+  a set. GZJam suggests EVEN for the few recordings far more uneven than most, and changes nothing
+  unless you choose it.
 - A close-up of the song around the playhead, scrolling past beat by beat, to see the end of a
   phrase coming and find the exact spot for a cue or a jump. Zoom with the mouse wheel or a pinch;
   drag it like a record. It glides smoothly, even zoomed in tight.
@@ -136,9 +137,14 @@ release.
   headphones on the right.
 - A booth output, for a monitor speaker at the DJ table: what the room hears, at its own volume.
 - Loudness matching, so quiet old transfers and loud remasters play at about the same level, at a
-  level you choose: lower leaves more headroom for a mixer or PA that distorts easily.
-- Keys for the decks (play, CUE, load the selected song), the crossfader, auto-play, and MAIN and
-  PHONES volume, all with Ctrl (Cmd on a Mac).
+  level you choose: lower leaves more headroom for a mixer or PA that distorts easily. The EQ
+  panel says what it does to a song in words (*Loud recording: turned down 3 dB*), not LUFS.
+- A room EQ for each venue, on the speakers only: three bands or a 10-band graphic EQ, set while
+  the music plays and remembered for each venue, with the venue's own mono and matched level
+  beside it. Next time, just choose where you are.
+- Keys for the decks (play, CUE, load, preview, fade out), the crossfader, auto-play, MAIN and
+  PHONES, search and the rest, all with Ctrl (Cmd on a Mac) or function keys, and your own keys
+  for any of them in Settings › Keys.
 - A level meter and a safety limiter for the speakers.
 - Nothing GZJam does is heard in the room: its sound processing runs as native code, so the music
   never waits while GZJam tidies its memory; songs play from memory, so a slow drive or an
@@ -199,35 +205,15 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.9,** to try now in [1.9.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.9.0-beta.1):
-
-- [A room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): a key on the mixer,
-  three bands or a 10-band graphic EQ, on the speakers only, remembered for each venue
-- [A venue's own mono and level](https://github.com/GemZombie/GZJam/issues/440), in its room EQ
-  panel beside its EQ; Settings has the defaults
-- [EVEN suggested for an uneven recording](https://github.com/GemZombie/GZJam/issues/271), found as
-  songs are analyzed, never lifting a break
-- Loudness in words, not LUFS: *Loud recording: turned down 3 dB*, and a *Matched level* of
-  *Usual* or a few dB lower
-- [MAIN and PHONES lie down beside compact decks](https://github.com/GemZombie/GZJam/issues/441),
-  the width of the mixer rather than stubs of faders
-
-And since that beta, for the next one:
-
-- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
-  action, chosen in Settings › Keys, with clashes shown and a way back to the defaults; fade out
-  can have one too
+Nothing yet since 1.9.0.
 
 ## Planned next
 
-**1.8 is out** (13 November 2026): quality of life, with ideas from DJs and from Danny Cherry's
-fork. Playlists as a source, in folders; when each song in the queue plays; a song double-clicked
-in your file manager plays in GZJam. Fixes come as 1.8.1, 1.8.2 and so on. Found something? Say so in
+**1.9 is out** (14 November 2026): the room's sound, and your own keys. A room EQ for each
+venue, EVEN suggested for uneven recordings, loudness in words, and every key yours to choose.
+Fixes come as 1.9.1, 1.9.2 and so on. Found something? Say so in
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
-
-**1.9: the room's sound,** in beta now (see above): the room EQ for each venue, EVEN suggested;
-and your own keyboard shortcuts, for the next beta.
 
 **After that:**
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
