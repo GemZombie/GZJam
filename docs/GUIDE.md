@@ -380,12 +380,14 @@ opens with the venue you had and says which at startup; while its EQ is on, the 
 and the MAIN chip shows its name, so last week's room never follows you into a new one unnoticed.
 The room EQ is never in your headphones or the booth: cueing still sounds like the song.
 
-A venue also keeps **Mono** and the **Loudness target** (Settings › Sound): change either with the
-venue loaded and it's saved for that venue (Settings says so above them). A lower target for a
-venue whose mixer clips easily, stereo for one with a single pair of speakers close together: they
-come back with the venue. Until you change them for a venue, and with **No venue**, they're as
-Settings had them. Volume and outputs aren't part of a venue, so choosing one never makes the room
-louder or moves the music to other speakers.
+A venue also has its own **MONO** and **LOUDNESS** (the loudness target), on the row under the
+curve, so everything about a venue's sound is in one place. Each starts at *As in Settings*, which
+follows the default in Settings › Sound and says what it is; choose a value for this venue instead:
+a lower target where the mixer clips easily, stereo where one pair of speakers stands close
+together. Settings › Sound holds the defaults, for **No venue** and every venue left *As in
+Settings*; when the venue loaded has its own, Settings says so above them. Volume and outputs
+aren't part of a venue, so choosing one never makes the room louder or moves the music to other
+speakers.
 
 ---
 

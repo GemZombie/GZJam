@@ -186,36 +186,15 @@ public sealed class AppSettings
         : null;
 
     /// <summary>
-    /// Mono now (#440): the venue's own, once it's been set with that venue loaded; otherwise
-    /// <see cref="Mono"/>, which is what it is with no venue. Set: for the venue loaded, or with
-    /// none, <see cref="Mono"/>.
+    /// Mono now (#440): the venue loaded's own, if it has one (set in its room EQ panel);
+    /// otherwise <see cref="Mono"/>, the default, set in Settings.
     /// </summary>
     [JsonIgnore]
-    public bool MonoNow
-    {
-        get => LoadedVenue?.Mono ?? Mono;
-        set
-        {
-            if (LoadedVenue is { } venue)
-                venue.Mono = value;
-            else
-                Mono = value;
-        }
-    }
+    public bool MonoNow => LoadedVenue?.Mono ?? Mono;
 
     /// <summary>The loudness target now, as <see cref="MonoNow"/> (#440).</summary>
     [JsonIgnore]
-    public double LoudnessTargetNow
-    {
-        get => LoadedVenue?.LoudnessTarget ?? LoudnessTarget;
-        set
-        {
-            if (LoadedVenue is { } venue)
-                venue.LoudnessTarget = value;
-            else
-                LoudnessTarget = value;
-        }
-    }
+    public double LoudnessTargetNow => LoadedVenue?.LoudnessTarget ?? LoudnessTarget;
 
     /// <summary>The room EQ panel is rolled down under the decks.</summary>
     public bool RoomEqShown { get; set; }
@@ -476,8 +455,7 @@ public sealed class AppSettings
 
 /// <summary>
 /// A place a DJ plays: its room EQ (#272), and the rest of its sound system's settings (#440),
-/// mono and the loudness target, each its own once set with the venue loaded (null: as with no
-/// venue).
+/// mono and the loudness target, set in its room EQ panel (null: as in Settings).
 /// </summary>
 public sealed class Venue
 {

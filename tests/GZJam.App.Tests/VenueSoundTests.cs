@@ -5,8 +5,8 @@ using GZJam.Audio;
 namespace GZJam.App.Tests;
 
 /// <summary>
-/// A venue remembers its sound system's other settings too (#440): mono and the loudness target,
-/// its own once changed with it loaded; until then, and with no venue, they're as in Settings.
+/// A venue's own mono and loudness target (#440), set in its room EQ panel beside its EQ, so a
+/// venue's sound is all in one place. Settings has the defaults: a venue starts "as in Settings".
 /// </summary>
 public sealed class VenueSoundTests
 {
@@ -18,52 +18,62 @@ public sealed class VenueSoundTests
         return deck;
     }
 
+    private static VenueChoice Target(RoomEqViewModel room, double lufs) => room.TargetChoices.Single(c => Equals(c.Value, lufs));
+
     [AvaloniaFact]
-    public void A_venue_keeps_its_own_mono_and_loudness_target()
+    public void A_venue_sets_its_own_mono_and_loudness_target_in_its_panel()
     {
         using var app = new AppHarness(settings: new AppSettings());   // mono, matching at -16: the defaults
         SettingsViewModel settings = app.ViewModel.Settings;
         RoomEqViewModel room = app.ViewModel.RoomEq!;
         DeckViewModel deck = Loaded(app);
         double usual = deck.Deck.GainDb;
+
+        // A new venue: as in Settings, and says what that is.
+        room.NewVenue("Grand Hall");
+        Assert.Same(room.MonoChoices[0], room.MonoChoice);
+        Assert.Equal("As in Settings: mono", room.MonoChoice.Label);
+        Assert.Equal("As in Settings: −16 LUFS", room.TargetChoice.Label);
         Assert.Null(settings.VenueNote);
 
-        // A new venue starts as Settings has it.
-        room.NewVenue("Grand Hall");
-        Assert.True(app.Mix.Main.Mono);
-        Assert.Equal(-16, settings.LoudnessTargetChoice.Value);
-        Assert.Equal("Mono and Loudness target are saved for Grand Hall.", settings.VenueNote);
-
-        // Changed with it loaded: the venue's own.
-        settings.Mono = false;
-        settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -20);
+        // Its own, set in its panel: heard at once.
+        room.MonoChoice = room.MonoChoices.Single(c => Equals(c.Value, false));
+        room.TargetChoice = Target(room, -20);
         Assert.False(app.Mix.Main.Mono);
         Assert.False(app.Mix.Cue.Mono);
+        Assert.False(app.ViewModel.Mixer!.IsMono);
         Assert.Equal(usual - 4, deck.Deck.GainDb, 1);
-        Assert.True(app.Settings.Mono);                 // the no-venue settings untouched
-        Assert.Equal(-16, app.Settings.LoudnessTarget);
+        Assert.Equal("Grand Hall has its own mono and loudness target (in its room EQ panel). These are the defaults.", settings.VenueNote);
 
-        // No venue: as Settings had them, heard at once.
+        // Settings keeps the defaults, untouched; changing one the venue has its own of isn't heard.
+        Assert.True(settings.Mono);
+        Assert.Equal(-16, settings.LoudnessTargetChoice.Value);
+        settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -18);
+        Assert.Equal(usual - 4, deck.Deck.GainDb, 1);
+        Assert.Equal("As in Settings: −18 LUFS", room.TargetChoices[0].Label);
+
+        // No venue: the defaults, heard at once.
         room.SelectedVenue = RoomEqViewModel.NoVenue;
         Assert.True(app.Mix.Main.Mono);
-        Assert.True(app.ViewModel.Mixer!.IsMono);
-        Assert.Equal(usual, deck.Deck.GainDb, 1);
-        Assert.Equal(-16, settings.LoudnessTargetChoice.Value);
+        Assert.Equal(usual - 2, deck.Deck.GainDb, 1);
 
-        // Another venue never set: as Settings has them too.
+        // A venue that follows Settings follows a change there at once.
         room.NewVenue("Studio B");
-        Assert.True(app.Mix.Main.Mono);
+        settings.LoudnessTargetChoice = settings.LoudnessTargetChoices.Single(c => c.Value == -16);
         Assert.Equal(usual, deck.Deck.GainDb, 1);
+        settings.Mono = false;
+        Assert.False(app.Mix.Main.Mono);
+        settings.Mono = true;
 
-        // Back to the hall: its own again.
+        // Back to the hall: its own again; and back to "as in Settings".
         room.SelectedVenue = "Grand Hall";
         Assert.False(app.Mix.Main.Mono);
         Assert.Equal(usual - 4, deck.Deck.GainDb, 1);
-
-        // Deleted while loaded: back to Settings' own.
-        room.DeleteVenue();
+        room.TargetChoice = room.TargetChoices[0];
+        room.MonoChoice = room.MonoChoices[0];
         Assert.True(app.Mix.Main.Mono);
         Assert.Equal(usual, deck.Deck.GainDb, 1);
+        Assert.Null(settings.VenueNote);
     }
 
     [AvaloniaFact]
@@ -78,9 +88,13 @@ public sealed class VenueSoundTests
         Assert.Equal(-20, settings.Venues[0].LoudnessTarget);   // a hand-edited target: the nearest choice
 
         using var app = new AppHarness(settings: settings);
+        RoomEqViewModel room = app.ViewModel.RoomEq!;
         Assert.False(app.Mix.Main.Mono);
         Assert.False(app.ViewModel.Mixer!.IsMono);
-        Assert.Equal(-20, app.ViewModel.Settings.LoudnessTargetChoice.Value);
+        Assert.Equal("Stereo", room.MonoChoice.Label);
+        Assert.Equal("−20 LUFS", room.TargetChoice.Label);
+        Assert.True(app.ViewModel.Settings.Mono);                           // the defaults, as they were
+        Assert.Equal(-16, app.ViewModel.Settings.LoudnessTargetChoice.Value);
         Assert.Equal(-6, app.Mix.Main.RoomEq.Low);
     }
 }

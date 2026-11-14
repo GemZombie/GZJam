@@ -151,29 +151,19 @@ public sealed partial class MixerViewModel : ObservableObject
         return Math.Abs(db) < 0.05 ? "0 dB" : $"−{-db:0.#} dB";
     }
 
-    /// <summary>Speakers, booth and headphones play mono (a setting, on by default).</summary>
-    public bool IsMono
-    {
-        get => mix.Main.Mono;
-        set
-        {
-            if (value == mix.Main.Mono)
-                return;
-            mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = value;
-            _settings.MonoNow = value;
-            Log.Info($"Speakers, booth and headphones: {(value ? "mono" : "stereo")}");
-            OnPropertyChanged();
-        }
-    }
+    /// <summary>
+    /// Speakers, booth and headphones play mono: Settings' default (on), or the venue's own (#440).
+    /// </summary>
+    public bool IsMono => mix.Main.Mono;
 
-    /// <summary>Another venue is loaded (#440): mono as it has it.</summary>
+    /// <summary>Mono as it is now (<see cref="AppSettings.MonoNow"/>), on all three outputs.</summary>
     internal void FollowMono()
     {
         bool mono = _settings.MonoNow;
         if (mono == mix.Main.Mono)
             return;
         mix.Main.Mono = mix.Cue.Mono = mix.Booth.Mono = mono;
-        Log.Info($"Speakers, booth and headphones: {(mono ? "mono" : "stereo")}, for the venue");
+        Log.Info($"Speakers, booth and headphones: {(mono ? "mono" : "stereo")}");
         OnPropertyChanged(nameof(IsMono));
     }
 
