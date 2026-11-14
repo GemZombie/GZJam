@@ -199,14 +199,16 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-**In 1.9**, not in a release yet:
+**In 1.9,** to try now in [1.9.0-beta.1](https://github.com/GemZombie/GZJam/releases/tag/v1.9.0-beta.1):
 
 - [A room EQ for each venue](https://github.com/GemZombie/GZJam/issues/272): a key on the mixer,
   three bands or a 10-band graphic EQ, on the speakers only, remembered for each venue
-- [A venue keeps its mono and loudness target](https://github.com/GemZombie/GZJam/issues/440),
-  as well as its room EQ
+- [A venue's own mono and level](https://github.com/GemZombie/GZJam/issues/440), in its room EQ
+  panel beside its EQ; Settings has the defaults
 - [EVEN suggested for an uneven recording](https://github.com/GemZombie/GZJam/issues/271), found as
   songs are analyzed, never lifting a break
+- Loudness in words, not LUFS: *Loud recording: turned down 3 dB*, and a *Matched level* of
+  *Usual* or a few dB lower
 - [MAIN and PHONES lie down beside compact decks](https://github.com/GemZombie/GZJam/issues/441),
   the width of the mixer rather than stubs of faders
 
@@ -218,7 +220,7 @@ in your file manager plays in GZJam. Fixes come as 1.8.1, 1.8.2 and so on. Found
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**1.9: the room's sound,** started: the room EQ for each venue is in (see above).
+**1.9: the room's sound,** in beta now (see above): the room EQ for each venue, EVEN suggested.
 
 **After that:**
 - [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each

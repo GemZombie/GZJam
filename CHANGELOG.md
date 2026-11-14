@@ -13,6 +13,20 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+Nothing yet since 1.9.0-beta.1.
+
+## 1.9.0-beta.1 (2026-11-13)
+
+The first beta of 1.9: the room's sound. A **room EQ for each venue**, on the speakers only, set as
+three bands or ten while the music plays, with the venue's own mono and level beside it. GZJam
+**suggests EVEN** for the few recordings whose quiet passages drop far below their loud ones, and
+says what loudness matching does in plain words rather than LUFS. Beside compact decks, MAIN and
+PHONES lie down. The first time it opens, GZJam analyzes your library again in the background to
+find the uneven songs: about 40 minutes for 12,000 songs with nothing playing, longer while music
+plays, and a song loaded onto a deck is done at once. Your library gains one column, and 1.8 still
+opens it. Like the other betas, GZJam's update notice doesn't offer it: you only get it from this
+page. It has everything in 1.8.0.
+
 New:
 
 - **A room EQ for each venue** (#272). Every room sounds different: a hall that booms, a muddy room,
@@ -20,15 +34,14 @@ New:
   1 and 2) rolls down a panel under the decks: make a venue, set its EQ while the music plays, and
   next time just choose where you are. While it's on, the key lights and the MAIN chip at the top
   says which venue's. Set it as three bands, as on a song (with starting points for a boomy or a
-  padded room), or as a 10-band graphic EQ, with the curve the room gets beside it. It's on the speakers only, never
-  your headphones or the booth, and GZJam says which venue is loaded when it opens. Thanks to Omar
-  for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
+  padded room), or as a 10-band graphic EQ, with the curve the room gets beside it. It's on the
+  speakers only, never your headphones or the booth, and GZJam says which venue is loaded when it
+  opens. Thanks to Omar for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
   side keys' lights show the live side, and pointing at the crossfader says it in words.
 - **A venue has its own mono and matched level too** (#440), in its room EQ panel beside its
   EQ, so a venue's sound is all in one place: a lower level where the mixer clips easily, stereo
   where it suits the room. Each starts *As in Settings*: Settings › Sound has the defaults, for no
   venue and every venue that doesn't set its own. Volume and outputs never change with a venue.
-
 - **EVEN suggested for an uneven recording** (#271). As GZJam analyzes a song, it measures how far
   its quiet passages drop below its loud ones. For the few far more uneven than most (about one in
   thirty in a swing library: a quiet piano chorus, then the band), the EQ panel suggests an EVEN
