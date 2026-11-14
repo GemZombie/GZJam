@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 
@@ -10,6 +11,7 @@ public enum SettingsSection
     Sound,
     Decks,
     Screen,
+    Keys,
     Library,
     Servers,
     About,
@@ -29,6 +31,50 @@ public partial class SettingsPanel : UserControl
         NavVersionText.Text = $"GZJam {About.Version}";
         foreach ((RadioButton nav, _) in Sections)
             nav.IsCheckedChanged += (_, _) => ShowCheckedSection();
+        KeysIntroText.Text = $"Click a key, then press the new one. Each needs {Shortcuts.Command} with it, or is a function key (F1 to F12), "
+            + "so none can fire while you type. Enter, Space and Delete in the lists, and Escape, stay as they are.";
+        // Ahead of the key itself, which Enter would press.
+        KeysPage.AddHandler(KeyDownEvent, OnKeysPageKeyDown, RoutingStrategies.Tunnel);
+        KeysPage.AddHandler(KeyUpEvent, OnKeysPageKeyUp, RoutingStrategies.Tunnel);
+    }
+
+    /// <summary>Settings closed: a key left waiting for its new one keeps the one it had.</summary>
+    public void Closed() => KeysVm?.Closed();
+
+    private ViewModels.KeysViewModel? KeysVm => (DataContext as ViewModels.SettingsViewModel)?.Keys;
+
+    /// <summary>A row on Settings › Keys is waiting for its new key: no key should do anything else.</summary>
+    public bool IsChoosingKey => KeysVm?.IsChoosing == true;
+
+    /// <summary>The key just taken, whose release would otherwise press the button the keyboard is on (Space).</summary>
+    private Key? _takenKey;
+
+    private void OnKeysPageKeyDown(object? sender, KeyEventArgs e)
+    {
+        _takenKey = null;
+        if (KeysVm is { } keys && keys.Press(e.Key, e.KeyModifiers))
+        {
+            e.Handled = true;
+            if (!keys.IsChoosing)
+                _takenKey = e.Key;
+        }
+    }
+
+    private void OnKeysPageKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (IsChoosingKey || e.Key == _takenKey)
+        {
+            e.Handled = true;
+            if (e.Key == _takenKey)
+                _takenKey = null;
+        }
+    }
+
+    /// <summary>Clicked away from a key waiting for its new one: it keeps the one it had.</summary>
+    private void OnKeyChoiceLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ViewModels.KeyRowViewModel { IsChoosing: true } })
+            KeysVm?.Cancel();
     }
 
     /// <summary>DONE was pressed.</summary>
@@ -50,7 +96,7 @@ public partial class SettingsPanel : UserControl
     public event EventHandler? FileRatingsRequested;
 
     private (RadioButton Nav, Control Page)[] Sections =>
-        [(NavSound, SoundPage), (NavDecks, DecksPage), (NavScreen, ScreenPage), (NavLibrary, LibraryPage), (NavServers, ServersPage),
+        [(NavSound, SoundPage), (NavDecks, DecksPage), (NavScreen, ScreenPage), (NavKeys, KeysPage), (NavLibrary, LibraryPage), (NavServers, ServersPage),
          (NavAbout, AboutPage)];
 
     /// <summary>The section showing.</summary>
@@ -67,6 +113,8 @@ public partial class SettingsPanel : UserControl
     {
         foreach ((RadioButton nav, Control page) in Sections)
             page.IsVisible = nav.IsChecked == true;
+        if (!KeysPage.IsVisible)
+            KeysVm?.Cancel();
         if (AboutPage.IsVisible)
             FillAbout();
         if (ServersPage.IsVisible && DataContext is ViewModels.SettingsViewModel vm)

@@ -428,7 +428,7 @@
           </StackPanel>
         </ToggleButton>
         <Button x:Name="FadeOutButton" Classes="hw" Classes.armed="{Binding IsFadeArmed}" Command="{Binding FadeOutCommand}"
-                IsEnabled="{Binding IsPlaying}" ToolTip.Tip="Fade out and stop (length in Settings)">
+                IsEnabled="{Binding IsPlaying}" ToolTip.Tip="{Binding FadeOutTip}">
           <TextBlock Text="FADE OUT" />
         </Button>
         <Panel x:Name="EjectPart" Classes="full-only" c:FitRow.DropOrder="1" VerticalAlignment="Center">   <!-- in ⋯ on a compact deck -->

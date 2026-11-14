@@ -373,6 +373,12 @@ public sealed class AppSettings
     /// <summary>Each deck's readout mode, by deck number ("1", "2").</summary>
     public Dictionary<string, DeckReadout> DeckReadouts { get; set; } = [];
 
+    /// <summary>
+    /// The keys the DJ chose (#135), by action ("AutoPlay", "Deck1.PlayPause"), each a list of keys
+    /// ("Cmd+Shift+D1"; none: no key). Only actions changed from GZJam's own (see <see cref="KeyMap"/>).
+    /// </summary>
+    public Dictionary<string, List<string>> Keys { get; set; } = [];
+
     public sealed class WindowPlacement
     {
         public int X { get; set; }

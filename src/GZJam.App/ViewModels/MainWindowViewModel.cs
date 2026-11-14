@@ -24,6 +24,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         _settings = settings;
         _database = database;
+        Keys = new KeyMap(settings.Keys);
+        Keys.Changed += (_, _) =>
+        {
+            OnPropertyChanged(nameof(SettingsTip));
+            OnPropertyChanged(nameof(HideDecksTip));
+            OnPropertyChanged(nameof(CompactDecksTip));
+            OnPropertyChanged(nameof(HiddenDecksTip));
+        };
         Audio = audio;
         Mix = mix;
         AudioError = audioError;
@@ -979,7 +987,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
 
 
-    public string SettingsTip => $"Settings · keys: {Shortcuts.Command}+, or {Shortcuts.Command}+O";
+    /// <summary>Which key does what: GZJam's own, or the DJ's from Settings › Keys (#135).</summary>
+    public KeyMap Keys { get; }
+
+    public string SettingsTip => "Settings" + Keys.Tip(new(KeyCommand.Settings));
 
     /// <summary>With the decks hidden, the compact key (and Ctrl/Cmd+D) brings them back as they were.</summary>
     [RelayCommand]
@@ -1037,9 +1048,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool ShowAirLine => DecksHidden && !DecksInQueue;
 
-    public string HideDecksTip => DecksHidden
-        ? $"Show the decks ({Shortcuts.Command}+Shift+D)"
-        : $"Hide the decks, for the most songs ({Shortcuts.Command}+Shift+D)";
+    public string HideDecksTip => (DecksHidden ? "Show the decks" : "Hide the decks, for the most songs") + Keys.Tip(new(KeyCommand.HideDecks));
 
     [RelayCommand]
     private void ToggleHideDecks() => DecksHidden = !DecksHidden;
@@ -1071,8 +1080,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public bool IsCompactSize => DeckSize == DeckSize.Compact;
 
     public string FullDecksTip => "Full decks";
-    public string CompactDecksTip => $"Compact decks, more songs · {Shortcuts.Command}+D";
-    public string HiddenDecksTip => $"Hide the decks, for the most songs · {Shortcuts.Command}+Shift+D";
+    public string CompactDecksTip => "Compact decks, more songs" + Keys.Tip(new(KeyCommand.CompactDecks));
+    public string HiddenDecksTip => "Hide the decks, for the most songs" + Keys.Tip(new(KeyCommand.HideDecks));
 
     private void DeckSizeChanged()
     {

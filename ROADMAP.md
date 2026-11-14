@@ -212,6 +212,12 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 - [MAIN and PHONES lie down beside compact decks](https://github.com/GemZombie/GZJam/issues/441),
   the width of the mixer rather than stubs of faders
 
+And since that beta, for the next one:
+
+- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
+  action, chosen in Settings › Keys, with clashes shown and a way back to the defaults; fade out
+  can have one too
+
 ## Planned next
 
 **1.8 is out** (13 November 2026): quality of life, with ideas from DJs and from Danny Cherry's
@@ -220,11 +226,10 @@ in your file manager plays in GZJam. Fixes come as 1.8.1, 1.8.2 and so on. Found
 [Discussions](https://github.com/GemZombie/GZJam/discussions) or
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
-**1.9: the room's sound,** in beta now (see above): the room EQ for each venue, EVEN suggested.
+**1.9: the room's sound,** in beta now (see above): the room EQ for each venue, EVEN suggested;
+and your own keyboard shortcuts, for the next beta.
 
 **After that:**
-- [Your own keyboard shortcuts](https://github.com/GemZombie/GZJam/issues/135): a key for each
-  action, chosen in Settings, with clashes shown and a way back to the defaults
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
   choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in

@@ -22,7 +22,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         RevealMenuItem.Header = FileManager.RevealLabel;
-        SetUpSongInfo();
         SetUpPlannedStart();
 
         TrackGrid.AddHandler(PointerPressedEvent, OnGridPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -36,10 +35,7 @@ public partial class MainWindow : Window
         SetUpQueueDeckStop();
 
         SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
-        // Ahead of the lists and the search box, which would take Ctrl+arrows for themselves.
-        AddHandler(KeyDownEvent, OnVolumeKeyDown, RoutingStrategies.Tunnel);
-        AddHandler(KeyDownEvent, OnFullScreenKeyDown, RoutingStrategies.Tunnel);
-        AddHandler(KeyDownEvent, OnDeckKeyDown, RoutingStrategies.Tunnel);
+        InitializeKeys();
         PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)
@@ -236,29 +232,8 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>One press of a volume key, in the sliders' percent: small, so a held key can't blast the room.</summary>
-    internal const double VolumeKeyStep = 2;
-
-    /// <summary>
-    /// Ctrl+↑/↓ (Cmd on macOS) turns MAIN up or down, with Shift the PHONES (#132): from anywhere,
-    /// the search box too, as they type nothing. Held, the key repeats.
-    /// </summary>
-    private void OnVolumeKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is not (Key.Up or Key.Down) || Vm.Mixer is not { } mixer
-            || (e.KeyModifiers & ~KeyModifiers.Shift) != CommandModifier)
-            return;
-        double step = e.Key == Key.Up ? VolumeKeyStep : -VolumeKeyStep;
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-            mixer.CueVolume += step;
-        else
-            mixer.MainVolume += step;
-        e.Handled = true;
-    }
-
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        // Ctrl+F on Windows and Linux, Cmd+F on macOS.
         if (e.Key == Key.Escape && IsDragging)
         {
             EndDrag();
@@ -274,52 +249,6 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && Vm.IsOrganizeOpen)
         {
             CloseOrganize();
-            e.Handled = true;
-            return;
-        }
-        // Ctrl+D: compact decks (or back from hidden); with Shift, hide them (#164).
-        if (e.Key == Key.D && (e.KeyModifiers & ~KeyModifiers.Shift) == CommandModifier)
-        {
-            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                Vm.ToggleHideDecksCommand.Execute(null);
-            else
-                Vm.ToggleCompactDecksCommand.Execute(null);
-            e.Handled = true;
-            return;
-        }
-        // Ctrl+L: the queue takes the room in the middle, or the song list does (#178).
-        if (e.Key == Key.L && e.KeyModifiers == CommandModifier && !Vm.IsOrganizeOpen)
-        {
-            ToggleQueueWide();
-            e.Handled = true;
-            return;
-        }
-        // Ctrl+, (the Mac's own key for Settings) or Ctrl+O for Options; again to close (#166).
-        if (e.Key is Key.OemComma or Key.O && e.KeyModifiers == CommandModifier)
-        {
-            if (IsSettingsOpen)
-                CloseSettings();
-            else
-                OpenSettings();
-            e.Handled = true;
-            return;
-        }
-        // Ctrl+I (Cmd+I, like the Mac's Get Info): the selected song's info (#129).
-        if (e.Key == Key.I && e.KeyModifiers == CommandModifier && !Vm.IsOrganizeOpen && ShowSelectedSongInfo())
-        {
-            e.Handled = true;
-            return;
-        }
-        if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier) && Vm.IsOrganizeOpen)
-        {
-            _organize?.FocusFind();
-            e.Handled = true;
-            return;
-        }
-        if (e.Key == Key.F && e.KeyModifiers.HasFlag(CommandModifier))
-        {
-            SearchBox.Focus();
-            SearchBox.SelectAll();
             e.Handled = true;
             return;
         }

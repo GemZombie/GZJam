@@ -48,6 +48,7 @@ public sealed partial class DeckViewModel : ObservableObject
                 Eq.Refresh();
         };
         Readout = settings.DeckReadouts.GetValueOrDefault(Label, DeckReadout.Remaining);
+        owner.Keys.Changed += OnKeysChanged;
         deck.FadeStartedLate += (_, why) =>
             Log.Info($"Deck {Label}: auto-play's limit was faded by the app, not the sound (#359): {why}");
         deck.Jumped += (_, _) =>
@@ -757,10 +758,24 @@ public sealed partial class DeckViewModel : ObservableObject
         ? Deck.TempoPercent == 0 ? "BPM" : $"BPM · from {Format.Bpm(original)}"
         : "BPM unknown";
 
-    /// <summary>The play and CUE keys' tooltips, with their keyboard shortcuts (#132).</summary>
-    public string PlayTip => $"Play / pause · key: {Shortcuts.Command}+{Label}";
-    public string CueTip => $"Cue: send this deck to your headphones · key: {Shortcuts.Command}+Shift+{Label}";
-    public string PreviewTip => $"Hear this song in your headphones from the start; the deck stays where it is · key: {Shortcuts.Command}+{Shortcuts.Alt}+Shift+{Label}";
+    /// <summary>The deck's keys' tooltips, with their keyboard shortcuts (#132, #135).</summary>
+    public string PlayTip => "Play / pause" + KeyTip(KeyCommand.PlayPause);
+    public string CueTip => "Cue: send this deck to your headphones" + KeyTip(KeyCommand.Cue);
+    public string PreviewTip => "Hear this song in your headphones from the start; the deck stays where it is" + KeyTip(KeyCommand.Preview);
+    public string FadeOutTip => "Fade out and stop (length in Settings)" + KeyTip(KeyCommand.FadeOut);
+
+    private string KeyTip(KeyCommand command) => _owner.Keys.Tip(new(command, Number));
+
+    /// <summary>The deck's number, 1 to 4.</summary>
+    public int Number => int.TryParse(Label, out int number) ? number : 0;
+
+    private void OnKeysChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(PlayTip));
+        OnPropertyChanged(nameof(CueTip));
+        OnPropertyChanged(nameof(PreviewTip));
+        OnPropertyChanged(nameof(FadeOutTip));
+    }
 
     public string ReadoutText => Readout switch
     {
