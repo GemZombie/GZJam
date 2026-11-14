@@ -291,7 +291,8 @@ show as small chips. See [the library](#the-library) for what they're for.
 
 The **EQ** chip opens a panel for fixing a recording, set once per song and remembered whenever it's
 loaded: **low**, **mid** (◀ ▶ moves its frequency) and **high**, from -24 to +6 dB; **GAIN** on top of
-loudness matching; and **EVEN**, which brings quiet passages up and loud ones down for an old,
+loudness matching (the line under the faders says what matching does to the song: *Loud
+recording: turned down 3 dB*); and **EVEN**, which brings quiet passages up and loud ones down for an old,
 uneven transfer. *Less hiss* turns the treble down 6 dB to start with; *Flat* resets it all. The chip
 lights when a song has EQ. The room and the headphones hear it alike.
 
@@ -387,10 +388,10 @@ opens with the venue you had and says which at startup; while its EQ is on, the 
 and the MAIN chip shows its name, so last week's room never follows you into a new one unnoticed.
 The room EQ is never in your headphones or the booth: cueing still sounds like the song.
 
-A venue also has its own **MONO** and **LOUDNESS** (the loudness target), on the row under the
-curve, so everything about a venue's sound is in one place. Each starts at *As in Settings*, which
+A venue also has its own **MONO** and **LEVEL** (the matched level), on the row under the curve,
+so everything about a venue's sound is in one place. Each starts at *As in Settings*, which
 follows the default in Settings › Sound and says what it is; choose a value for this venue instead:
-a lower target where the mixer clips easily, stereo where one pair of speakers stands close
+a lower level where the mixer clips easily, stereo where one pair of speakers stands close
 together. Settings › Sound holds the defaults, for **No venue** and every venue left *As in
 Settings*; when the venue loaded has its own, Settings says so above them. Volume and outputs
 aren't part of a venue, so choosing one never makes the room louder or moves the music to other
@@ -1042,9 +1043,9 @@ no title bar (and so no close button), or a touch screen. It asks first while th
 - **Sound:** Speakers, Headphones, *One output for both*, Booth and *Booth volume*, *Speakers for
   GZJam alone* (Windows), **Mono** (on: the room and headphones play mono, so the whole floor hears
   instruments recorded on one side), **Match loudness** (on: songs are turned toward the same
-  loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), **Loudness
-  target** (what matching aims at: -16 LUFS usually; -18, -20 or -23 leave more headroom for a
-  mixer or PA that clips easily, so turn its channel up to make up for it), and **Protection
+  loudness, so a quiet 1938 transfer and a loud remaster play at about the same level), **Matched
+  level** (how loud songs come out once matched: *Usual*, or 2, 4 or 7 dB lower for more headroom
+  on a mixer or PA that clips easily, so turn its channel up to make up for it), and **Protection
   against crackles** (Normal: higher if the sound crackles or drops out, see below).
 - **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
@@ -1113,8 +1114,8 @@ mixer's gain high adds hiss; MAIN high with the mixer's gain high distorts in th
 GZJam's limiter can't help.
 
 **The mixer's channel distorts even with its gain at the lowest** (a mic input, an older mixer,
-or a channel set up for something quieter): choose a lower **Loudness target** in Settings › Sound
-(-20 or -23 LUFS), so everything leaves GZJam a few dB quieter, or turn MAIN down.
+or a channel set up for something quieter): choose a lower **Matched level** in Settings › Sound
+(*4 dB lower* or *7 dB lower*), so everything leaves GZJam a few dB quieter, or turn MAIN down.
 
 **No mixer: straight into a powered speaker or PA.** Then MAIN is the room's volume. Start with
 MAIN low and the speaker's own volume at about its middle, play a song, and set the speaker so that

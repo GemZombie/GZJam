@@ -171,7 +171,7 @@ public sealed class EqAppTests
         var song = new Track { Path = path, Folder = "", FileName = "wide.wav", Title = "Wide" };
         var deck = vm.Deck1!;
         AppHarness.Await(vm.LoadToDeckAsync(deck, song));
-        AppHarness.WaitFor(() => deck.LevelText.Contains("LUFS"));   // measured, so evening works around it
+        AppHarness.WaitFor(() => deck.Waveform is not null, TimeSpan.FromSeconds(30));   // measured, so evening works around it
         vm.Mixer!.Crossfader = 0;
 
         double Spread()
@@ -336,7 +336,7 @@ public sealed class EqAppTests
         var song = new Track { Path = path, Folder = "", FileName = "solo.wav", Title = "Solo" };
         var deck = vm.Deck1!;
         AppHarness.Await(vm.LoadToDeckAsync(deck, song));
-        AppHarness.WaitFor(() => deck.LevelText.Contains("LUFS"), TimeSpan.FromSeconds(30));
+        AppHarness.WaitFor(() => deck.Waveform is not null, TimeSpan.FromSeconds(30));   // measured
 
         Assert.True(deck.Eq.HasSuggestion);
         Assert.Equal(60, deck.Eq.SuggestedEven);
@@ -358,7 +358,7 @@ public sealed class EqAppTests
         // An even recording: nothing suggested.
         var steady = app.ToneTrack("Steady", seconds: 60);
         AppHarness.Await(vm.LoadToDeckAsync(vm.Deck2!, steady));
-        AppHarness.WaitFor(() => vm.Deck2!.LevelText.Contains("LUFS"), TimeSpan.FromSeconds(30));
+        AppHarness.WaitFor(() => vm.Deck2!.Waveform is not null, TimeSpan.FromSeconds(30));
         Assert.False(vm.Deck2!.Eq.HasSuggestion);
     }
 }

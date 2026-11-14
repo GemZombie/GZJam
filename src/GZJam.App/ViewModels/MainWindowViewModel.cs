@@ -462,15 +462,30 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     internal double MatchDb(double? lufs, double? peakDb) =>
         _settings.MatchLoudness && lufs is { } measured ? LoudnessMatch.GainDb(measured, peakDb, _settings.LoudnessTargetNow) : 0;
 
-    /// <summary>"−14.2 LUFS · matching −2 dB", for the EQ panel.</summary>
+    /// <summary>
+    /// What loudness matching does to a song, for the EQ panel, in words a DJ uses: "Loud
+    /// recording: turned down 3.5 dB", "Quiet recording: turned up 6 dB", "About right: left as
+    /// it is". No LUFS: it's in the activity log for anyone comparing with other software.
+    /// </summary>
     internal string LevelText(double? lufs, double? peakDb, bool measuring = false)
     {
         if (lufs is not { } measured)
             return measuring ? "Measuring loudness…" : "Loudness not measured";
-        string text = string.Create(CultureInfo.CurrentCulture, $"{measured:0.0} LUFS").Replace('-', '−');
-        return _settings.MatchLoudness
-            ? $"{text} · matching {EqEditor.Db(MatchDb(lufs, peakDb))}"
-            : $"{text} · loudness matching off";
+        if (!_settings.MatchLoudness)
+            return "Loudness matching off";
+        double gain = MatchDb(lufs, peakDb);
+        double wanted = _settings.LoudnessTargetNow - measured;
+        string Db(double db) => db.ToString("0.#", CultureInfo.CurrentCulture) + " dB";
+        if (Math.Abs(gain) < 0.5 && Math.Abs(wanted) < 0.5)
+            return "About right: left as it is";
+        if (gain < 0)
+            return $"Loud recording: turned down {Db(-gain)}";
+        // A quiet one comes up only as far as its peaks allow, and never more than the most GZJam lifts a song.
+        string why = wanted <= gain + 0.5 ? ""
+            : gain >= LoudnessMatch.MaxBoostDb - 0.05 ? ", the most GZJam turns a song up"
+            : ", as far as its peaks allow";
+        return gain < 0.5 ? "Quiet recording: left as it is, as its peaks allow"
+            : $"Quiet recording: turned up {Db(gain)}{why}";
     }
 
     // ───────────── Ratings and energy ─────────────

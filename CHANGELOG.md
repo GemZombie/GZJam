@@ -24,8 +24,8 @@ New:
   your headphones or the booth, and GZJam says which venue is loaded when it opens. Thanks to Omar
   for the three-bands-or-ten idea. The crossfader's *1 · LIVE* label made way for the key: the
   side keys' lights show the live side, and pointing at the crossfader says it in words.
-- **A venue has its own mono and loudness target too** (#440), in its room EQ panel beside its
-  EQ, so a venue's sound is all in one place: a lower target where the mixer clips easily, stereo
+- **A venue has its own mono and matched level too** (#440), in its room EQ panel beside its
+  EQ, so a venue's sound is all in one place: a lower level where the mixer clips easily, stereo
   where it suits the room. Each starts *As in Settings*: Settings › Sound has the defaults, for no
   venue and every venue that doesn't set its own. Volume and outputs never change with a venue.
 
@@ -38,6 +38,11 @@ New:
 
 Changed:
 
+- **Loudness in words, not LUFS.** The EQ panel says what loudness matching does to a song (*Loud
+  recording: turned down 3.5 dB*, *Quiet recording: turned up 6 dB*, *About right: left as it is*)
+  rather than its loudness in LUFS. Settings' *Loudness target* is now **Matched level**: *Usual*,
+  or 2, 4 or 7 dB lower for more headroom, rather than -16 to -23 LUFS. The same in a venue's room
+  EQ panel (LEVEL). The measurements are as before, and the activity log keeps the LUFS.
 - **Beside compact decks, MAIN and PHONES lie down** (#441). They were stubs of faders about 40 px
   tall, hard to set or to grab. Now they run the width of the mixer, with the speakers' meter as a
   bar between them and the LIMIT light at the end of MAIN. The room EQ key goes at the end of
