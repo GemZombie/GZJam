@@ -685,6 +685,12 @@ public sealed partial class LibraryDatabase
         """
             ALTER TABLE servers ADD COLUMN playlist_separator TEXT;
             """,
+
+        // 36: How far a song's quiet passages are from its loud ones (#271), in LU, from its
+        // analysis: for suggesting EVEN. Only adds.
+        """
+            ALTER TABLE analysis ADD COLUMN loudness_range REAL;
+            """,
     ];
 
     /// <summary>

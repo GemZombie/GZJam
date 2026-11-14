@@ -432,17 +432,23 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public EqEditor EqFor(Track track)
     {
         var (lufs, peakDb) = GetLoudness(track.Path);
+        double? range = GetLoudnessRange(track.Path);
         EqEditor? editor = null;
         editor = new EqEditor(() => "EQ", () => track.DisplayTitle, () => LevelText(lufs, peakDb), _ => { },
             eq => SaveEq(track.Path, eq, editor))
         {
             PreviewCommand = new RelayCommand(() => Preview?.Toggle(track)),
+            LoudnessRange = () => range,
         };
         editor.Set(GetEq(track.Path), save: false);
         return editor;
     }
 
     // ───────────── Loudness matching ─────────────
+
+    /// <summary>How far a song's quiet passages are from its loud ones (#271), from its analysis (null until then).</summary>
+    internal double? GetLoudnessRange(string path) =>
+        FileVersion.Of(path) is { } version ? _database.GetAnalysis(path, version)?.LoudnessRange : null;
 
     /// <summary>A song's measured loudness and peak, from its analysis (null until it's measured).</summary>
     internal (double? Lufs, double? PeakDb) GetLoudness(string path)

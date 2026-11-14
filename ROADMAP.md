@@ -205,6 +205,8 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
   three bands or a 10-band graphic EQ, on the speakers only, remembered for each venue
 - [A venue keeps its mono and loudness target](https://github.com/GemZombie/GZJam/issues/440),
   as well as its room EQ
+- [EVEN suggested for an uneven recording](https://github.com/GemZombie/GZJam/issues/271), found as
+  songs are analyzed, never lifting a break
 - [MAIN and PHONES lie down beside compact decks](https://github.com/GemZombie/GZJam/issues/441),
   the width of the mixer rather than stubs of faders
 
@@ -257,8 +259,6 @@ to one you'd use.
   as your default player, the song on a deck, or in the headphones if the room is hearing something
 
 **Sound**
-- [EVEN found automatically](https://github.com/GemZombie/GZJam/issues/271): the uneven songs found
-  as they're analyzed, and EVEN suggested or set, never lifting a break
 - [Restore old recordings](https://github.com/GemZombie/GZJam/issues/275): clicks, crackle and hiss
   taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
 

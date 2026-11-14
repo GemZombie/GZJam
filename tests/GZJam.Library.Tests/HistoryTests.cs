@@ -143,6 +143,7 @@ public sealed class HistoryTests : IDisposable
                 DROP TABLE server_choices;                    -- added by upgrade 26
                 DROP TABLE server_songs;
                 DROP TABLE servers;                           -- added by upgrade 25
+                ALTER TABLE analysis DROP COLUMN loudness_range; -- added by upgrade 36
                 PRAGMA user_version = 12;
                 """;
             cmd.ExecuteNonQuery();

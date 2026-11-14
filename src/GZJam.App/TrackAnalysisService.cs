@@ -241,6 +241,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
         {
             Lufs = stored.Lufs,
             PeakDb = stored.PeakDb,
+            LoudnessRange = stored.LoudnessRange,
         };
     }
 
@@ -329,6 +330,7 @@ public sealed partial class TrackAnalysisService : ObservableObject, IDisposable
             {
                 Lufs = result.Lufs,
                 PeakDb = result.PeakDb,
+                LoudnessRange = result.LoudnessRange,
             });
             return result;
         }

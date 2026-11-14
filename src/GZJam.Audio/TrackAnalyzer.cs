@@ -14,6 +14,9 @@ public sealed record TrackAnalysis(TimeSpan Length, TimeSpan AudibleStart, TimeS
     /// <summary>The highest sample, in dB below full scale.</summary>
     public double? PeakDb { get; init; }
 
+    /// <summary>How far its quiet passages are from its loud ones, in LU (<see cref="LoudnessMeter.LoudnessRange"/>, #271).</summary>
+    public double? LoudnessRange { get; init; }
+
     /// <summary>The tempos considered, best first (for tuning the detector).</summary>
     internal IReadOnlyList<(double Bpm, double Score)> TempoCandidates { get; init; } = [];
 
@@ -30,7 +33,7 @@ public sealed record TrackAnalysis(TimeSpan Length, TimeSpan AudibleStart, TimeS
 public sealed class TrackAnalyzer(AudioEngine engine)
 {
     /// <summary>Bump when the results would change, so stored analyses get redone.</summary>
-    public const int Version = 2;   // 2: loudness and peak
+    public const int Version = 3;   // 2: loudness and peak; 3: loudness range (#271)
 
     /// <summary>Slices in the overview waveform: about one per pixel of a wide deck.</summary>
     public const int WaveformSlices = 1000;
@@ -110,6 +113,7 @@ public sealed class TrackAnalyzer(AudioEngine engine)
                     TempoCandidates = candidates,
                     Lufs = loudness.IntegratedLufs is { } lufs ? Math.Round(lufs, 1) : null,
                     PeakDb = loudness.PeakDb is { } peak ? Math.Round(peak, 1) : null,
+                    LoudnessRange = loudness.LoudnessRange is { } range ? Math.Round(range, 1) : null,
                     Detail = detail,
                 };
             }

@@ -73,6 +73,40 @@ public sealed class LoudnessMeter
         }
     }
 
+    /// <summary>
+    /// How far the song's quiet passages are from its loud ones, in LU (EBU Tech 3342's loudness
+    /// range, #271): its loudness over 3 s at a time, every 100 ms, with silence and anything 20 LU
+    /// under the song left out, from the 10th percentile to the 95th. Breaks and stop-time are
+    /// silence, so they don't count. Null if the song is too short or silent to tell.
+    /// </summary>
+    public double? LoudnessRange
+    {
+        get
+        {
+            const int window = 30;   // 3 s of 100 ms sub-blocks
+            if (_subBlocks.Count < window)
+                return null;
+            var shortTerm = new List<double>();
+            double sum = _subBlocks.Take(window).Sum();
+            for (int i = window; ; i++)
+            {
+                shortTerm.Add(sum / window);
+                if (i >= _subBlocks.Count)
+                    break;
+                sum += _subBlocks[i] - _subBlocks[i - window];
+            }
+            var audible = shortTerm.Where(z => Lufs(z) > -70).ToList();
+            if (audible.Count < 10)
+                return null;
+            double gate = Lufs(audible.Average()) - 20;
+            var gated = audible.Where(z => Lufs(z) > gate).Select(Lufs).Order().ToList();
+            if (gated.Count < 10)
+                return null;
+            double Percentile(double p) => gated[(int)Math.Round(p * (gated.Count - 1))];
+            return Percentile(0.95) - Percentile(0.10);
+        }
+    }
+
     private static double Lufs(double meanSquare) => meanSquare <= 0 ? double.NegativeInfinity : -0.691 + 10 * Math.Log10(meanSquare);
 
     /// <summary>A second-order filter, direct form I. Coefficients for any sample rate (as in libebur128).</summary>

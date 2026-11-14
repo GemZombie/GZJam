@@ -11,6 +11,9 @@ public sealed record StoredAnalysis(int Version, TimeSpan Length, TimeSpan Audib
 
     /// <summary>Sample peak in dB below full scale.</summary>
     public double? PeakDb { get; init; }
+
+    /// <summary>How far its quiet passages are from its loud ones, in LU (#271).</summary>
+    public double? LoudnessRange { get; init; }
 }
 
 /// <summary>Identifies one version of a file on disk: when it changes, its analysis is stale.</summary>
@@ -54,7 +57,7 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            SELECT version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db FROM analysis
+            SELECT version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db, loudness_range FROM analysis
             WHERE path = $path AND file_size = $size AND modified_utc = $mod;
             """;
         cmd.Parameters.AddWithValue("$path", path);
@@ -73,6 +76,7 @@ public sealed partial class LibraryDatabase
         {
             Lufs = r.IsDBNull(6) ? null : r.GetDouble(6),
             PeakDb = r.IsDBNull(7) ? null : r.GetDouble(7),
+            LoudnessRange = r.IsDBNull(8) ? null : r.GetDouble(8),
         };
     }
 
@@ -81,12 +85,13 @@ public sealed partial class LibraryDatabase
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO analysis (path, file_size, modified_utc, version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db)
-            VALUES ($path, $size, $mod, $version, $length, $start, $end, $bpm, $waveform, $lufs, $peak)
+            INSERT INTO analysis (path, file_size, modified_utc, version, length_ms, start_ms, end_ms, bpm, waveform, lufs, peak_db, loudness_range)
+            VALUES ($path, $size, $mod, $version, $length, $start, $end, $bpm, $waveform, $lufs, $peak, $range)
             ON CONFLICT(path) DO UPDATE SET
                 file_size = excluded.file_size, modified_utc = excluded.modified_utc, version = excluded.version,
                 length_ms = excluded.length_ms, start_ms = excluded.start_ms, end_ms = excluded.end_ms,
-                bpm = excluded.bpm, waveform = excluded.waveform, lufs = excluded.lufs, peak_db = excluded.peak_db;
+                bpm = excluded.bpm, waveform = excluded.waveform, lufs = excluded.lufs, peak_db = excluded.peak_db,
+                loudness_range = excluded.loudness_range;
             """;
         cmd.Parameters.AddWithValue("$path", path);
         cmd.Parameters.AddWithValue("$size", version.Size);
@@ -99,6 +104,7 @@ public sealed partial class LibraryDatabase
         cmd.Parameters.Add(new SqliteParameter("$waveform", SqliteType.Blob) { Value = (object?)analysis.Waveform ?? DBNull.Value });
         cmd.Parameters.AddWithValue("$lufs", (object?)analysis.Lufs ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$peak", (object?)analysis.PeakDb ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$range", (object?)analysis.LoudnessRange ?? DBNull.Value);
         cmd.ExecuteNonQuery();
     }
 
