@@ -13,7 +13,8 @@ intuitive and useful: what you need to play music for dancers, without the clutt
 ## Download
 
 **[Download the latest release](https://github.com/GemZombie/GZJam/releases/latest)** and pick
-the file for your computer. How to use it, from your first song to a night's checklist, is in
+the file for your computer, or let [GZJam's website](https://gemzombie.github.io/GZJam/) pick it
+for you. How to use it, from your first song to a night's checklist, is in
 the [user guide](docs/GUIDE.md). What changed in each release is in [CHANGELOG.md](CHANGELOG.md);
 what GZJam does and what's coming is in [ROADMAP.md](ROADMAP.md).
 Questions, ideas and news are in [Discussions](https://github.com/GemZombie/GZJam/discussions),
