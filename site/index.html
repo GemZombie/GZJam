@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GZJam: a free DJ app for social dance nights</title>
+<meta name="description" content="GZJam is a free DJ app for social dance nights: swing, West Coast, blues, ballroom and more. Play whole songs, choose them for the floor, and keep the music going without surprises. For Windows, Mac and Linux.">
+<link rel="canonical" href="https://gemzombie.github.io/GZJam/">
+<link rel="icon" href="img/gzjam-icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="GZJam">
+<meta property="og:title" content="GZJam: a free DJ app for social dance nights">
+<meta property="og:description" content="Play whole songs, choose them for the floor, and keep the music going without surprises. Free, for Windows, Mac and Linux.">
+<meta property="og:url" content="https://gemzombie.github.io/GZJam/">
+<meta property="og:image" content="https://gemzombie.github.io/GZJam/img/main-screen.png">
+<meta property="og:image:width" content="1440">
+<meta property="og:image:height" content="900">
+<meta property="og:image:alt" content="GZJam during a set: two decks, the library and the queue">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-row">
+    <a href="./" class="brand" aria-label="GZJam home">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="img/gzjam-logo-light.svg">
+        <img src="img/gzjam-logo.svg" alt="GZJam" width="160" height="40">
+      </picture>
+    </a>
+    <nav class="top-links" aria-label="Main">
+      <a href="#downloads">Download</a>
+      <a href="https://github.com/GemZombie/GZJam/blob/main/docs/GUIDE.md">User guide</a>
+      <a href="#help">Help</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero wrap">
+  <h1>A free DJ app for social dance nights.</h1>
+  <p class="lede">Swing, West Coast, blues, ballroom and more. Play whole songs, choose them for the floor,
+    and keep the music going without surprises. Simple, intuitive and useful: what you need to play
+    music for dancers, without the clutter.</p>
+
+  <div class="get" id="get">
+    <!-- Filled in for the visitor's computer by the script below. Without it, this is what shows. -->
+    <div class="keys">
+      <a class="key on" href="#downloads"><span class="led"></span><span>Download GZJam<small>For Windows, Mac and Linux</small></span></a>
+    </div>
+  </div>
+  <p class="version" id="version">Free and open source, for Windows, Mac and Linux.</p>
+</section>
+
+<figure class="shot wrap">
+  <img src="img/main-screen.png" width="1440" height="900"
+       alt="GZJam during a set: Deck 1 on air, Deck 2 cued in the headphones, a search of the library, and the queue">
+  <figcaption>During a set: Deck 1 on air, Deck 2 cued in the headphones, a search of the library, and the queue.</figcaption>
+</figure>
+
+<section class="wrap" aria-labelledby="what">
+  <h2 class="label" id="what">What it does</h2>
+  <div class="features">
+    <div>
+      <h3>Your folders are the library</h3>
+      <p>Nothing to import. GZJam never changes your music files unless you ask it to. A request on a
+        dancer's USB stick plays without leaving GZJam.</p>
+    </div>
+    <div>
+      <h3>Two decks, or four</h3>
+      <p>A crossfader for the room and a headphone cue on each deck. Mono by default, so the whole floor
+        hears the whole band.</p>
+    </div>
+    <div>
+      <h3>Loudness matching</h3>
+      <p>A quiet 1938 transfer and a loud remaster play at about the same level, with a level meter on
+        each deck before the room hears it.</p>
+    </div>
+    <div>
+      <h3>Search made for DJs</h3>
+      <p>Find songs by tempo, energy, your own labels, or what the room heard last week:
+        <code>bpm:130-150</code>, <code>-played:7</code>. Mark the keepers with a heart.</p>
+    </div>
+    <div>
+      <h3>A queue that plays itself</h3>
+      <p>Auto-play with a gap of real silence between songs. For classes and practice nights, fade each
+        song out after a set time, wait for you, or stop on time.</p>
+    </div>
+    <div>
+      <h3>Safe during a set</h3>
+      <p>Two taps to pause the song the room hears, so a stray tap never stops the music. If the laptop
+        restarts mid-dance, the night comes back as it was.</p>
+    </div>
+    <div>
+      <h3>Playlists and History</h3>
+      <p>Plan a set ahead of time, and keep every night's set list, to export as text or a spreadsheet.</p>
+    </div>
+    <div>
+      <h3>Bring your music with you</h3>
+      <p>Ratings, crates and playlists from Mixxx; playlists and star ratings from MediaMonkey, foobar2000,
+        iTunes and most other players; and your own Navidrome server.</p>
+    </div>
+  </div>
+  <p class="more">Everything it does, and what's coming next, is on
+    <a href="https://github.com/GemZombie/GZJam/blob/main/ROADMAP.md">the roadmap</a>.
+    It plays MP3, FLAC, WAV, AIFF, OGG, Opus and Apple Lossless everywhere, AAC on Windows and Mac,
+    and WMA on Windows.</p>
+</section>
+
+<section class="wrap" aria-labelledby="downloads">
+  <h2 class="label" id="downloads">Downloads</h2>
+  <p>Everything GZJam needs comes with it. It's free, and always will be.</p>
+  <div class="table-scroll">
+    <table class="files">
+      <thead><tr><th>Computer</th><th>File</th><th>To install</th></tr></thead>
+      <tbody>
+        <tr><td>Windows</td><td><a data-file="win">Installer (.exe)</a></td><td>Run it. Installs for you alone, no administrator needed.</td></tr>
+        <tr><td>Windows, without installing</td><td><a data-file="winzip">Zip file</a></td><td>Unzip anywhere and run <code>GZJam.exe</code>.</td></tr>
+        <tr><td>Mac with Apple Silicon (M1 or later)</td><td><a data-file="macarm">Disk image (.dmg)</a></td><td>Open it and drag GZJam to Applications.</td></tr>
+        <tr><td>Mac with Intel</td><td><a data-file="macx64">Disk image (.dmg)</a></td><td>The same.</td></tr>
+        <tr><td>Ubuntu, Mint, Debian</td><td><a data-file="deb">.deb</a></td><td>Open it, or <code>sudo apt install ./GZJam-*.deb</code></td></tr>
+        <tr><td>Fedora</td><td><a data-file="rpm">.rpm</a></td><td><code>sudo dnf install ./GZJam-*.rpm</code></td></tr>
+        <tr><td>openSUSE</td><td><a data-file="rpm">.rpm</a></td><td><code>sudo zypper install --allow-unsigned-rpm ./GZJam-*.rpm</code></td></tr>
+        <tr><td>Arch, Manjaro</td><td><a data-file="arch">.pkg.tar.zst</a></td><td><code>sudo pacman -U GZJam-*.pkg.tar.zst</code></td></tr>
+        <tr><td>Any other Linux</td><td><a data-file="tgz">.tar.gz</a></td><td>Unpack it and run <code>./install.sh</code> in the folder.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">Not sure which Mac you have? Apple menu › About This Mac: a “Chip” line means
+    Apple Silicon, a “Processor” line means Intel. All Linux files are for 64-bit Intel and AMD computers.</p>
+</section>
+
+<section class="wrap" aria-labelledby="first">
+  <h2 class="label" id="first">The first time you open it</h2>
+  <p>GZJam is free and isn't signed with a paid certificate, so your computer may warn you once.</p>
+  <div class="two">
+    <div>
+      <h3>Windows</h3>
+      <p>If it says “Windows protected your PC”, click <strong>More info</strong>, then
+        <strong>Run anyway</strong>.</p>
+    </div>
+    <div>
+      <h3>Mac</h3>
+      <p>If it says it can't check GZJam for malicious software, open <strong>System Settings ›
+        Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> beside
+        the note about GZJam.</p>
+    </div>
+  </div>
+  <p>At startup GZJam asks GitHub whether there's a newer version, and says so before the music starts.
+    That request sends nothing about you or your music, and you can turn it off in Settings.</p>
+</section>
+
+<section class="wrap" aria-labelledby="help">
+  <h2 class="label" id="help">Help and news</h2>
+  <ul class="links">
+    <li><a href="https://github.com/GemZombie/GZJam/blob/main/docs/GUIDE.md">User guide</a>
+      <span>From your first song to plugging into the venue's sound and a checklist for the night.</span></li>
+    <li><a href="https://www.facebook.com/groups/2178840716051629/">GZJam Support and Development</a>
+      <span>The Facebook group: questions, your setup, and news.</span></li>
+    <li><a href="https://github.com/GemZombie/GZJam/discussions">Discussions on GitHub</a>
+      <span>Questions and ideas.</span></li>
+    <li><a href="https://github.com/GemZombie/GZJam/issues/new/choose">Report a problem</a>
+      <span>Say what you did, what happened, and which computer. The activity log helps.</span></li>
+    <li><a href="https://github.com/GemZombie/GZJam/blob/main/CHANGELOG.md">What changed in each release</a>
+      <span>And <a href="https://github.com/GemZombie/GZJam/blob/main/ROADMAP.md">what's coming</a>.</span></li>
+  </ul>
+</section>
+
+<section class="wrap" aria-labelledby="support">
+  <h2 class="label" id="support">Supporting GZJam</h2>
+  <p>GZJam is free, and always will be. If it's useful to you and you'd like to support the work, you
+    can <a href="https://github.com/sponsors/GemZombie">sponsor it on GitHub</a>. Telling other DJs
+    about it, reporting problems and sharing ideas help just as much.</p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>GZJam is open source under the <a href="https://github.com/GemZombie/GZJam/blob/main/LICENSE">MIT license</a>.
+      · <a href="https://github.com/GemZombie/GZJam">GZJam on GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var REPO = "GemZombie/GZJam";
+  var LATEST = "https://github.com/" + REPO + "/releases/latest";
+  // How each kind of download's file name ends; the version comes before it.
+  var ENDINGS = {
+    win: "-windows-x64-setup.exe", winzip: "-windows-x64.zip",
+    macarm: "-macos-arm64.dmg", macx64: "-macos-x64.dmg",
+    deb: "-linux-x64.deb", rpm: "-linux-x64.rpm",
+    arch: "-linux-x64.pkg.tar.zst", tgz: "-linux-x64.tar.gz"
+  };
+  var urls = {};
+
+  function href(kind) { return urls[kind] || LATEST; }
+
+  function key(kind, title, sub, lit) {
+    return '<a class="key' + (lit ? " on" : "") + '" data-file="' + kind + '" href="' + href(kind) + '">' +
+      '<span class="led"></span><span>' + title + (sub ? "<small>" + sub + "</small>" : "") + "</span></a>";
+  }
+
+  function system() {
+    var ua = navigator.userAgent;
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
+        (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "phone";
+    if (/Windows/.test(ua)) return "windows";
+    if (/Macintosh|Mac OS X/.test(ua)) return "mac";
+    if (/CrOS/.test(ua)) return "other";
+    if (/Linux|X11/.test(ua)) return "linux";
+    return "other";
+  }
+
+  function render(sys, macChip) {
+    var get = document.getElementById("get");
+    var all = '<p class="hint"><a href="#downloads">Other computers and files</a></p>';
+    if (sys === "windows") {
+      get.innerHTML = '<div class="keys">' +
+        key("win", "Download for Windows", "Installer, 64-bit", true) + "</div>" +
+        '<p class="hint">Or the <a data-file="winzip" href="' + href("winzip") + '">zip file</a>, to run without installing. ' +
+        '<a href="#downloads">Mac and Linux</a></p>';
+    } else if (sys === "mac") {
+      var arm = key("macarm", "Download for Mac", "Apple Silicon (M1 or later)", macChip !== "intel");
+      var intel = key("macx64", "Download for Mac", "Intel", macChip === "intel");
+      get.innerHTML = '<div class="keys">' + (macChip === "intel" ? intel + arm : arm + intel) + "</div>" +
+        (macChip ? all : '<p class="hint">Not sure which? Apple menu › About This Mac: a “Chip” line means Apple Silicon. ' +
+          '<a href="#downloads">Other computers</a></p>');
+    } else if (sys === "linux") {
+      get.innerHTML = '<div class="keys">' +
+        key("deb", "Ubuntu, Mint, Debian", ".deb", true) +
+        key("rpm", "Fedora, openSUSE", ".rpm", false) +
+        key("arch", "Arch, Manjaro", ".pkg.tar.zst", false) + "</div>" +
+        '<p class="hint">Any other Linux: the <a data-file="tgz" href="' + href("tgz") + '">.tar.gz</a>. ' +
+        '<a href="#downloads">How to install each</a></p>';
+    } else if (sys === "phone") {
+      get.innerHTML = '<p class="phone-note">GZJam runs on a computer: Windows, Mac or Linux. ' +
+        "Open this page on the laptop you DJ from, or pick a file below.</p>" +
+        '<div class="keys"><a class="key" href="#downloads"><span class="led"></span><span>See the downloads</span></a></div>';
+    }
+  }
+
+  function fill() {
+    var links = document.querySelectorAll("a[data-file]");
+    for (var i = 0; i < links.length; i++) {
+      var kind = links[i].getAttribute("data-file");
+      if (kind) links[i].href = href(kind);
+    }
+  }
+
+  var sys = system();
+  fill();
+  render(sys, null);
+
+  // On a Mac, Chrome and Edge can say which chip; Safari can't, so both keys show.
+  if (sys === "mac" && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    navigator.userAgentData.getHighEntropyValues(["architecture"]).then(function (v) {
+      if (v.architecture === "arm") render("mac", "arm");
+      else if (v.architecture === "x86") render("mac", "intel");
+    }, function () {});
+  }
+
+  // The newest stable release (betas are left out), for direct links and its version number.
+  // If GitHub can't be reached, every link still goes to the release page.
+  fetch("https://api.github.com/repos/" + REPO + "/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (rel) {
+      (rel.assets || []).forEach(function (a) {
+        for (var k in ENDINGS) if (a.name.slice(-ENDINGS[k].length) === ENDINGS[k]) urls[k] = a.browser_download_url;
+      });
+      fill();
+      var version = String(rel.tag_name || "").replace(/^v/, "");
+      var when = rel.published_at ? new Date(rel.published_at).toLocaleDateString("en-US",
+        { month: "long", day: "numeric", year: "numeric" }) : "";
+      if (version) {
+        document.getElementById("version").innerHTML = "Version " + version + (when ? ", " + when : "") +
+          ' · <a href="' + rel.html_url + '">What’s new</a> · Free and open source';
+      }
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>
