@@ -1,0 +1,190 @@
+/* GZJam's website. Colors follow branding/README.md and the app: Deck 1's cyan is the one accent. */
+
+:root {
+  --bg: #0c0f14;
+  --panel: #161a21;
+  --line: #2a303b;
+  --text: #e8ecf2;
+  --muted: #9aa4b2;
+  --accent: #36c2dc;
+  --link: #5fd0e4;
+  --key-top: #2a313c;
+  --key-bottom: #1b2028;
+  --key-edge: #3a4250;
+  --led-off: #3a4250;
+  --code-bg: #1e232c;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f6f9;
+    --panel: #ffffff;
+    --line: #d5dbe3;
+    --text: #151920;
+    --muted: #586170;
+    --accent: #1597b0;
+    --link: #0f7d92;
+    --key-top: #ffffff;
+    --key-bottom: #e6eaf0;
+    --key-edge: #c2c9d3;
+    --led-off: #c2c9d3;
+    --code-bg: #e9edf2;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+}
+
+a { color: var(--link); text-underline-offset: 2px; }
+a:hover { color: var(--text); }
+
+code {
+  font: 0.86em ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+/* Top bar */
+
+.top { border-bottom: 1px solid var(--line); }
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+.brand img { display: block; height: 36px; width: auto; }
+.top-links { display: flex; gap: 20px; font-size: 15px; }
+.top-links a { color: var(--muted); text-decoration: none; }
+.top-links a:hover { color: var(--text); }
+
+/* Opening */
+
+.hero { padding-top: 56px; padding-bottom: 32px; }
+h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 16px; max-width: 18em; }
+.lede { font-size: 19px; color: var(--muted); max-width: 40em; margin: 0 0 28px; }
+
+/* Download keys, drawn like the app's hardware keys: a lit LED marks the one for this computer. */
+
+.keys { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px 12px 14px;
+  min-height: 56px;
+  border-radius: 5px;
+  border: 1px solid var(--key-edge);
+  background: linear-gradient(var(--key-top), var(--key-bottom));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.key:hover { color: var(--text); border-color: var(--accent); }
+.key:active { transform: translateY(1px); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.key small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.key .led {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.key.on .led { background: var(--accent); }
+
+.hint { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+.phone-note { margin: 0 0 14px; max-width: 34em; }
+.version { font-size: 14px; color: var(--muted); margin: 18px 0 0; }
+
+/* Screenshot, in a thin bezel */
+
+.shot { margin-top: 8px; margin-bottom: 56px; }
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.shot figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; }
+
+/* Sections, headed like the labels printed on a mixer's panel */
+
+main > section.wrap { margin-bottom: 56px; }
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 16px;
+}
+
+h3 { font-size: 17px; margin: 0 0 6px; }
+main p { max-width: 46em; }
+
+.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; }
+.features p, .two p { margin: 0; color: var(--muted); }
+.more { margin-top: 28px; color: var(--muted); }
+
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+.two > div { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 16px 18px; }
+
+/* Downloads table */
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); }
+.files { width: 100%; border-collapse: collapse; font-size: 15px; }
+.files th, .files td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.files tr:last-child td { border-bottom: 0; }
+.files th { font-size: 13px; font-weight: 600; color: var(--muted); }
+.files td:nth-child(2) { white-space: nowrap; }
+.small { font-size: 14px; color: var(--muted); }
+
+/* Help links */
+
+.links { list-style: none; margin: 0; padding: 0; }
+.links li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.links li:last-child { border-bottom: 0; }
+.links li > a { font-weight: 600; }
+.links span { display: block; color: var(--muted); font-size: 15px; }
+
+/* Footer */
+
+.foot { border-top: 1px solid var(--line); padding: 20px 0 32px; font-size: 14px; color: var(--muted); }
+
+/* Phones */
+
+@media (max-width: 700px) {
+  body { font-size: 16px; }
+  .top-links { gap: 14px; font-size: 14px; }
+  .top-links a[href="#help"] { display: none; }
+  .brand img { height: 30px; }
+  .hero { padding-top: 36px; }
+  .lede { font-size: 17px; }
+  .features, .two { grid-template-columns: 1fr; gap: 20px; }
+  .key { width: 100%; }
+  /* The table becomes one card per row. */
+  .files thead { display: none; }
+  .files, .files tbody, .files tr, .files td { display: block; width: 100%; }
+  .files tr { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .files tr:last-child { border-bottom: 0; }
+  .files td { padding: 2px 0; border: 0; white-space: normal !important; }
+  .files td:first-child { font-weight: 600; }
+  .table-scroll { overflow-x: visible; }
+}

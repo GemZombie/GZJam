@@ -1,0 +1,43 @@
+# Publishes the website (site/) to GitHub Pages. It runs only when the page, the logo or the
+# screenshot changes on main, or by hand; releases don't need it, because the page finds the
+# newest release by itself.
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - branding/gzjam-logo.svg
+      - branding/gzjam-logo-light.svg
+      - branding/gzjam-icon.svg
+      - docs/images/main-screen.png
+      - tools/build-site.sh
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Put the site together
+        run: bash tools/build-site.sh _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
