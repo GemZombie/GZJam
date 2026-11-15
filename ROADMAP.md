@@ -216,6 +216,8 @@ Fixes come as 1.9.1, 1.9.2 and so on. Found something? Say so in
 [the Facebook group](https://www.facebook.com/groups/2178840716051629/).
 
 **After that:**
+- [Keys without Ctrl](https://github.com/GemZombie/GZJam/issues/454): plain keys you choose, which
+  work when you're not typing in a box
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
   choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
