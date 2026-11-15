@@ -226,9 +226,6 @@ Fixes come as 1.9.1, 1.9.2 and so on. Found something? Say so in
   laptop plugged straight into a PA with no mixer
 - [Hints for new DJs](https://github.com/GemZombie/GZJam/issues/123), quiet and optional: the same
   tempo for too long, a repeat, the limiter held on
-- [Rip CDs straight into the library](https://github.com/GemZombie/GZJam/issues/41), named and tagged.
-  Not something DJ apps usually do, and good free rippers exist (Exact Audio Copy, fre:ac,
-  foobar2000), whose files GZJam picks up by itself.
 
 ## Being considered
 
@@ -236,14 +233,18 @@ Requests and ideas, in no particular order. Each links to its discussion; add a 
 to one you'd use.
 
 **Library**
-- [File songs by their tags](https://github.com/GemZombie/GZJam/issues/332): choose a pattern like
-  Artist / Album / Title, see every new path first, and undo it if you don't like it
+- [Saved searches as smart playlists](https://github.com/GemZombie/GZJam/issues/455): "hearts,
+  120–140 BPM, not played in 3 months", kept by name and up to date by itself
 - [Compact library](https://github.com/GemZombie/GZJam/issues/75): see what's still kept for songs
   that are gone, and clean it up
 - [A recording's condition at a glance](https://github.com/GemZombie/GZJam/issues/274): a grade
   from worn to clean, to choose between versions of a song
 
 **Playing**
+- [History by venue](https://github.com/GemZombie/GZJam/issues/457): not played *here* lately, for
+  DJs who play several venues
+- [Who played](https://github.com/GemZombie/GZJam/issues/458): a DJ's name on each night in History,
+  and on the set lists, when several DJs share a laptop
 - [Color songs by rules](https://github.com/GemZombie/GZJam/issues/124): BPM ranges, energy, a
   label, or any search
 - [Dance types on songs, for ballroom](https://github.com/GemZombie/GZJam/issues/103): playlists by
@@ -255,17 +256,22 @@ to one you'd use.
 
 **Sound**
 - [Restore old recordings](https://github.com/GemZombie/GZJam/issues/275): clicks, crackle and hiss
-  taken out of worn 78s, while playing or as a cleaned copy made ahead of the night
+  taken out of worn 78s: a cleaned copy made ahead of the night, in the companion app, and maybe
+  later while playing
 
 **Elsewhere**
+- [Now playing for the room](https://github.com/GemZombie/GZJam/issues/456): a page dancers open
+  from a QR code, or a second screen, for "what was that song?"
 - [A visiting or remote DJ](https://github.com/GemZombie/GZJam/issues/204): sign in to your own
   library on a borrowed laptop and leave nothing behind, or play a dance from somewhere else, the
   songs sent ahead to a laptop in the room
 - [Two rooms](https://github.com/GemZombie/GZJam/issues/120): two GZJams on the same network, for
   schools with two floors, either one controlling the other
 - [GZJam in other languages](https://github.com/GemZombie/GZJam/issues/102)
-- [A companion app for cleaning up tags and file names](https://github.com/GemZombie/GZJam/issues/76):
-  fill in missing titles, fix misspelled artists, rename files by rule
+- [A companion app for your collection](https://github.com/GemZombie/GZJam/issues/76), beside
+  GZJam: tags and file names tidied in bulk (missing titles, misspelled artists, files named and
+  filed from their tags), [CDs ripped](https://github.com/GemZombie/GZJam/issues/41) straight into
+  your music, and old recordings cleaned up
 - [A tablet version](https://github.com/GemZombie/GZJam/issues/16), iPad first
 
 ## Decided against
