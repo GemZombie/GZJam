@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using System.ComponentModel;
 using Avalonia.VisualTree;
+using Track = GZJam.Library.Track;
 
 namespace GZJam.App.Tests;
 
@@ -160,6 +161,41 @@ public sealed class ColumnsTests
             .First(t => t.Text == app.Library.Results[0].Artist);
         Assert.Equal(TextTrimming.CharacterEllipsis, artist.TextTrimming);
         Assert.True(artist.Bounds.Width >= 100 - 2 * 8 - 1, $"Artist cell: {artist.Bounds.Width} px");
+    }
+
+    [AvaloniaFact]
+    public void Times_line_up_on_the_right_after_the_list_shows_longer_ones()
+    {
+        using var app = new AppHarness();
+        var grid = app.Window.FindControl<DataGrid>("TrackGrid")!;
+        Column(app, "Time").Width = new DataGridLength(214);
+        static Track Song(int seconds)
+        {
+            var song = new Track { Path = $"C:/nowhere/{seconds}.mp3", Folder = "", FileName = $"{seconds}.mp3", Title = $"Song {seconds}", Artist = "Band" };
+            song.Duration = TimeSpan.FromSeconds(seconds);
+            return song;
+        }
+
+        // Rows that showed an hour-long and a ten-minute recording, reused for shorter songs (#459)
+        var rows = app.ViewModel.Library.ResultRows;
+        rows.Replace(Enumerable.Range(0, 12).Select(i => Song(i % 2 == 0 ? 3723 : 605)).ToList());
+        AppHarness.Settle(200);
+        int[] lengths = [322, 270, 349, 378, 430, 366, 365, 477, 214];
+        rows.Replace(lengths.Select(Song).ToList());
+        AppHarness.Settle(200);
+
+        var times = grid.GetVisualDescendants().OfType<DataGridCell>()
+            .Where(c => c.IsEffectivelyVisible && c.Classes.Contains("num"))
+            .SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Text is { Length: 4 } && t.Text[1] == ':').Select(t => (Cell: c, Text: t)))
+            .ToList();
+        Assert.Equal(lengths.Length, times.Count);
+        foreach (var (cell, text) in times)
+        {
+            // The text's box spans the cell, less its padding, and the text ends at the box's right edge
+            Assert.Equal(cell.Bounds.Width - cell.Padding.Left - cell.Padding.Right, text.Bounds.Width, 1);
+            var line = text.TextLayout.TextLines[0];
+            Assert.Equal(text.Bounds.Width, line.Start + line.Width, 1);
+        }
     }
 
     private static double Natural(TextBlock text)
