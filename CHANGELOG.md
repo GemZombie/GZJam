@@ -13,7 +13,12 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
-Nothing yet since 1.9.0.
+Fixed:
+
+- **Song times line up on the right again** (#459). After browsing folders of different songs,
+  some times in the song list could end a character or three short of the column's edge, left
+  where a longer time had been, until GZJam was started again. Times, years, BPMs and play counts
+  now always line up on the right.
 
 ## 1.9.0 (2026-11-14)
 

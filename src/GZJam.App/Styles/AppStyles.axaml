@@ -363,9 +363,16 @@
   <Style Selector="DataGrid.tracks DataGridCell:current /template/ Grid#FocusVisual">
     <Setter Property="IsVisible" Value="False" />
   </Style>
+  <!-- Numbers right-aligned inside a text box as wide as the cell. A box only as wide as its text,
+       pushed to the right, could stay where an earlier, longer time put it as the list reused its
+       rows, ending one or three characters short of the edge (#459). -->
   <Style Selector="DataGrid.tracks DataGridCell.num">
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-    <Setter Property="HorizontalContentAlignment" Value="Right" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="DataGrid.tracks DataGridCell.num TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="TextAlignment" Value="Right" />
   </Style>
 
   <!-- "in My music" on a server's song that's in My music too (#318) -->
