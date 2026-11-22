@@ -91,7 +91,9 @@ release.
   next day.
 
 **Decks**
-- Two decks, or four in the same space.
+- One deck, two, or four in the same space. One is for playing from a list: the song playing,
+  with what's next on a strip under it and no crossfader; two players underneath, so the next song
+  is ready and the gap works as with two.
 - Double-click a song to put it on the deck that plays next, never the one on air.
 - Compact decks for a laptop: smaller decks, so the library and queue show more songs. Or hide
   the decks, for the most songs on screen: they sit at the top of the queue, in the order the room
@@ -205,7 +207,9 @@ Plays MP3, FLAC, WAV, AIFF, OGG Vorbis, Opus and Apple Lossless everywhere, AAC 
 
 ## Finished, coming in the next release
 
-Nothing yet since 1.9.0.
+- [One deck](https://github.com/GemZombie/GZJam/issues/462), for DJs who play from a list: the song
+  playing with its waveform and EQ, what's next on a strip under it, no crossfader. Still to come
+  for it: a bigger countdown through the gap, and tonight's played songs above the queue.
 
 ## Planned next
 

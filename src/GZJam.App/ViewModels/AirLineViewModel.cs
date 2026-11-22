@@ -23,6 +23,19 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
 
     public bool HasNow => Now is not null;
 
+    /// <summary>
+    /// With one deck (#462): the other player, whose song plays next, for the strip under the deck.
+    /// Null with two or four decks.
+    /// </summary>
+    [ObservableProperty]
+    public partial DeckViewModel? Waiting { get; private set; }
+
+    partial void OnNowChanged(DeckViewModel? oldValue, DeckViewModel? newValue)
+    {
+        oldValue?.RowNameChanged();
+        newValue?.RowNameChanged();
+    }
+
     /// <summary>What's next, "Title · Artist"; empty when nothing is loaded or queued.</summary>
     [ObservableProperty]
     public partial string NextText { get; private set; } = "";
@@ -42,9 +55,14 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
     {
         var decks = owner.ActiveDecks;
         DeckViewModel? live = decks.FirstOrDefault(d => d.Deck == mix.LiveDeck);
+        bool single = owner.SingleDeck;
         Now = live is { IsOnAir: true } ? live
             : decks.FirstOrDefault(d => d.IsOnAir)
-            ?? (live is { HasTrack: true } ? live : null);
+            // One deck (#462): the song that ended (or was paused) stays on screen until the next
+            // one starts, though auto-play's gap moves the crossfader across underneath.
+            ?? (single && Now is { HasTrack: true } shown && decks.Contains(shown) ? shown : null)
+            ?? (live is { HasTrack: true } || single ? live : null);
+        Waiting = single ? decks.FirstOrDefault(d => d != Now) : null;
         UpdateOrder(decks, Now ?? live);
 
         DeckViewModel? other = null;
@@ -54,10 +72,10 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
                 other = d;   // a loaded deck, one off air first
         }
         Track? next = other?.Track ?? (queue.Items.Count > 0 ? queue.Items[0].Track : null);
-        if ((other, next) == _next && next?.DisplayTitle == _nextTitle && next?.DisplayArtist == _nextArtist)
+        if ((other, next) == _next && next?.DisplayTitle == _nextTitle && next?.DisplayArtist == _nextArtist && single == _nextSingle)
             return;   // the same as on the last tick: no text made again (#365)
-        (_next, _nextTitle, _nextArtist) = ((other, next), next?.DisplayTitle, next?.DisplayArtist);
-        NextFrom = other is not null ? $"NEXT · DECK {other.Label}" : next is not null ? "NEXT · QUEUE" : "NEXT";
+        (_next, _nextTitle, _nextArtist, _nextSingle) = ((other, next), next?.DisplayTitle, next?.DisplayArtist, single);
+        NextFrom = other is not null ? single ? "NEXT" : $"NEXT · DECK {other.Label}" : next is not null ? "NEXT · QUEUE" : "NEXT";
         NextText = next is null ? "" : Describe(next);
     }
 
@@ -76,6 +94,7 @@ public sealed partial class AirLineViewModel(MainWindowViewModel owner, MixEngin
     /// <summary>Where the next song came from on the last tick, and what it said, so its text is made only when it changes.</summary>
     private (DeckViewModel? Deck, Track? Track) _next;
     private string? _nextTitle, _nextArtist;
+    private bool _nextSingle;
 
     private void UpdateOrder(IReadOnlyList<DeckViewModel> decks, DeckViewModel? first)
     {

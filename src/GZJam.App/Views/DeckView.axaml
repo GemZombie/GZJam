@@ -195,6 +195,16 @@
     <Style Selector="v|DeckView:not(.compact) Button#MoreButton">
       <Setter Property="c:FitRow.Overflow" Value="True" />
     </Style>
+    <!-- One deck (#462): what only matters with two or more is left off, and ⋯ always shows (the tempo is in it) -->
+    <Style Selector="v|DeckView.single :is(Control).decks-only">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="v|DeckView:not(.single) :is(Control).single-only">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="v|DeckView.single Button#MoreButton">
+      <Setter Property="c:FitRow.Overflow" Value="False" />
+    </Style>
   </UserControl.Styles>
 
   <Border x:Name="Frame" Classes="panel deck" Classes.onair="{Binding IsOnAir}" Classes.key-selected="{Binding IsKeySelected}">
@@ -214,7 +224,7 @@
         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
           <!-- The deck's name, printed like a label on hardware, then ON AIR while it plays -->
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,2">
-            <TextBlock x:Name="DeckName" Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
+            <TextBlock x:Name="DeckName" Classes="deck-name decks-only" Text="{Binding Label, StringFormat='DECK {0}'}"
                        Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
             <StackPanel x:Name="StatusLine" Grid.Column="1" Classes="status-line" Classes.idle="{Binding !ShowsStatus}" Orientation="Horizontal" Spacing="6">
               <Border Classes="led red" Classes.on="{Binding StatusLight}" />
@@ -272,7 +282,7 @@
         <Grid.ContextMenu>
           <ContextMenu x:Name="CompactSongMenu" />
         </Grid.ContextMenu>
-        <TextBlock x:Name="CompactDeckName" Classes="deck-number" Text="{Binding Label}" VerticalAlignment="Center"
+        <TextBlock x:Name="CompactDeckName" Classes="deck-number decks-only" Text="{Binding Label}" VerticalAlignment="Center"
                    Foreground="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
         <c:AlbumArt x:Name="CompactArt" Grid.Column="1" Width="24" Height="24" CornerRadius="2" VerticalAlignment="Center"
                     SongPath="{Binding Track?.Path}" Accent="{Binding Accent, RelativeSource={RelativeSource AncestorType=v:DeckView}}" />
@@ -420,7 +430,7 @@
           </Panel>
         </Button>
         <!-- Cue: this deck in the headphones, whatever the crossfader is doing -->
-        <ToggleButton x:Name="CueButton" Classes="hw cue-button" IsChecked="{Binding IsCueOn}"
+        <ToggleButton x:Name="CueButton" Classes="hw cue-button decks-only" IsChecked="{Binding IsCueOn}"
                       ToolTip.Tip="{Binding CueTip}">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Border Classes="led amber" Classes.on="{Binding IsCueOn}" />
@@ -431,20 +441,20 @@
                 IsEnabled="{Binding IsPlaying}" ToolTip.Tip="{Binding FadeOutTip}">
           <TextBlock Text="FADE OUT" />
         </Button>
-        <Panel x:Name="EjectPart" Classes="full-only" c:FitRow.DropOrder="1" VerticalAlignment="Center">   <!-- in ⋯ on a compact deck -->
+        <Panel x:Name="EjectPart" Classes="full-only decks-only" c:FitRow.DropOrder="1" VerticalAlignment="Center">   <!-- in ⋯ on a compact deck -->
           <Button Classes="link" Content="Eject" Command="{Binding EjectCommand}"
                   IsVisible="{Binding HasTrack}" IsEnabled="{Binding !IsPlaying}" VerticalAlignment="Center" />
         </Panel>
         <!-- The song in the headphones' preview, the deck left where it is (#378). On a compact
              deck too: it's as wide as a full one. -->
-        <Button x:Name="PreviewButton" Classes="row-icon deck-preview" c:FitRow.DropOrder="2" Classes.active="{Binding IsPreviewed}"
+        <Button x:Name="PreviewButton" Classes="row-icon deck-preview decks-only" c:FitRow.DropOrder="2" Classes.active="{Binding IsPreviewed}"
                 Command="{Binding PreviewSongCommand}" IsEnabled="{Binding CanPreview}" ToolTip.Tip="{Binding PreviewTip}" VerticalAlignment="Center">
           <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}"
                 StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
         </Button>
 
         <!-- The room left over, up to the fader's own width, kept to the right -->
-        <Grid Classes="tempo-part" c:FitRow.Fills="True" ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalAlignment="Center" HorizontalAlignment="Right">
+        <Grid Classes="tempo-part decks-only" c:FitRow.Fills="True" ColumnDefinitions="Auto,*" ColumnSpacing="4" VerticalAlignment="Center" HorizontalAlignment="Right">
           <Button Classes="link compact-only" Padding="2,0" Command="{Binding ResetTempoCommand}" VerticalAlignment="Center"
                   ToolTip.Tip="Tempo (pitch stays the same). Tap to reset.">
             <TextBlock Classes="mono" Text="{Binding TempoText}" FontSize="11" MinWidth="38" TextAlignment="Right" />
@@ -458,6 +468,9 @@
                           ToolTip.Tip="Tempo, ±8% (pitch stays the same). Drag; double-tap for 0." />
           </StackPanel>
         </Grid>
+
+        <!-- One deck (#462): the room the tempo fader had, so the BPM stays on the right -->
+        <Border Classes="single-only" c:FitRow.Fills="True" />
 
         <!-- Right-click (or long-press) the BPM to detect it again in a range -->
         <StackPanel x:Name="BpmPanel" c:FitRow.DropOrder="3" VerticalAlignment="Center" MinWidth="56" Background="Transparent"

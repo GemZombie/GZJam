@@ -32,6 +32,13 @@ public partial class DeckView : UserControl
     public static readonly StyledProperty<bool> IsTouchProperty =
         AvaloniaProperty.Register<DeckView, bool>(nameof(IsTouch));
 
+    /// <summary>
+    /// The one deck on screen (#462): no number, CUE, headphones key or Eject, since the queue
+    /// feeds it and it's always the room's; the tempo is in its ⋯ menu.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsSingleProperty =
+        AvaloniaProperty.Register<DeckView, bool>(nameof(IsSingle));
+
     /// <summary>A full deck's height; two compact decks and the gap between them fit in it.</summary>
     public const double FullHeight = 268;
     public const double CompactGap = 8;
@@ -42,6 +49,7 @@ public partial class DeckView : UserControl
         IsCompactProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
         IsTouchProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
         IsMiniProperty.Changed.AddClassHandler<DeckView>((view, _) => view.ApplyCompact());
+        IsSingleProperty.Changed.AddClassHandler<DeckView>((view, _) => view.Classes.Set("single", view.IsSingle));
     }
 
     /// <summary>How long the play button must be held to pause an on-air deck (when two-tap pausing is on).</summary>
@@ -147,6 +155,12 @@ public partial class DeckView : UserControl
         set => SetValue(IsTouchProperty, value);
     }
 
+    public bool IsSingle
+    {
+        get => GetValue(IsSingleProperty);
+        set => SetValue(IsSingleProperty, value);
+    }
+
     // ───────────── Close-up ─────────────
 
     /// <summary>Four decks: this deck shows its close-up instead of the whole song (zoomed in on demand).</summary>
@@ -201,6 +215,9 @@ public partial class DeckView : UserControl
 
     internal MenuFlyout MoreMenu => (MenuFlyout)MoreButton.Flyout!;
 
+    /// <summary>The tempo steps in one deck's ⋯ menu (#462), within the fader's ±8%.</summary>
+    private static readonly double[] TempoSteps = [8, 6, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -8];
+
     /// <summary>The ⋯ menu on a compact deck: what the full deck has room to show.</summary>
     private void FillMoreMenu() => FillSongMenu(MoreMenu.Items);
 
@@ -223,6 +240,32 @@ public partial class DeckView : UserControl
         var playlists = new MenuItem { Header = "Add to playlist" };
         PlaylistsMenu.Fill(playlists, vm.Owner, [track]);
         var eject = new MenuItem { Header = "Eject", IsEnabled = !vm.IsPlaying, Command = vm.EjectCommand };
+        if (IsSingle)
+        {
+            // One deck (#462): no tempo fader, for DJs who play songs as they are; here if needed.
+            var tempo = new MenuItem { Header = $"Tempo {vm.TempoText}" };
+            foreach (double percent in TempoSteps)
+            {
+                var step = new MenuItem
+                {
+                    Header = percent == 0 ? "0% (as recorded)" : $"{percent:+0;−0}%",
+                    ToggleType = MenuItemToggleType.Radio,
+                    IsChecked = Math.Abs(vm.TempoPercent - percent) < 0.05,
+                };
+                step.Click += (_, _) => vm.TempoPercent = percent;
+                tempo.Items.Add(step);
+            }
+            foreach (GZJam.Library.SongCue cue in vm.Cues)
+                items.Add(new MenuItem { Header = $"Go to cue {cue.Number} ({Time(cue.At)})", Command = vm.GoToCueCommand, CommandParameter = cue.Number });
+            if (vm.HasCues)
+                items.Add(new Separator());
+            items.Add(rating);
+            items.Add(energy);
+            items.Add(bpm);
+            items.Add(tempo);
+            items.Add(playlists);
+            return;
+        }
         var preview = new MenuItem
         {
             Header = vm.IsPreviewed ? "Stop the preview" : "Preview in headphones",

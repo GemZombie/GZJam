@@ -769,6 +769,21 @@ public sealed partial class DeckViewModel : ObservableObject
     /// <summary>The deck's number, 1 to 4.</summary>
     public int Number => int.TryParse(Label, out int number) ? number : 0;
 
+    /// <summary>
+    /// The deck's name on its row atop the queue and on the hidden decks' line: "DECK 2", or with
+    /// one deck (#462), where the numbers mean nothing, what it is: "NOW PLAYING" or "NEXT".
+    /// </summary>
+    public string RowName => !_owner.SingleDeck ? $"DECK {Label}" : _owner.AirLine?.Now == this ? "NOW PLAYING" : "NEXT";
+
+    /// <summary>Whose color the deck wears: its own, or with one deck (#462) always Deck 1's, as the one deck on screen does.</summary>
+    public string AccentLabel => _owner.SingleDeck ? "1" : Label;
+
+    internal void RowNameChanged()
+    {
+        OnPropertyChanged(nameof(RowName));
+        OnPropertyChanged(nameof(AccentLabel));
+    }
+
     private void OnKeysChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(PlayTip));
@@ -860,6 +875,8 @@ public sealed partial class DeckViewModel : ObservableObject
             return;
         if (!IsPlaying)
         {
+            if (_owner.SingleDeck && !IsInRoom && !PutInRoom())
+                return;
             if (IsInRoom && _owner.OnAirBeside(this) is { } other)
             {
                 // Two songs at once in the room, with no fader between them.
@@ -887,6 +904,24 @@ public sealed partial class DeckViewModel : ObservableObject
             Pause("tap");
         }
         Refresh();
+    }
+
+    /// <summary>
+    /// With one deck (#462) there's no crossfader on screen, so playing the next song puts it in
+    /// the room, while nothing else is playing there: two songs at once would need a fade between
+    /// them. Returns whether it's in the room now.
+    /// </summary>
+    private bool PutInRoom()
+    {
+        if (_owner.ActiveDecks.FirstOrDefault(d => d != this && d.IsOnAir) is { } playing)
+        {
+            ShowHint("A song is playing. Fade it out first");
+            Log.Info($"Deck {Label}: play refused (one deck; Deck {playing.Label} is playing to the room)");
+            return false;
+        }
+        _owner.Mixer?.SetNow(Crossfade.Side(Deck.Index));
+        Log.Info($"Deck {Label}: in the room to play (one deck)");
+        return true;
     }
 
     /// <summary>A completed press-and-hold on play/pause: always pauses. Returns whether it paused.</summary>

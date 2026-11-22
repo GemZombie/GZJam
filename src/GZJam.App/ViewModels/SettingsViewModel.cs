@@ -369,6 +369,31 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
+    public IReadOnlyList<Choice<int>> DeckCountChoices { get; } =
+    [
+        new(1, "One"),
+        new(2, "Two"),
+        new(4, "Four"),
+    ];
+
+    /// <summary>How many decks are on screen: one (#462), two or four.</summary>
+    public Choice<int> DeckCountChoice
+    {
+        get => DeckCountChoices.First(c => c.Value == _owner.DeckCount);
+        set
+        {
+            if (value is not null)
+                _owner.SetDeckCount(value.Value);
+            OnPropertyChanged();   // refused (a deck is playing): the choice goes back
+        }
+    }
+
+    internal void DeckCountChanged()
+    {
+        OnPropertyChanged(nameof(FourDecks));
+        OnPropertyChanged(nameof(DeckCountChoice));
+    }
+
     public double FadeOutSeconds
     {
         get => _settings.FadeOutSeconds;

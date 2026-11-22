@@ -70,7 +70,7 @@ public partial class MainWindow
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName is nameof(MainWindowViewModel.FourDecks) or nameof(MainWindowViewModel.CompactDecks)
-                    or nameof(MainWindowViewModel.DecksHidden))
+                    or nameof(MainWindowViewModel.DecksHidden) or nameof(MainWindowViewModel.SingleDeck))
                     ApplyDeckLayout();
             };
             vm.Settings.PropertyChanged += (_, e) =>
@@ -86,7 +86,10 @@ public partial class MainWindow
                 airLine.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName == nameof(AirLineViewModel.Now))
+                    {
                         ColorAirLine(airLine.Now);
+                        ShowSingleDeck();
+                    }
                 };
                 ColorAirLine(airLine.Now);
             }
@@ -98,7 +101,7 @@ public partial class MainWindow
     /// <summary>The hidden decks' line (#164) in the colors of the deck it shows, as the deck itself is.</summary>
     private void ColorAirLine(DeckViewModel? deck)
     {
-        IBrush accent = deck is not null && this.TryFindResource($"Deck{deck.Label}Brush", out object? found) && found is IBrush brush
+        IBrush accent = deck is not null && this.TryFindResource($"Deck{deck.AccentLabel}Brush", out object? found) && found is IBrush brush
             ? brush
             : (IBrush)this.FindResource("MutedBrush")!;
         AirDeckName.Foreground = AirTimeLeft.Foreground = AirPlayButton.Foreground = AirPlayButton.BorderBrush = accent;
@@ -124,12 +127,14 @@ public partial class MainWindow
     /// </summary>
     private void ApplyDeckLayout()
     {
-        bool four = Vm.FourDecks, compact = Vm.CompactDecks;
+        bool four = Vm.FourDecks, compact = Vm.CompactDecks, single = Vm.SingleDeck;
         foreach (DeckView view in DeckViews)
         {
             view.IsCompact = four || compact;
             view.IsMini = four && compact;
+            view.IsSingle = single;
         }
+        ApplySingleDeck(single);
         Deck3View.IsVisible = Deck4View.IsVisible = four;
         DecksRow.IsVisible = !Vm.DecksHidden;   // the air line stands in (#164)
         foreach (Grid side in new[] { LeftDecks, RightDecks })
@@ -146,7 +151,10 @@ public partial class MainWindow
             Dispatcher.UIThread.Post(() =>
             {
                 if (Vm.CompactDecks && !Vm.DecksHidden)
-                    MixerPanel.MaxHeight = Math.Max(LeftDecks.DesiredSize.Height, RightDecks.DesiredSize.Height);
+                {
+                    MixerPanel.MaxHeight = Math.Max(LeftDecks.DesiredSize.Height, RightDecks.DesiredSize.Height)
+                        + (Vm.SingleDeck ? NextStrip.DesiredSize.Height : 0);   // one deck: beside the Next strip too (#462)
+                }
             }, DispatcherPriority.Loaded);
         }
         MixerPanel.Padding = compact ? new Thickness(12, 8) : new Thickness(14, 12);
@@ -167,6 +175,34 @@ public partial class MainWindow
             MixerPanel.Resources["CrossfaderHeight"] = Vm.Settings.TouchMode ? 40.0 : 30.0;
         else
             MixerPanel.Resources.Remove("CrossfaderHeight");
+    }
+
+    /// <summary>
+    /// One deck (#462): the deck takes the width of the decks, the mixer beside it on the right,
+    /// with no crossfader or side keys (playing the next song puts it in the room), and the Next
+    /// strip under the deck. Both players' views share the place; the one the room hears shows.
+    /// </summary>
+    private void ApplySingleDeck(bool single)
+    {
+        DecksRow.ColumnDefinitions = ColumnDefinitions.Parse(single ? "*,212" : "*,212,*");
+        Grid.SetColumn(RightDecks, single ? 0 : 2);
+        Deck2View.Classes.Set("meter-left", !single);   // its meter beside the mixer, as Deck 1's
+        Deck2View.Accent = (IBrush)this.FindResource(single ? "Deck1Brush" : "Deck2Brush")!;
+        Crossfader.IsVisible = LeftSideButton.IsVisible = RightSideButton.IsVisible = !single;
+        NextStrip.IsVisible = single;
+        Grid.SetColumn(RoomEqKey, single ? 0 : 1);
+        Grid.SetColumnSpan(RoomEqKey, single ? 3 : 1);
+        RoomEqKey.Margin = single ? default : new Thickness(6, 0);
+        ShowSingleDeck();
+    }
+
+    /// <summary>With one deck, the player the room hears (or last heard) is the one on screen.</summary>
+    private void ShowSingleDeck()
+    {
+        bool single = Vm.SingleDeck;
+        bool second = single && Vm.AirLine?.Now is { } now && now == Vm.Deck2;
+        LeftDecks.IsVisible = !single || !second;
+        RightDecks.IsVisible = !single || second;
     }
 
     // ───────────── The grip under the decks ─────────────

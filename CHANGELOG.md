@@ -13,6 +13,16 @@ picture, this is what changed. The whole routine: docs/RELEASING.md.
 
 ## Unreleased
 
+New:
+
+- **One deck, for playing from a list** (#462). Settings › Decks › *Decks* now offers one, two
+  or four. With one, the deck shows the song the room hears, the width of the decks, with its
+  waveform, time, EQ, FADE OUT and play key; what plays next is on a strip under it, with its own
+  🎧 and EQ. There's no crossfader, CUE or deck numbers: play the next song and the room hears it.
+  Underneath it's still two players, so the next song is read ahead and auto-play's gap works as
+  before; the song that ended stays on the deck until the next one starts. Compact and hidden work
+  as with two decks, their rows saying NOW PLAYING and NEXT.
+
 Fixed:
 
 - **Song times line up on the right again** (#459). After browsing folders of different songs,

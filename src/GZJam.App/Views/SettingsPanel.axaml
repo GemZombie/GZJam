@@ -173,10 +173,10 @@
               <StackPanel>
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="2">
-                    <TextBlock Classes="setting" Text="Four decks" />
-                    <TextBlock Classes="setting-help" Text="Decks 3 and 4 sit under 1 and 2, each half height. The crossfader fades 1 and 3 against 2 and 4." />
+                    <TextBlock Classes="setting" Text="Decks" />
+                    <TextBlock Classes="setting-help" Text="One: the song playing, with what's next under it and no crossfader, for playing from a list. Two: the usual. Four: 3 and 4 under 1 and 2, each half height; the crossfader fades 1 and 3 against 2 and 4." />
                   </StackPanel>
-                  <ToggleButton x:Name="FourDecksSwitch" Grid.Column="1" Classes="switch" VerticalAlignment="Center" IsChecked="{Binding FourDecks}" />
+                  <ComboBox x:Name="DeckCountBox" Grid.Column="1" VerticalAlignment="Center" ItemsSource="{Binding DeckCountChoices}" SelectedItem="{Binding DeckCountChoice}" />
                 </Grid>
                 <Border Classes="settings-rule" />
                 <Grid Classes="settings-row" ColumnDefinitions="*,Auto">

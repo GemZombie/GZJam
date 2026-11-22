@@ -96,6 +96,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             mix.MainDropout += (_, gap) => OnMainDropout(gap);
             Decks = mix.Decks.Select(d => new DeckViewModel(this, d, settings)).ToList();
             _deckCount = settings.DeckCount == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
+            _single = settings.DeckCount == 1 && Decks.Count >= 2;
             Mixer = new MixerViewModel(this, mix, settings);
             RoomEq = new RoomEqViewModel(this, mix, settings);
             AirLine = new AirLineViewModel(this, mix, Queue);
@@ -954,6 +955,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Four decks on screen rather than two (a setting).</summary>
     public bool FourDecks => _deckCount == 4;
 
+    private bool _single;
+
+    /// <summary>
+    /// One deck on screen (#462): the song the room hears, with what's next under it, for DJs who
+    /// play from a list. Two decks underneath (<see cref="ActiveDecks"/>), so the next song is
+    /// loaded and read ahead, and the gap and auto-play work as with two; there's just no crossfader
+    /// to move: playing the next song puts it in the room.
+    /// </summary>
+    public bool SingleDeck => _single;
+
+    /// <summary>How many decks are on screen: 1, 2 or 4.</summary>
+    public int DeckCount => _single ? 1 : _deckCount;
+
     /// <summary>Smaller decks, for more songs in the library and queue (see <see cref="AppSettings.CompactDecks"/>).</summary>
     public bool CompactDecks
     {
@@ -1092,19 +1106,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Shows 2 or 4 decks. Going back to 2 is refused while Deck 3 or 4 is playing; otherwise
-    /// they're emptied. Returns whether it changed.
+    /// Shows 1, 2 or 4 decks. Going back from 4 is refused while Deck 3 or 4 is playing; otherwise
+    /// they're emptied. One deck keeps two underneath (<see cref="SingleDeck"/>), so nothing
+    /// playing stops. Returns whether it changed.
     /// </summary>
     public bool SetDeckCount(int count)
     {
-        count = count == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
-        if (count == _deckCount)
+        bool single = count == 1 && Decks.Count >= 2;
+        int players = count == 4 && Decks.Count >= 4 ? 4 : Math.Min(2, Decks.Count);
+        if (players == _deckCount && single == _single)
             return false;
-        var hidden = Decks.Skip(count).ToList();
+        var hidden = Decks.Skip(players).ToList();
         if (hidden.FirstOrDefault(d => d.IsPlaying) is { } playing)
         {
-            ShowNotice($"Deck {playing.Label} is playing. Stop it before going back to two decks.");
-            OnPropertyChanged(nameof(FourDecks));   // put the switch back
+            ShowNotice($"Deck {playing.Label} is playing. Stop it before going {(single ? "to one deck" : "back to two decks")}.");
+            DeckCountChanged();   // put the switch back
             return false;
         }
         foreach (DeckViewModel deck in hidden)
@@ -1112,14 +1128,31 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             deck.IsCueOn = false;
             deck.EjectCommand.Execute(null);
         }
-        _deckCount = count;
-        _settings.DeckCount = count;
-        Log.Info($"Decks: {count}");
-        OnPropertyChanged(nameof(FourDecks));
+        if (single)
+        {
+            foreach (DeckViewModel deck in Decks)
+                deck.IsCueOn = false;   // one deck has no CUE key to turn it off again
+        }
+        _deckCount = players;
+        _single = single;
+        _settings.DeckCount = DeckCount;
+        Log.Info($"Decks: {DeckCount}");
+        DeckCountChanged();
         OnPropertyChanged(nameof(ActiveDecks));
         Mixer?.DeckCountChanged();
         AutoPlay?.Refresh();
+        AirLine?.Refresh();
+        foreach (DeckViewModel deck in Decks)
+            deck.RowNameChanged();
         return true;
+    }
+
+    private void DeckCountChanged()
+    {
+        OnPropertyChanged(nameof(FourDecks));
+        OnPropertyChanged(nameof(SingleDeck));
+        OnPropertyChanged(nameof(DeckCount));
+        Settings.DeckCountChanged();
     }
 
     /// <summary>
