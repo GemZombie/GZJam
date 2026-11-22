@@ -143,8 +143,19 @@ says so, and how to avoid it (choose another output as Windows' default).
 
 ## Decks
 
-Two decks to start with; four if you turn on **Four decks** in Settings › Decks (Deck 3 under
+Two decks to start with. Settings › Decks › *Decks* offers one, two or four (four: Deck 3 under
 Deck 1, Deck 4 under Deck 2, each half height).
+
+**One deck**, if you play from a list rather than mixing: the deck shows the song the room hears,
+across the width of the decks, with the mixer beside it, and **NEXT** on a strip under it: the song
+that plays next, with its 🎧 to hear it in the headphones and its own EQ. Double-click a song, or
+drag it onto the strip, to make it next; the queue and auto-play feed it as usual. There's no
+crossfader, CUE or deck numbers: when the song playing has ended (or is paused), the play key on
+the strip starts the next one in the room. While a song is playing, fade it out first, or let
+auto-play move on. Through auto-play's gap, the song that ended stays on the deck and the strip
+counts down (*STARTS IN 3*) until the next one starts. The tempo, rarely needed this way, is in
+the deck's **⋯** menu. Compact and hidden decks work as with two, their rows saying NOW PLAYING and
+NEXT. Underneath it's two players, so the next song is read ahead and starts without a blip.
 
 **Deck size:** on a laptop, the decks can be made smaller so the library and queue show more songs.
 The switch beside the gear in the top bar has three keys: **full** decks, **compact** decks, and
@@ -1047,7 +1058,7 @@ no title bar (and so no close button), or a touch screen. It asks first while th
   level** (how loud songs come out once matched: *Usual*, or 2, 4 or 7 dB lower for more headroom
   on a mixer or PA that clips easily, so turn its channel up to make up for it), and **Protection
   against crackles** (Normal: higher if the sound crackles or drops out, see below).
-- **Decks:** *Four decks*, *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
+- **Decks:** *Decks* (one, two or four), *Compact decks*, *Fade-out length*, *Loading a playing deck* (Block it, Ask first, Allow
   it), *Pausing or fading out the live deck* (Tap, or Tap twice).
 - **Screen:** **Touch mode**: bigger keys, rows, menus and crossfader for fingers. Touch works
   either way.

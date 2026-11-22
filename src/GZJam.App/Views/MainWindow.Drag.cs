@@ -277,10 +277,10 @@ public partial class MainWindow
         return IsOver(QueueArea, at) ? QueueArea : null;
     }
 
-    /// <summary>Hidden decks' rows atop the queue (#177), when they show.</summary>
-    private IEnumerable<Border> DeckRows => QueueDecks.IsEffectivelyVisible
+    /// <summary>Hidden decks' rows atop the queue (#177), and one deck's Next strip (#462), when they show.</summary>
+    private IEnumerable<Border> DeckRows => (QueueDecks.IsEffectivelyVisible
         ? QueueDecks.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("deck-row"))
-        : [];
+        : []).Concat(NextStrip.IsEffectivelyVisible ? [NextStrip] : []);
 
     private static void SetRowDropState(Border row, bool? accepted)
     {

@@ -2573,6 +2573,29 @@ A DJ trying GZJam on a laptop saw 6 songs in the library and 5 in the queue (Mix
   with a `CustomSortComparer`. A tag sharing a name with one of GZJam's columns is "Energy (tag)".
 - Not in the queue's parts, *Search only in* or exports yet.
 
+### Status: one deck (#462, 1.10)
+
+From a DJ who plays from a list (Embrace and Apple Music): two decks were confusing; what matters
+is what's playing and what's next.
+
+- `AppSettings.DeckCount` 1: `MainWindowViewModel.SingleDeck`, with `ActiveDecks` still Decks 1
+  and 2. Nothing in the audio changes: read-ahead, auto-play's gap and its crossfader glide work
+  as with two; the crossfader is just not on screen.
+- `AirLineViewModel.Now` is the deck on screen. With one deck it holds on to the song that ended
+  (or was paused) until another plays to the room, though the gap's glide moves the crossfader
+  across underneath. `Waiting` is the other player, for the Next strip (`NextStrip`, a
+  `deck-row`, so drops reach it through `DeckRows`).
+- Play on a player out of the room (`DeckViewModel.PutInRoom`): with nothing else on air, the
+  crossfader is set to its side at once (silent: nothing is playing) and it plays; with a song on
+  air, refused with a hint, since two songs in the room need a fade between them.
+- `DeckView.IsSingle` (class `single`): `decks-only` parts left off (number, CUE, 🎧, Eject, tempo
+  fader); ⋯ always shows, with Tempo steps (±8%) in it. Both players' views share column 0 of
+  `DecksRow` ("*,212"); the one `Now` names shows, in Deck 1's color, its meter beside the mixer.
+- `DeckViewModel.RowName` / `AccentLabel`: NOW PLAYING / NEXT and Deck 1's color for the rows atop
+  the queue and the hidden decks' line.
+- Still to come under #462: the countdown on the strip large, with a draining bar; tonight's
+  played songs above the queue.
+
 ### Status: hidden decks atop the queue (#177, 0.9.4)
 
 - A DJ's suggestion after trying hidden decks (#164): the line at the top said what's playing and

@@ -189,7 +189,7 @@
             </Panel>
           </Button>
           <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" IsVisible="{Binding AirLine?.HasNow}">
-            <TextBlock x:Name="AirDeckName" Classes="deck-name" Text="{Binding AirLine?.Now?.Label, StringFormat='DECK {0}'}" />
+            <TextBlock x:Name="AirDeckName" Classes="deck-name" Text="{Binding AirLine?.Now?.RowName}" />
             <TextBlock Classes="status" Classes.air="{Binding AirLine?.Now?.IsOnAir, TargetNullValue=False}" Text="{Binding AirLine?.Now?.Status}" FontSize="10" />
           </StackPanel>
           <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
@@ -220,7 +220,7 @@
     </Border>
 
     <!-- ───────────── Decks + mixer ───────────── -->
-    <Grid x:Name="DecksRow" Grid.Row="1" ColumnDefinitions="*,212,*" ColumnSpacing="12">
+    <Grid x:Name="DecksRow" Grid.Row="1" ColumnDefinitions="*,212,*" RowDefinitions="*,Auto" ColumnSpacing="12">
       <!-- The row is as tall as the decks or the mixer column need, whichever is more. With four
            decks, 3 sits under 1 and 4 under 2, all four the same height (MainWindow.ApplyDeckLayout). -->
       <Grid x:Name="LeftDecks" RowDefinitions="*,Auto">
@@ -232,7 +232,7 @@
 
       <!-- The mixer strip: the speakers' meter and limit light, main and phones faders, the phones
            mix, the crossfader -->
-      <Border x:Name="MixerPanel" Grid.Column="1" Classes="panel" Padding="14,12">
+      <Border x:Name="MixerPanel" Grid.Column="1" Grid.RowSpan="2" Classes="panel" Padding="14,12">
         <Grid RowDefinitions="*,Auto,Auto" RowSpacing="6" DataContext="{Binding Mixer}" x:DataType="vm:MixerViewModel">
           <Grid x:Name="UprightFaders" ColumnDefinitions="44,*,*" RowDefinitions="*,Auto" RowSpacing="5">
             <c:LevelMeter x:Name="MainMeter" IsMono="{Binding IsMono}" Left="{Binding LevelLeft}" Right="{Binding LevelRight}"
@@ -332,6 +332,65 @@
         <v:DeckView x:Name="Deck4View" Grid.Row="1" Classes="meter-left" Label="4" Accent="{StaticResource Deck4Brush}"
                     IsVisible="False" DataContext="{Binding Deck4}" />
       </Grid>
+
+      <!-- One deck (#462): what plays next, under the deck. The other player, as a row like the
+           decks' atop the queue: its play key starts it in the room (with nothing playing there),
+           and a song dropped on it loads it, protected as on a deck. -->
+      <Border x:Name="NextStrip" Grid.Row="1" Classes="panel deck-row next-strip" IsVisible="False"
+              DataContext="{Binding AirLine.Waiting, FallbackValue={x:Null}}" x:DataType="vm:DeckViewModel"
+              Classes.empty="{Binding !HasTrack, FallbackValue=True}" ClipToBounds="True">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="10" Margin="10,6">
+          <Button x:Name="NextPlayButton" Classes="play deck-row-play" Width="30" Height="30" Classes.playing="{Binding IsPlaying}"
+                  Command="{Binding TogglePlayCommand}" IsEnabled="{Binding HasTrack, FallbackValue=False}" ToolTip.Tip="Play it now (with nothing else playing)"
+                  Foreground="{StaticResource Deck1Brush}" BorderBrush="{StaticResource Deck1Brush}" VerticalAlignment="Center">
+            <Panel>
+              <c:ShapeIcon Data="{StaticResource IconPlay}" Width="10" Height="10" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding !IsPlaying}" />
+              <c:ShapeIcon Data="{StaticResource IconPause}" Width="9" Height="9" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding IsPlaying}" />
+            </Panel>
+          </Button>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" MinWidth="54">
+            <TextBlock Classes="deck-name" Text="NEXT" Foreground="{StaticResource Deck1Brush}" />
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <Border Classes="led red" Classes.on="{Binding StatusLight}" IsVisible="{Binding ShowsStatus}" Width="5" Height="5" VerticalAlignment="Center" />
+              <TextBlock x:Name="NextStatus" Classes="status" Text="{Binding Status}" FontSize="9.5" />
+            </StackPanel>
+          </StackPanel>
+          <c:AlbumArt Grid.Column="2" Classes="song" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center"
+                      SongPath="{Binding Track.Path, FallbackValue={x:Null}}" />
+          <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="1">
+            <TextBlock x:Name="NextTitle" Text="{Binding Title, FallbackValue=''}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"
+                       IsVisible="{Binding HasTrack}" />
+            <TextBlock Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis"
+                       Text="{Binding Track.DisplayArtist, FallbackValue='Double-click a song, or drag one here'}" />
+          </StackPanel>
+          <Border Grid.Column="4" Classes="hint" VerticalAlignment="Center"
+                  IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+            <TextBlock Text="{Binding Hint}" />
+          </Border>
+          <Button x:Name="NextEqButton" Grid.Column="5" Classes="eq-chip" Classes.on="{Binding Eq.IsSet}" VerticalAlignment="Center"
+                  IsVisible="{Binding HasTrack}" ToolTip.Tip="EQ for this song: low, mid, high (e.g. less hiss)">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Border Classes="led accent" Classes.on="{Binding Eq.IsSet}" />
+              <TextBlock Text="EQ" />
+            </StackPanel>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="eq">
+                <v:EqPanel DataContext="{Binding Eq}" />
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button x:Name="NextPreviewButton" Grid.Column="6" Classes="row-icon deck-preview" Classes.active="{Binding IsPreviewed}"
+                  Command="{Binding PreviewSongCommand}" IsEnabled="{Binding CanPreview, FallbackValue=False}" ToolTip.Tip="{Binding PreviewTip}"
+                  IsVisible="{Binding HasTrack}" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconHeadphones}" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="2.2" Stretch="Uniform" Width="14" Height="13" />
+          </Button>
+          <StackPanel Grid.Column="7" VerticalAlignment="Center" MinWidth="64" IsVisible="{Binding HasTrack}">
+            <TextBlock x:Name="NextLength" Classes="mono readout-text" Text="{Binding TimeLeftText}" FontSize="15" FontWeight="SemiBold"
+                       HorizontalAlignment="Right" Foreground="{StaticResource Deck1Brush}" />
+            <TextBlock Classes="muted mono" Text="{Binding BpmText, StringFormat='{}{0} BPM'}" FontSize="10.5" HorizontalAlignment="Right" />
+          </StackPanel>
+        </Grid>
+      </Border>
     </Grid>
 
     <!-- Drag up for smaller decks and more songs, further for hidden ones; down for bigger (or tap): MainWindow.Decks -->
@@ -1293,8 +1352,8 @@
                     <c:FitRow x:Name="DeckRow" Spacing="6" FillMinWidth="74" Margin="8,7,10,7">
                       <Button Classes="play deck-row-play" Width="30" Height="30" Classes.playing="{Binding IsPlaying}" Classes.armed="{Binding IsPauseArmed}"
                               Command="{Binding TogglePlayCommand}" IsEnabled="{Binding HasTrack}" ToolTip.Tip="{Binding PlayTip}"
-                              Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}"
-                              BorderBrush="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" VerticalAlignment="Center">
+                              Foreground="{Binding AccentLabel, Converter={x:Static app:Converters.DeckAccent}}"
+                              BorderBrush="{Binding AccentLabel, Converter={x:Static app:Converters.DeckAccent}}" VerticalAlignment="Center">
                         <Panel>
                           <c:ShapeIcon Data="{StaticResource IconPlay}" Width="10" Height="10" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding !IsPlaying}" />
                           <c:ShapeIcon Data="{StaticResource IconPause}" Width="9" Height="9" Fill="{Binding $parent[Button].Foreground}" IsVisible="{Binding IsPlaying}" />
@@ -1302,8 +1361,8 @@
                       </Button>
                       <!-- At the very narrowest, after everything else: the play key keeps the deck's color -->
                       <StackPanel c:FitRow.DropOrder="14" VerticalAlignment="Center" Spacing="2" MinWidth="50">
-                        <TextBlock Classes="deck-name" Text="{Binding Label, StringFormat='DECK {0}'}"
-                                   Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
+                        <TextBlock Classes="deck-name" Text="{Binding RowName}"
+                                   Foreground="{Binding AccentLabel, Converter={x:Static app:Converters.DeckAccent}}" />
                         <TextBlock Classes="status" Classes.air="{Binding IsOnAir}" Text="{Binding Status}" FontSize="9.5" />
                       </StackPanel>
                       <c:AlbumArt c:FitRow.Key="Art" c:FitRow.DropOrder="7" Classes="q-art song" Width="30" Height="30" CornerRadius="2" VerticalAlignment="Center" Margin="2,0,0,0"
@@ -1338,7 +1397,7 @@
                            the BPM and the rest line up with the queue's below -->
                       <TextBlock c:FitRow.Key="TimeLeft" Classes="mono readout-text" Classes.blink="{Binding IsReadoutDimmed}" TextAlignment="Right"
                                  Text="{Binding TimeLeftText}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
-                                 Foreground="{Binding Label, Converter={x:Static app:Converters.DeckAccent}}" />
+                                 Foreground="{Binding AccentLabel, Converter={x:Static app:Converters.DeckAccent}}" />
                     </c:FitRow>
                     <!-- How far into the song the room is (#165) -->
                     <c:AirBar Classes="deck-row-bar" Progress="{Binding AirProgress}" Fill="{StaticResource OnAirBrush}"
