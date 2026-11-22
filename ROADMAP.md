@@ -218,8 +218,8 @@ Fixes come as 1.9.1, 1.9.2 and so on. Found something? Say so in
 **After that:**
 - [Keys without Ctrl](https://github.com/GemZombie/GZJam/issues/454): plain keys you choose, which
   work when you're not typing in a box
-- [Playlist mode](https://github.com/GemZombie/GZJam/issues/462): what's playing and what's next,
-  without decks. One list for the night, a waveform for the song playing, its EQ a tap away
+- [Single deck](https://github.com/GemZombie/GZJam/issues/462), for DJs who play from a list: the
+  song playing with its waveform and EQ, what's next under it, and the night as one list
 - [Group different versions of the same song](https://github.com/GemZombie/GZJam/issues/9), to
   choose between them when it's time to play one
 - [iTunes / Music as a library source](https://github.com/GemZombie/GZJam/issues/97), kept in
